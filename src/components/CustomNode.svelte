@@ -1,23 +1,15 @@
 <script lang="ts">
     import { Handle, Position } from '@xyflow/svelte';
-    import type { MagicNodeData } from '../systems/magicCalculator';
+    import type { MagicNodeData, MagicType } from '../systems/magicCalculator';
+    import magicTypesData from '../data/magicTypes.json';
 
     let { data, isConnectable }: { data: MagicNodeData; isConnectable?: boolean } = $props();
 
-    const typeColors: Record<string, string> = {
-        fire:   '#e74c3c',
-        water:  '#3498db',
-        wind:   '#2ecc71',
-        earth:  '#e67e22',
-        arcane: '#9b59b6',
-    };
+    const magicTypes = magicTypesData as { type: MagicType; icon: string; color: string }[];
+    const nodeConfig = $derived(magicTypes.find(t => t.type === data.magicType));
 
-    const typeIcons: Record<string, string> = {
-        fire: '🔥', water: '💧', wind: '🌪️', earth: '🪨', arcane: '✨',
-    };
-
-    const color  = $derived(typeColors[data.magicType] || '#888');
-    const icon   = $derived(typeIcons[data.magicType]  || '?');
+    const color  = $derived(nodeConfig?.color || '#888');
+    const icon   = $derived(nodeConfig?.icon  || '?');
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
 </script>

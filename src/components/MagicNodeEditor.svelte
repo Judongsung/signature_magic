@@ -24,10 +24,15 @@
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
     import type { MagicType } from '../systems/magicCalculator';
+    // 노드 타입 데이터는 JSON에서 로드합니다.
+    import magicTypesData from '../data/magicTypes.json';
 
     const nodeTypes = { magicNode: CustomNode };
     const edgeTypes = { magicEdge: CustomEdge };
     const { screenToFlowPosition } = useSvelteFlow();
+
+    // JSON 데이터를 MagicType으로 타입 단언하여 사용합니다.
+    const magicTypes = magicTypesData as { type: MagicType; icon: string; color: string }[];
 
     // ── 드래그 앤 드롭 ──────────────────────────────────────────────────────
 
@@ -49,16 +54,6 @@
         const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
         graphStore.addNode(magicType, position);
     }
-
-    // ── 툴바 데이터 ────────────────────────────────────────────────────────
-
-    const magicTypes: { type: MagicType; icon: string }[] = [
-        { type: 'fire',   icon: '🔥' },
-        { type: 'water',  icon: '💧' },
-        { type: 'wind',   icon: '🌪️' },
-        { type: 'earth',  icon: '🪨' },
-        { type: 'arcane', icon: '✨' },
-    ];
 </script>
 
 <div class="editor-container">
@@ -104,11 +99,8 @@
             connectionMode={ConnectionMode.Strict}
             isValidConnection={(edge) => graphStore.checkConnection(edge)}
             onbeforeconnect={(conn) => graphStore.prepareEdge(conn)}
-            onconnect={(conn: Connection) => graphStore.tryConnect(conn)}
-            ondelete={({ nodes: ns, edges: es }) => {
-                if (ns.length) graphStore.removeNodes(ns as any);
-                if (es.length) graphStore.removeEdges(es);
-            }}
+            onconnect={(conn: Connection) => graphStore.onEdgeConnected(conn)}
+            ondelete={({ nodes: ns, edges: es }) => graphStore.onDelete(ns as any, es)}
             deleteKey="Delete"
             fitView
         >

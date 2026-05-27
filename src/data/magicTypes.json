@@ -1,0 +1,7 @@
+[
+    { "type": "fire",   "icon": "🔥", "color": "#e74c3c" },
+    { "type": "water",  "icon": "💧", "color": "#3498db" },
+    { "type": "wind",   "icon": "🌪️", "color": "#2ecc71" },
+    { "type": "earth",  "icon": "🪨", "color": "#e67e22" },
+    { "type": "arcane", "icon": "✨", "color": "#9b59b6" }
+]
