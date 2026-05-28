@@ -1,19 +1,26 @@
 <script lang="ts">
     import { SvelteFlowProvider } from '@xyflow/svelte';
+    import { APP_PHASES } from './constants/gameConfigs';
+    import { appStore } from './stores/appStore.svelte';
+    import CyoaIntroScreen from './components/CyoaIntroScreen.svelte';
     import MagicNodeEditor from './components/MagicNodeEditor.svelte';
     import MagicCircleGenerator from './components/MagicCircleGenerator.svelte';
 </script>
 
-<main class="app-container">
-    <div class="editor-pane">
-        <SvelteFlowProvider>
-            <MagicNodeEditor />
-        </SvelteFlowProvider>
-    </div>
-    <div class="preview-pane">
-        <MagicCircleGenerator />
-    </div>
-</main>
+{#if appStore.phase === APP_PHASES.CYOA}
+    <CyoaIntroScreen />
+{:else if appStore.phase === APP_PHASES.NODE_COMPOSITION}
+    <main class="app-container">
+        <div class="editor-pane">
+            <SvelteFlowProvider>
+                <MagicNodeEditor />
+            </SvelteFlowProvider>
+        </div>
+        <div class="preview-pane">
+            <MagicCircleGenerator />
+        </div>
+    </main>
+{/if}
 
 <style>
     :global(body) {

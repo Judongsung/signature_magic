@@ -1,0 +1,23 @@
+[
+    {
+        "id": "origin-flame",
+        "imageKey": "hero",
+        "imageAlt": "붉은 빛이 감도는 마법 문양",
+        "title": "불씨의 서약",
+        "description": "불안정하지만 강한 출력을 지닌 시작점을 선택합니다."
+    },
+    {
+        "id": "origin-flow",
+        "imageKey": "svelte",
+        "imageAlt": "푸른 빛의 추상 문양",
+        "title": "흐름의 징표",
+        "description": "균형 잡힌 연결과 안정적인 확장을 우선합니다."
+    },
+    {
+        "id": "origin-arcane",
+        "imageKey": "vite",
+        "imageAlt": "보랏빛 결정 형태의 문양",
+        "title": "비전의 흔적",
+        "description": "복잡한 조합과 예측하기 어려운 변화를 받아들입니다."
+    }
+]
