@@ -8,7 +8,14 @@
 
 import type { Connection, Edge } from '@xyflow/svelte';
 import { isConnectionValid } from './graphRules';
-import { computeNodeRoles, type MagicNode, type MagicType } from './magicCalculator';
+import { computeNodeRoles } from './magicCalculator';
+import type { MagicNode, MagicType } from '../types/magic';
+
+export type IdFactory = () => string;
+
+export function createUniqueId(): string {
+    return crypto.randomUUID();
+}
 
 // ── 노드 생성 ─────────────────────────────────────────────────────────────────
 
@@ -18,10 +25,11 @@ import { computeNodeRoles, type MagicNode, type MagicType } from './magicCalcula
  */
 export function createNode(
     magicType: MagicType,
-    position: { x: number; y: number }
+    position: { x: number; y: number },
+    createId: IdFactory = createUniqueId
 ): MagicNode {
     return {
-        id: `node-${Date.now()}`,
+        id: `node-${createId()}`,
         type: 'magicNode',
         position,
         data: { magicType, isRoot: true, isLeaf: true },
@@ -34,10 +42,14 @@ export function createNode(
  * 연결 요청을 검증한 뒤 새 엣지 객체를 반환합니다.
  * 유효하지 않으면 false를 반환합니다. (SvelteFlow onbeforeconnect 규약)
  */
-export function createEdge(connection: Connection, edges: Edge[]): Edge | false {
+export function createEdge(
+    connection: Connection,
+    edges: Edge[],
+    createId: IdFactory = createUniqueId
+): Edge | false {
     if (!isConnectionValid(connection, edges)) return false;
     return {
-        id: `e-${connection.source}-${connection.target}-${Date.now()}`,
+        id: `edge-${createId()}`,
         source: connection.source!,
         target: connection.target!,
         sourceHandle: connection.sourceHandle,

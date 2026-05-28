@@ -5,25 +5,8 @@
  * 연결 규칙(validation)은 graphRules.ts에서 담당합니다.
  */
 
-import type { Node, Edge } from '@xyflow/svelte';
-
-// ── 타입 정의 ────────────────────────────────────────────────────────────────
-
-export type MagicType = 'fire' | 'water' | 'wind' | 'earth' | 'arcane';
-
-export interface MagicNodeData extends Record<string, unknown> {
-    magicType: MagicType;
-    isRoot?: boolean; // 입력이 없는 시작 노드
-    isLeaf?: boolean; // 출력이 없는 종단 노드
-}
-
-export type MagicNode = Node<MagicNodeData>;
-
-/** 하나의 서클을 구성하는 노드들의 순서 목록 */
-export interface CirclePath {
-    id: string;
-    nodes: MagicNode[];
-}
+import type { Edge } from '@xyflow/svelte';
+import type { CirclePath, MagicNode } from '../types/magic';
 
 // ── 계산 함수 ────────────────────────────────────────────────────────────────
 

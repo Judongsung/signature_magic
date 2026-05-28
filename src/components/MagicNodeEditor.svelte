@@ -15,15 +15,15 @@
         ConnectionMode,
         useSvelteFlow,
         type Connection,
-        type Node,
         type Edge,
+        type OnDelete,
     } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css';
 
     import { graphStore } from '../stores/graphStore.svelte';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
-    import type { MagicType } from '../systems/magicCalculator';
+    import type { MagicNode, MagicType, MagicTypeConfig } from '../types/magic';
     // 노드 타입 데이터는 JSON에서 로드합니다.
     import magicTypesData from '../data/magicTypes.json';
 
@@ -32,7 +32,7 @@
     const { screenToFlowPosition } = useSvelteFlow();
 
     // JSON 데이터를 MagicType으로 타입 단언하여 사용합니다.
-    const magicTypes = magicTypesData as { type: MagicType; icon: string; color: string }[];
+    const magicTypes = magicTypesData as MagicTypeConfig[];
 
     // ── 드래그 앤 드롭 ──────────────────────────────────────────────────────
 
@@ -54,6 +54,10 @@
         const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
         graphStore.addNode(magicType, position);
     }
+
+    const onDelete: OnDelete<MagicNode, Edge> = ({ nodes, edges }) => {
+        graphStore.onDelete(nodes, edges);
+    };
 </script>
 
 <div class="editor-container">
@@ -100,7 +104,7 @@
             isValidConnection={(edge) => graphStore.checkConnection(edge)}
             onbeforeconnect={(conn) => graphStore.prepareEdge(conn)}
             onconnect={(conn: Connection) => graphStore.onEdgeConnected(conn)}
-            ondelete={({ nodes: ns, edges: es }) => graphStore.onDelete(ns as any, es)}
+            ondelete={onDelete}
             deleteKey="Delete"
             fitView
         >
