@@ -3,10 +3,21 @@
     import svelteImage from '../assets/svelte.svg';
     import viteImage from '../assets/vite.svg';
     import { APP_PHASES } from '../constants/gameConfigs';
-    import cyoaChoicesData from '../data/cyoaChoices.json';
+    import cyoaRowsData from '../data/cyoaRows.json';
     import { appStore } from '../stores/appStore.svelte';
-    import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceImageKey } from '../types/cyoa';
-    import CyoaChoiceRow from './CyoaChoiceRow.svelte';
+    import type {
+        CyoaChoiceImageKey,
+        CyoaChoiceRowConfig,
+        CyoaChoiceRowData,
+    } from '../types/cyoa';
+    import {
+        applyCyoaChoiceActions,
+        canContinueCyoa,
+        createInitialRowVisibility,
+        mapCyoaRows,
+        toggleCyoaChoiceSelection,
+    } from '../systems/cyoaActions';
+    import CyoaChoiceSection from './CyoaChoiceSection.svelte';
 
     const imageSources: Record<CyoaChoiceImageKey, string> = {
         hero: heroImage,
@@ -14,18 +25,34 @@
         vite: viteImage,
     };
 
-    const choices: CyoaChoice[] = (cyoaChoicesData as CyoaChoiceConfig[]).map(choice => ({
-        id: choice.id,
-        imageSrc: imageSources[choice.imageKey],
-        imageAlt: choice.imageAlt,
-        title: choice.title,
-        description: choice.description,
-    }));
+    const choiceRows: CyoaChoiceRowData[] = mapCyoaRows(
+        cyoaRowsData as CyoaChoiceRowConfig[],
+        imageSources
+    );
 
-    let selectedChoiceId = $state<string | null>(null);
+    let visibleRowIds = $state<Record<string, boolean>>(
+        createInitialRowVisibility(choiceRows)
+    );
+    let selectedChoiceIds = $state<Record<string, string[]>>({});
+
+    const canContinue = $derived(
+        canContinueCyoa(choiceRows, visibleRowIds, selectedChoiceIds)
+    );
+
+    function handleChoiceSelect(row: CyoaChoiceRowData, choiceId: string) {
+        const choice = row.choices.find(item => item.id === choiceId);
+        if (!choice) return;
+
+        const nextSelectedChoiceIds = toggleCyoaChoiceSelection(row, selectedChoiceIds, choiceId);
+        const isSelected = nextSelectedChoiceIds[row.id]?.includes(choiceId) ?? false;
+        const nextVisibleRowIds = applyCyoaChoiceActions(choice, visibleRowIds, isSelected);
+
+        visibleRowIds = nextVisibleRowIds;
+        selectedChoiceIds = nextSelectedChoiceIds;
+    }
 
     function continueToNodeComposition() {
-        if (!selectedChoiceId) return;
+        if (!canContinue) return;
         appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
     }
 </script>
@@ -34,23 +61,27 @@
     <section class="intro-panel" aria-labelledby="cyoa-title">
         <div class="intro-copy">
             <p class="eyebrow">SIGNATURE MAGIC</p>
-            <h1 id="cyoa-title">첫 번째 기원을 선택하세요</h1>
+            <h1 id="cyoa-title">출발 조건을 선택하세요</h1>
             <p class="description">
-                선택한 기원은 이후 마법 노드 조합의 출발점이 됩니다.
+                지역과 촉매는 이후 마법 노드 조합의 출발점이 됩니다.
             </p>
         </div>
 
-        <CyoaChoiceRow
-            {choices}
-            {selectedChoiceId}
-            onSelect={(choiceId) => selectedChoiceId = choiceId}
-        />
+        {#each choiceRows as row (row.id)}
+            {#if visibleRowIds[row.id]}
+                <CyoaChoiceSection
+                    {row}
+                    selectedChoiceIds={selectedChoiceIds[row.id]}
+                    onSelect={(choiceId) => handleChoiceSelect(row, choiceId)}
+                />
+            {/if}
+        {/each}
 
         <div class="actions">
             <button
                 type="button"
                 class="continue-button"
-                disabled={!selectedChoiceId}
+                disabled={!canContinue}
                 onclick={continueToNodeComposition}
             >
                 조합 시작
@@ -62,9 +93,9 @@
 <style>
     .cyoa-screen {
         width: 100vw;
-        min-height: 100vh;
+        height: 100vh;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         padding: 36px;
         box-sizing: border-box;
@@ -148,7 +179,6 @@
 
     @media (max-width: 720px) {
         .cyoa-screen {
-            align-items: flex-start;
             padding: 24px;
         }
 

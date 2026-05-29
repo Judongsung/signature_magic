@@ -4,12 +4,12 @@
 
     let {
         choices,
-        selectedChoiceId,
+        selectedChoiceIds = [],
         disabled = false,
         onSelect,
     }: {
         choices: CyoaChoice[];
-        selectedChoiceId?: string | null;
+        selectedChoiceIds?: string[];
         disabled?: boolean;
         onSelect?: (choiceId: string) => void;
     } = $props();
@@ -20,8 +20,8 @@
         <div class="choice-row-item" role="listitem">
             <CyoaChoiceCard
                 {choice}
-                selected={selectedChoiceId === choice.id}
-                {disabled}
+                selected={selectedChoiceIds.includes(choice.id)}
+                disabled={disabled || choice.disabled}
                 {onSelect}
             />
         </div>
