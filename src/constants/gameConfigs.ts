@@ -15,3 +15,10 @@ export const EDITOR_CANVAS = {
     SNAP_GRID: [40, 40],
     EXTENT: [[-1200, -800], [1200, 800]],
 } as const;
+
+export const MAGIC_NODE_CATEGORIES = [
+    { id: 'basic', label: '기초' },
+    { id: 'action', label: '행동' },
+    { id: 'control', label: '조절' },
+    { id: 'extension', label: '확장' },
+] as const;

@@ -23,7 +23,7 @@
     import '@xyflow/svelte/dist/style.css';
 
     import { graphStore } from '../stores/graphStore.svelte';
-    import { EDITOR_CANVAS } from '../constants/gameConfigs';
+    import { EDITOR_CANVAS, MAGIC_NODE_CATEGORIES } from '../constants/gameConfigs';
     import { resolveDropPosition } from '../systems/editorCanvas';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
@@ -39,6 +39,16 @@
 
     // JSON 데이터를 MagicType으로 타입 단언하여 사용합니다.
     const magicTypes = magicTypesData as MagicTypeConfig[];
+    let activeCategoryIds = $state<string[]>([]);
+    const visibleMagicTypes = $derived(
+        magicTypes.filter((magicType) => activeCategoryIds.includes(magicType.category)),
+    );
+
+    function toggleCategory(categoryId: string) {
+        activeCategoryIds = activeCategoryIds.includes(categoryId)
+            ? activeCategoryIds.filter((id) => id !== categoryId)
+            : [...activeCategoryIds, categoryId];
+    }
 
     // ── 드래그 앤 드롭 ──────────────────────────────────────────────────────
 
@@ -71,7 +81,24 @@
     <!-- 툴바 -->
     <div class="toolbar">
         <span class="toolbar-label">노드</span>
-        {#each magicTypes as { type, label, icon }}
+        <div class="category-tabs" aria-label="노드 카테고리">
+            {#each MAGIC_NODE_CATEGORIES as category}
+                {@const isActive = activeCategoryIds.includes(category.id)}
+                <button
+                    type="button"
+                    class="category-tab"
+                    class:active={isActive}
+                    aria-pressed={isActive}
+                    onclick={() => toggleCategory(category.id)}
+                >
+                    {category.label}
+                </button>
+            {/each}
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        {#each visibleMagicTypes as { type, label, icon }}
             <button
                 class="drag-btn"
                 draggable="true"
@@ -80,6 +107,9 @@
                 {icon} {label}
             </button>
         {/each}
+        {#if visibleMagicTypes.length === 0}
+            <span class="toolbar-empty">표시할 노드 없음</span>
+        {/if}
 
         <div class="toolbar-divider"></div>
 
@@ -153,6 +183,37 @@
         white-space: nowrap;
     }
 
+    .category-tabs {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .category-tab {
+        background: #16161f;
+        color: #8e8ea8;
+        border: 1px solid #2f2f44;
+        border-radius: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .category-tab:hover {
+        color: #e8e2ff;
+        border-color: #6f5e9c;
+    }
+
+    .category-tab.active {
+        background: #2a2140;
+        color: #f1ecff;
+        border-color: #9b7ad6;
+        box-shadow: 0 0 0 1px rgba(155, 122, 214, 0.18);
+    }
+
     .drag-btn {
         background: #1e1e2e;
         color: #ddd;
@@ -174,6 +235,14 @@
     }
 
     .drag-btn:active { cursor: grabbing; transform: scale(0.96); }
+
+    .toolbar-empty {
+        color: #66667a;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 8px;
+        white-space: nowrap;
+    }
 
     .toolbar-divider {
         width: 1px;
