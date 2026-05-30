@@ -18,8 +18,8 @@ describe('dataValidation', () => {
     it('reports invalid magic type categories and duplicate type ids', () => {
         expect(validateMagicTypes(
             [
-                { type: 'fire', label: '불', icon: '', color: '#fff', category: 'basic' },
-                { type: 'fire', label: '불 복제', icon: '', color: '#fff', category: 'unknown' },
+                { type: 'fire', label: '불', icon: '', color: '#fff', category: 'basic', description: '설명' },
+                { type: 'fire', label: '불 복제', icon: '', color: '#fff', category: 'unknown', description: '' },
             ] as MagicTypeConfig[],
             MAGIC_NODE_CATEGORIES
         )).toEqual({
@@ -27,6 +27,7 @@ describe('dataValidation', () => {
             errors: [
                 'Duplicate magic type id: fire',
                 'Unknown magic type category: fire -> unknown',
+                'Missing magic type description: fire',
             ],
         });
     });

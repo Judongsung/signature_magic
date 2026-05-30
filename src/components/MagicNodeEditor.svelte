@@ -28,6 +28,7 @@
     import { getMagicTypesByCategory } from '../systems/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
+    import NodeDescriptionTooltip from './NodeDescriptionTooltip.svelte';
     import type { MagicNode, MagicType } from '../types/magic';
 
     const nodeTypes = { magicNode: CustomNode };
@@ -36,7 +37,7 @@
     const canvasExtent = EDITOR_CANVAS.EXTENT as CoordinateExtent;
     const { screenToFlowPosition } = useSvelteFlow();
 
-    let activeCategoryIds = $state<MagicNodeCategory[]>([]);
+    let activeCategoryIds = $state<MagicNodeCategory[]>(['basic']);
     const visibleMagicTypes = $derived(
         getMagicTypesByCategory(activeCategoryIds),
     );
@@ -95,13 +96,19 @@
 
         <div class="toolbar-divider"></div>
 
-        {#each visibleMagicTypes as { type, label, icon }}
+        {#each visibleMagicTypes as { type, label, icon, description }}
             <button
-                class="drag-btn"
+                class="drag-btn tooltip-host"
                 draggable="true"
+                aria-describedby={`magic-node-tooltip-${type}`}
                 ondragstart={(e) => onDragStart(e, type)}
             >
-                {icon} {label}
+                <span>{icon} {label}</span>
+                <NodeDescriptionTooltip
+                    id={`magic-node-tooltip-${type}`}
+                    {description}
+                    placement="bottom"
+                />
             </button>
         {/each}
         {#if visibleMagicTypes.length === 0}
@@ -212,6 +219,7 @@
     }
 
     .drag-btn {
+        position: relative;
         background: #1e1e2e;
         color: #ddd;
         border: 1px solid #3a3a5a;

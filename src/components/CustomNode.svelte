@@ -2,22 +2,34 @@
     import { Handle, Position } from '@xyflow/svelte';
     import type { MagicNodeData } from '../types/magic';
     import { getMagicTypeConfig } from '../systems/magicTypeRegistry';
+    import NodeDescriptionTooltip from './NodeDescriptionTooltip.svelte';
 
-    let { data, isConnectable }: { data: MagicNodeData; isConnectable?: boolean } = $props();
+    let {
+        id,
+        data,
+        isConnectable,
+    }: {
+        id: string;
+        data: MagicNodeData;
+        isConnectable?: boolean;
+    } = $props();
 
     const nodeConfig = $derived(getMagicTypeConfig(data.magicType));
 
     const color  = $derived(nodeConfig?.color || '#888');
     const icon   = $derived(nodeConfig?.icon  || '?');
     const label  = $derived(nodeConfig?.label || data.magicType);
+    const description = $derived(nodeConfig?.description || '');
+    const tooltipId = $derived(`canvas-node-tooltip-${id}`);
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
 </script>
 
 <div
-    class="custom-node"
+    class="custom-node tooltip-host"
     class:is-root={isRoot}
     class:is-leaf={isLeaf}
+    aria-describedby={tooltipId}
     style="--c: {color}; border-color: {color}; box-shadow: 0 0 14px {color}44;"
 >
     <!--
@@ -53,6 +65,13 @@
     <div class="badge-wrap bottom-badge-wrap">
         {#if isRoot}<span class="badge root-badge">START</span>{/if}
     </div>
+
+    {#if description}
+        <NodeDescriptionTooltip
+            id={tooltipId}
+            {description}
+        />
+    {/if}
 </div>
 
 <style>
@@ -66,10 +85,10 @@
         text-align: center;
         min-width: 110px;
         font-family: sans-serif;
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
         position: relative;
     }
-    .custom-node:hover { transform: scale(1.06); box-shadow: 0 0 22px var(--c) !important; }
+    .custom-node:hover { box-shadow: 0 0 22px var(--c) !important; }
     .custom-node.is-root { border-top: 3px solid var(--c); }
     .custom-node.is-leaf { border-bottom: 3px solid var(--c); }
 

@@ -43,6 +43,9 @@ export function validateMagicTypes(
         if (!categoryIds.has(magicType.category)) {
             errors.push(`Unknown magic type category: ${magicType.type} -> ${magicType.category}`);
         }
+        if (!magicType.description.trim()) {
+            errors.push(`Missing magic type description: ${magicType.type}`);
+        }
     });
 
     return result(errors);
