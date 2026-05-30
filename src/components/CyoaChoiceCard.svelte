@@ -22,14 +22,17 @@
 <button
     type="button"
     class="choice-card"
+    class:without-image={!choice.imageSrc}
     class:selected
     {disabled}
     aria-pressed={selected}
     onclick={selectChoice}
 >
-    <span class="image-frame">
-        <img src={choice.imageSrc} alt={choice.imageAlt} loading="lazy" />
-    </span>
+    {#if choice.imageSrc}
+        <span class="image-frame">
+            <img src={choice.imageSrc} alt={choice.imageAlt} loading="lazy" />
+        </span>
+    {/if}
 
     <span class="choice-body">
         <span class="choice-title">{choice.title}</span>
@@ -59,6 +62,11 @@
             background 0.16s ease,
             box-shadow 0.16s ease,
             transform 0.16s ease;
+    }
+
+    .choice-card.without-image {
+        grid-template-columns: 1fr;
+        min-height: 96px;
     }
 
     .choice-card:hover:not(:disabled) {

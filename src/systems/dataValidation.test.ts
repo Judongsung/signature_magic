@@ -53,6 +53,7 @@ describe('dataValidation', () => {
                             imageAlt: '',
                             title: '',
                             description: '',
+                            width: '3/2',
                             actions: [{ func: 'UNKNOWN', target_id: 'missing-row' }],
                         },
                     ],
@@ -64,6 +65,7 @@ describe('dataValidation', () => {
             valid: false,
             errors: [
                 'Unknown CYOA image path: open-missing -> ../assets/images/missing.webp',
+                'Invalid CYOA choice width: open-missing -> 3/2',
                 'Unknown CYOA action: open-missing -> UNKNOWN',
                 'Unknown CYOA action target: open-missing -> missing-row',
             ],

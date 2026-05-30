@@ -34,7 +34,8 @@
                         "func": "OPEN_ROW",
                         "target_id": "personal-role"
                     }
-                ]
+                ],
+                "width": "1/3"
             },
             {
                 "id": "toc-region",
@@ -47,7 +48,8 @@
                         "func": "OPEN_ROW",
                         "target_id": "region"
                     }
-                ]
+                ],
+                "width": "1/3"
             },
             {
                 "id": "toc-catalyst",
@@ -60,7 +62,8 @@
                         "func": "OPEN_ROW",
                         "target_id": "catalyst"
                     }
-                ]
+                ],
+                "width": "1/3"
             }
         ]
     },
@@ -86,28 +89,32 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "청소년",
                 "title": "청소년",
-                "description": "아직 성장과 배움의 시기에 있는 인물입니다."
+                "description": "아직 성장과 배움의 시기에 있는 인물입니다.",
+                "width": "1/4"
             },
             {
                 "id": "age-young-adult",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "청년",
                 "title": "청년",
-                "description": "가장 활발하게 경험을 쌓는 시기의 인물입니다."
+                "description": "가장 활발하게 경험을 쌓는 시기의 인물입니다.",
+                "width": "1/4"
             },
             {
                 "id": "age-middle-aged",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "중년",
                 "title": "중년",
-                "description": "경험과 책임이 쌓인 시기의 인물입니다."
+                "description": "경험과 책임이 쌓인 시기의 인물입니다.",
+                "width": "1/4"
             },
             {
                 "id": "age-elder",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "노년",
                 "title": "노년",
-                "description": "오랜 세월의 지식과 흔적을 지닌 인물입니다."
+                "description": "오랜 세월의 지식과 흔적을 지닌 인물입니다.",
+                "width": "1/4"
             }
         ]
     },
@@ -122,14 +129,16 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "남성",
                 "title": "남",
-                "description": "남성 캐릭터로 시작합니다."
+                "description": "남성 캐릭터로 시작합니다.",
+                "width": "1/2"
             },
             {
                 "id": "gender-female",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "여성",
                 "title": "녀",
-                "description": "여성 캐릭터로 시작합니다."
+                "description": "여성 캐릭터로 시작합니다.",
+                "width": "1/2"
             }
         ]
     },
@@ -144,21 +153,24 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "제국 관청",
                 "title": "제국 관청",
-                "description": "제국의 법과 행정 체계 안에서 마법을 다룹니다."
+                "description": "제국의 법과 행정 체계 안에서 마법을 다룹니다.",
+                "width": "1/3"
             },
             {
                 "id": "affiliation-magic-academy",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마법 학회",
                 "title": "마법 학회",
-                "description": "연구와 이론을 중심으로 마법 체계를 익힙니다."
+                "description": "연구와 이론을 중심으로 마법 체계를 익힙니다.",
+                "width": "1/3"
             },
             {
                 "id": "affiliation-free-guild",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "자유 길드",
                 "title": "자유 길드",
-                "description": "의뢰와 계약을 통해 실전 경험을 쌓습니다."
+                "description": "의뢰와 계약을 통해 실전 경험을 쌓습니다.",
+                "width": "1/3"
             }
         ]
     },
@@ -173,21 +185,24 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "연구자",
                 "title": "연구자",
-                "description": "마법 구조와 원리를 분석하는 역할입니다."
+                "description": "마법 구조와 원리를 분석하는 역할입니다.",
+                "width": "1/3"
             },
             {
                 "id": "role-caster",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "시전자",
                 "title": "시전자",
-                "description": "전장에서 직접 마법을 구현하는 역할입니다."
+                "description": "전장에서 직접 마법을 구현하는 역할입니다.",
+                "width": "1/3"
             },
             {
                 "id": "role-artificer",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "공방술사",
                 "title": "공방술사",
-                "description": "촉매와 도구를 통해 마법을 안정화하는 역할입니다."
+                "description": "촉매와 도구를 통해 마법을 안정화하는 역할입니다.",
+                "width": "1/3"
             }
         ]
     },
@@ -202,56 +217,64 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "제국의 중심부",
                 "title": "제국 중심",
-                "description": "권력과 규율이 집중된 질서의 심장부입니다."
+                "description": "권력과 규율이 집중된 질서의 심장부입니다.",
+                "width": "1/4"
             },
             {
                 "id": "region-university-city",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마법 연구가 이루어지는 대학도시",
                 "title": "대학도시",
-                "description": "학파와 연구실이 밀집한 지식의 거점입니다."
+                "description": "학파와 연구실이 밀집한 지식의 거점입니다.",
+                "width": "1/4"
             },
             {
                 "id": "region-eastern-desert",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "동부의 건조한 사막",
                 "title": "동부 사막",
-                "description": "고대 유적과 메마른 마력이 잠든 땅입니다."
+                "description": "고대 유적과 메마른 마력이 잠든 땅입니다.",
+                "width": "1/4"
             },
             {
                 "id": "region-northern-snowfield",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "북부의 설원",
                 "title": "북부 설원",
-                "description": "혹한과 침묵이 오래된 힘을 보존합니다."
+                "description": "혹한과 침묵이 오래된 힘을 보존합니다.",
+                "width": "1/4"
             },
             {
                 "id": "region-southern-grassland",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "남부의 넓은 초원",
                 "title": "남부 초원",
-                "description": "넓은 이동로와 생명력이 흐르는 개방지입니다."
+                "description": "넓은 이동로와 생명력이 흐르는 개방지입니다.",
+                "width": "1/4"
             },
             {
                 "id": "region-western-coast",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "서부 해안",
                 "title": "서부 해안",
-                "description": "무역, 항해, 이방의 주문이 드나드는 경계입니다."
+                "description": "무역, 항해, 이방의 주문이 드나드는 경계입니다.",
+                "width": "1/4"
             },
             {
                 "id": "region-holy-city",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "성스러운 도시",
                 "title": "성도",
-                "description": "신앙과 의식이 마법 체계에 깊게 스며든 도시입니다."
+                "description": "신앙과 의식이 마법 체계에 깊게 스며든 도시입니다.",
+                "width": "1/4"
             },
             {
                 "id": "region-frontier",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "아직 개척되지 않은 땅",
                 "title": "미개척지",
-                "description": "불확실하지만 새로운 규칙을 발견할 수 있는 변방입니다."
+                "description": "불확실하지만 새로운 규칙을 발견할 수 있는 변방입니다.",
+                "width": "1/4"
             }
         ]
     },
@@ -266,28 +289,32 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마력을 담는 지팡이",
                 "title": "지팡이",
-                "description": "마력을 안정적으로 집중시키는 전통적인 촉매입니다."
+                "description": "마력을 안정적으로 집중시키는 전통적인 촉매입니다.",
+                "width": "1/3"
             },
             {
                 "id": "catalyst-dagger",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "의식용 단검",
                 "title": "단검",
-                "description": "짧고 날카로운 의식으로 힘의 방향을 고정합니다."
+                "description": "짧고 날카로운 의식으로 힘의 방향을 고정합니다.",
+                "width": "1/3"
             },
             {
                 "id": "catalyst-grimoire",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "오래된 마도서",
                 "title": "마도서",
-                "description": "기록된 지식과 주문 체계를 통해 조합의 폭을 넓힙니다."
+                "description": "기록된 지식과 주문 체계를 통해 조합의 폭을 넓힙니다.",
+                "width": "1/3"
             },
             {
                 "id": "catalyst-gem",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마력이 깃든 보석",
                 "title": "보석",
-                "description": "내부에 축적된 에너지를 증폭과 저장에 활용합니다."
+                "description": "내부에 축적된 에너지를 증폭과 저장에 활용합니다.",
+                "width": "1/3"
             },
             {
                 "id": "catalyst-body-part",
@@ -295,14 +322,24 @@
                 "imageAlt": "의식에 사용되는 신체부위",
                 "title": "신체부위",
                 "description": "강한 생체적 흔적을 매개로 직접적인 연결을 만듭니다.",
-                "disabled": true
+                "disabled": true,
+                "width": "1/3"
             },
             {
                 "id": "catalyst-blood",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "의식에 쓰이는 혈액",
                 "title": "혈액",
-                "description": "계약과 대가의 의미를 지닌 고위험 촉매입니다."
+                "description": "계약과 대가의 의미를 지닌 고위험 촉매입니다.",
+                "width": "1/3"
+            },
+            {
+                "id": "catalyst-no-image-test",
+                "imageAlt": "",
+                "title": "이미지 없음 테스트",
+                "description": "이미지 경로가 없을 때 카드가 텍스트만 표시되는지 확인하는 테스트 선택지입니다.",
+                "disabled": true,
+                "width": "1/3"
             }
         ]
     }

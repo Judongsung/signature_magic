@@ -29,6 +29,7 @@
     {:else}
         <CyoaChoiceRow
             choices={row.choices}
+            layoutColumns={row.layoutColumns}
             {selectedChoiceIds}
             {onSelect}
         />

@@ -13,6 +13,7 @@ dist-ssr
 *.local
 
 # Local agent reference
+AGENTS.md
 src/SOURCE_MAP.md
 
 # Editor directories and files

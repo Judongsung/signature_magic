@@ -20,6 +20,7 @@ export interface CyoaChoiceConfig {
     imageAlt: string;
     title: string;
     description: string;
+    width?: string;
     disabled?: boolean;
     actions?: CyoaChoiceActionConfig[];
 }
@@ -38,10 +39,12 @@ export interface CyoaChoiceRowConfig {
 
 export interface CyoaChoice {
     id: string;
-    imageSrc: string;
+    imageSrc?: string;
     imageAlt: string;
     title: string;
     description: string;
+    width?: string;
+    layoutSpan?: number;
     disabled?: boolean;
     actions?: CyoaChoiceActionConfig[];
 }
@@ -54,6 +57,7 @@ export interface CyoaChoiceRowData {
     required: boolean;
     requiredMode: CyoaRequirementMode;
     selectionMode: 'single' | 'multi';
+    layoutColumns: number;
     input?: CyoaTextInputConfig;
     choices: CyoaChoice[];
 }

@@ -7,6 +7,7 @@ import {
     createInitialInputValues,
     createInitialRowVisibility,
     mapCyoaChoiceConfig,
+    mapCyoaRows,
     toggleCyoaChoiceSelection,
 } from './cyoaActions';
 
@@ -19,6 +20,7 @@ const rows: CyoaChoiceRowData[] = [
         required: false,
         requiredMode: 'never',
         selectionMode: 'multi',
+        layoutColumns: 1,
         choices: [],
     },
     {
@@ -29,6 +31,7 @@ const rows: CyoaChoiceRowData[] = [
         required: true,
         requiredMode: 'always',
         selectionMode: 'single',
+        layoutColumns: 1,
         choices: [],
     },
     {
@@ -39,6 +42,7 @@ const rows: CyoaChoiceRowData[] = [
         required: true,
         requiredMode: 'always',
         selectionMode: 'single',
+        layoutColumns: 1,
         choices: [],
     },
 ];
@@ -52,8 +56,29 @@ describe('cyoaActions', () => {
                 title: '',
                 description: '',
             },
-            (imagePath) => imagePath ?? '/fallback.webp'
-        ).imageSrc).toBe('/fallback.webp');
+            (imagePath) => imagePath ? '/resolved.webp' : undefined
+        )).toMatchObject({
+            imageSrc: undefined,
+            width: '1/3',
+            layoutSpan: 1,
+        });
+    });
+
+    it('maps choice widths into row grid spans', () => {
+        const mapped = mapCyoaRows([
+            {
+                id: 'layout',
+                title: '레이아웃',
+                choices: [
+                    { id: 'a', imageAlt: '', title: '', description: '', width: '1/2' },
+                    { id: 'b', imageAlt: '', title: '', description: '', width: '1/4' },
+                    { id: 'c', imageAlt: '', title: '', description: '', width: '1/4' },
+                ],
+            },
+        ], (imagePath) => imagePath ?? '/fallback.webp');
+
+        expect(mapped[0].layoutColumns).toBe(4);
+        expect(mapped[0].choices.map(choice => choice.layoutSpan)).toEqual([2, 1, 1]);
     });
 
     it('creates initial row visibility from row config data', () => {

@@ -47,4 +47,19 @@ describe('CyoaChoiceRow', () => {
 
         expect(html).toContain('disabled');
     });
+
+    it('applies row column and choice span layout values', () => {
+        const { html } = render(CyoaChoiceRow, {
+            props: {
+                layoutColumns: 3,
+                choices: [
+                    { ...choices[0], layoutSpan: 1 },
+                    { ...choices[1], layoutSpan: 2 },
+                ],
+            },
+        });
+
+        expect(html).toContain('--layout-columns: 3');
+        expect(html).toContain('--layout-span: 2');
+    });
 });

@@ -27,6 +27,15 @@ function findDuplicates(values: string[]): string[] {
     return [...duplicates];
 }
 
+function isValidChoiceWidth(width: string): boolean {
+    const match = width.match(/^(\d+)\/(\d+)$/);
+    if (!match) return false;
+
+    const numerator = Number(match[1]);
+    const denominator = Number(match[2]);
+    return numerator > 0 && denominator > 0 && numerator <= denominator;
+}
+
 export function validateMagicTypes(
     magicTypes: MagicTypeConfig[],
     categories: readonly { id: MagicNodeCategory }[]
@@ -88,6 +97,9 @@ export function validateCyoaRows(
         (row.choices ?? []).forEach(choice => {
             if (choice.imagePath && !isKnownImagePath(choice.imagePath)) {
                 errors.push(`Unknown CYOA image path: ${choice.id} -> ${choice.imagePath}`);
+            }
+            if (choice.width && !isValidChoiceWidth(choice.width)) {
+                errors.push(`Invalid CYOA choice width: ${choice.id} -> ${choice.width}`);
             }
 
             choice.actions?.forEach(action => {

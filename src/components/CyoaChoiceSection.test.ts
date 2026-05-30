@@ -11,6 +11,7 @@ const row: CyoaChoiceRowData = {
     required: true,
     requiredMode: 'always',
     selectionMode: 'single',
+    layoutColumns: 1,
     choices: [
         {
             id: 'region-frontier',

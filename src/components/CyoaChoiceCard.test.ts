@@ -40,4 +40,17 @@ describe('CyoaChoiceCard', () => {
         expect(html).toContain('disabled');
     });
 
+    it('omits image frame when no image source exists', () => {
+        const { html } = render(CyoaChoiceCard, {
+            props: {
+                choice: {
+                    ...choice,
+                    imageSrc: undefined,
+                },
+            },
+        });
+
+        expect(html).toContain('without-image');
+        expect(html).not.toContain('<img');
+    });
 });

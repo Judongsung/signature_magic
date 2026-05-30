@@ -11,8 +11,6 @@ export const CYOA_ACTIONS = {
 
 export type CyoaAction = (typeof CYOA_ACTIONS)[keyof typeof CYOA_ACTIONS];
 
-export const CYOA_TEMP_IMAGE_PATH = '../assets/images/temp.webp';
-
 export const EDITOR_CANVAS = {
     SNAP_GRID: [40, 40],
     EXTENT: [[-1200, -800], [1200, 800]],
