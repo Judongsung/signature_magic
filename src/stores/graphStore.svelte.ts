@@ -13,7 +13,14 @@ import { type Connection, type Edge } from '@xyflow/svelte';
 import type { OnBeforeConnect } from '@xyflow/svelte';
 import { calculateCircles } from '../systems/graph/magicCalculator';
 import { isConnectionValid } from '../systems/graph/graphRules';
-import { createNode, createEdge, refreshNodeRoles, filterEdgesForDeletedNodes } from '../systems/graph/graphActions';
+import {
+    createNode,
+    createEdgeUpdate,
+    filterEdgesForDeletedNodes,
+    normalizeEdgeHandles,
+    refreshNodeRoles,
+} from '../systems/graph/graphActions';
+import { magicTypes } from '../systems/graph/magicTypeRegistry';
 import type { CirclePath, MagicNode, MagicType } from '../types/magic';
 
 class GraphStore {
@@ -21,6 +28,7 @@ class GraphStore {
     // SvelteFlow 공식 권장: $state.raw를 사용해야 합니다.
     nodes = $state.raw<MagicNode[]>([]);
     edges = $state.raw<Edge[]>([]);
+    private topologySyncScheduled = false;
 
     // ── 파생 상태 ─────────────────────────────────────────────────────────
     readonly circles: CirclePath[] = $derived(
@@ -46,7 +54,7 @@ class GraphStore {
             sourceHandle: edge.sourceHandle ?? null,
             targetHandle: edge.targetHandle ?? null,
         };
-        return isConnectionValid(conn, this.edges);
+        return isConnectionValid(conn, this.edges, this.nodes, magicTypes);
     }
 
     /**
@@ -55,7 +63,10 @@ class GraphStore {
      * false 반환 시 연결이 취소됩니다.
      */
     prepareEdge(connection: Connection): Edge | false {
-        return createEdge(connection, this.edges);
+        const update = createEdgeUpdate(connection, this.edges, this.nodes, magicTypes);
+        if (!update) return false;
+        this.edges = update.edges;
+        return update.edge;
     }
 
     /**
@@ -63,7 +74,7 @@ class GraphStore {
      * (엣지 추가 자체는 onbeforeconnect → SvelteFlow가 담당)
      */
     onEdgeConnected(_connection: Connection): void {
-        this.syncRoles();
+        this.scheduleTopologySync();
     }
 
     /**
@@ -79,7 +90,7 @@ class GraphStore {
             const ids = new Set(deletedEdges.map(e => e.id));
             this.edges = this.edges.filter(e => !ids.has(e.id));
         }
-        this.syncRoles();
+        this.scheduleTopologySync();
     }
 
     /** 캔버스 전체를 초기화합니다. */
@@ -92,9 +103,39 @@ class GraphStore {
 
     /** 그래프 토폴로지 변경 후 노드 역할(isRoot/isLeaf)을 동기화합니다. */
     private syncRoles(): void {
-        const { nodes, changed } = refreshNodeRoles(this.nodes, this.edges);
+        const { nodes, changed } = refreshNodeRoles(this.nodes, this.edges, magicTypes);
         if (changed) this.nodes = nodes;
     }
+
+    private syncTopology(): void {
+        const normalizedEdges = normalizeEdgeHandles(this.edges);
+        if (!areEdgesEquivalent(this.edges, normalizedEdges)) {
+            this.edges = normalizedEdges;
+        }
+        this.syncRoles();
+    }
+
+    private scheduleTopologySync(): void {
+        if (this.topologySyncScheduled) return;
+        this.topologySyncScheduled = true;
+        setTimeout(() => {
+            this.topologySyncScheduled = false;
+            this.syncTopology();
+        }, 0);
+    }
+}
+
+function areEdgesEquivalent(a: Edge[], b: Edge[]): boolean {
+    if (a.length !== b.length) return false;
+    return a.every((edge, index) => {
+        const other = b[index];
+        return Boolean(other) &&
+            edge.id === other.id &&
+            edge.source === other.source &&
+            edge.target === other.target &&
+            edge.sourceHandle === other.sourceHandle &&
+            edge.targetHandle === other.targetHandle;
+    });
 }
 
 // 앱 전체에서 공유하는 싱글턴 인스턴스

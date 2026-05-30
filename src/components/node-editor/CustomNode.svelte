@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { Handle, Position } from '@xyflow/svelte';
+    import { tick } from 'svelte';
+    import { Handle, Position, useUpdateNodeInternals } from '@xyflow/svelte';
     import type { MagicNodeData } from '../../types/magic';
     import { getMagicTypeConfig } from '../../systems/graph/magicTypeRegistry';
     import NodeDescriptionTooltip from '../shared/NodeDescriptionTooltip.svelte';
@@ -23,6 +24,26 @@
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
+    const inputHandleCount = $derived(data.inputHandleCount ?? 1);
+    const outputHandleCount = $derived(data.outputHandleCount ?? 1);
+    const inputHandles = $derived(createHandleIndexes(inputHandleCount));
+    const outputHandles = $derived(createHandleIndexes(outputHandleCount));
+    const updateNodeInternals = useUpdateNodeInternals();
+
+    $effect(() => {
+        inputHandleCount;
+        outputHandleCount;
+        void tick().then(() => updateNodeInternals(id));
+    });
+
+    function createHandleIndexes(count: number): number[] {
+        return Array.from({ length: Math.max(1, count) }, (_, index) => index);
+    }
+
+    function handleLeft(index: number, count: number): string {
+        if (count <= 1) return '50%';
+        return `${25 + index * (50 / (count - 1))}%`;
+    }
 </script>
 
 <div
@@ -40,12 +61,16 @@
     <div class="badge-wrap top-badge-wrap">
         {#if isLeaf}<span class="badge leaf-badge">END</span>{/if}
     </div>
-    <Handle
-        type="source"
-        position={Position.Top}
-        id="output"
-        isConnectable={isConnectable}
-    />
+    {#each outputHandles as index}
+        <Handle
+            type="source"
+            position={Position.Top}
+            id={`output-${index}`}
+            isConnectable={isConnectable}
+            class="node-handle source-handle"
+            style={`left: ${handleLeft(index, outputHandleCount)}; --handle-color: ${color};`}
+        />
+    {/each}
 
     <div class="node-body">
         <div class="icon">{icon}</div>
@@ -57,11 +82,16 @@
         isRoot = 아직 아무도 연결 안 한 노드 → 하단에 START 배지 표시
         연결이 도착하면 isRoot=false가 되어 이 배지가 사라집니다.
     -->
-    <Handle
-        type="target"
-        position={Position.Bottom}
-        isConnectable={isConnectable}
-    />
+    {#each inputHandles as index}
+        <Handle
+            type="target"
+            position={Position.Bottom}
+            id={`input-${index}`}
+            isConnectable={isConnectable}
+            class="node-handle target-handle"
+            style={`left: ${handleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
+        />
+    {/each}
     <div class="badge-wrap bottom-badge-wrap">
         {#if isRoot}<span class="badge root-badge">START</span>{/if}
     </div>
@@ -91,6 +121,22 @@
     .custom-node:hover { box-shadow: 0 0 22px var(--c) !important; }
     .custom-node.is-root { border-top: 3px solid var(--c); }
     .custom-node.is-leaf { border-bottom: 3px solid var(--c); }
+
+    :global(.node-handle) {
+        width: 10px;
+        height: 10px;
+        border: 1px solid var(--handle-color);
+        background: #0a0a0f;
+        box-shadow: 0 0 8px color-mix(in srgb, var(--handle-color) 58%, transparent);
+    }
+
+    :global(.source-handle) {
+        top: -6px;
+    }
+
+    :global(.target-handle) {
+        bottom: -6px;
+    }
 
     .node-body { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     .icon { font-size: 26px; filter: drop-shadow(0 0 6px var(--c)); }

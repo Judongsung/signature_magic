@@ -13,6 +13,6 @@
     { "type": "amplify",    "label": "증폭",      "icon": "📣", "color": "#ff6b6b", "category": "control",   "description": "효과의 출력이나 강도를 키웁니다." },
     { "type": "stabilize",  "label": "안정",      "icon": "⚓", "color": "#58d68d", "category": "control",   "description": "불안정한 효과를 고정하고 흔들림을 줄입니다." },
     { "type": "compress",   "label": "압축",      "icon": "🧲", "color": "#d35400", "category": "control",   "description": "효과를 좁은 범위에 밀집시켜 응축합니다." },
-    { "type": "split",      "label": "분리",      "icon": "✂️", "color": "#f7dc6f", "category": "extension", "description": "대상이나 효과를 독립된 부분으로 나눕니다." },
-    { "type": "merge",      "label": "병합",      "icon": "🔗", "color": "#a569bd", "category": "extension", "description": "여러 효과나 흐름을 하나로 합칩니다." }
+    { "type": "split",      "label": "분리",      "icon": "✂️", "color": "#f7dc6f", "category": "extension", "description": "대상이나 효과를 독립된 부분으로 나눕니다.", "connectionLimits": { "maxInputs": 1, "maxOutputs": null } },
+    { "type": "merge",      "label": "병합",      "icon": "🔗", "color": "#a569bd", "category": "extension", "description": "여러 효과나 흐름을 하나로 합칩니다.", "connectionLimits": { "maxInputs": null, "maxOutputs": 1 } }
 ]

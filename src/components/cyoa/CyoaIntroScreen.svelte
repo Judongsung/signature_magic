@@ -17,6 +17,10 @@
         if (!choiceStore.canContinue) return;
         appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
     }
+
+    function skipToNodeComposition() {
+        appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
+    }
 </script>
 
 <main class="cyoa-screen">
@@ -42,6 +46,15 @@
         {/each}
 
         <div class="actions">
+            {#if import.meta.env.DEV}
+                <button
+                    type="button"
+                    class="dev-skip-button"
+                    onclick={skipToNodeComposition}
+                >
+                    DEV: 노드 파트
+                </button>
+            {/if}
             <button
                 type="button"
                 class="continue-button"
@@ -113,9 +126,11 @@
     .actions {
         display: flex;
         justify-content: flex-end;
+        gap: 10px;
     }
 
-    .continue-button {
+    .continue-button,
+    .dev-skip-button {
         min-width: 148px;
         height: 44px;
         border: 1px solid #8d682d;
@@ -134,6 +149,13 @@
             transform 0.16s ease;
     }
 
+    .dev-skip-button {
+        border-color: #3f6d63;
+        background:
+            linear-gradient(180deg, rgba(54, 105, 95, 0.95), rgba(20, 54, 49, 0.98));
+        color: #d9fff4;
+    }
+
     .continue-button:hover:not(:disabled) {
         transform: translateY(-1px);
         border-color: #c9a45a;
@@ -142,7 +164,16 @@
         box-shadow: 0 10px 24px rgba(38, 22, 8, 0.44);
     }
 
-    .continue-button:focus-visible {
+    .dev-skip-button:hover {
+        transform: translateY(-1px);
+        border-color: #74c7b4;
+        background:
+            linear-gradient(180deg, rgba(71, 125, 113, 0.98), rgba(24, 65, 58, 0.98));
+        box-shadow: 0 10px 24px rgba(8, 38, 31, 0.36);
+    }
+
+    .continue-button:focus-visible,
+    .dev-skip-button:focus-visible {
         outline: 2px solid #e6c873;
         outline-offset: 3px;
     }
@@ -163,9 +194,11 @@
 
         .actions {
             justify-content: stretch;
+            flex-direction: column;
         }
 
-        .continue-button {
+        .continue-button,
+        .dev-skip-button {
             width: 100%;
         }
     }

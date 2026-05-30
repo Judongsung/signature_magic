@@ -36,6 +36,10 @@ function isValidChoiceWidth(width: string): boolean {
     return numerator > 0 && denominator > 0 && numerator <= denominator;
 }
 
+function isValidConnectionLimit(limit: number | null | undefined): boolean {
+    return limit === undefined || limit === null || (Number.isInteger(limit) && limit > 0);
+}
+
 export function validateMagicTypes(
     magicTypes: MagicTypeConfig[],
     categories: readonly { id: MagicNodeCategory }[]
@@ -54,6 +58,12 @@ export function validateMagicTypes(
         }
         if (!magicType.description.trim()) {
             errors.push(`Missing magic type description: ${magicType.type}`);
+        }
+        if (!isValidConnectionLimit(magicType.connectionLimits?.maxInputs)) {
+            errors.push(`Invalid magic type maxInputs: ${magicType.type} -> ${magicType.connectionLimits?.maxInputs}`);
+        }
+        if (!isValidConnectionLimit(magicType.connectionLimits?.maxOutputs)) {
+            errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
         }
     });
 
