@@ -5,6 +5,7 @@ import {
     applyCyoaChoiceActions,
     canContinueCyoa,
     createInitialRowVisibility,
+    mapCyoaChoiceConfig,
     toggleCyoaChoiceSelection,
 } from './cyoaActions';
 
@@ -15,6 +16,7 @@ const rows: CyoaChoiceRowData[] = [
         visible: true,
         selectable: true,
         required: false,
+        requiredMode: 'never',
         selectionMode: 'multi',
         choices: [],
     },
@@ -24,6 +26,7 @@ const rows: CyoaChoiceRowData[] = [
         visible: false,
         selectable: true,
         required: true,
+        requiredMode: 'always',
         selectionMode: 'single',
         choices: [],
     },
@@ -33,12 +36,25 @@ const rows: CyoaChoiceRowData[] = [
         visible: false,
         selectable: true,
         required: true,
+        requiredMode: 'always',
         selectionMode: 'single',
         choices: [],
     },
 ];
 
 describe('cyoaActions', () => {
+    it('maps choices through the configured image resolver', () => {
+        expect(mapCyoaChoiceConfig(
+            {
+                id: 'choice',
+                imageAlt: '',
+                title: '',
+                description: '',
+            },
+            (imagePath) => imagePath ?? '/fallback.webp'
+        ).imageSrc).toBe('/fallback.webp');
+    });
+
     it('creates initial row visibility from row config data', () => {
         expect(createInitialRowVisibility(rows)).toEqual({
             toc: true,
@@ -116,5 +132,23 @@ describe('cyoaActions', () => {
             { toc: true, region: true, catalyst: true },
             { region: ['region-frontier'], catalyst: ['catalyst-staff'] }
         )).toBe(true);
+    });
+
+    it('requires visible-only rows only while they are open', () => {
+        const optionalVisibleRows = [
+            { ...rows[0], requiredMode: 'never' as const },
+            { ...rows[1], requiredMode: 'visible' as const },
+        ];
+
+        expect(canContinueCyoa(
+            optionalVisibleRows,
+            { toc: true, region: false },
+            {}
+        )).toBe(true);
+        expect(canContinueCyoa(
+            optionalVisibleRows,
+            { toc: true, region: true },
+            {}
+        )).toBe(false);
     });
 });

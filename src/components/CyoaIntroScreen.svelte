@@ -1,58 +1,16 @@
 <script lang="ts">
-    import heroImage from '../assets/hero.png';
-    import svelteImage from '../assets/svelte.svg';
-    import viteImage from '../assets/vite.svg';
     import { APP_PHASES } from '../constants/gameConfigs';
-    import cyoaRowsData from '../data/cyoaRows.json';
     import { appStore } from '../stores/appStore.svelte';
-    import type {
-        CyoaChoiceImageKey,
-        CyoaChoiceRowConfig,
-        CyoaChoiceRowData,
-    } from '../types/cyoa';
-    import {
-        applyCyoaChoiceActions,
-        canContinueCyoa,
-        createInitialRowVisibility,
-        mapCyoaRows,
-        toggleCyoaChoiceSelection,
-    } from '../systems/cyoaActions';
+    import { choiceStore } from '../stores/choiceStore.svelte';
+    import type { CyoaChoiceRowData } from '../types/cyoa';
     import CyoaChoiceSection from './CyoaChoiceSection.svelte';
 
-    const imageSources: Record<CyoaChoiceImageKey, string> = {
-        hero: heroImage,
-        svelte: svelteImage,
-        vite: viteImage,
-    };
-
-    const choiceRows: CyoaChoiceRowData[] = mapCyoaRows(
-        cyoaRowsData as CyoaChoiceRowConfig[],
-        imageSources
-    );
-
-    let visibleRowIds = $state<Record<string, boolean>>(
-        createInitialRowVisibility(choiceRows)
-    );
-    let selectedChoiceIds = $state<Record<string, string[]>>({});
-
-    const canContinue = $derived(
-        canContinueCyoa(choiceRows, visibleRowIds, selectedChoiceIds)
-    );
-
     function handleChoiceSelect(row: CyoaChoiceRowData, choiceId: string) {
-        const choice = row.choices.find(item => item.id === choiceId);
-        if (!choice) return;
-
-        const nextSelectedChoiceIds = toggleCyoaChoiceSelection(row, selectedChoiceIds, choiceId);
-        const isSelected = nextSelectedChoiceIds[row.id]?.includes(choiceId) ?? false;
-        const nextVisibleRowIds = applyCyoaChoiceActions(choice, visibleRowIds, isSelected);
-
-        visibleRowIds = nextVisibleRowIds;
-        selectedChoiceIds = nextSelectedChoiceIds;
+        choiceStore.selectChoice(row, choiceId);
     }
 
     function continueToNodeComposition() {
-        if (!canContinue) return;
+        if (!choiceStore.canContinue) return;
         appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
     }
 </script>
@@ -67,11 +25,11 @@
             </p>
         </div>
 
-        {#each choiceRows as row (row.id)}
-            {#if visibleRowIds[row.id]}
+        {#each choiceStore.rows as row (row.id)}
+            {#if choiceStore.visibleRowIds[row.id]}
                 <CyoaChoiceSection
                     {row}
-                    selectedChoiceIds={selectedChoiceIds[row.id]}
+                    selectedChoiceIds={choiceStore.selectedChoiceIds[row.id]}
                     onSelect={(choiceId) => handleChoiceSelect(row, choiceId)}
                 />
             {/if}
@@ -81,7 +39,7 @@
             <button
                 type="button"
                 class="continue-button"
-                disabled={!canContinue}
+                disabled={!choiceStore.canContinue}
                 onclick={continueToNodeComposition}
             >
                 조합 시작

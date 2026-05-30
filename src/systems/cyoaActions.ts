@@ -1,23 +1,21 @@
 import { CYOA_ACTIONS } from '../constants/gameConfigs';
-import type {
-    CyoaChoice,
-    CyoaChoiceConfig,
-    CyoaChoiceImageKey,
-    CyoaChoiceRowConfig,
-    CyoaChoiceRowData,
-} from '../types/cyoa';
+import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceRowConfig, CyoaChoiceRowData } from '../types/cyoa';
 
-type CyoaImageSources = Record<CyoaChoiceImageKey, string>;
 type RowVisibility = Record<string, boolean>;
 type RowSelections = Record<string, string[]>;
 
+function resolveRequiredMode(row: CyoaChoiceRowConfig): CyoaChoiceRowData['requiredMode'] {
+    if (row.requiredMode) return row.requiredMode;
+    return row.required === false ? 'never' : 'always';
+}
+
 export function mapCyoaChoiceConfig(
     choice: CyoaChoiceConfig,
-    imageSources: CyoaImageSources
+    resolveImagePath: (imagePath?: string) => string
 ): CyoaChoice {
     return {
         id: choice.id,
-        imageSrc: imageSources[choice.imageKey],
+        imageSrc: resolveImagePath(choice.imagePath),
         imageAlt: choice.imageAlt,
         title: choice.title,
         description: choice.description,
@@ -28,24 +26,27 @@ export function mapCyoaChoiceConfig(
 
 export function mapCyoaRowConfig(
     row: CyoaChoiceRowConfig,
-    imageSources: CyoaImageSources
+    resolveImagePath: (imagePath?: string) => string
 ): CyoaChoiceRowData {
+    const requiredMode = resolveRequiredMode(row);
+
     return {
         id: row.id,
         title: row.title,
         visible: row.visible ?? true,
         selectable: row.selectable ?? true,
-        required: row.required ?? true,
+        required: requiredMode !== 'never',
+        requiredMode,
         selectionMode: row.selectionMode ?? 'single',
-        choices: row.choices.map(choice => mapCyoaChoiceConfig(choice, imageSources)),
+        choices: row.choices.map(choice => mapCyoaChoiceConfig(choice, resolveImagePath)),
     };
 }
 
 export function mapCyoaRows(
     rows: CyoaChoiceRowConfig[],
-    imageSources: CyoaImageSources
+    resolveImagePath: (imagePath?: string) => string
 ): CyoaChoiceRowData[] {
-    return rows.map(row => mapCyoaRowConfig(row, imageSources));
+    return rows.map(row => mapCyoaRowConfig(row, resolveImagePath));
 }
 
 export function createInitialRowVisibility(rows: CyoaChoiceRowData[]): RowVisibility {
@@ -54,11 +55,15 @@ export function createInitialRowVisibility(rows: CyoaChoiceRowData[]): RowVisibi
 
 export function canContinueCyoa(
     rows: CyoaChoiceRowData[],
-    _visibleRowIds: RowVisibility,
+    visibleRowIds: RowVisibility,
     selectedChoiceIds: RowSelections
 ): boolean {
     return rows
-        .filter(row => row.selectable && row.required)
+        .filter(row => {
+            if (!row.selectable || row.requiredMode === 'never') return false;
+            if (row.requiredMode === 'visible') return visibleRowIds[row.id];
+            return true;
+        })
         .every(row => (selectedChoiceIds[row.id]?.length ?? 0) > 0);
 }
 

@@ -23,13 +23,12 @@
     import '@xyflow/svelte/dist/style.css';
 
     import { graphStore } from '../stores/graphStore.svelte';
-    import { EDITOR_CANVAS, MAGIC_NODE_CATEGORIES } from '../constants/gameConfigs';
+    import { EDITOR_CANVAS, MAGIC_NODE_CATEGORIES, type MagicNodeCategory } from '../constants/gameConfigs';
     import { resolveDropPosition } from '../systems/editorCanvas';
+    import { getMagicTypesByCategory } from '../systems/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
-    import type { MagicNode, MagicType, MagicTypeConfig } from '../types/magic';
-    // 노드 타입 데이터는 JSON에서 로드합니다.
-    import magicTypesData from '../data/magicTypes.json';
+    import type { MagicNode, MagicType } from '../types/magic';
 
     const nodeTypes = { magicNode: CustomNode };
     const edgeTypes = { magicEdge: CustomEdge };
@@ -37,14 +36,12 @@
     const canvasExtent = EDITOR_CANVAS.EXTENT as CoordinateExtent;
     const { screenToFlowPosition } = useSvelteFlow();
 
-    // JSON 데이터를 MagicType으로 타입 단언하여 사용합니다.
-    const magicTypes = magicTypesData as MagicTypeConfig[];
-    let activeCategoryIds = $state<string[]>([]);
+    let activeCategoryIds = $state<MagicNodeCategory[]>([]);
     const visibleMagicTypes = $derived(
-        magicTypes.filter((magicType) => activeCategoryIds.includes(magicType.category)),
+        getMagicTypesByCategory(activeCategoryIds),
     );
 
-    function toggleCategory(categoryId: string) {
+    function toggleCategory(categoryId: MagicNodeCategory) {
         activeCategoryIds = activeCategoryIds.includes(categoryId)
             ? activeCategoryIds.filter((id) => id !== categoryId)
             : [...activeCategoryIds, categoryId];

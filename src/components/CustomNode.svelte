@@ -1,12 +1,11 @@
 <script lang="ts">
     import { Handle, Position } from '@xyflow/svelte';
-    import type { MagicNodeData, MagicTypeConfig } from '../types/magic';
-    import magicTypesData from '../data/magicTypes.json';
+    import type { MagicNodeData } from '../types/magic';
+    import { getMagicTypeConfig } from '../systems/magicTypeRegistry';
 
     let { data, isConnectable }: { data: MagicNodeData; isConnectable?: boolean } = $props();
 
-    const magicTypes = magicTypesData as MagicTypeConfig[];
-    const nodeConfig = $derived(magicTypes.find(t => t.type === data.magicType));
+    const nodeConfig = $derived(getMagicTypeConfig(data.magicType));
 
     const color  = $derived(nodeConfig?.color || '#888');
     const icon   = $derived(nodeConfig?.icon  || '?');

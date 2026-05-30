@@ -1,6 +1,6 @@
 import type { CyoaAction } from '../constants/gameConfigs';
 
-export type CyoaChoiceImageKey = 'hero' | 'svelte' | 'vite';
+export type CyoaRequirementMode = 'always' | 'visible' | 'never';
 
 export interface CyoaChoiceActionConfig {
     func: CyoaAction;
@@ -9,7 +9,7 @@ export interface CyoaChoiceActionConfig {
 
 export interface CyoaChoiceConfig {
     id: string;
-    imageKey: CyoaChoiceImageKey;
+    imagePath?: string;
     imageAlt: string;
     title: string;
     description: string;
@@ -23,6 +23,7 @@ export interface CyoaChoiceRowConfig {
     visible?: boolean;
     selectable?: boolean;
     required?: boolean;
+    requiredMode?: CyoaRequirementMode;
     selectionMode?: 'single' | 'multi';
     choices: CyoaChoiceConfig[];
 }
@@ -43,6 +44,7 @@ export interface CyoaChoiceRowData {
     visible: boolean;
     selectable: boolean;
     required: boolean;
+    requiredMode: CyoaRequirementMode;
     selectionMode: 'single' | 'multi';
     choices: CyoaChoice[];
 }

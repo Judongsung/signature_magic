@@ -4,11 +4,12 @@
         "title": "목차",
         "visible": true,
         "required": false,
+        "requiredMode": "never",
         "selectionMode": "multi",
         "choices": [
             {
                 "id": "toc-region",
-                "imageKey": "hero",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "지역 선택 항목",
                 "title": "지역",
                 "description": "출신과 시작 환경을 선택합니다.",
@@ -21,7 +22,7 @@
             },
             {
                 "id": "toc-catalyst",
-                "imageKey": "svelte",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "촉매 선택 항목",
                 "title": "촉매",
                 "description": "마법을 발현할 매개체를 선택합니다.",
@@ -38,59 +39,60 @@
         "id": "region",
         "title": "지역",
         "visible": false,
+        "requiredMode": "always",
         "choices": [
             {
                 "id": "region-empire-center",
-                "imageKey": "hero",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "제국의 중심부",
                 "title": "제국 중심",
                 "description": "권력과 규율이 집중된 질서의 심장부입니다."
             },
             {
                 "id": "region-university-city",
-                "imageKey": "svelte",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마법 연구가 이루어지는 대학도시",
                 "title": "대학도시",
                 "description": "학파와 연구실이 밀집한 지식의 거점입니다."
             },
             {
                 "id": "region-eastern-desert",
-                "imageKey": "vite",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "동부의 건조한 사막",
                 "title": "동부 사막",
                 "description": "고대 유적과 메마른 마력이 잠든 땅입니다."
             },
             {
                 "id": "region-northern-snowfield",
-                "imageKey": "hero",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "북부의 설원",
                 "title": "북부 설원",
                 "description": "혹한과 침묵이 오래된 힘을 보존합니다."
             },
             {
                 "id": "region-southern-grassland",
-                "imageKey": "svelte",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "남부의 넓은 초원",
                 "title": "남부 초원",
                 "description": "넓은 이동로와 생명력이 흐르는 개방지입니다."
             },
             {
                 "id": "region-western-coast",
-                "imageKey": "vite",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "서부 해안",
                 "title": "서부 해안",
                 "description": "무역, 항해, 이방의 주문이 드나드는 경계입니다."
             },
             {
                 "id": "region-holy-city",
-                "imageKey": "hero",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "성스러운 도시",
                 "title": "성도",
                 "description": "신앙과 의식이 마법 체계에 깊게 스며든 도시입니다."
             },
             {
                 "id": "region-frontier",
-                "imageKey": "svelte",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "아직 개척되지 않은 땅",
                 "title": "미개척지",
                 "description": "불확실하지만 새로운 규칙을 발견할 수 있는 변방입니다."
@@ -101,38 +103,39 @@
         "id": "catalyst",
         "title": "촉매",
         "visible": false,
+        "requiredMode": "always",
         "choices": [
             {
                 "id": "catalyst-staff",
-                "imageKey": "hero",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마력을 담는 지팡이",
                 "title": "지팡이",
                 "description": "마력을 안정적으로 집중시키는 전통적인 촉매입니다."
             },
             {
                 "id": "catalyst-dagger",
-                "imageKey": "svelte",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "의식용 단검",
                 "title": "단검",
                 "description": "짧고 날카로운 의식으로 힘의 방향을 고정합니다."
             },
             {
                 "id": "catalyst-grimoire",
-                "imageKey": "vite",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "오래된 마도서",
                 "title": "마도서",
                 "description": "기록된 지식과 주문 체계를 통해 조합의 폭을 넓힙니다."
             },
             {
                 "id": "catalyst-gem",
-                "imageKey": "hero",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마력이 깃든 보석",
                 "title": "보석",
                 "description": "내부에 축적된 에너지를 증폭과 저장에 활용합니다."
             },
             {
                 "id": "catalyst-body-part",
-                "imageKey": "svelte",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "의식에 사용되는 신체부위",
                 "title": "신체부위",
                 "description": "강한 생체적 흔적을 매개로 직접적인 연결을 만듭니다.",
@@ -140,7 +143,7 @@
             },
             {
                 "id": "catalyst-blood",
-                "imageKey": "vite",
+                "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "의식에 쓰이는 혈액",
                 "title": "혈액",
                 "description": "계약과 대가의 의미를 지닌 고위험 촉매입니다."

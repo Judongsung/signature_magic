@@ -5,15 +5,9 @@
      * 역할: 순수 UI 컴포넌트
      * - graphStore.circles를 읽어 SVG 마법진을 렌더링합니다.
      * - 상태를 직접 보유하거나 수정하지 않습니다.
-     */
+    */
     import { graphStore } from '../stores/graphStore.svelte';
-    import magicTypesData from '../data/magicTypes.json';
-    import type { MagicTypeConfig } from '../types/magic';
-
-    const magicTypes = magicTypesData as MagicTypeConfig[];
-    const typeColors: Record<string, string> = Object.fromEntries(
-        magicTypes.map(({ type, color }) => [type, color])
-    );
+    import { magicTypeColorMap } from '../systems/magicTypeRegistry';
 
     /** 정n각형의 꼭짓점 좌표 문자열을 반환합니다. */
     function polygonPoints(sides: number, r: number, cx: number, cy: number): string {
@@ -79,7 +73,7 @@
                     <!-- 각 노드의 고유 문양 레이어 -->
                     {#each circle.nodes as node, ni}
                         {@const r = layerRadius(circle.nodes.length, ni)}
-                        {@const color = typeColors[node.data.magicType] ?? '#888'}
+                        {@const color = magicTypeColorMap[node.data.magicType] ?? '#888'}
                         {@const filterId = `glow-${ci}`}
 
                         <g class="spin-layer" style="animation-duration: {14 + ni * 4}s; animation-direction: {ni % 2 === 0 ? 'normal' : 'reverse'}; transform-origin: 130px 130px;">
