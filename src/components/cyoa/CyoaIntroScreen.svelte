@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { APP_PHASES } from '../constants/gameConfigs';
-    import { appStore } from '../stores/appStore.svelte';
-    import { choiceStore } from '../stores/choiceStore.svelte';
-    import type { CyoaChoiceRowData } from '../types/cyoa';
+    import { APP_PHASES } from '../../constants/gameConfigs';
+    import { appStore } from '../../stores/appStore.svelte';
+    import { choiceStore } from '../../stores/choiceStore.svelte';
+    import type { CyoaChoiceRowData } from '../../types/cyoa';
     import CyoaChoiceSection from './CyoaChoiceSection.svelte';
 
     function handleChoiceSelect(row: CyoaChoiceRowData, choiceId: string) {

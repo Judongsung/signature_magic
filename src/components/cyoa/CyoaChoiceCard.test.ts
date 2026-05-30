@@ -1,7 +1,7 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import CyoaChoiceCard from './CyoaChoiceCard.svelte';
-import type { CyoaChoice } from '../types/cyoa';
+import type { CyoaChoice } from '../../types/cyoa';
 
 const choice: CyoaChoice = {
     id: 'choice-id',

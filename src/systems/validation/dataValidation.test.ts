@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { CYOA_ACTIONS, MAGIC_NODE_CATEGORIES } from '../constants/gameConfigs';
-import cyoaRowsData from '../data/cyoaRows.json';
-import magicTypesData from '../data/magicTypes.json';
-import type { CyoaChoiceRowConfig } from '../types/cyoa';
-import type { MagicTypeConfig } from '../types/magic';
-import { isKnownCyoaImagePath } from './cyoaImageRegistry';
+import { CYOA_ACTIONS, MAGIC_NODE_CATEGORIES } from '../../constants/gameConfigs';
+import cyoaRowsData from '../../data/cyoaRows.json';
+import magicTypesData from '../../data/magicTypes.json';
+import type { CyoaChoiceRowConfig } from '../../types/cyoa';
+import type { MagicTypeConfig } from '../../types/magic';
+import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
 import { validateCyoaRows, validateMagicTypes } from './dataValidation';
 
 describe('dataValidation', () => {

@@ -1,6 +1,6 @@
-import magicTypesData from '../data/magicTypes.json';
-import type { MagicNodeCategory } from '../constants/gameConfigs';
-import type { MagicType, MagicTypeConfig } from '../types/magic';
+import magicTypesData from '../../data/magicTypes.json';
+import type { MagicNodeCategory } from '../../constants/gameConfigs';
+import type { MagicType, MagicTypeConfig } from '../../types/magic';
 
 export const magicTypes = magicTypesData as MagicTypeConfig[];
 

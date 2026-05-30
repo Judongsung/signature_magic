@@ -1,5 +1,5 @@
-import { CYOA_ACTIONS } from '../constants/gameConfigs';
-import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceRowConfig, CyoaChoiceRowData } from '../types/cyoa';
+import { CYOA_ACTIONS } from '../../constants/gameConfigs';
+import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceRowConfig, CyoaChoiceRowData } from '../../types/cyoa';
 
 type RowVisibility = Record<string, boolean>;
 type RowSelections = Record<string, string[]>;

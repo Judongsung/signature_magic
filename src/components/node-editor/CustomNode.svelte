@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Handle, Position } from '@xyflow/svelte';
-    import type { MagicNodeData } from '../types/magic';
-    import { getMagicTypeConfig } from '../systems/magicTypeRegistry';
-    import NodeDescriptionTooltip from './NodeDescriptionTooltip.svelte';
+    import type { MagicNodeData } from '../../types/magic';
+    import { getMagicTypeConfig } from '../../systems/graph/magicTypeRegistry';
+    import NodeDescriptionTooltip from '../shared/NodeDescriptionTooltip.svelte';
 
     let {
         id,

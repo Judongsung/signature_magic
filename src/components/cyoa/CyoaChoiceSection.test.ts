@@ -1,7 +1,7 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import CyoaChoiceSection from './CyoaChoiceSection.svelte';
-import type { CyoaChoiceRowData } from '../types/cyoa';
+import type { CyoaChoiceRowData } from '../../types/cyoa';
 
 const row: CyoaChoiceRowData = {
     id: 'region',

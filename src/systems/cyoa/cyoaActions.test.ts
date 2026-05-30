@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CYOA_ACTIONS } from '../constants/gameConfigs';
-import type { CyoaChoiceRowData } from '../types/cyoa';
+import { CYOA_ACTIONS } from '../../constants/gameConfigs';
+import type { CyoaChoiceRowData } from '../../types/cyoa';
 import {
     applyCyoaChoiceActions,
     canContinueCyoa,

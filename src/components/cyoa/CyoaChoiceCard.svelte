@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { CyoaChoice } from '../types/cyoa';
+    import type { CyoaChoice } from '../../types/cyoa';
 
     let {
         choice,

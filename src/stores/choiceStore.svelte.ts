@@ -6,8 +6,8 @@ import {
     createInitialRowVisibility,
     mapCyoaRows,
     toggleCyoaChoiceSelection,
-} from '../systems/cyoaActions';
-import { resolveCyoaImagePath } from '../systems/cyoaImageRegistry';
+} from '../systems/cyoa/cyoaActions';
+import { resolveCyoaImagePath } from '../systems/cyoa/cyoaImageRegistry';
 import type { CyoaChoiceRowConfig, CyoaChoiceRowData } from '../types/cyoa';
 
 type RowVisibility = Record<string, boolean>;

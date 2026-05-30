@@ -1,7 +1,7 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import { createEdge, createNode, filterEdgesForDeletedNodes, refreshNodeRoles } from './graphActions';
-import type { MagicNode } from '../types/magic';
+import type { MagicNode } from '../../types/magic';
 
 function node(id: string): MagicNode {
     return {

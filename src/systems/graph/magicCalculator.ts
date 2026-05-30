@@ -6,7 +6,7 @@
  */
 
 import type { Edge } from '@xyflow/svelte';
-import type { CirclePath, MagicNode } from '../types/magic';
+import type { CirclePath, MagicNode } from '../../types/magic';
 
 // ── 계산 함수 ────────────────────────────────────────────────────────────────
 

@@ -9,7 +9,7 @@
 import type { Connection, Edge } from '@xyflow/svelte';
 import { isConnectionValid } from './graphRules';
 import { computeNodeRoles } from './magicCalculator';
-import type { MagicNode, MagicType } from '../types/magic';
+import type { MagicNode, MagicType } from '../../types/magic';
 
 export type IdFactory = () => string;
 

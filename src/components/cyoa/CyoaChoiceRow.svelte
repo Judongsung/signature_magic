@@ -1,6 +1,6 @@
 <script lang="ts">
     import CyoaChoiceCard from './CyoaChoiceCard.svelte';
-    import type { CyoaChoice } from '../types/cyoa';
+    import type { CyoaChoice } from '../../types/cyoa';
 
     let {
         choices,

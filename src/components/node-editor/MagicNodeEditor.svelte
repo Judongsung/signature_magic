@@ -22,14 +22,14 @@
     } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css';
 
-    import { graphStore } from '../stores/graphStore.svelte';
-    import { EDITOR_CANVAS, MAGIC_NODE_CATEGORIES, type MagicNodeCategory } from '../constants/gameConfigs';
-    import { resolveDropPosition } from '../systems/editorCanvas';
-    import { getMagicTypesByCategory } from '../systems/magicTypeRegistry';
+    import { graphStore } from '../../stores/graphStore.svelte';
+    import { EDITOR_CANVAS, MAGIC_NODE_CATEGORIES, type MagicNodeCategory } from '../../constants/gameConfigs';
+    import { resolveDropPosition } from '../../systems/graph/editorCanvas';
+    import { getMagicTypesByCategory } from '../../systems/graph/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
-    import NodeDescriptionTooltip from './NodeDescriptionTooltip.svelte';
-    import type { MagicNode, MagicType } from '../types/magic';
+    import NodeDescriptionTooltip from '../shared/NodeDescriptionTooltip.svelte';
+    import type { MagicNode, MagicType } from '../../types/magic';
 
     const nodeTypes = { magicNode: CustomNode };
     const edgeTypes = { magicEdge: CustomEdge };

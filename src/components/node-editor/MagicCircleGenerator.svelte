@@ -6,8 +6,8 @@
      * - graphStore.circles를 읽어 SVG 마법진을 렌더링합니다.
      * - 상태를 직접 보유하거나 수정하지 않습니다.
     */
-    import { graphStore } from '../stores/graphStore.svelte';
-    import { magicTypeColorMap } from '../systems/magicTypeRegistry';
+    import { graphStore } from '../../stores/graphStore.svelte';
+    import { magicTypeColorMap } from '../../systems/graph/magicTypeRegistry';
 
     /** 정n각형의 꼭짓점 좌표 문자열을 반환합니다. */
     function polygonPoints(sides: number, r: number, cx: number, cy: number): string {

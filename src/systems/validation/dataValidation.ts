@@ -1,6 +1,6 @@
-import type { CyoaAction, MagicNodeCategory } from '../constants/gameConfigs';
-import type { CyoaChoiceRowConfig } from '../types/cyoa';
-import type { MagicTypeConfig } from '../types/magic';
+import type { CyoaAction, MagicNodeCategory } from '../../constants/gameConfigs';
+import type { CyoaChoiceRowConfig } from '../../types/cyoa';
+import type { MagicTypeConfig } from '../../types/magic';
 
 export interface DataValidationResult {
     valid: boolean;

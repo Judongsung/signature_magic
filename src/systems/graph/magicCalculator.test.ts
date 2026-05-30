@@ -1,7 +1,7 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import { calculateCircles, computeNodeRoles } from './magicCalculator';
-import type { MagicNode, MagicType } from '../types/magic';
+import type { MagicNode, MagicType } from '../../types/magic';
 
 function node(id: string, magicType: MagicType = 'fire'): MagicNode {
     return {

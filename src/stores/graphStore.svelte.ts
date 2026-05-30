@@ -11,9 +11,9 @@
 
 import { type Connection, type Edge } from '@xyflow/svelte';
 import type { OnBeforeConnect } from '@xyflow/svelte';
-import { calculateCircles } from '../systems/magicCalculator';
-import { isConnectionValid } from '../systems/graphRules';
-import { createNode, createEdge, refreshNodeRoles, filterEdgesForDeletedNodes } from '../systems/graphActions';
+import { calculateCircles } from '../systems/graph/magicCalculator';
+import { isConnectionValid } from '../systems/graph/graphRules';
+import { createNode, createEdge, refreshNodeRoles, filterEdgesForDeletedNodes } from '../systems/graph/graphActions';
 import type { CirclePath, MagicNode, MagicType } from '../types/magic';
 
 class GraphStore {
