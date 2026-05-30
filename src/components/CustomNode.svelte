@@ -10,6 +10,7 @@
 
     const color  = $derived(nodeConfig?.color || '#888');
     const icon   = $derived(nodeConfig?.icon  || '?');
+    const label  = $derived(nodeConfig?.label || data.magicType);
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
 </script>
@@ -37,7 +38,7 @@
 
     <div class="node-body">
         <div class="icon">{icon}</div>
-        <div class="label">{data.magicType.toUpperCase()}</div>
+        <div class="label">{label}</div>
     </div>
 
     <!--

@@ -17,10 +17,14 @@
         type Connection,
         type Edge,
         type OnDelete,
+        type CoordinateExtent,
+        type SnapGrid,
     } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css';
 
     import { graphStore } from '../stores/graphStore.svelte';
+    import { EDITOR_CANVAS } from '../constants/gameConfigs';
+    import { resolveDropPosition } from '../systems/editorCanvas';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
     import type { MagicNode, MagicType, MagicTypeConfig } from '../types/magic';
@@ -29,6 +33,8 @@
 
     const nodeTypes = { magicNode: CustomNode };
     const edgeTypes = { magicEdge: CustomEdge };
+    const snapGrid = EDITOR_CANVAS.SNAP_GRID as SnapGrid;
+    const canvasExtent = EDITOR_CANVAS.EXTENT as CoordinateExtent;
     const { screenToFlowPosition } = useSvelteFlow();
 
     // JSON 데이터를 MagicType으로 타입 단언하여 사용합니다.
@@ -51,7 +57,8 @@
         const magicType = event.dataTransfer?.getData('application/magictype') as MagicType | undefined;
         if (!magicType) return;
 
-        const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const flowPosition = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const position = resolveDropPosition(flowPosition, snapGrid, canvasExtent);
         graphStore.addNode(magicType, position);
     }
 
@@ -64,13 +71,13 @@
     <!-- 툴바 -->
     <div class="toolbar">
         <span class="toolbar-label">노드</span>
-        {#each magicTypes as { type, icon }}
+        {#each magicTypes as { type, label, icon }}
             <button
                 class="drag-btn"
                 draggable="true"
                 ondragstart={(e) => onDragStart(e, type)}
             >
-                {icon} {type.charAt(0).toUpperCase() + type.slice(1)}
+                {icon} {label}
             </button>
         {/each}
 
@@ -101,6 +108,9 @@
             {edgeTypes}
             colorMode="dark"
             connectionMode={ConnectionMode.Strict}
+            {snapGrid}
+            translateExtent={canvasExtent}
+            nodeExtent={canvasExtent}
             isValidConnection={(edge) => graphStore.checkConnection(edge)}
             onbeforeconnect={(conn) => graphStore.prepareEdge(conn)}
             onconnect={(conn: Connection) => graphStore.onEdgeConnected(conn)}
@@ -108,7 +118,7 @@
             deleteKey="Delete"
             fitView
         >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
+            <Background variant={BackgroundVariant.Dots} gap={snapGrid[0]} size={1.2} />
             <Controls />
         </SvelteFlow>
     </div>

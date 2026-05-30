@@ -7,14 +7,13 @@
      * - 상태를 직접 보유하거나 수정하지 않습니다.
      */
     import { graphStore } from '../stores/graphStore.svelte';
+    import magicTypesData from '../data/magicTypes.json';
+    import type { MagicTypeConfig } from '../types/magic';
 
-    const typeColors: Record<string, string> = {
-        fire:   '#e74c3c',
-        water:  '#3498db',
-        wind:   '#2ecc71',
-        earth:  '#e67e22',
-        arcane: '#9b59b6',
-    };
+    const magicTypes = magicTypesData as MagicTypeConfig[];
+    const typeColors: Record<string, string> = Object.fromEntries(
+        magicTypes.map(({ type, color }) => [type, color])
+    );
 
     /** 정n각형의 꼭짓점 좌표 문자열을 반환합니다. */
     function polygonPoints(sides: number, r: number, cx: number, cy: number): string {
@@ -29,6 +28,10 @@
         const maxR = 115;
         const step = maxR / (total + 1);
         return maxR - step * index;
+    }
+
+    function fallbackSides(magicType: string): number {
+        return 3 + (magicType.length % 5);
     }
 </script>
 
@@ -116,6 +119,16 @@
                                     stroke-dasharray="6 4"
                                     filter="url(#{filterId})"
                                     transform="rotate(30 130 130)" />
+                            {:else}
+                                <!-- 기능 노드: 타입별 다각형과 점선 궤도 -->
+                                <polygon
+                                    points={polygonPoints(fallbackSides(node.data.magicType), r, 130, 130)}
+                                    fill="none" stroke={color} stroke-width="1.5"
+                                    filter="url(#{filterId})" />
+                                <circle cx="130" cy="130" r={r * 0.72}
+                                    fill="none" stroke={color} stroke-width="0.9"
+                                    stroke-dasharray="4 7"
+                                    filter="url(#{filterId})" />
                             {/if}
                         </g>
                     {/each}

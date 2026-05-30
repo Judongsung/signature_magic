@@ -46,10 +46,12 @@
         gap: 14px;
         align-items: stretch;
         padding: 12px;
-        border: 1px solid #2a2a3a;
+        border: 1px solid #4d3821;
         border-radius: 8px;
-        background: #101018;
-        color: #e8e8f5;
+        background:
+            linear-gradient(135deg, rgba(42, 30, 18, 0.96), rgba(18, 25, 20, 0.98)),
+            repeating-linear-gradient(45deg, rgba(230, 190, 112, 0.04) 0 1px, transparent 1px 8px);
+        color: #ead9b7;
         text-align: left;
         cursor: pointer;
         transition:
@@ -61,36 +63,42 @@
 
     .choice-card:hover:not(:disabled) {
         transform: translateY(-1px);
-        border-color: #6d5dfc;
-        background: #151525;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+        border-color: #9f7738;
+        background:
+            linear-gradient(135deg, rgba(55, 38, 20, 0.98), rgba(21, 35, 27, 0.98)),
+            repeating-linear-gradient(45deg, rgba(230, 190, 112, 0.05) 0 1px, transparent 1px 8px);
+        box-shadow: 0 9px 22px rgba(0, 0, 0, 0.34);
     }
 
     .choice-card:focus-visible {
-        outline: 2px solid #9b59b6;
+        outline: 2px solid #d1a653;
         outline-offset: 3px;
     }
 
     .choice-card.selected {
-        border-color: #9b59b6;
-        background: #181226;
+        border-color: #d4a84f;
+        background:
+            linear-gradient(135deg, rgba(77, 47, 20, 0.98), rgba(19, 47, 34, 0.98));
         box-shadow:
-            0 0 0 1px rgba(155, 89, 182, 0.55),
-            0 0 26px rgba(155, 89, 182, 0.24);
+            inset 0 0 0 1px rgba(255, 223, 139, 0.22),
+            0 0 0 1px rgba(212, 168, 79, 0.58),
+            0 10px 26px rgba(0, 0, 0, 0.36);
     }
 
     .choice-card:disabled {
         cursor: not-allowed;
-        opacity: 0.55;
+        opacity: 0.48;
+        filter: grayscale(0.55);
     }
 
     .image-frame {
         display: block;
         overflow: hidden;
         border-radius: 6px;
-        background: #06060c;
-        border: 1px solid #202030;
+        background: #110d08;
+        border: 1px solid #6e4a25;
         aspect-ratio: 1;
+        box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.45);
     }
 
     .image-frame img {
@@ -98,6 +106,7 @@
         height: 100%;
         display: block;
         object-fit: cover;
+        filter: sepia(0.24) saturate(0.82) contrast(1.08);
     }
 
     .choice-body {
@@ -109,14 +118,15 @@
     }
 
     .choice-title {
-        color: #f3f0ff;
+        color: #f2dfb0;
+        font-family: Georgia, 'Times New Roman', serif;
         font-size: 18px;
-        font-weight: 750;
+        font-weight: 800;
         line-height: 1.2;
     }
 
     .choice-description {
-        color: #aaa8ba;
+        color: #c7b58b;
         font-size: 13px;
         line-height: 1.5;
     }

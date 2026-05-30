@@ -10,3 +10,8 @@ export const CYOA_ACTIONS = {
 } as const;
 
 export type CyoaAction = (typeof CYOA_ACTIONS)[keyof typeof CYOA_ACTIONS];
+
+export const EDITOR_CANVAS = {
+    SNAP_GRID: [40, 40],
+    EXTENT: [[-1200, -800], [1200, 800]],
+} as const;

@@ -100,8 +100,10 @@
         padding: 36px;
         box-sizing: border-box;
         background:
-            radial-gradient(circle at 50% 0%, rgba(155, 89, 182, 0.18), transparent 34%),
-            #050508;
+            linear-gradient(rgba(6, 10, 8, 0.76), rgba(9, 7, 5, 0.88)),
+            repeating-linear-gradient(90deg, rgba(198, 145, 73, 0.05) 0 1px, transparent 1px 13px),
+            repeating-linear-gradient(0deg, rgba(52, 83, 65, 0.08) 0 1px, transparent 1px 17px),
+            #070907;
         overflow-y: auto;
     }
 
@@ -109,32 +111,37 @@
         width: min(1040px, 100%);
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 26px;
+        padding-bottom: 36px;
     }
 
     .intro-copy {
         max-width: 680px;
+        padding-top: 10px;
     }
 
     .eyebrow {
         margin: 0 0 10px;
-        color: #8d82ff;
+        color: #c89b54;
+        font-family: Georgia, 'Times New Roman', serif;
         font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 2px;
+        font-weight: 700;
+        letter-spacing: 3px;
     }
 
     h1 {
         margin: 0;
-        color: #f6f2ff;
-        font-size: 42px;
+        color: #f2dfb0;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 44px;
         line-height: 1.1;
-        font-weight: 850;
+        font-weight: 800;
+        text-shadow: 0 2px 0 #1c1208, 0 0 18px rgba(198, 155, 84, 0.22);
     }
 
     .description {
         margin: 14px 0 0;
-        color: #b8b5c8;
+        color: #c8b991;
         font-size: 16px;
         line-height: 1.6;
     }
@@ -147,10 +154,12 @@
     .continue-button {
         min-width: 148px;
         height: 44px;
-        border: 1px solid #8d5cff;
+        border: 1px solid #8d682d;
         border-radius: 8px;
-        background: #7c3cff;
-        color: #fff;
+        background:
+            linear-gradient(180deg, rgba(157, 113, 44, 0.95), rgba(83, 47, 20, 0.98));
+        color: #fff4d2;
+        font-family: Georgia, 'Times New Roman', serif;
         font-size: 14px;
         font-weight: 800;
         cursor: pointer;
@@ -163,12 +172,14 @@
 
     .continue-button:hover:not(:disabled) {
         transform: translateY(-1px);
-        background: #8f55ff;
-        box-shadow: 0 10px 26px rgba(124, 60, 255, 0.28);
+        border-color: #c9a45a;
+        background:
+            linear-gradient(180deg, rgba(184, 136, 52, 0.98), rgba(100, 55, 22, 0.98));
+        box-shadow: 0 10px 24px rgba(38, 22, 8, 0.44);
     }
 
     .continue-button:focus-visible {
-        outline: 2px solid #d8c6ff;
+        outline: 2px solid #e6c873;
         outline-offset: 3px;
     }
 

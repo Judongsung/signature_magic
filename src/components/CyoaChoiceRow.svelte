@@ -33,7 +33,7 @@
         width: 100%;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 14px;
+        gap: 12px;
         align-items: stretch;
     }
 
