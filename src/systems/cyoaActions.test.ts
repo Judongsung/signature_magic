@@ -4,6 +4,7 @@ import type { CyoaChoiceRowData } from '../types/cyoa';
 import {
     applyCyoaChoiceActions,
     canContinueCyoa,
+    createInitialInputValues,
     createInitialRowVisibility,
     mapCyoaChoiceConfig,
     toggleCyoaChoiceSelection,
@@ -61,6 +62,21 @@ describe('cyoaActions', () => {
             region: false,
             catalyst: false,
         });
+    });
+
+    it('creates initial values for input defaults', () => {
+        const inputRows: CyoaChoiceRowData[] = [
+            {
+                ...rows[1],
+                input: {
+                    id: 'name',
+                    label: '이름',
+                    defaultValue: '아린',
+                },
+            },
+        ];
+
+        expect(createInitialInputValues(inputRows)).toEqual({ name: '아린' });
     });
 
     it('opens rows through OPEN_ROW choice actions', () => {
@@ -132,6 +148,21 @@ describe('cyoaActions', () => {
             { toc: true, region: true, catalyst: true },
             { region: ['region-frontier'], catalyst: ['catalyst-staff'] }
         )).toBe(true);
+    });
+
+    it('requires input row values before continuing', () => {
+        const inputRows: CyoaChoiceRowData[] = [
+            {
+                ...rows[1],
+                input: {
+                    id: 'name',
+                    label: '이름',
+                },
+            },
+        ];
+
+        expect(canContinueCyoa(inputRows, { region: true }, {}, {})).toBe(false);
+        expect(canContinueCyoa(inputRows, { region: true }, {}, { name: '아린' })).toBe(true);
     });
 
     it('requires visible-only rows only while they are open', () => {

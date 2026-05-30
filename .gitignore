@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Local agent reference
+src/SOURCE_MAP.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

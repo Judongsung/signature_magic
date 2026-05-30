@@ -8,6 +8,35 @@
         "selectionMode": "multi",
         "choices": [
             {
+                "id": "toc-personal",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "인적사항 선택 항목",
+                "title": "인적사항",
+                "description": "이름, 나이, 성별, 소속, 역할을 정합니다.",
+                "actions": [
+                    {
+                        "func": "OPEN_ROW",
+                        "target_id": "personal-name"
+                    },
+                    {
+                        "func": "OPEN_ROW",
+                        "target_id": "personal-age"
+                    },
+                    {
+                        "func": "OPEN_ROW",
+                        "target_id": "personal-gender"
+                    },
+                    {
+                        "func": "OPEN_ROW",
+                        "target_id": "personal-affiliation"
+                    },
+                    {
+                        "func": "OPEN_ROW",
+                        "target_id": "personal-role"
+                    }
+                ]
+            },
+            {
                 "id": "toc-region",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "지역 선택 항목",
@@ -32,6 +61,133 @@
                         "target_id": "catalyst"
                     }
                 ]
+            }
+        ]
+    },
+    {
+        "id": "personal-name",
+        "title": "이름",
+        "visible": false,
+        "requiredMode": "always",
+        "input": {
+            "id": "personal-name-input",
+            "label": "이름",
+            "placeholder": "이름 입력"
+        }
+    },
+    {
+        "id": "personal-age",
+        "title": "나이",
+        "visible": false,
+        "requiredMode": "always",
+        "choices": [
+            {
+                "id": "age-teen",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "청소년",
+                "title": "청소년",
+                "description": "아직 성장과 배움의 시기에 있는 인물입니다."
+            },
+            {
+                "id": "age-young-adult",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "청년",
+                "title": "청년",
+                "description": "가장 활발하게 경험을 쌓는 시기의 인물입니다."
+            },
+            {
+                "id": "age-middle-aged",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "중년",
+                "title": "중년",
+                "description": "경험과 책임이 쌓인 시기의 인물입니다."
+            },
+            {
+                "id": "age-elder",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "노년",
+                "title": "노년",
+                "description": "오랜 세월의 지식과 흔적을 지닌 인물입니다."
+            }
+        ]
+    },
+    {
+        "id": "personal-gender",
+        "title": "성별",
+        "visible": false,
+        "requiredMode": "always",
+        "choices": [
+            {
+                "id": "gender-male",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "남성",
+                "title": "남",
+                "description": "남성 캐릭터로 시작합니다."
+            },
+            {
+                "id": "gender-female",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "여성",
+                "title": "녀",
+                "description": "여성 캐릭터로 시작합니다."
+            }
+        ]
+    },
+    {
+        "id": "personal-affiliation",
+        "title": "소속",
+        "visible": false,
+        "requiredMode": "always",
+        "choices": [
+            {
+                "id": "affiliation-imperial-bureau",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "제국 관청",
+                "title": "제국 관청",
+                "description": "제국의 법과 행정 체계 안에서 마법을 다룹니다."
+            },
+            {
+                "id": "affiliation-magic-academy",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "마법 학회",
+                "title": "마법 학회",
+                "description": "연구와 이론을 중심으로 마법 체계를 익힙니다."
+            },
+            {
+                "id": "affiliation-free-guild",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "자유 길드",
+                "title": "자유 길드",
+                "description": "의뢰와 계약을 통해 실전 경험을 쌓습니다."
+            }
+        ]
+    },
+    {
+        "id": "personal-role",
+        "title": "역할",
+        "visible": false,
+        "requiredMode": "always",
+        "choices": [
+            {
+                "id": "role-researcher",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "연구자",
+                "title": "연구자",
+                "description": "마법 구조와 원리를 분석하는 역할입니다."
+            },
+            {
+                "id": "role-caster",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "시전자",
+                "title": "시전자",
+                "description": "전장에서 직접 마법을 구현하는 역할입니다."
+            },
+            {
+                "id": "role-artificer",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "공방술사",
+                "title": "공방술사",
+                "description": "촉매와 도구를 통해 마법을 안정화하는 역할입니다."
             }
         ]
     },

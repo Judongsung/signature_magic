@@ -3,6 +3,7 @@ import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceRowConfig, CyoaChoiceRowDa
 
 type RowVisibility = Record<string, boolean>;
 type RowSelections = Record<string, string[]>;
+type InputValues = Record<string, string>;
 
 function resolveRequiredMode(row: CyoaChoiceRowConfig): CyoaChoiceRowData['requiredMode'] {
     if (row.requiredMode) return row.requiredMode;
@@ -38,7 +39,8 @@ export function mapCyoaRowConfig(
         required: requiredMode !== 'never',
         requiredMode,
         selectionMode: row.selectionMode ?? 'single',
-        choices: row.choices.map(choice => mapCyoaChoiceConfig(choice, resolveImagePath)),
+        input: row.input,
+        choices: (row.choices ?? []).map(choice => mapCyoaChoiceConfig(choice, resolveImagePath)),
     };
 }
 
@@ -53,10 +55,19 @@ export function createInitialRowVisibility(rows: CyoaChoiceRowData[]): RowVisibi
     return Object.fromEntries(rows.map(row => [row.id, row.visible]));
 }
 
+export function createInitialInputValues(rows: CyoaChoiceRowData[]): InputValues {
+    return Object.fromEntries(
+        rows
+            .filter(row => row.input?.defaultValue)
+            .map(row => [row.input!.id, row.input!.defaultValue!])
+    );
+}
+
 export function canContinueCyoa(
     rows: CyoaChoiceRowData[],
     visibleRowIds: RowVisibility,
-    selectedChoiceIds: RowSelections
+    selectedChoiceIds: RowSelections,
+    inputValues: InputValues = {}
 ): boolean {
     return rows
         .filter(row => {
@@ -64,7 +75,10 @@ export function canContinueCyoa(
             if (row.requiredMode === 'visible') return visibleRowIds[row.id];
             return true;
         })
-        .every(row => (selectedChoiceIds[row.id]?.length ?? 0) > 0);
+        .every(row => {
+            if (row.input) return (inputValues[row.input.id]?.trim().length ?? 0) > 0;
+            return (selectedChoiceIds[row.id]?.length ?? 0) > 0;
+        });
 }
 
 export function toggleCyoaChoiceSelection(

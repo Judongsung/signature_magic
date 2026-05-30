@@ -62,7 +62,8 @@ export function validateCyoaRows(
     const rowIds = rows.map(row => row.id);
     const rowIdSet = new Set(rowIds);
     const actionSet = new Set(Object.values(actions));
-    const choiceIds = rows.flatMap(row => row.choices.map(choice => choice.id));
+    const choiceIds = rows.flatMap(row => (row.choices ?? []).map(choice => choice.id));
+    const inputIds = rows.flatMap(row => row.input ? [row.input.id] : []);
 
     findDuplicates(rowIds).forEach(id => {
         errors.push(`Duplicate CYOA row id: ${id}`);
@@ -72,12 +73,19 @@ export function validateCyoaRows(
         errors.push(`Duplicate CYOA choice id: ${id}`);
     });
 
+    findDuplicates(inputIds).forEach(id => {
+        errors.push(`Duplicate CYOA input id: ${id}`);
+    });
+
     rows.forEach(row => {
         if (row.requiredMode && !['always', 'visible', 'never'].includes(row.requiredMode)) {
             errors.push(`Unknown CYOA required mode: ${row.id} -> ${row.requiredMode}`);
         }
+        if (row.input && (row.choices?.length ?? 0) > 0) {
+            errors.push(`CYOA row cannot mix input and choices: ${row.id}`);
+        }
 
-        row.choices.forEach(choice => {
+        (row.choices ?? []).forEach(choice => {
             if (choice.imagePath && !isKnownImagePath(choice.imagePath)) {
                 errors.push(`Unknown CYOA image path: ${choice.id} -> ${choice.imagePath}`);
             }

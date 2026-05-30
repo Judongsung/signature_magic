@@ -2,6 +2,13 @@ import type { CyoaAction } from '../constants/gameConfigs';
 
 export type CyoaRequirementMode = 'always' | 'visible' | 'never';
 
+export interface CyoaTextInputConfig {
+    id: string;
+    label: string;
+    placeholder?: string;
+    defaultValue?: string;
+}
+
 export interface CyoaChoiceActionConfig {
     func: CyoaAction;
     target_id?: string;
@@ -25,7 +32,8 @@ export interface CyoaChoiceRowConfig {
     required?: boolean;
     requiredMode?: CyoaRequirementMode;
     selectionMode?: 'single' | 'multi';
-    choices: CyoaChoiceConfig[];
+    input?: CyoaTextInputConfig;
+    choices?: CyoaChoiceConfig[];
 }
 
 export interface CyoaChoice {
@@ -46,5 +54,6 @@ export interface CyoaChoiceRowData {
     required: boolean;
     requiredMode: CyoaRequirementMode;
     selectionMode: 'single' | 'multi';
+    input?: CyoaTextInputConfig;
     choices: CyoaChoice[];
 }

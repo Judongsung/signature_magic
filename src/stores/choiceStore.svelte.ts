@@ -2,6 +2,7 @@ import cyoaRowsData from '../data/cyoaRows.json';
 import {
     applyCyoaChoiceActions,
     canContinueCyoa,
+    createInitialInputValues,
     createInitialRowVisibility,
     mapCyoaRows,
     toggleCyoaChoiceSelection,
@@ -11,6 +12,7 @@ import type { CyoaChoiceRowConfig, CyoaChoiceRowData } from '../types/cyoa';
 
 type RowVisibility = Record<string, boolean>;
 type RowSelections = Record<string, string[]>;
+type InputValues = Record<string, string>;
 
 class ChoiceStore {
     readonly rows: CyoaChoiceRowData[] = mapCyoaRows(
@@ -20,9 +22,10 @@ class ChoiceStore {
 
     visibleRowIds = $state<RowVisibility>(createInitialRowVisibility(this.rows));
     selectedChoiceIds = $state<RowSelections>({});
+    inputValues = $state<InputValues>(createInitialInputValues(this.rows));
 
     readonly canContinue = $derived(
-        canContinueCyoa(this.rows, this.visibleRowIds, this.selectedChoiceIds)
+        canContinueCyoa(this.rows, this.visibleRowIds, this.selectedChoiceIds, this.inputValues)
     );
 
     selectChoice(row: CyoaChoiceRowData, choiceId: string): void {
@@ -38,9 +41,17 @@ class ChoiceStore {
         this.selectedChoiceIds = nextSelectedChoiceIds;
     }
 
+    updateInputValue(inputId: string, value: string): void {
+        this.inputValues = {
+            ...this.inputValues,
+            [inputId]: value,
+        };
+    }
+
     reset(): void {
         this.visibleRowIds = createInitialRowVisibility(this.rows);
         this.selectedChoiceIds = {};
+        this.inputValues = createInitialInputValues(this.rows);
     }
 }
 

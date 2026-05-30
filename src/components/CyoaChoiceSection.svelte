@@ -1,25 +1,38 @@
 <script lang="ts">
     import type { CyoaChoiceRowData } from '../types/cyoa';
     import CyoaChoiceRow from './CyoaChoiceRow.svelte';
+    import CyoaTextInputRow from './CyoaTextInputRow.svelte';
 
     let {
         row,
         selectedChoiceIds,
+        inputValues,
         onSelect,
+        onInputValueChange,
     }: {
         row: CyoaChoiceRowData;
         selectedChoiceIds?: string[];
+        inputValues?: Record<string, string>;
         onSelect?: (choiceId: string) => void;
+        onInputValueChange?: (inputId: string, value: string) => void;
     } = $props();
 </script>
 
 <section class="choice-section" aria-labelledby={`choice-row-${row.id}`}>
     <h2 id={`choice-row-${row.id}`}>{row.title}</h2>
-    <CyoaChoiceRow
-        choices={row.choices}
-        {selectedChoiceIds}
-        {onSelect}
-    />
+    {#if row.input}
+        <CyoaTextInputRow
+            input={row.input}
+            value={inputValues?.[row.input.id]}
+            onValueChange={onInputValueChange}
+        />
+    {:else}
+        <CyoaChoiceRow
+            choices={row.choices}
+            {selectedChoiceIds}
+            {onSelect}
+        />
+    {/if}
 </section>
 
 <style>

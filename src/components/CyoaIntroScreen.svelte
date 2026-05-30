@@ -9,6 +9,10 @@
         choiceStore.selectChoice(row, choiceId);
     }
 
+    function handleInputValueChange(inputId: string, value: string) {
+        choiceStore.updateInputValue(inputId, value);
+    }
+
     function continueToNodeComposition() {
         if (!choiceStore.canContinue) return;
         appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
@@ -30,7 +34,9 @@
                 <CyoaChoiceSection
                     {row}
                     selectedChoiceIds={choiceStore.selectedChoiceIds[row.id]}
+                    inputValues={choiceStore.inputValues}
                     onSelect={(choiceId) => handleChoiceSelect(row, choiceId)}
+                    onInputValueChange={handleInputValueChange}
                 />
             {/if}
         {/each}
