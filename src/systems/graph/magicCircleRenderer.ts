@@ -20,6 +20,7 @@ export interface NodeRingLayout {
 
 export interface GlyphMarkLayout {
     id: string;
+    kind: GlyphKind;
     x: number;
     y: number;
     rotation: number;
@@ -35,9 +36,17 @@ export interface GlyphBandLayout {
     marks: GlyphMarkLayout[];
 }
 
+export interface NodeStarLayout {
+    id: string;
+    polygons: string[];
+    pointCount: number;
+    step: number;
+}
+
 export interface MagicCircleRenderModel {
     id: string;
     stats: MagicStats;
+    nodeStar?: NodeStarLayout;
     rings: NodeRingLayout[];
     bands: GlyphBandLayout[];
 }
@@ -60,6 +69,7 @@ export function buildMagicCircleRenderModels(
         return {
             id: circle.id,
             stats: circle.stats,
+            nodeStar: buildNodeStar(circle.id, total, options),
             rings: circle.nodes.map((node, index) => ({
                 id: `${circle.id}-ring-${node.id}`,
                 node,
@@ -68,6 +78,87 @@ export function buildMagicCircleRenderModels(
             bands: circle.nodes.map((node, index) => buildGlyphBand(circle.id, node, total, index, options, glyphs)),
         };
     });
+}
+
+function buildNodeStar(
+    circleId: string,
+    pointCount: number,
+    options: MagicCircleRenderOptions
+): NodeStarLayout | undefined {
+    if (pointCount < MAGIC_CIRCLE_PREVIEW.NODE_STAR_MIN_POINTS) return undefined;
+
+    const radius = MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS;
+    const step = nodeStarStep(pointCount);
+    const polygons = nodeStarIndexCycles(pointCount, step).map(indexes =>
+        indexes
+            .map(index => {
+                const angle = (MAGIC_CIRCLE_PREVIEW.FULL_TURN_DEGREES / pointCount) * index;
+                const radians = ((angle - MAGIC_CIRCLE_PREVIEW.SVG_UP_DEGREES) * Math.PI) / MAGIC_CIRCLE_PREVIEW.HALF_TURN_DEGREES;
+                const x = options.center + radius * Math.cos(radians);
+                const y = options.center + radius * Math.sin(radians);
+
+                return `${roundPoint(x)},${roundPoint(y)}`;
+            })
+            .join(' ')
+    );
+
+    return {
+        id: `${circleId}-node-star`,
+        polygons,
+        pointCount,
+        step,
+    };
+}
+
+function nodeStarStep(pointCount: number): number {
+    if (pointCount <= 4) return 1;
+
+    const preferred = Math.floor(pointCount / 2);
+    for (let step = preferred; step >= 2; step -= 1) {
+        const divisor = greatestCommonDivisor(pointCount, step);
+        if (pointCount / divisor >= MAGIC_CIRCLE_PREVIEW.NODE_STAR_MIN_POINTS) return step;
+    }
+
+    return 1;
+}
+
+function nodeStarIndexCycles(pointCount: number, step: number): number[][] {
+    const visited = new Set<number>();
+    const cycles: number[][] = [];
+
+    for (let start = 0; start < pointCount; start += 1) {
+        if (visited.has(start)) continue;
+
+        const indexes: number[] = [];
+        let current = start;
+
+        do {
+            indexes.push(current);
+            visited.add(current);
+            current = (current + step) % pointCount;
+        } while (current !== start && indexes.length <= pointCount);
+
+        cycles.push(indexes);
+    }
+
+    return cycles;
+}
+
+function greatestCommonDivisor(a: number, b: number): number {
+    let left = a;
+    let right = b;
+
+    while (right !== 0) {
+        const next = left % right;
+        left = right;
+        right = next;
+    }
+
+    return left;
+}
+
+function roundPoint(value: number): number {
+    return Math.round(value * 100) / 100;
 }
 
 function buildGlyphBand(
@@ -93,7 +184,7 @@ function buildGlyphBand(
         kind: definition.kind,
         spinDuration: MAGIC_CIRCLE_PREVIEW.BASE_SPIN_SECONDS + index * MAGIC_CIRCLE_PREVIEW.SPIN_STEP_SECONDS,
         spinDirection: index % 2 === 0 ? 'normal' : 'reverse',
-        marks: glyphMarks(count, bandRadius(total, index, options), index, options.center),
+        marks: glyphMarks(definition, count, bandRadius(total, index, options), index, options.center),
     };
 }
 
@@ -105,13 +196,26 @@ function nodeRadius(total: number, index: number, options: MagicCircleRenderOpti
 function bandRadius(total: number, index: number, options: MagicCircleRenderOptions): number {
     const current = nodeRadius(total, index, options);
     if (index < total - 1) return (current + nodeRadius(total, index + 1, options)) / 2;
+    if (total > 1) return outerGlyphBandRadius();
 
     const previous = index > 0 ? nodeRadius(total, index - 1, options) : options.innerRadius;
     const spacing = Math.max(MAGIC_CIRCLE_PREVIEW.MIN_OUTER_BAND_SPACING, current - previous);
-    return Math.min(options.outerFrameRadius - MAGIC_CIRCLE_PREVIEW.OUTER_BAND_PADDING, current + spacing / 2);
+    return Math.min(outerGlyphBandRadius(), current + spacing / 2);
 }
 
-function glyphMarks(count: number, radius: number, bandIndex: number, center: number): GlyphMarkLayout[] {
+function outerGlyphBandRadius(): number {
+    return MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS
+        - MAGIC_CIRCLE_PREVIEW.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_PREVIEW.MAX_GLYPH_SCALE
+        - MAGIC_CIRCLE_PREVIEW.OUTER_GLYPH_CLEARANCE;
+}
+
+function glyphMarks(
+    definition: MagicGlyphConfig,
+    count: number,
+    radius: number,
+    bandIndex: number,
+    center: number
+): GlyphMarkLayout[] {
     const phase = (bandIndex % 2) * (MAGIC_CIRCLE_PREVIEW.HALF_TURN_DEGREES / count);
     const scale = Math.max(
         MAGIC_CIRCLE_PREVIEW.MIN_GLYPH_SCALE,
@@ -124,12 +228,20 @@ function glyphMarks(count: number, radius: number, bandIndex: number, center: nu
 
         return {
             id: `glyph-${bandIndex}-${index}`,
+            kind: glyphMarkKind(definition, index, bandIndex),
             x: center + radius * Math.cos(radians),
             y: center + radius * Math.sin(radians),
             rotation: angle,
             scale,
         };
     });
+}
+
+function glyphMarkKind(definition: MagicGlyphConfig, index: number, bandIndex: number): GlyphKind {
+    const sequence = definition.runeKinds;
+    if (!sequence || sequence.length === 0) return definition.kind;
+
+    return sequence[(index + bandIndex) % sequence.length];
 }
 
 export function magicCircleRingStrokeWidth(total: number): number {

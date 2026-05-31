@@ -77,7 +77,7 @@ describe('dataValidation', () => {
         expect(validateMagicGlyphs(
             [
                 { magicType: 'fire', kind: 'flame', baseCount: 12 },
-                { magicType: 'fire', kind: 'unknown', baseCount: 0 },
+                { magicType: 'fire', kind: 'unknown', runeKinds: ['missing-rune'], baseCount: 0 },
                 { magicType: 'missing', kind: 'seal', baseCount: 1 },
             ] as MagicGlyphConfig[],
             [
@@ -90,6 +90,7 @@ describe('dataValidation', () => {
                 'Duplicate magic glyph config: fire',
                 'Missing magic glyph config: water',
                 'Unknown magic glyph kind: fire -> unknown',
+                'Unknown magic rune kind: fire -> 0 -> missing-rune',
                 'Invalid magic glyph baseCount: fire -> 0',
                 'Unknown magic glyph type: missing',
             ],

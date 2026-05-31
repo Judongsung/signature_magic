@@ -81,7 +81,13 @@
                     <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS} class="outer-guide" />
                     <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.INNER_GUIDE_RADIUS} class="inner-guide" />
 
-                    {#each circle.rings as ring}
+                    {#if circle.nodeStar}
+                        {#each circle.nodeStar.polygons as points}
+                            <polygon {points} class="node-star" filter={`url(#glow-${ci})`} />
+                        {/each}
+                    {/if}
+
+                    {#each circle.rings as ring, ri}
                         {@const color = colorFor(ring.node.data.magicType)}
                         <g class="node-ring" style:--node-color={color}>
                             <circle
@@ -93,16 +99,17 @@
                                 stroke-width={magicCircleRingStrokeWidth(circle.rings.length)}
                                 filter={`url(#glow-${ci})`}
                             />
-                            <circle
-                                cx={CIRCLE.center}
-                                cy={CIRCLE.center}
-                                r={ring.radius + MAGIC_CIRCLE_PREVIEW.NODE_RING_ECHO_OFFSET}
-                                fill="none"
-                                stroke="var(--node-color)"
-                                stroke-width="0.45"
-                                stroke-opacity="0.45"
-                                stroke-dasharray="2 7"
-                            />
+                            {#if ri < circle.rings.length - 1}
+                                <circle
+                                    cx={CIRCLE.center}
+                                    cy={CIRCLE.center}
+                                    r={ring.radius + MAGIC_CIRCLE_PREVIEW.NODE_RING_ECHO_OFFSET}
+                                    fill="none"
+                                    stroke="var(--node-color)"
+                                    stroke-width="0.45"
+                                    stroke-dasharray="2 7"
+                                />
+                            {/if}
                         </g>
                     {/each}
 
@@ -120,7 +127,7 @@
                                     transform={`translate(${mark.x} ${mark.y}) rotate(${mark.rotation}) scale(${mark.scale})`}
                                     filter={`url(#glow-${ci})`}
                                 >
-                                    <MagicGlyphMark kind={band.kind} />
+                                    <MagicGlyphMark kind={mark.kind} />
                                 </g>
                             {/each}
                         </g>
@@ -288,7 +295,8 @@
 
     .outer-ring,
     .outer-guide,
-    .inner-guide {
+    .inner-guide,
+    .node-star {
         fill: none;
         stroke: #d9eeff;
     }
@@ -309,8 +317,22 @@
         stroke-opacity: 0.22;
     }
 
+    .node-star {
+        stroke-width: 0.72;
+        stroke-opacity: 0.28;
+        stroke-linejoin: round;
+    }
+
     .node-ring {
-        opacity: 0.9;
+        opacity: 0.55;
+    }
+
+    .node-ring circle:first-child {
+        stroke-opacity: 0.42;
+    }
+
+    .node-ring circle:last-child {
+        stroke-opacity: 0.24;
     }
 
     .glyph-band {

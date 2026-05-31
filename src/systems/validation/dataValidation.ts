@@ -137,6 +137,11 @@ export function validateMagicGlyphs(
         if (!isGlyphKind(glyph.kind)) {
             errors.push(`Unknown magic glyph kind: ${glyph.magicType} -> ${glyph.kind}`);
         }
+        glyph.runeKinds?.forEach((kind, index) => {
+            if (!isGlyphKind(kind)) {
+                errors.push(`Unknown magic rune kind: ${glyph.magicType} -> ${index} -> ${kind}`);
+            }
+        });
         if (!Number.isInteger(glyph.baseCount) || glyph.baseCount <= 0) {
             errors.push(`Invalid magic glyph baseCount: ${glyph.magicType} -> ${glyph.baseCount}`);
         }

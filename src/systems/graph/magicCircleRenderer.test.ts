@@ -54,4 +54,92 @@ describe('buildMagicCircleRenderModels', () => {
         expect(model.bands.map(band => band.kind)).toEqual(['arrow', 'split', 'merge', 'seal']);
         expect(model.bands.map(band => band.spinDirection)).toEqual(['normal', 'reverse', 'normal', 'reverse']);
     });
+
+    it('uses rune sequences instead of repeating one mark shape', () => {
+        const [model] = buildMagicCircleRenderModels([
+            circle([node('fire', 'fire')]),
+        ]);
+
+        expect(model.bands[0].marks.slice(0, 4).map(mark => mark.kind)).toEqual([
+            'rune-ember',
+            'rune-rise',
+            'rune-force',
+            'rune-bind',
+        ]);
+    });
+
+    it('creates a node-count star polygon for multi-node circles', () => {
+        const [fourPointModel] = buildMagicCircleRenderModels([
+            circle([
+                node('earth-1', 'earth'),
+                node('earth-2', 'earth'),
+                node('earth-3', 'earth'),
+                node('earth-4', 'earth'),
+            ]),
+        ]);
+        const [sixPointModel] = buildMagicCircleRenderModels([
+            circle([
+                node('fire-1', 'fire'),
+                node('fire-2', 'fire'),
+                node('fire-3', 'fire'),
+                node('fire-4', 'fire'),
+                node('fire-5', 'fire'),
+                node('fire-6', 'fire'),
+            ]),
+        ]);
+        const [sevenPointModel] = buildMagicCircleRenderModels([
+            circle([
+                node('water-1', 'water'),
+                node('water-2', 'water'),
+                node('water-3', 'water'),
+                node('water-4', 'water'),
+                node('water-5', 'water'),
+                node('water-6', 'water'),
+                node('water-7', 'water'),
+            ]),
+        ]);
+
+        expect(fourPointModel.nodeStar?.pointCount).toBe(4);
+        expect(fourPointModel.nodeStar?.step).toBe(1);
+        expect(fourPointModel.nodeStar?.polygons).toHaveLength(1);
+        expect(fourPointModel.nodeStar?.polygons[0].split(' ')).toHaveLength(4);
+        expect(sixPointModel.nodeStar?.pointCount).toBe(6);
+        expect(sixPointModel.nodeStar?.step).toBe(2);
+        expect(sixPointModel.nodeStar?.polygons).toHaveLength(2);
+        expect(sixPointModel.nodeStar?.polygons[0].split(' ')).toHaveLength(3);
+        expect(sixPointModel.nodeStar?.polygons[1].split(' ')).toHaveLength(3);
+        expect(sevenPointModel.nodeStar?.pointCount).toBe(7);
+        expect(sevenPointModel.nodeStar?.step).toBe(3);
+        expect(sevenPointModel.nodeStar?.polygons).toHaveLength(1);
+        expect(sevenPointModel.nodeStar?.polygons[0].split(' ')).toHaveLength(7);
+
+        const [x, y] = sevenPointModel.nodeStar!.polygons[0].split(' ')[0].split(',').map(Number);
+        const vertexRadius = Math.hypot(x - MAGIC_CIRCLE_PREVIEW.CENTER, y - MAGIC_CIRCLE_PREVIEW.CENTER);
+        expect(vertexRadius).toBe(MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS);
+    });
+
+    it('keeps the outer glyph band inside the visible guide circle', () => {
+        const [model] = buildMagicCircleRenderModels([
+            circle([
+                node('fire', 'fire'),
+                node('water', 'water'),
+                node('wind', 'wind'),
+                node('earth', 'earth'),
+                node('arcane', 'arcane'),
+            ]),
+        ]);
+        const outerBandRadii = model.bands.map(band => {
+            const mark = band.marks[0];
+            return Math.hypot(mark.x - MAGIC_CIRCLE_PREVIEW.CENTER, mark.y - MAGIC_CIRCLE_PREVIEW.CENTER);
+        });
+        const maxGlyphRadius = Math.max(...outerBandRadii)
+            + MAGIC_CIRCLE_PREVIEW.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_PREVIEW.MAX_GLYPH_SCALE
+            + MAGIC_CIRCLE_PREVIEW.OUTER_GLYPH_CLEARANCE;
+        const outerGlyphInnerRadius = Math.max(...outerBandRadii)
+            - MAGIC_CIRCLE_PREVIEW.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_PREVIEW.MAX_GLYPH_SCALE;
+        const outerRingRadius = Math.max(...model.rings.map(ring => ring.radius));
+
+        expect(maxGlyphRadius).toBeLessThanOrEqual(MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS);
+        expect(outerRingRadius).toBeLessThan(outerGlyphInnerRadius);
+    });
 });

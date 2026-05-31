@@ -5,6 +5,7 @@ import type { GlyphKind } from './magicGlyphShapes';
 export interface MagicGlyphConfig {
     magicType: MagicType;
     kind: GlyphKind;
+    runeKinds?: GlyphKind[];
     baseCount: number;
 }
 
