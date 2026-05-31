@@ -1,6 +1,8 @@
 import type { CyoaAction, MagicNodeCategory } from '../../constants/gameConfigs';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import type { MagicTypeConfig } from '../../types/magic';
+import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
+import { isGlyphKind, type GlyphShape } from '../graph/magicGlyphShapes';
 
 export interface DataValidationResult {
     valid: boolean;
@@ -65,6 +67,81 @@ export function validateMagicTypes(
         if (!isValidConnectionLimit(magicType.connectionLimits?.maxOutputs)) {
             errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
         }
+    });
+
+    return result(errors);
+}
+
+export function validateMagicGlyphs(
+    glyphs: MagicGlyphConfig[],
+    magicTypes: MagicTypeConfig[]
+): DataValidationResult {
+    const errors: string[] = [];
+    const magicTypeIds = new Set(magicTypes.map(magicType => magicType.type));
+    const glyphTypeIds = glyphs.map(glyph => glyph.magicType);
+    const glyphTypeIdSet = new Set(glyphTypeIds);
+
+    findDuplicates(glyphTypeIds).forEach(type => {
+        errors.push(`Duplicate magic glyph config: ${type}`);
+    });
+
+    magicTypes.forEach(magicType => {
+        if (!glyphTypeIdSet.has(magicType.type)) {
+            errors.push(`Missing magic glyph config: ${magicType.type}`);
+        }
+    });
+
+    glyphs.forEach(glyph => {
+        if (!magicTypeIds.has(glyph.magicType)) {
+            errors.push(`Unknown magic glyph type: ${glyph.magicType}`);
+        }
+        if (!isGlyphKind(glyph.kind)) {
+            errors.push(`Unknown magic glyph kind: ${glyph.magicType} -> ${glyph.kind}`);
+        }
+        if (!Number.isInteger(glyph.baseCount) || glyph.baseCount <= 0) {
+            errors.push(`Invalid magic glyph baseCount: ${glyph.magicType} -> ${glyph.baseCount}`);
+        }
+    });
+
+    return result(errors);
+}
+
+export function validateMagicGlyphShapes(
+    shapes: Record<string, GlyphShape>
+): DataValidationResult {
+    const errors: string[] = [];
+    const entries = Object.entries(shapes);
+
+    if (entries.length === 0) {
+        errors.push('Missing magic glyph shapes');
+    }
+
+    entries.forEach(([kind, shape]) => {
+        const paths = shape.paths ?? [];
+        const circles = shape.circles ?? [];
+        const rects = shape.rects ?? [];
+
+        if (paths.length + circles.length + rects.length === 0) {
+            errors.push(`Empty magic glyph shape: ${kind}`);
+        }
+
+        paths.forEach((path, index) => {
+            if (!path.d.trim()) {
+                errors.push(`Invalid magic glyph path: ${kind} -> ${index}`);
+            }
+        });
+
+        circles.forEach((circle, index) => {
+            if (!Number.isFinite(circle.r) || circle.r <= 0) {
+                errors.push(`Invalid magic glyph circle radius: ${kind} -> ${index}`);
+            }
+        });
+
+        rects.forEach((rect, index) => {
+            if (!Number.isFinite(rect.width) || rect.width <= 0 || !Number.isFinite(rect.height) || rect.height <= 0) {
+                errors.push(`Invalid magic glyph rect size: ${kind} -> ${index}`);
+            }
+        });
     });
 
     return result(errors);

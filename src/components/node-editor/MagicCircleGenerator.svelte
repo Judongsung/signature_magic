@@ -1,31 +1,19 @@
 <script lang="ts">
-    /**
-     * MagicCircleGenerator.svelte
-     *
-     * 역할: 순수 UI 컴포넌트
-     * - graphStore.circles를 읽어 SVG 마법진을 렌더링합니다.
-     * - 상태를 직접 보유하거나 수정하지 않습니다.
-    */
     import { graphStore } from '../../stores/graphStore.svelte';
+    import { MAGIC_CIRCLE_PREVIEW } from '../../constants/gameConfigs';
     import { magicTypeColorMap } from '../../systems/graph/magicTypeRegistry';
+    import {
+        DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS,
+        buildMagicCircleRenderModels,
+        magicCircleRingStrokeWidth,
+    } from '../../systems/graph/magicCircleRenderer';
+    import MagicGlyphMark from './MagicGlyphMark.svelte';
 
-    /** 정n각형의 꼭짓점 좌표 문자열을 반환합니다. */
-    function polygonPoints(sides: number, r: number, cx: number, cy: number): string {
-        return Array.from({ length: sides }, (_, i) => {
-            const angle = (i * 2 * Math.PI) / sides - Math.PI / 2;
-            return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
-        }).join(' ');
-    }
+    const CIRCLE = DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS;
+    const renderCircles = $derived(buildMagicCircleRenderModels(graphStore.circles));
 
-    /** 노드 인덱스에 따라 겹겹이 쌓이는 반지름을 계산합니다. */
-    function layerRadius(total: number, index: number): number {
-        const maxR = 115;
-        const step = maxR / (total + 1);
-        return maxR - step * index;
-    }
-
-    function fallbackSides(magicType: string): number {
-        return 3 + (magicType.length % 5);
+    function colorFor(magicType: keyof typeof magicTypeColorMap): string {
+        return magicTypeColorMap[magicType] ?? '#9aa0a6';
     }
 </script>
 
@@ -42,13 +30,19 @@
     </div>
 
     <div class="circles-grid">
-        {#each graphStore.circles as circle, ci}
+        {#each renderCircles as circle, ci}
             <div class="circle-card">
                 <div class="circle-label">Circle {ci + 1}</div>
-                <svg width="260" height="260" viewBox="0 0 260 260" class="magic-svg">
+                <svg
+                    width={MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}
+                    height={MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}
+                    viewBox={`0 0 ${MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE} ${MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}`}
+                    class="magic-svg"
+                    aria-label={`Magic circle ${ci + 1}`}
+                >
                     <defs>
                         <filter id="glow-{ci}">
-                            <feGaussianBlur stdDeviation="3.5" result="blur" />
+                            <feGaussianBlur stdDeviation="2.5" result="blur" />
                             <feMerge>
                                 <feMergeNode in="blur" />
                                 <feMergeNode in="SourceGraphic" />
@@ -61,76 +55,65 @@
                                 <feMergeNode in="SourceGraphic" />
                             </feMerge>
                         </filter>
+                        <radialGradient id="circle-core-{ci}" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#f7fbff" stop-opacity="0.9" />
+                            <stop offset="48%" stop-color="#7fc7ff" stop-opacity="0.12" />
+                            <stop offset="100%" stop-color="#06060c" stop-opacity="0" />
+                        </radialGradient>
                     </defs>
 
-                    <!-- 외곽 원 (장식) -->
-                    <circle cx="130" cy="130" r="122"
-                        fill="none" stroke="#1e1e2e" stroke-width="1.5" />
-                    <circle cx="130" cy="130" r="118"
-                        fill="none" stroke="#2a2a3a" stroke-width="0.5"
-                        stroke-dasharray="4 6" />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_GRADIENT_RADIUS} fill={`url(#circle-core-${ci})`} />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={CIRCLE.outerFrameRadius} class="outer-ring" />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS} class="outer-guide" />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.INNER_GUIDE_RADIUS} class="inner-guide" />
 
-                    <!-- 각 노드의 고유 문양 레이어 -->
-                    {#each circle.nodes as node, ni}
-                        {@const r = layerRadius(circle.nodes.length, ni)}
-                        {@const color = magicTypeColorMap[node.data.magicType] ?? '#888'}
-                        {@const filterId = `glow-${ci}`}
-
-                        <g class="spin-layer" style="animation-duration: {14 + ni * 4}s; animation-direction: {ni % 2 === 0 ? 'normal' : 'reverse'}; transform-origin: 130px 130px;">
-                            {#if node.data.magicType === 'fire'}
-                                <!-- 불: 삼각형 -->
-                                <polygon
-                                    points={polygonPoints(3, r, 130, 130)}
-                                    fill="none" stroke={color} stroke-width="1.8"
-                                    filter="url(#{filterId})" />
-                            {:else if node.data.magicType === 'water'}
-                                <!-- 물: 점선 원 -->
-                                <circle cx="130" cy="130" {r}
-                                    fill="none" stroke={color} stroke-width="1.5"
-                                    stroke-dasharray="12 8"
-                                    filter="url(#{filterId})" />
-                            {:else if node.data.magicType === 'wind'}
-                                <!-- 바람: 넓은 점선 원 -->
-                                <circle cx="130" cy="130" {r}
-                                    fill="none" stroke={color} stroke-width="1.2"
-                                    stroke-dasharray="3 14"
-                                    filter="url(#{filterId})" />
-                            {:else if node.data.magicType === 'earth'}
-                                <!-- 대지: 사각형 -->
-                                <polygon
-                                    points={polygonPoints(4, r, 130, 130)}
-                                    fill="none" stroke={color} stroke-width="2"
-                                    filter="url(#{filterId})" />
-                            {:else if node.data.magicType === 'arcane'}
-                                <!-- 비전: 육망성 (두 개의 삼각형) -->
-                                <polygon
-                                    points={polygonPoints(6, r, 130, 130)}
-                                    fill="none" stroke={color} stroke-width="1.2"
-                                    filter="url(#{filterId})" />
-                                <polygon
-                                    points={polygonPoints(6, r * 0.85, 130, 130)}
-                                    fill="none" stroke={color} stroke-width="0.8"
-                                    stroke-dasharray="6 4"
-                                    filter="url(#{filterId})"
-                                    transform="rotate(30 130 130)" />
-                            {:else}
-                                <!-- 기능 노드: 타입별 다각형과 점선 궤도 -->
-                                <polygon
-                                    points={polygonPoints(fallbackSides(node.data.magicType), r, 130, 130)}
-                                    fill="none" stroke={color} stroke-width="1.5"
-                                    filter="url(#{filterId})" />
-                                <circle cx="130" cy="130" r={r * 0.72}
-                                    fill="none" stroke={color} stroke-width="0.9"
-                                    stroke-dasharray="4 7"
-                                    filter="url(#{filterId})" />
-                            {/if}
+                    {#each circle.rings as ring}
+                        {@const color = colorFor(ring.node.data.magicType)}
+                        <g class="node-ring" style:--node-color={color}>
+                            <circle
+                                cx={CIRCLE.center}
+                                cy={CIRCLE.center}
+                                r={ring.radius}
+                                fill="none"
+                                stroke="var(--node-color)"
+                                stroke-width={magicCircleRingStrokeWidth(circle.rings.length)}
+                                filter={`url(#glow-${ci})`}
+                            />
+                            <circle
+                                cx={CIRCLE.center}
+                                cy={CIRCLE.center}
+                                r={ring.radius + MAGIC_CIRCLE_PREVIEW.NODE_RING_ECHO_OFFSET}
+                                fill="none"
+                                stroke="var(--node-color)"
+                                stroke-width="0.45"
+                                stroke-opacity="0.45"
+                                stroke-dasharray="2 7"
+                            />
                         </g>
                     {/each}
 
-                    <!-- 중심점 -->
-                    <circle cx="130" cy="130" r="4"
-                        fill="#fff" filter="url(#glow-soft-{ci})" />
-                    <circle cx="130" cy="130" r="1.5" fill="#fff" />
+                    {#each circle.bands as band}
+                        {@const color = colorFor(band.node.data.magicType)}
+                        <g
+                            class="glyph-band"
+                            style:--glyph-color={color}
+                            style:animation-duration={`${band.spinDuration}s`}
+                            style:animation-direction={band.spinDirection}
+                        >
+                            {#each band.marks as mark}
+                                <g
+                                    class="glyph-mark"
+                                    transform={`translate(${mark.x} ${mark.y}) rotate(${mark.rotation}) scale(${mark.scale})`}
+                                    filter={`url(#glow-${ci})`}
+                                >
+                                    <MagicGlyphMark kind={band.kind} />
+                                </g>
+                            {/each}
+                        </g>
+                    {/each}
+
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_GLOW_RADIUS} class="core-glow" filter={`url(#glow-soft-${ci})`} />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_DOT_RADIUS} class="core-dot" />
                 </svg>
             </div>
         {/each}
@@ -141,7 +124,7 @@
     .generator-container {
         height: 100%;
         width: 100%;
-        background: #06060c;
+        background: #05060a;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
@@ -163,7 +146,7 @@
     .count-number {
         font-size: 32px;
         font-weight: 800;
-        background: linear-gradient(135deg, #9b59b6, #3498db);
+        background: linear-gradient(135deg, #b8f4ff, #f0d77e);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -171,13 +154,14 @@
 
     .count-label {
         font-size: 14px;
-        color: #888;
+        color: #8b92a4;
         letter-spacing: 1px;
+        text-transform: uppercase;
     }
 
     .hint {
         font-size: 13px;
-        color: #333;
+        color: #52586b;
     }
 
     .circles-grid {
@@ -198,23 +182,96 @@
 
     .circle-label {
         font-size: 11px;
-        color: #444;
+        color: #687083;
         text-transform: uppercase;
         letter-spacing: 1.5px;
     }
 
     .magic-svg {
-        background: radial-gradient(circle at center, #10101a 0%, #06060c 70%);
+        background:
+            radial-gradient(circle at center, rgba(75, 98, 126, 0.18) 0%, rgba(12, 13, 20, 0.94) 54%, #05060a 100%),
+            #05060a;
         border-radius: 50%;
-        border: 1px solid #1a1a2a;
+        border: 1px solid #20283a;
+        box-shadow:
+            inset 0 0 34px rgba(97, 158, 197, 0.08),
+            0 0 28px rgba(0, 0, 0, 0.35);
     }
 
-    .spin-layer {
-        animation: spin linear infinite;
+    .outer-ring,
+    .outer-guide,
+    .inner-guide {
+        fill: none;
+        stroke: #d9eeff;
+    }
+
+    .outer-ring {
+        stroke-width: 1.45;
+        stroke-opacity: 0.42;
+    }
+
+    .outer-guide {
+        stroke-width: 0.55;
+        stroke-opacity: 0.28;
+        stroke-dasharray: 4 7;
+    }
+
+    .inner-guide {
+        stroke-width: 0.8;
+        stroke-opacity: 0.22;
+    }
+
+    .node-ring {
+        opacity: 0.9;
+    }
+
+    .glyph-band {
+        transform-origin: 130px 130px;
+        animation-name: spin;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+    }
+
+    .glyph-mark {
+        fill: none;
+        stroke: var(--glyph-color);
+        stroke-width: 1.55;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .glyph-mark :global(path:not(.glyph-cut)),
+    .glyph-mark :global(rect),
+    .glyph-mark :global(circle) {
+        vector-effect: non-scaling-stroke;
+    }
+
+    .glyph-mark :global(.glyph-faint) {
+        opacity: 0.52;
+        stroke-width: 1;
+    }
+
+    .glyph-mark :global(.glyph-cut) {
+        opacity: 0.72;
+        stroke-width: 1;
+    }
+
+    .core-glow {
+        fill: #dff7ff;
+        opacity: 0.8;
+    }
+
+    .core-dot {
+        fill: #fffaf0;
     }
 
     @keyframes spin {
-        from { transform: rotate(0deg); }
-        to   { transform: rotate(360deg); }
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>

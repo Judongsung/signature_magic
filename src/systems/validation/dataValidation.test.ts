@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { CYOA_ACTIONS, MAGIC_NODE_CATEGORIES } from '../../constants/gameConfigs';
 import cyoaRowsData from '../../data/cyoaRows.json';
+import magicGlyphsData from '../../data/magicGlyphs.json';
+import magicGlyphShapesData from '../../data/magicGlyphShapes.json';
 import magicTypesData from '../../data/magicTypes.json';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import type { MagicTypeConfig } from '../../types/magic';
+import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
+import type { GlyphShape } from '../graph/magicGlyphShapes';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
-import { validateCyoaRows, validateMagicTypes } from './dataValidation';
+import { validateCyoaRows, validateMagicGlyphShapes, validateMagicGlyphs, validateMagicTypes } from './dataValidation';
 
 describe('dataValidation', () => {
     it('validates configured magic types against category config', () => {
@@ -48,6 +52,59 @@ describe('dataValidation', () => {
             CYOA_ACTIONS,
             isKnownCyoaImagePath
         )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('validates configured magic glyphs against magic type data', () => {
+        expect(validateMagicGlyphs(
+            magicGlyphsData as MagicGlyphConfig[],
+            magicTypesData as MagicTypeConfig[]
+        )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('validates configured magic glyph shapes', () => {
+        expect(validateMagicGlyphShapes(
+            magicGlyphShapesData as Record<string, GlyphShape>
+        )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('reports invalid magic glyph data', () => {
+        expect(validateMagicGlyphs(
+            [
+                { magicType: 'fire', kind: 'flame', baseCount: 12 },
+                { magicType: 'fire', kind: 'unknown', baseCount: 0 },
+                { magicType: 'missing', kind: 'seal', baseCount: 1 },
+            ] as MagicGlyphConfig[],
+            [
+                { type: 'fire', label: 'Fire', icon: '', color: '#fff', category: 'basic', description: 'desc' },
+                { type: 'water', label: 'Water', icon: '', color: '#fff', category: 'basic', description: 'desc' },
+            ] as MagicTypeConfig[]
+        )).toEqual({
+            valid: false,
+            errors: [
+                'Duplicate magic glyph config: fire',
+                'Missing magic glyph config: water',
+                'Unknown magic glyph kind: fire -> unknown',
+                'Invalid magic glyph baseCount: fire -> 0',
+                'Unknown magic glyph type: missing',
+            ],
+        });
+    });
+
+    it('reports invalid magic glyph shape data', () => {
+        expect(validateMagicGlyphShapes({
+            empty: {},
+            badPath: { paths: [{ d: '' }] },
+            badCircle: { circles: [{ cx: 0, cy: 0, r: 0 }] },
+            badRect: { rects: [{ x: 0, y: 0, width: 0, height: 1 }] },
+        })).toEqual({
+            valid: false,
+            errors: [
+                'Empty magic glyph shape: empty',
+                'Invalid magic glyph path: badPath -> 0',
+                'Invalid magic glyph circle radius: badCircle -> 0',
+                'Invalid magic glyph rect size: badRect -> 0',
+            ],
+        });
     });
 
     it('reports invalid CYOA row references', () => {
