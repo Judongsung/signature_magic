@@ -46,6 +46,50 @@ describe('calculateCircles', () => {
             ['c', 'd'],
         ]);
     });
+
+    it('separates the pre-split circle from each branch after a split node', () => {
+        const a = node('a');
+        const split = node('split', 'split');
+        const b = node('b', 'water');
+        const c = node('c', 'earth');
+        const nodes = [a, split, b, c];
+        const edges = [edge('a', 'split'), edge('split', 'b'), edge('split', 'c')];
+
+        const circles = calculateCircles(nodes, edges);
+
+        expect(circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
+            ['a', 'split'],
+            ['b'],
+            ['c'],
+        ]);
+    });
+
+    it('keeps split branches and post-merge circles separate', () => {
+        const a = node('a');
+        const split = node('split', 'split');
+        const b = node('b', 'water');
+        const c = node('c', 'earth');
+        const merge = node('merge', 'merge');
+        const d = node('d', 'wind');
+        const nodes = [a, split, b, c, merge, d];
+        const edges = [
+            edge('a', 'split'),
+            edge('split', 'b'),
+            edge('split', 'c'),
+            edge('b', 'merge'),
+            edge('c', 'merge'),
+            edge('merge', 'd'),
+        ];
+
+        const circles = calculateCircles(nodes, edges);
+
+        expect(circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
+            ['a', 'split'],
+            ['b'],
+            ['c'],
+            ['merge', 'd'],
+        ]);
+    });
 });
 
 describe('computeNodeRoles', () => {

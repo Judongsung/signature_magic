@@ -150,7 +150,6 @@
             onconnect={(conn: Connection) => graphStore.onEdgeConnected(conn)}
             ondelete={onDelete}
             deleteKey="Delete"
-            fitView
         >
             <Background variant={BackgroundVariant.Dots} gap={snapGrid[0]} size={1.2} />
             <Controls />
