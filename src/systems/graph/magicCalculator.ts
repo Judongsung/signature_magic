@@ -1,12 +1,24 @@
 import type { Edge } from '@xyflow/svelte';
 import {
-    EMPTY_MAGIC_STATS,
-    MAGIC_STAT_KEYS,
-    type MagicStats,
     type MagicNode,
     type MagicTypeConfig,
     type CirclePath,
+    type MagicCalculationResult,
 } from '../../types/magic';
+import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
+
+export function calculateMagic(
+    nodes: MagicNode[],
+    edges: Edge[],
+    magicTypes: readonly MagicTypeConfig[] = []
+): MagicCalculationResult {
+    const magicTypeMap = buildMagicTypeMap(magicTypes);
+
+    return {
+        circles: calculateCirclesWithMagicTypes(nodes, edges, magicTypeMap),
+        totalStats: calculateMagicStats(nodes, edges, magicTypeMap, 'total'),
+    };
+}
 
 export function calculateCircles(
     nodes: MagicNode[],
@@ -15,10 +27,17 @@ export function calculateCircles(
 ): CirclePath[] {
     if (nodes.length === 0) return [];
 
+    return calculateCirclesWithMagicTypes(nodes, edges, buildMagicTypeMap(magicTypes));
+}
+
+function calculateCirclesWithMagicTypes(
+    nodes: MagicNode[],
+    edges: Edge[],
+    magicTypeMap: ReadonlyMap<string, MagicTypeConfig>
+): CirclePath[] {
     const inDegree = new Map<string, number>();
     const outEdges = new Map<string, string[]>();
     const nodeMap = new Map<string, MagicNode>();
-    const magicTypeMap = new Map(magicTypes.map(magicType => [magicType.type, magicType]));
 
     nodes.forEach(node => {
         inDegree.set(node.id, 0);
@@ -50,21 +69,8 @@ export function calculateCircles(
         .map((chain, index) => ({
             id: `circle-${index}`,
             nodes: chain,
-            stats: calculateMagicStats(chain, magicTypeMap),
+            stats: calculateMagicStats(chain, edges, magicTypeMap, 'circle'),
         }));
-}
-
-export function calculateMagicStats(
-    nodes: MagicNode[],
-    magicTypes: ReadonlyMap<string, MagicTypeConfig>
-): MagicStats {
-    return nodes.reduce<MagicStats>((total, node) => {
-        const stats = magicTypes.get(node.data.magicType)?.stats ?? EMPTY_MAGIC_STATS;
-        MAGIC_STAT_KEYS.forEach(key => {
-            total[key] += stats[key] ?? 0;
-        });
-        return total;
-    }, { ...EMPTY_MAGIC_STATS });
 }
 
 function dedupeNodes(nodes: MagicNode[]): MagicNode[] {

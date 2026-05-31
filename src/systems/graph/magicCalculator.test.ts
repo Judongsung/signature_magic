@@ -1,6 +1,6 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
-import { calculateCircles, computeNodeRoles } from './magicCalculator';
+import { calculateCircles, calculateMagic, computeNodeRoles } from './magicCalculator';
 import { EMPTY_MAGIC_STATS, type MagicNode, type MagicType, type MagicTypeConfig } from '../../types/magic';
 
 function node(id: string, magicType: MagicType = 'fire'): MagicNode {
@@ -127,6 +127,67 @@ describe('calculateCircles', () => {
             ['c'],
             ['merge', 'd'],
         ]);
+    });
+});
+
+describe('calculateMagic', () => {
+    it('returns circle stats and total graph stats separately', () => {
+        const a = node('a', 'fire');
+        const split = node('split', 'split');
+        const b = node('b', 'water');
+        const c = node('c', 'earth');
+        const nodes = [a, split, b, c];
+        const edges = [edge('a', 'split'), edge('split', 'b'), edge('split', 'c')];
+        const magicTypes = [
+            {
+                type: 'fire',
+                label: 'Fire',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Fire magic.',
+                stats: { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 },
+            },
+            {
+                type: 'split',
+                label: 'Split',
+                icon: '',
+                color: '',
+                category: 'extension',
+                description: 'Split magic.',
+                stats: { castingTime: 2, instability: 2, power: 2, range: 2, manaCost: 2, duration: 2 },
+            },
+            {
+                type: 'water',
+                label: 'Water',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Water magic.',
+                stats: { castingTime: 3, instability: 3, power: 3, range: 3, manaCost: 3, duration: 3 },
+            },
+            {
+                type: 'earth',
+                label: 'Earth',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Earth magic.',
+                stats: { castingTime: 4, instability: 4, power: 4, range: 4, manaCost: 4, duration: 4 },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, edges, magicTypes);
+
+        expect(result.circles.map(circle => circle.stats.castingTime)).toEqual([3, 3, 4]);
+        expect(result.totalStats).toEqual({
+            castingTime: 10,
+            instability: 10,
+            power: 10,
+            range: 10,
+            manaCost: 10,
+            duration: 10,
+        });
     });
 });
 

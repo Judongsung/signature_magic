@@ -21,6 +21,16 @@ export type MagicStats = Record<MagicStatKey, number>;
 
 export type MagicStatsConfig = Partial<MagicStats>;
 
+export const MAGIC_STAT_BRANCH_AGGREGATIONS = ['sum', 'max'] as const;
+
+export type MagicStatBranchAggregation = (typeof MAGIC_STAT_BRANCH_AGGREGATIONS)[number];
+
+export interface MagicNodeStatRuleConfig {
+    branchAggregation?: MagicStatBranchAggregation;
+}
+
+export type MagicNodeStatRulesConfig = Partial<Record<MagicStatKey, MagicNodeStatRuleConfig>>;
+
 export const EMPTY_MAGIC_STATS: MagicStats = {
     castingTime: 0,
     instability: 0,
@@ -44,10 +54,11 @@ export interface MagicNodeConnectionLimits {
     maxOutputs?: number | null;
 }
 
-export type MagicTypeConfig = Omit<MagicTypesData[number], 'category' | 'connectionLimits' | 'stats'> & {
+export type MagicTypeConfig = Omit<MagicTypesData[number], 'category' | 'connectionLimits' | 'stats' | 'statRules'> & {
     category: MagicNodeCategory;
     connectionLimits?: MagicNodeConnectionLimits;
     stats?: MagicStatsConfig;
+    statRules?: MagicNodeStatRulesConfig;
 };
 
 export interface MagicNodeData extends Record<string, unknown> {
@@ -64,4 +75,9 @@ export interface CirclePath {
     id: string;
     nodes: MagicNode[];
     stats: MagicStats;
+}
+
+export interface MagicCalculationResult {
+    circles: CirclePath[];
+    totalStats: MagicStats;
 }

@@ -1,8 +1,14 @@
 import type { CyoaAction, MagicNodeCategory } from '../../constants/gameConfigs';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
-import { MAGIC_STAT_KEYS, type MagicTypeConfig, type MagicStatsConfig } from '../../types/magic';
+import {
+    MAGIC_STAT_KEYS,
+    type MagicNodeStatRulesConfig,
+    type MagicTypeConfig,
+    type MagicStatsConfig,
+} from '../../types/magic';
 import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
 import { isGlyphKind, type GlyphShape } from '../graph/magicGlyphShapes';
+import { isMagicStatBranchAggregation } from '../graph/magicStatRules';
 
 export interface DataValidationResult {
     valid: boolean;
@@ -53,6 +59,26 @@ function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): 
     });
 }
 
+function validateMagicStatRules(type: string, statRules: MagicNodeStatRulesConfig | undefined): string[] {
+    if (!statRules) return [];
+
+    const errors: string[] = [];
+    const validStatKeys = new Set<string>(MAGIC_STAT_KEYS);
+
+    Object.entries(statRules).forEach(([statKey, rule]) => {
+        if (!validStatKeys.has(statKey)) {
+            errors.push(`Unknown magic stat rule key: ${type} -> ${statKey}`);
+            return;
+        }
+        if (!rule) return;
+        if (rule.branchAggregation !== undefined && !isMagicStatBranchAggregation(rule.branchAggregation)) {
+            errors.push(`Invalid magic stat branch aggregation: ${type} -> ${statKey} -> ${rule.branchAggregation}`);
+        }
+    });
+
+    return errors;
+}
+
 export function validateMagicTypes(
     magicTypes: MagicTypeConfig[],
     categories: readonly { id: MagicNodeCategory }[]
@@ -79,6 +105,7 @@ export function validateMagicTypes(
             errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
         }
         errors.push(...validateMagicStats(magicType.type, magicType.stats));
+        errors.push(...validateMagicStatRules(magicType.type, magicType.statRules));
     });
 
     return result(errors);

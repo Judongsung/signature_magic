@@ -6,19 +6,21 @@ import {
     removeDeletedGraphElements,
     syncGraphTopology,
 } from '../systems/graph/graphEventHandlers';
-import { calculateCircles } from '../systems/graph/magicCalculator';
+import { calculateMagic } from '../systems/graph/magicCalculator';
 import { isConnectionValid } from '../systems/graph/graphRules';
 import { magicTypes } from '../systems/graph/magicTypeRegistry';
-import type { CirclePath, MagicNode, MagicType } from '../types/magic';
+import type { CirclePath, MagicCalculationResult, MagicNode, MagicStats, MagicType } from '../types/magic';
 
 class GraphStore {
     nodes = $state.raw<MagicNode[]>([]);
     edges = $state.raw<Edge[]>([]);
     private topologySyncScheduled = false;
 
-    readonly circles: CirclePath[] = $derived(
-        calculateCircles(this.nodes, this.edges, magicTypes)
+    readonly calculation: MagicCalculationResult = $derived(
+        calculateMagic(this.nodes, this.edges, magicTypes)
     );
+    readonly circles: CirclePath[] = $derived(this.calculation.circles);
+    readonly totalStats: MagicStats = $derived(this.calculation.totalStats);
 
     addNode(magicType: MagicType, position: { x: number; y: number }): void {
         this.nodes = [...this.nodes, createNode(magicType, position)];

@@ -33,6 +33,7 @@ describe('dataValidation', () => {
                     category: 'unknown',
                     description: '',
                     stats: { ...stats, power: Number.NaN },
+                    statRules: { castingTime: { branchAggregation: 'fastest' } },
                     connectionLimits: { maxInputs: 0, maxOutputs: -1 },
                 },
             ] as MagicTypeConfig[],
@@ -46,6 +47,7 @@ describe('dataValidation', () => {
                 'Invalid magic type maxInputs: fire -> 0',
                 'Invalid magic type maxOutputs: fire -> -1',
                 'Invalid magic type stat: fire -> power',
+                'Invalid magic stat branch aggregation: fire -> castingTime -> fastest',
             ],
         });
     });

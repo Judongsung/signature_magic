@@ -28,6 +28,19 @@
                 <span class="count-label">서클 마법</span>
             {/if}
         </div>
+        {#if graphStore.circles.length > 0}
+            <section class="total-stats" aria-label="Total magic stats">
+                <div class="total-stats-label">Total Stats</div>
+                <dl class="stats-grid total-stats-grid">
+                    {#each MAGIC_STAT_KEYS as statKey}
+                        <div class="stat-item total-stat-item">
+                            <dt>{MAGIC_STAT_LABELS[statKey]}</dt>
+                            <dd>{graphStore.totalStats[statKey]}</dd>
+                        </div>
+                    {/each}
+                </dl>
+            </section>
+        {/if}
     </div>
 
     <div class="circles-grid">
@@ -143,6 +156,9 @@
         padding: 16px 20px 10px;
         border-bottom: 1px solid #14141e;
         flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .circle-count {
@@ -171,6 +187,20 @@
     .hint {
         font-size: 13px;
         color: #52586b;
+    }
+
+    .total-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .total-stats-label {
+        color: #7f879b;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
     }
 
     .circles-grid {
@@ -216,12 +246,23 @@
         margin: 2px 0 0;
     }
 
+    .total-stats-grid {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin: 0;
+    }
+
     .stat-item {
         min-width: 0;
         padding: 7px 8px;
         border: 1px solid #182033;
         border-radius: 6px;
         background: rgba(13, 16, 27, 0.72);
+    }
+
+    .total-stat-item {
+        background: rgba(18, 24, 39, 0.92);
+        border-color: #26314a;
     }
 
     .stat-item dt {
@@ -237,6 +278,12 @@
         font-size: 15px;
         font-weight: 700;
         line-height: 1.15;
+    }
+
+    @media (max-width: 520px) {
+        .total-stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
     }
 
     .outer-ring,

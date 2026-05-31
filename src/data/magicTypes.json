@@ -133,6 +133,7 @@
         "category": "extension",
         "description": "대상이나 효과를 독립된 부분으로 나눕니다.",
         "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 2, "manaCost": 3, "duration": 1 },
+        "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
     },
     {
@@ -143,6 +144,7 @@
         "category": "extension",
         "description": "여러 효과나 흐름을 하나로 합칩니다.",
         "stats": { "castingTime": 2, "instability": 1, "power": 2, "range": 1, "manaCost": 3, "duration": 2 },
+        "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": null, "maxOutputs": 1 }
     }
 ]
