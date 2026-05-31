@@ -1,4 +1,4 @@
-import type { CirclePath, MagicNode, MagicType } from '../../types/magic';
+import type { CirclePath, MagicNode, MagicStats, MagicType } from '../../types/magic';
 import { MAGIC_CIRCLE_PREVIEW } from '../../constants/gameConfigs';
 import { magicGlyphMap, type MagicGlyphConfig } from './magicGlyphRegistry';
 import type { GlyphKind } from './magicGlyphShapes';
@@ -37,6 +37,7 @@ export interface GlyphBandLayout {
 
 export interface MagicCircleRenderModel {
     id: string;
+    stats: MagicStats;
     rings: NodeRingLayout[];
     bands: GlyphBandLayout[];
 }
@@ -58,6 +59,7 @@ export function buildMagicCircleRenderModels(
 
         return {
             id: circle.id,
+            stats: circle.stats,
             rings: circle.nodes.map((node, index) => ({
                 id: `${circle.id}-ring-${node.id}`,
                 node,

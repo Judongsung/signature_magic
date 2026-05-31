@@ -11,6 +11,8 @@ import type { GlyphShape } from '../graph/magicGlyphShapes';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
 import { validateCyoaRows, validateMagicGlyphShapes, validateMagicGlyphs, validateMagicTypes } from './dataValidation';
 
+const stats = { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 };
+
 describe('dataValidation', () => {
     it('validates configured magic types against category config', () => {
         expect(validateMagicTypes(
@@ -22,7 +24,7 @@ describe('dataValidation', () => {
     it('reports invalid magic type categories, duplicate type ids, and connection limits', () => {
         expect(validateMagicTypes(
             [
-                { type: 'fire', label: 'Fire', icon: '', color: '#fff', category: 'basic', description: 'desc' },
+                { type: 'fire', label: 'Fire', icon: '', color: '#fff', category: 'basic', description: 'desc', stats },
                 {
                     type: 'fire',
                     label: 'Fire Copy',
@@ -30,6 +32,7 @@ describe('dataValidation', () => {
                     color: '#fff',
                     category: 'unknown',
                     description: '',
+                    stats: { ...stats, power: Number.NaN },
                     connectionLimits: { maxInputs: 0, maxOutputs: -1 },
                 },
             ] as MagicTypeConfig[],
@@ -42,6 +45,7 @@ describe('dataValidation', () => {
                 'Missing magic type description: fire',
                 'Invalid magic type maxInputs: fire -> 0',
                 'Invalid magic type maxOutputs: fire -> -1',
+                'Invalid magic type stat: fire -> power',
             ],
         });
     });

@@ -1,6 +1,6 @@
 import type { CyoaAction, MagicNodeCategory } from '../../constants/gameConfigs';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
-import type { MagicTypeConfig } from '../../types/magic';
+import { MAGIC_STAT_KEYS, type MagicTypeConfig, type MagicStatsConfig } from '../../types/magic';
 import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
 import { isGlyphKind, type GlyphShape } from '../graph/magicGlyphShapes';
 
@@ -42,6 +42,17 @@ function isValidConnectionLimit(limit: number | null | undefined): boolean {
     return limit === undefined || limit === null || (Number.isInteger(limit) && limit > 0);
 }
 
+function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): string[] {
+    if (!stats) return [`Missing magic type stats: ${type}`];
+
+    return MAGIC_STAT_KEYS.flatMap(key => {
+        const value = stats[key];
+        return Number.isFinite(value)
+            ? []
+            : [`Invalid magic type stat: ${type} -> ${key}`];
+    });
+}
+
 export function validateMagicTypes(
     magicTypes: MagicTypeConfig[],
     categories: readonly { id: MagicNodeCategory }[]
@@ -67,6 +78,7 @@ export function validateMagicTypes(
         if (!isValidConnectionLimit(magicType.connectionLimits?.maxOutputs)) {
             errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
         }
+        errors.push(...validateMagicStats(magicType.type, magicType.stats));
     });
 
     return result(errors);

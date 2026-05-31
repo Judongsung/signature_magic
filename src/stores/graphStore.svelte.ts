@@ -17,7 +17,7 @@ class GraphStore {
     private topologySyncScheduled = false;
 
     readonly circles: CirclePath[] = $derived(
-        calculateCircles(this.nodes, this.edges)
+        calculateCircles(this.nodes, this.edges, magicTypes)
     );
 
     addNode(magicType: MagicType, position: { x: number; y: number }): void {

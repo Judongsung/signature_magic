@@ -1,12 +1,24 @@
 import type { Edge } from '@xyflow/svelte';
-import type { CirclePath, MagicNode } from '../../types/magic';
+import {
+    EMPTY_MAGIC_STATS,
+    MAGIC_STAT_KEYS,
+    type MagicStats,
+    type MagicNode,
+    type MagicTypeConfig,
+    type CirclePath,
+} from '../../types/magic';
 
-export function calculateCircles(nodes: MagicNode[], edges: Edge[]): CirclePath[] {
+export function calculateCircles(
+    nodes: MagicNode[],
+    edges: Edge[],
+    magicTypes: readonly MagicTypeConfig[] = []
+): CirclePath[] {
     if (nodes.length === 0) return [];
 
     const inDegree = new Map<string, number>();
     const outEdges = new Map<string, string[]>();
     const nodeMap = new Map<string, MagicNode>();
+    const magicTypeMap = new Map(magicTypes.map(magicType => [magicType.type, magicType]));
 
     nodes.forEach(node => {
         inDegree.set(node.id, 0);
@@ -35,7 +47,24 @@ export function calculateCircles(nodes: MagicNode[], edges: Edge[]): CirclePath[
 
     return uniqueStartNodes
         .flatMap(startNode => collectCircleChains(startNode, nodeMap, outEdges, inDegree))
-        .map((chain, index) => ({ id: `circle-${index}`, nodes: chain }));
+        .map((chain, index) => ({
+            id: `circle-${index}`,
+            nodes: chain,
+            stats: calculateMagicStats(chain, magicTypeMap),
+        }));
+}
+
+export function calculateMagicStats(
+    nodes: MagicNode[],
+    magicTypes: ReadonlyMap<string, MagicTypeConfig>
+): MagicStats {
+    return nodes.reduce<MagicStats>((total, node) => {
+        const stats = magicTypes.get(node.data.magicType)?.stats ?? EMPTY_MAGIC_STATS;
+        MAGIC_STAT_KEYS.forEach(key => {
+            total[key] += stats[key] ?? 0;
+        });
+        return total;
+    }, { ...EMPTY_MAGIC_STATS });
 }
 
 function dedupeNodes(nodes: MagicNode[]): MagicNode[] {

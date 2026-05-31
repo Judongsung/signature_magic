@@ -1,7 +1,7 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import { calculateCircles, computeNodeRoles } from './magicCalculator';
-import type { MagicNode, MagicType } from '../../types/magic';
+import { EMPTY_MAGIC_STATS, type MagicNode, type MagicType, type MagicTypeConfig } from '../../types/magic';
 
 function node(id: string, magicType: MagicType = 'fire'): MagicNode {
     return {
@@ -16,6 +16,10 @@ function edge(source: string, target: string): Edge {
     return { id: `${source}-${target}`, source, target };
 }
 
+function circle(nodes: MagicNode[]) {
+    return { id: 'circle-0', nodes, stats: EMPTY_MAGIC_STATS };
+}
+
 describe('calculateCircles', () => {
     it('returns an empty list for an empty graph', () => {
         expect(calculateCircles([], [])).toEqual([]);
@@ -26,8 +30,42 @@ describe('calculateCircles', () => {
         const edges = [edge('a', 'b'), edge('b', 'c')];
 
         expect(calculateCircles(nodes, edges)).toEqual([
-            { id: 'circle-0', nodes },
+            circle(nodes),
         ]);
+    });
+
+    it('adds node stats for each calculated circle', () => {
+        const nodes = [node('a', 'fire'), node('b', 'water')];
+        const edges = [edge('a', 'b')];
+        const magicTypes = [
+            {
+                type: 'fire',
+                label: 'Fire',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Fire magic.',
+                stats: { castingTime: 1, instability: 2, power: 3, range: 4, manaCost: 5, duration: 6 },
+            },
+            {
+                type: 'water',
+                label: 'Water',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Water magic.',
+                stats: { castingTime: 2, instability: 3, power: 4, range: 5, manaCost: 6, duration: 7 },
+            },
+        ] as MagicTypeConfig[];
+
+        expect(calculateCircles(nodes, edges, magicTypes)[0].stats).toEqual({
+            castingTime: 3,
+            instability: 5,
+            power: 7,
+            range: 9,
+            manaCost: 11,
+            duration: 13,
+        });
     });
 
     it('starts a new circle at nodes with multiple inputs', () => {

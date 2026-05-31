@@ -2,6 +2,7 @@
     import { graphStore } from '../../stores/graphStore.svelte';
     import { MAGIC_CIRCLE_PREVIEW } from '../../constants/gameConfigs';
     import { magicTypeColorMap } from '../../systems/graph/magicTypeRegistry';
+    import { MAGIC_STAT_KEYS, MAGIC_STAT_LABELS } from '../../types/magic';
     import {
         DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS,
         buildMagicCircleRenderModels,
@@ -115,6 +116,14 @@
                     <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_GLOW_RADIUS} class="core-glow" filter={`url(#glow-soft-${ci})`} />
                     <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_DOT_RADIUS} class="core-dot" />
                 </svg>
+                <dl class="stats-grid" aria-label={`Magic circle ${ci + 1} stats`}>
+                    {#each MAGIC_STAT_KEYS as statKey}
+                        <div class="stat-item">
+                            <dt>{MAGIC_STAT_LABELS[statKey]}</dt>
+                            <dd>{circle.stats[statKey]}</dd>
+                        </div>
+                    {/each}
+                </dl>
             </div>
         {/each}
     </div>
@@ -178,6 +187,7 @@
         flex-direction: column;
         align-items: center;
         gap: 8px;
+        width: min-content;
     }
 
     .circle-label {
@@ -196,6 +206,37 @@
         box-shadow:
             inset 0 0 34px rgba(97, 158, 197, 0.08),
             0 0 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .stats-grid {
+        width: 260px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        margin: 2px 0 0;
+    }
+
+    .stat-item {
+        min-width: 0;
+        padding: 7px 8px;
+        border: 1px solid #182033;
+        border-radius: 6px;
+        background: rgba(13, 16, 27, 0.72);
+    }
+
+    .stat-item dt {
+        color: #737c91;
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .stat-item dd {
+        margin: 2px 0 0;
+        color: #e6edf7;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.15;
     }
 
     .outer-ring,

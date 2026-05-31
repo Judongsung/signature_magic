@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MAGIC_CIRCLE_PREVIEW } from '../../constants/gameConfigs';
 import { buildMagicCircleRenderModels } from './magicCircleRenderer';
-import type { CirclePath, MagicNode, MagicType } from '../../types/magic';
+import { EMPTY_MAGIC_STATS, type CirclePath, type MagicNode, type MagicType } from '../../types/magic';
 
 function node(id: string, magicType: MagicType): MagicNode {
     return {
@@ -13,7 +13,7 @@ function node(id: string, magicType: MagicType): MagicNode {
 }
 
 function circle(nodes: MagicNode[]): CirclePath {
-    return { id: 'circle-0', nodes };
+    return { id: 'circle-0', nodes, stats: EMPTY_MAGIC_STATS };
 }
 
 describe('buildMagicCircleRenderModels', () => {
@@ -27,6 +27,7 @@ describe('buildMagicCircleRenderModels', () => {
         ]);
 
         expect(model.rings.map(ring => ring.node.id)).toEqual(['fire', 'water', 'earth']);
+        expect(model.stats).toEqual(EMPTY_MAGIC_STATS);
         expect(model.rings.map(ring => ring.radius)).toEqual([
             MAGIC_CIRCLE_PREVIEW.INNER_RADIUS,
             (MAGIC_CIRCLE_PREVIEW.INNER_RADIUS + MAGIC_CIRCLE_PREVIEW.OUTER_RADIUS) / 2,
