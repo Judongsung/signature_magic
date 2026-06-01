@@ -40,21 +40,26 @@
     .choice-section {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 18px;
-        border: 1px solid rgba(139, 101, 47, 0.44);
-        border-radius: 8px;
-        background:
-            linear-gradient(180deg, rgba(17, 22, 18, 0.82), rgba(14, 11, 8, 0.9));
-        box-shadow: inset 0 0 0 1px rgba(232, 197, 125, 0.06);
+        gap: 16px;
+        padding: 24px;
+        border: 1px solid rgba(141, 115, 74, 0.25);
+        border-radius: 2px;
+        background: rgba(141, 115, 74, 0.04);
+        box-shadow: 
+            inset 0 1px 4px rgba(44, 34, 23, 0.04),
+            0 1px 0 rgba(255, 255, 255, 0.6);
+        position: relative;
+        z-index: 2;
     }
 
     h2 {
         margin: 0;
-        color: #d8ba72;
-        font-family: Georgia, 'Times New Roman', serif;
-        font-size: 18px;
+        color: var(--guild-ink-black);
+        font-family: var(--font-title);
+        font-size: 17px;
         font-weight: 800;
-        text-shadow: 0 1px 0 #130d06;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(141, 115, 74, 0.3);
+        padding-bottom: 8px;
     }
 </style>

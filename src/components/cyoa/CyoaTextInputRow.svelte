@@ -32,44 +32,55 @@
     .input-row {
         display: grid;
         grid-template-columns: 112px minmax(0, 1fr);
-        gap: 14px;
+        gap: 16px;
         align-items: center;
-        min-height: 86px;
-        padding: 12px;
-        border: 1px solid #4d3821;
-        border-radius: 8px;
-        background:
-            linear-gradient(135deg, rgba(42, 30, 18, 0.96), rgba(18, 25, 20, 0.98)),
-            repeating-linear-gradient(45deg, rgba(230, 190, 112, 0.04) 0 1px, transparent 1px 8px);
+        min-height: 64px;
+        padding: 8px 4px;
+        background: transparent;
+        border: none;
     }
 
     label {
-        color: #f2dfb0;
-        font-family: Georgia, 'Times New Roman', serif;
-        font-size: 18px;
+        color: var(--guild-ink-black);
+        font-family: var(--font-title);
+        font-size: 16px;
         font-weight: 800;
+        letter-spacing: 0.5px;
     }
 
     input {
         width: 100%;
-        min-height: 40px;
+        min-height: 38px;
         box-sizing: border-box;
-        border: 1px solid #6e4a25;
-        border-radius: 6px;
-        background: rgba(14, 10, 7, 0.92);
-        color: #f2dfb0;
-        padding: 8px 10px;
-        font: inherit;
+        border: none;
+        border-bottom: 2px solid rgba(141, 115, 74, 0.45);
+        border-radius: 0;
+        background: transparent;
+        color: var(--guild-ink-black);
+        padding: 6px 2px;
+        font-family: var(--font-body);
+        font-size: 18px;
+        font-weight: 700;
+        transition: border-color 0.18s ease;
+    }
+
+    input::placeholder {
+        color: rgba(94, 81, 64, 0.5);
+        font-family: var(--font-body);
+        font-style: italic;
+        font-size: 15px;
+        font-weight: 400;
     }
 
     input:focus {
-        outline: 2px solid #d1a653;
-        outline-offset: 2px;
+        outline: none;
+        border-bottom-color: var(--guild-ink-seal);
     }
 
     @media (max-width: 560px) {
         .input-row {
             grid-template-columns: 1fr;
+            gap: 8px;
         }
     }
 </style>

@@ -43,70 +43,74 @@
 <style>
     .choice-card {
         width: 100%;
-        min-height: 128px;
+        min-height: 120px;
         display: grid;
-        grid-template-columns: 112px minmax(0, 1fr);
-        gap: 14px;
-        align-items: stretch;
-        padding: 12px;
-        border: 1px solid #4d3821;
-        border-radius: 8px;
-        background:
-            linear-gradient(135deg, rgba(42, 30, 18, 0.96), rgba(18, 25, 20, 0.98)),
-            repeating-linear-gradient(45deg, rgba(230, 190, 112, 0.04) 0 1px, transparent 1px 8px);
-        color: #ead9b7;
+        grid-template-columns: 100px minmax(0, 1fr);
+        gap: 16px;
+        align-items: center;
+        padding: 14px;
+        border: 1px solid rgba(141, 115, 74, 0.35);
+        border-radius: 2px;
+        background: rgba(141, 115, 74, 0.02);
+        color: var(--guild-ink-black);
         text-align: left;
         cursor: pointer;
-        transition:
-            border-color 0.16s ease,
-            background 0.16s ease,
-            box-shadow 0.16s ease,
-            transform 0.16s ease;
+        box-sizing: border-box;
+        transition: all 0.18s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     .choice-card.without-image {
         grid-template-columns: 1fr;
-        min-height: 96px;
+        min-height: 86px;
     }
 
     .choice-card:hover:not(:disabled) {
         transform: translateY(-1px);
-        border-color: #9f7738;
-        background:
-            linear-gradient(135deg, rgba(55, 38, 20, 0.98), rgba(21, 35, 27, 0.98)),
-            repeating-linear-gradient(45deg, rgba(230, 190, 112, 0.05) 0 1px, transparent 1px 8px);
-        box-shadow: 0 9px 22px rgba(0, 0, 0, 0.34);
+        border-color: rgba(141, 115, 74, 0.7);
+        background: rgba(141, 115, 74, 0.06);
+        box-shadow: 0 4px 10px rgba(44, 34, 23, 0.06);
     }
 
     .choice-card:focus-visible {
-        outline: 2px solid #d1a653;
-        outline-offset: 3px;
+        outline: 2px solid var(--guild-brass);
+        outline-offset: 2px;
     }
 
+    /* Selected state: Stamped in guild signature red-brown ink */
     .choice-card.selected {
-        border-color: #d4a84f;
-        background:
-            linear-gradient(135deg, rgba(77, 47, 20, 0.98), rgba(19, 47, 34, 0.98));
+        border: 2px solid var(--guild-ink-seal);
+        background: 
+            repeating-linear-gradient(45deg, rgba(136, 34, 34, 0.01) 0 1px, transparent 1px 4px),
+            rgba(136, 34, 34, 0.03);
         box-shadow:
-            inset 0 0 0 1px rgba(255, 223, 139, 0.22),
-            0 0 0 1px rgba(212, 168, 79, 0.58),
-            0 10px 26px rgba(0, 0, 0, 0.36);
+            inset 0 0 12px rgba(136, 34, 34, 0.05),
+            0 3px 8px rgba(136, 34, 34, 0.08);
+    }
+
+    .choice-card.selected .choice-title {
+        color: var(--guild-ink-seal);
     }
 
     .choice-card:disabled {
         cursor: not-allowed;
-        opacity: 0.48;
-        filter: grayscale(0.55);
+        opacity: 0.35;
+        filter: grayscale(1);
     }
 
+    /* Antique sketch / woodcut illustration frame style */
     .image-frame {
         display: block;
         overflow: hidden;
-        border-radius: 6px;
-        background: #110d08;
-        border: 1px solid #6e4a25;
+        border-radius: 2px;
+        background: rgba(141, 115, 74, 0.04);
+        border: 1px solid rgba(141, 115, 74, 0.45);
         aspect-ratio: 1;
-        box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.45);
+        box-shadow: inset 0 1px 4px rgba(44, 34, 23, 0.08);
+        transition: border-color 0.18s ease;
+    }
+
+    .choice-card.selected .image-frame {
+        border-color: var(--guild-ink-seal);
     }
 
     .image-frame img {
@@ -114,7 +118,16 @@
         height: 100%;
         display: block;
         object-fit: cover;
-        filter: sepia(0.24) saturate(0.82) contrast(1.08);
+        /* Make illustrations look like old printed sketches on the paper */
+        filter: sepia(0.65) saturate(0.7) contrast(1.2) brightness(0.92);
+        mix-blend-mode: multiply;
+        opacity: 0.88;
+        transition: filter 0.18s ease, opacity 0.18s ease;
+    }
+
+    .choice-card:hover:not(:disabled) .image-frame img {
+        opacity: 1;
+        filter: sepia(0.55) saturate(0.85) contrast(1.15) brightness(0.95);
     }
 
     .choice-body {
@@ -122,32 +135,36 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
     }
 
     .choice-title {
-        color: #f2dfb0;
-        font-family: Georgia, 'Times New Roman', serif;
-        font-size: 18px;
+        color: var(--guild-ink-black);
+        font-family: var(--font-title);
+        font-size: 17px;
         font-weight: 800;
-        line-height: 1.2;
+        line-height: 1.25;
+        transition: color 0.18s ease;
     }
 
     .choice-description {
-        color: #c7b58b;
-        font-size: 13px;
+        color: var(--guild-ink-muted);
+        font-family: var(--font-body);
+        font-size: 13.5px;
         line-height: 1.5;
+        font-weight: 500;
     }
 
     @media (max-width: 560px) {
         .choice-card {
-            grid-template-columns: 88px minmax(0, 1fr);
-            min-height: 108px;
+            grid-template-columns: 80px minmax(0, 1fr);
+            min-height: 100px;
             gap: 12px;
+            padding: 10px;
         }
 
         .choice-title {
-            font-size: 16px;
+            font-size: 15px;
         }
     }
 </style>
