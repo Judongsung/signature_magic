@@ -53,4 +53,20 @@ describe('CyoaChoiceCard', () => {
         expect(html).toContain('without-image');
         expect(html).not.toContain('<img');
     });
+
+    it('renders optional tooltip without requiring visible description text', () => {
+        const { html } = render(CyoaChoiceCard, {
+            props: {
+                choice: {
+                    ...choice,
+                    description: undefined,
+                    tooltip: '툴팁 상세 설명',
+                },
+            },
+        });
+
+        expect(html).toContain('aria-describedby="choice-id-tooltip"');
+        expect(html).toContain('툴팁 상세 설명');
+        expect(html).toContain('without-description');
+    });
 });

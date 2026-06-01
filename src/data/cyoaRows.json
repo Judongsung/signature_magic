@@ -9,10 +9,8 @@
         "choices": [
             {
                 "id": "toc-personal",
-                "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "인적사항 선택 항목",
                 "title": "인적사항",
-                "description": "이름, 나이, 성별, 소속, 역할을 정합니다.",
+                "tooltip": "이름, 나이, 종족, 성별, 소속, 역할을 정합니다.",
                 "actions": [
                     {
                         "func": "OPEN_ROW",
@@ -21,6 +19,10 @@
                     {
                         "func": "OPEN_ROW",
                         "target_id": "personal-age"
+                    },
+                    {
+                        "func": "OPEN_ROW",
+                        "target_id": "personal-race"
                     },
                     {
                         "func": "OPEN_ROW",
@@ -39,10 +41,8 @@
             },
             {
                 "id": "toc-region",
-                "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "지역 선택 항목",
                 "title": "지역",
-                "description": "출신과 시작 환경을 선택합니다.",
+                "tooltip": "출신과 시작 환경을 선택합니다.",
                 "actions": [
                     {
                         "func": "OPEN_ROW",
@@ -53,10 +53,8 @@
             },
             {
                 "id": "toc-catalyst",
-                "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "촉매 선택 항목",
                 "title": "촉매",
-                "description": "마법을 발현할 매개체를 선택합니다.",
+                "tooltip": "마법을 발현할 매개체를 선택합니다.",
                 "actions": [
                     {
                         "func": "OPEN_ROW",
@@ -114,6 +112,46 @@
                 "imageAlt": "노년",
                 "title": "노년",
                 "description": "오랜 세월의 지식과 흔적을 지닌 인물입니다.",
+                "width": "1/4"
+            }
+        ]
+    },
+    {
+        "id": "personal-race",
+        "title": "종족",
+        "visible": false,
+        "requiredMode": "always",
+        "choices": [
+            {
+                "id": "race-human",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "인간",
+                "title": "인간",
+                "description": "가장 넓은 지역과 조직에 적응한 종족입니다.",
+                "width": "1/4"
+            },
+            {
+                "id": "race-beastkin",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "수인",
+                "title": "수인",
+                "description": "예민한 감각과 신체적 특징을 지닌 종족입니다.",
+                "width": "1/4"
+            },
+            {
+                "id": "race-elf",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "엘프",
+                "title": "엘프",
+                "description": "긴 수명과 정교한 마력 감각으로 알려진 종족입니다.",
+                "width": "1/4"
+            },
+            {
+                "id": "race-dwarf",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "드워프",
+                "title": "드워프",
+                "description": "금속과 도구, 견고한 제작술에 익숙한 종족입니다.",
                 "width": "1/4"
             }
         ]

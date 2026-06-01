@@ -29,7 +29,7 @@
     import { getMagicTypesByCategory } from '../../systems/graph/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
-    import NodeDescriptionTooltip from '../shared/NodeDescriptionTooltip.svelte';
+    import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
     import type { MagicNode, MagicType } from '../../types/magic';
 
     const nodeTypes = { magicNode: CustomNode };
@@ -110,7 +110,7 @@
                 ondragstart={(e) => onDragStart(e, type)}
             >
                 <span>{icon} {label}</span>
-                <NodeDescriptionTooltip
+                <DescriptionTooltip
                     id={`magic-node-tooltip-${type}`}
                     {description}
                     placement="bottom"

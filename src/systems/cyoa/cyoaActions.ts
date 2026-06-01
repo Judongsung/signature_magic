@@ -52,6 +52,7 @@ export function mapCyoaChoiceConfig(
         imageAlt: choice.imageAlt,
         title: choice.title,
         description: choice.description,
+        tooltip: choice.tooltip,
         width: choice.width ?? DEFAULT_CHOICE_WIDTH,
         layoutSpan: Math.max(1, (layoutColumns / width.denominator) * width.numerator),
         disabled: choice.disabled,

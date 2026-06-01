@@ -1,10 +1,10 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import NodeDescriptionTooltip from './NodeDescriptionTooltip.svelte';
+import DescriptionTooltip from './DescriptionTooltip.svelte';
 
-describe('NodeDescriptionTooltip', () => {
+describe('DescriptionTooltip', () => {
     it('renders description as a tooltip', () => {
-        const { html } = render(NodeDescriptionTooltip, {
+        const { html } = render(DescriptionTooltip, {
             props: {
                 id: 'tooltip-id',
                 description: '노드 설명',
@@ -17,7 +17,7 @@ describe('NodeDescriptionTooltip', () => {
     });
 
     it('supports bottom placement for toolbar buttons', () => {
-        const { html } = render(NodeDescriptionTooltip, {
+        const { html } = render(DescriptionTooltip, {
             props: {
                 id: 'tooltip-id',
                 description: '노드 설명',

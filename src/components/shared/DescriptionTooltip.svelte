@@ -12,7 +12,7 @@
 
 <span
     {id}
-    class="node-description-tooltip"
+    class="description-tooltip"
     class:placement-bottom={placement === 'bottom'}
     role="tooltip"
 >
@@ -20,7 +20,7 @@
 </span>
 
 <style>
-    .node-description-tooltip {
+    .description-tooltip {
         position: absolute;
         left: 50%;
         bottom: calc(100% + 10px);
@@ -41,10 +41,10 @@
         pointer-events: none;
         transform: translate(-50%, 4px);
         transition: opacity 0.14s ease, transform 0.14s ease;
-        z-index: 20;
+        z-index: 100;
     }
 
-    .node-description-tooltip::after {
+    .description-tooltip::after {
         content: '';
         position: absolute;
         left: 50%;
@@ -57,13 +57,13 @@
         transform: translate(-50%, -4px) rotate(45deg);
     }
 
-    .node-description-tooltip.placement-bottom {
+    .description-tooltip.placement-bottom {
         top: calc(100% + 10px);
         bottom: auto;
         transform: translate(-50%, -4px);
     }
 
-    .node-description-tooltip.placement-bottom::after {
+    .description-tooltip.placement-bottom::after {
         top: auto;
         bottom: 100%;
         border-right: 0;
@@ -73,9 +73,8 @@
         transform: translate(-50%, 4px) rotate(45deg);
     }
 
-    :global(.tooltip-host:hover) .node-description-tooltip,
-    :global(.tooltip-host:focus-visible) .node-description-tooltip,
-    :global(.tooltip-host:focus-within) .node-description-tooltip {
+    :global(.tooltip-host:hover) .description-tooltip,
+    :global(.tooltip-host:focus-visible) .description-tooltip {
         opacity: 1;
         transform: translate(-50%, 0);
     }

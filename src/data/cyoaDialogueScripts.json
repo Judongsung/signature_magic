@@ -1,0 +1,28 @@
+[
+    {
+        "id": "guild-reception",
+        "title": "등록 안내",
+        "npcName": "길드 접수원",
+        "npcTitle": "동부 지부 등록 창구",
+        "imagePath": "../assets/images/vera.webp",
+        "imageAlt": "길드 접수원",
+        "defaultOptionId": "guild-purpose",
+        "options": [
+            {
+                "id": "guild-purpose",
+                "playerLine": "마법사 등록은 왜 필요한가요?",
+                "npcLine": "길드 등록은 허가증이라기보다 신원 보증에 가깝습니다. 의뢰를 받을 때 누가 어떤 방식의 마법을 쓰는지 기록해 두어야 사고가 났을 때 책임 소재와 보상 절차를 처리할 수 있거든요."
+            },
+            {
+                "id": "guild-process",
+                "playerLine": "접수 절차를 알려주세요.",
+                "npcLine": "먼저 인적사항과 출신, 사용할 촉매를 확인합니다. 이후 별도 조합실에서 본인의 마법진을 구성하면 접수 서류와 함께 초급 등록 심사로 넘어갑니다."
+            },
+            {
+                "id": "guild-world",
+                "playerLine": "이 도시의 길드는 어떤 곳인가요?",
+                "npcLine": "이곳은 제국 동부의 관문 지부입니다. 상단, 학회, 개척 의뢰가 모두 드나드는 곳이라 실전형 마법사와 연구자가 같은 대기표를 뽑는 조금 바쁜 창구죠."
+            }
+        ]
+    }
+]

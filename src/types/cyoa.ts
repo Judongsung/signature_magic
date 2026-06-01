@@ -19,7 +19,8 @@ export interface CyoaChoiceConfig {
     imagePath?: string;
     imageAlt: string;
     title: string;
-    description: string;
+    description?: string;
+    tooltip?: string;
     width?: string;
     disabled?: boolean;
     actions?: CyoaChoiceActionConfig[];
@@ -42,7 +43,8 @@ export interface CyoaChoice {
     imageSrc?: string;
     imageAlt: string;
     title: string;
-    description: string;
+    description?: string;
+    tooltip?: string;
     width?: string;
     layoutSpan?: number;
     disabled?: boolean;
@@ -60,4 +62,30 @@ export interface CyoaChoiceRowData {
     layoutColumns: number;
     input?: CyoaTextInputConfig;
     choices: CyoaChoice[];
+}
+
+export interface CyoaDialogueOptionConfig {
+    id: string;
+    playerLine: string;
+    npcLine: string;
+}
+
+export interface CyoaDialogueScriptConfig {
+    id: string;
+    title: string;
+    npcName: string;
+    npcTitle: string;
+    imagePath?: string;
+    imageAlt: string;
+    defaultOptionId: string;
+    options: CyoaDialogueOptionConfig[];
+}
+
+export interface CyoaDialogueOptionData extends CyoaDialogueOptionConfig {
+    choice: CyoaChoice;
+}
+
+export interface CyoaDialogueScriptData extends Omit<CyoaDialogueScriptConfig, 'imagePath' | 'options'> {
+    imageSrc?: string;
+    options: CyoaDialogueOptionData[];
 }

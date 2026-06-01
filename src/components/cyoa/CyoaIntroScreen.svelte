@@ -3,6 +3,7 @@
     import { appStore } from '../../stores/appStore.svelte';
     import { choiceStore } from '../../stores/choiceStore.svelte';
     import type { CyoaChoiceRowData } from '../../types/cyoa';
+    import CyoaDialogueScript from './CyoaDialogueScript.svelte';
     import CyoaChoiceSection from './CyoaChoiceSection.svelte';
     import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
 
@@ -118,6 +119,8 @@
 </script>
 
 <main class="cyoa-screen">
+    <CyoaDialogueScript />
+
     <section class="intro-panel" aria-labelledby="cyoa-title">
         <div class="intro-copy">
             <p class="eyebrow">GUILD RECEPTION DESK</p>

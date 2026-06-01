@@ -4,6 +4,7 @@ import {
     type MagicNodeCategory,
 } from '../../constants/gameConfigs';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
+import type { CyoaDialogueScriptConfig } from '../../types/cyoa';
 import {
     MAGIC_STAT_KEYS,
     type MagicNodeConnectionRules,
@@ -259,6 +260,12 @@ export function validateCyoaRows(
             if (choice.imagePath && !isKnownImagePath(choice.imagePath)) {
                 errors.push(`Unknown CYOA image path: ${choice.id} -> ${choice.imagePath}`);
             }
+            if (choice.description !== undefined && typeof choice.description !== 'string') {
+                errors.push(`Invalid CYOA choice description: ${choice.id}`);
+            }
+            if (choice.tooltip !== undefined && typeof choice.tooltip !== 'string') {
+                errors.push(`Invalid CYOA choice tooltip: ${choice.id}`);
+            }
             if (choice.width && !isValidChoiceWidth(choice.width)) {
                 errors.push(`Invalid CYOA choice width: ${choice.id} -> ${choice.width}`);
             }
@@ -271,6 +278,48 @@ export function validateCyoaRows(
                     errors.push(`Unknown CYOA action target: ${choice.id} -> ${action.target_id}`);
                 }
             });
+        });
+    });
+
+    return result(errors);
+}
+
+export function validateCyoaDialogueScripts(
+    scripts: CyoaDialogueScriptConfig[],
+    isKnownImagePath: (imagePath: string) => boolean
+): DataValidationResult {
+    if (scripts.length === 0) return success();
+
+    const errors: string[] = [];
+    const scriptIds = scripts.map(script => script.id);
+
+    findDuplicates(scriptIds).forEach(id => {
+        errors.push(`Duplicate CYOA dialogue script id: ${id}`);
+    });
+
+    scripts.forEach(script => {
+        if (script.imagePath && !isKnownImagePath(script.imagePath)) {
+            errors.push(`Unknown CYOA dialogue image path: ${script.id} -> ${script.imagePath}`);
+        }
+
+        const optionIds = script.options.map(option => option.id);
+        const optionIdSet = new Set(optionIds);
+
+        findDuplicates(optionIds).forEach(id => {
+            errors.push(`Duplicate CYOA dialogue option id: ${script.id} -> ${id}`);
+        });
+
+        if (!optionIdSet.has(script.defaultOptionId)) {
+            errors.push(`Unknown CYOA dialogue default option: ${script.id} -> ${script.defaultOptionId}`);
+        }
+
+        script.options.forEach(option => {
+            if (!option.playerLine.trim()) {
+                errors.push(`Missing CYOA dialogue player line: ${script.id} -> ${option.id}`);
+            }
+            if (!option.npcLine.trim()) {
+                errors.push(`Missing CYOA dialogue NPC line: ${script.id} -> ${option.id}`);
+            }
         });
     });
 

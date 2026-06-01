@@ -4,16 +4,24 @@ import {
     MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_CATEGORIES,
 } from '../../constants/gameConfigs';
+import cyoaDialogueScriptsData from '../../data/cyoaDialogueScripts.json';
 import cyoaRowsData from '../../data/cyoaRows.json';
 import magicGlyphsData from '../../data/magicGlyphs.json';
 import magicGlyphShapesData from '../../data/magicGlyphShapes.json';
 import magicTypesData from '../../data/magicTypes.json';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
+import type { CyoaDialogueScriptConfig } from '../../types/cyoa';
 import type { MagicTypeConfig } from '../../types/magic';
 import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
 import type { GlyphShape } from '../graph/magicGlyphShapes';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
-import { validateCyoaRows, validateMagicGlyphShapes, validateMagicGlyphs, validateMagicTypes } from './dataValidation';
+import {
+    validateCyoaDialogueScripts,
+    validateCyoaRows,
+    validateMagicGlyphShapes,
+    validateMagicGlyphs,
+    validateMagicTypes,
+} from './dataValidation';
 
 const stats = { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 };
 
@@ -63,6 +71,13 @@ describe('dataValidation', () => {
         expect(validateCyoaRows(
             cyoaRowsData as CyoaChoiceRowConfig[],
             CYOA_ACTIONS,
+            isKnownCyoaImagePath
+        )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('validates configured CYOA dialogue scripts against image registries', () => {
+        expect(validateCyoaDialogueScripts(
+            cyoaDialogueScriptsData as CyoaDialogueScriptConfig[],
             isKnownCyoaImagePath
         )).toEqual({ valid: true, errors: [] });
     });
@@ -133,7 +148,8 @@ describe('dataValidation', () => {
                             imagePath: '../assets/images/missing.webp',
                             imageAlt: '',
                             title: '',
-                            description: '',
+                            description: 123,
+                            tooltip: 456,
                             width: '3/2',
                             actions: [{ func: 'UNKNOWN', target_id: 'missing-row' }],
                         },
@@ -146,9 +162,41 @@ describe('dataValidation', () => {
             valid: false,
             errors: [
                 'Unknown CYOA image path: open-missing -> ../assets/images/missing.webp',
+                'Invalid CYOA choice description: open-missing',
+                'Invalid CYOA choice tooltip: open-missing',
                 'Invalid CYOA choice width: open-missing -> 3/2',
                 'Unknown CYOA action: open-missing -> UNKNOWN',
                 'Unknown CYOA action target: open-missing -> missing-row',
+            ],
+        });
+    });
+
+    it('reports invalid CYOA dialogue script references', () => {
+        expect(validateCyoaDialogueScripts(
+            [
+                {
+                    id: 'script',
+                    title: 'Script',
+                    npcName: 'NPC',
+                    npcTitle: 'Desk',
+                    imagePath: '../assets/images/missing.webp',
+                    imageAlt: '',
+                    defaultOptionId: 'missing-option',
+                    options: [
+                        { id: 'option', playerLine: '', npcLine: '' },
+                        { id: 'option', playerLine: 'line', npcLine: 'line' },
+                    ],
+                },
+            ],
+            isKnownCyoaImagePath
+        )).toEqual({
+            valid: false,
+            errors: [
+                'Unknown CYOA dialogue image path: script -> ../assets/images/missing.webp',
+                'Duplicate CYOA dialogue option id: script -> option',
+                'Unknown CYOA dialogue default option: script -> missing-option',
+                'Missing CYOA dialogue player line: script -> option',
+                'Missing CYOA dialogue NPC line: script -> option',
             ],
         });
     });

@@ -3,7 +3,7 @@
     import { Handle, Position, useUpdateNodeInternals } from '@xyflow/svelte';
     import type { MagicNodeData } from '../../types/magic';
     import { getMagicTypeConfig } from '../../systems/graph/magicTypeRegistry';
-    import NodeDescriptionTooltip from '../shared/NodeDescriptionTooltip.svelte';
+    import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
 
     let {
         id,
@@ -97,7 +97,7 @@
     </div>
 
     {#if description}
-        <NodeDescriptionTooltip
+        <DescriptionTooltip
             id={tooltipId}
             {description}
         />

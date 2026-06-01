@@ -98,7 +98,9 @@
                                 {#each item.choices as choice}
                                     <li>
                                         <span class="choice-title">{choice.title}</span>
-                                        <span class="choice-description">{choice.description}</span>
+                                        {#if choice.description}
+                                            <span class="choice-description">{choice.description}</span>
+                                        {/if}
                                     </li>
                                 {/each}
                             </ul>

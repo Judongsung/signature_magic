@@ -1,5 +1,8 @@
 <script lang="ts">
+    import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
     import type { CyoaChoice } from '../../types/cyoa';
+
+    const TOOLTIP_ID_SUFFIX = 'tooltip';
 
     let {
         choice,
@@ -17,15 +20,19 @@
         if (disabled) return;
         onSelect?.(choice.id);
     }
+
+    const tooltipId = $derived(`${choice.id}-${TOOLTIP_ID_SUFFIX}`);
 </script>
 
 <button
     type="button"
-    class="choice-card"
+    class="choice-card tooltip-host"
     class:without-image={!choice.imageSrc}
+    class:without-description={!choice.description}
     class:selected
     {disabled}
     aria-pressed={selected}
+    aria-describedby={choice.tooltip ? tooltipId : undefined}
     onclick={selectChoice}
 >
     {#if choice.imageSrc}
@@ -36,8 +43,14 @@
 
     <span class="choice-body">
         <span class="choice-title">{choice.title}</span>
-        <span class="choice-description">{choice.description}</span>
+        {#if choice.description}
+            <span class="choice-description">{choice.description}</span>
+        {/if}
     </span>
+
+    {#if choice.tooltip}
+        <DescriptionTooltip id={tooltipId} description={choice.tooltip} placement="bottom" />
+    {/if}
 </button>
 
 <style>
@@ -58,12 +71,21 @@
         text-align: left;
         cursor: pointer;
         box-sizing: border-box;
+        position: relative;
         transition: all 0.18s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     .choice-card.without-image {
         grid-template-columns: 1fr;
         min-height: 98px;
+    }
+
+    .choice-card.without-description {
+        min-height: 92px;
+    }
+
+    .choice-card.without-image.without-description {
+        min-height: 64px;
     }
 
     .choice-card:hover:not(:disabled) {
@@ -93,6 +115,17 @@
 
     .choice-card.selected .choice-title {
         color: #1f4f47;
+    }
+
+    .choice-card.selected:hover:not(:disabled) {
+        border-color: rgba(62, 111, 103, 0.82);
+        background:
+            linear-gradient(180deg, rgba(248, 253, 249, 0.99), rgba(219, 237, 221, 0.99)),
+            repeating-linear-gradient(0deg, rgba(62, 111, 103, 0.06) 0 1px, transparent 1px 10px);
+        box-shadow:
+            inset 0 0 0 1px rgba(255, 255, 255, 0.48),
+            0 0 0 1px rgba(62, 111, 103, 0.24),
+            0 14px 30px rgba(42, 93, 84, 0.2);
     }
 
     .choice-card:disabled {

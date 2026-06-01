@@ -55,10 +55,12 @@ describe('cyoaActions', () => {
                 imageAlt: '',
                 title: '',
                 description: '',
+                tooltip: '툴팁 설명',
             },
             (imagePath) => imagePath ? '/resolved.webp' : undefined
         )).toMatchObject({
             imageSrc: undefined,
+            tooltip: '툴팁 설명',
             width: '1/3',
             layoutSpan: 1,
         });

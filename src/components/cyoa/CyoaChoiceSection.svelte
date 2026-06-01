@@ -46,7 +46,7 @@
         background: transparent;
         box-shadow: none;
         position: relative;
-        z-index: 2;
+        z-index: 3;
     }
 
     h2 {
