@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { CYOA_ACTIONS, MAGIC_NODE_CATEGORIES } from '../../constants/gameConfigs';
+import {
+    CYOA_ACTIONS,
+    MAGIC_CONNECTION_RULE_KEYS,
+    MAGIC_NODE_CATEGORIES,
+} from '../../constants/gameConfigs';
 import cyoaRowsData from '../../data/cyoaRows.json';
 import magicGlyphsData from '../../data/magicGlyphs.json';
 import magicGlyphShapesData from '../../data/magicGlyphShapes.json';
@@ -24,9 +28,9 @@ describe('dataValidation', () => {
     it('reports invalid magic type categories, duplicate type ids, and connection limits', () => {
         expect(validateMagicTypes(
             [
-                { type: 'fire', label: 'Fire', icon: '', color: '#fff', category: 'basic', description: 'desc', stats },
+                { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'desc', stats },
                 {
-                    type: 'fire',
+                    type: 'ignition',
                     label: 'Fire Copy',
                     icon: '',
                     color: '#fff',
@@ -35,19 +39,22 @@ describe('dataValidation', () => {
                     stats: { ...stats, power: Number.NaN },
                     statRules: { castingTime: { branchAggregation: 'fastest' } },
                     connectionLimits: { maxInputs: 0, maxOutputs: -1 },
+                    connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: 'yes', unknownRule: true },
                 },
             ] as MagicTypeConfig[],
             MAGIC_NODE_CATEGORIES
         )).toEqual({
             valid: false,
             errors: [
-                'Duplicate magic type id: fire',
-                'Unknown magic type category: fire -> unknown',
-                'Missing magic type description: fire',
-                'Invalid magic type maxInputs: fire -> 0',
-                'Invalid magic type maxOutputs: fire -> -1',
-                'Invalid magic type stat: fire -> power',
-                'Invalid magic stat branch aggregation: fire -> castingTime -> fastest',
+                'Duplicate magic type id: ignition',
+                'Unknown magic type category: ignition -> unknown',
+                'Missing magic type description: ignition',
+                'Invalid magic type maxInputs: ignition -> 0',
+                'Invalid magic type maxOutputs: ignition -> -1',
+                `Invalid magic connection rule ${MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT}: ignition -> yes`,
+                'Unknown magic connection rule key: ignition -> unknownRule',
+                'Invalid magic type stat: ignition -> power',
+                'Invalid magic stat branch aggregation: ignition -> castingTime -> fastest',
             ],
         });
     });
@@ -76,22 +83,22 @@ describe('dataValidation', () => {
     it('reports invalid magic glyph data', () => {
         expect(validateMagicGlyphs(
             [
-                { magicType: 'fire', kind: 'flame', baseCount: 12 },
-                { magicType: 'fire', kind: 'unknown', runeKinds: ['missing-rune'], baseCount: 0 },
+                { magicType: 'ignition', kind: 'flame', baseCount: 12 },
+                { magicType: 'ignition', kind: 'unknown', runeKinds: ['missing-rune'], baseCount: 0 },
                 { magicType: 'missing', kind: 'seal', baseCount: 1 },
             ] as MagicGlyphConfig[],
             [
-                { type: 'fire', label: 'Fire', icon: '', color: '#fff', category: 'basic', description: 'desc' },
-                { type: 'water', label: 'Water', icon: '', color: '#fff', category: 'basic', description: 'desc' },
+                { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'desc' },
+                { type: 'stream', label: 'Stream', icon: '', color: '#fff', category: 'basic', description: 'desc' },
             ] as MagicTypeConfig[]
         )).toEqual({
             valid: false,
             errors: [
-                'Duplicate magic glyph config: fire',
-                'Missing magic glyph config: water',
-                'Unknown magic glyph kind: fire -> unknown',
-                'Unknown magic rune kind: fire -> 0 -> missing-rune',
-                'Invalid magic glyph baseCount: fire -> 0',
+                'Duplicate magic glyph config: ignition',
+                'Missing magic glyph config: stream',
+                'Unknown magic glyph kind: ignition -> unknown',
+                'Unknown magic rune kind: ignition -> 0 -> missing-rune',
+                'Invalid magic glyph baseCount: ignition -> 0',
                 'Unknown magic glyph type: missing',
             ],
         });

@@ -1,6 +1,6 @@
 import type { Node } from '@xyflow/svelte';
 import magicTypesData from '../data/magicTypes.json';
-import type { MagicNodeCategory } from '../constants/gameConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS, type MagicNodeCategory } from '../constants/gameConfigs';
 
 type MagicTypesData = typeof magicTypesData;
 
@@ -54,9 +54,14 @@ export interface MagicNodeConnectionLimits {
     maxOutputs?: number | null;
 }
 
-export type MagicTypeConfig = Omit<MagicTypesData[number], 'category' | 'connectionLimits' | 'stats' | 'statRules'> & {
+export interface MagicNodeConnectionRules {
+    [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]?: boolean;
+}
+
+export type MagicTypeConfig = Omit<MagicTypesData[number], 'category' | 'connectionLimits' | 'connectionRules' | 'stats' | 'statRules'> & {
     category: MagicNodeCategory;
     connectionLimits?: MagicNodeConnectionLimits;
+    connectionRules?: MagicNodeConnectionRules;
     stats?: MagicStatsConfig;
     statRules?: MagicNodeStatRulesConfig;
 };

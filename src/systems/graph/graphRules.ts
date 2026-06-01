@@ -7,6 +7,7 @@
 
 import type { Connection, Edge } from '@xyflow/svelte';
 import type { MagicNode, MagicTypeConfig } from '../../types/magic';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 
 const DEFAULT_MAX_INPUTS = 1;
 const DEFAULT_MAX_OUTPUTS = 1;
@@ -150,6 +151,15 @@ export function isDuplicateConnection(connection: Connection, edges: Edge[]): bo
     return edges.some(e => e.source === source && e.target === target);
 }
 
+function allowsCycleFromOutput(
+    sourceId: string,
+    nodes: MagicNode[],
+    magicTypes: readonly MagicTypeConfig[]
+): boolean {
+    return findMagicTypeConfig(sourceId, nodes, magicTypes)
+        ?.connectionRules?.[MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT] === true;
+}
+
 /**
  * 새 연결(connection)을 추가했을 때 사이클이 발생하는지 확인합니다.
  * source → target 연결을 추가하면, target에서 다시 source로 돌아오는
@@ -168,7 +178,7 @@ export function hasCycleDFS(connection: Connection, edges: Edge[]): boolean {
  * 규칙:
  * 1. source와 target이 존재해야 하며, 자기 자신에게 연결 불가
  * 2. 출력 선분은 1개만 허용 (source 노드가 이미 outgoing edge를 가지면 불가)
- * 3. 사이클 형성 불가 (DFS로 검사)
+ * 3. 사이클 형성 불가. 단, source 노드 데이터가 출력 순환을 허용하면 예외
  */
 export function isConnectionValid(
     connection: Connection,
@@ -185,7 +195,7 @@ export function isConnectionValid(
     if (isDuplicateConnection(connection, validationEdges)) return false;
     if (isOutputLimitReached(source, validationEdges, nodes, magicTypes)) return false;
     if (isInputLimitReached(target, validationEdges, nodes, magicTypes)) return false;
-    if (hasCycleDFS(connection, validationEdges)) return false;
+    if (!allowsCycleFromOutput(source, nodes, magicTypes) && hasCycleDFS(connection, validationEdges)) return false;
 
     return true;
 }

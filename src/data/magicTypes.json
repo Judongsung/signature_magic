@@ -1,48 +1,66 @@
 [
     {
-        "type": "fire",
-        "label": "불",
+        "type": "ignition",
+        "label": "발화",
         "icon": "🔥",
         "color": "#e74c3c",
         "category": "basic",
-        "description": "열과 연소를 다루는 기초 속성입니다.",
+        "description": "불이 붙고 타오르는 변화를 일으키는 기초 속성입니다.",
         "stats": { "castingTime": 1, "instability": 2, "power": 4, "range": 2, "manaCost": 3, "duration": 1 }
     },
     {
-        "type": "water",
-        "label": "물",
-        "icon": "💧",
-        "color": "#3498db",
+        "type": "cooling",
+        "label": "냉각",
+        "icon": "❄️",
+        "color": "#7fbfff",
         "category": "basic",
-        "description": "흐름과 냉각을 다루는 기초 속성입니다.",
+        "description": "열을 빼앗고 낮은 온도로 기울게 하는 기초 속성입니다.",
         "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 3, "manaCost": 2, "duration": 3 }
     },
     {
-        "type": "wind",
-        "label": "바람",
+        "type": "stream",
+        "label": "수류",
+        "icon": "💧",
+        "color": "#3498db",
+        "category": "basic",
+        "description": "물이 흐르고 번지는 성질을 다루는 기초 속성입니다.",
+        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 3, "manaCost": 2, "duration": 3 }
+    },
+    {
+        "type": "air",
+        "label": "공기",
         "icon": "🌪️",
         "color": "#2ecc71",
         "category": "basic",
-        "description": "방향과 속도를 다루는 기초 속성입니다.",
+        "description": "기체의 흐름과 방향을 다루는 기초 속성입니다.",
         "stats": { "castingTime": 1, "instability": 2, "power": 2, "range": 4, "manaCost": 2, "duration": 1 }
     },
     {
-        "type": "earth",
-        "label": "대지",
+        "type": "soil",
+        "label": "토양",
         "icon": "🪨",
         "color": "#e67e22",
         "category": "basic",
-        "description": "형태와 밀도를 다루는 기초 속성입니다.",
+        "description": "흙과 돌의 형태와 밀도를 다루는 기초 속성입니다.",
         "stats": { "castingTime": 2, "instability": 1, "power": 3, "range": 2, "manaCost": 3, "duration": 4 }
     },
     {
-        "type": "arcane",
-        "label": "비전",
-        "icon": "✨",
+        "type": "metal",
+        "label": "금속",
+        "icon": "⚙️",
+        "color": "#95a5a6",
+        "category": "basic",
+        "description": "금속의 단단함과 전도성을 다루는 기초 속성입니다.",
+        "stats": { "castingTime": 2, "instability": 1, "power": 4, "range": 2, "manaCost": 3, "duration": 4 }
+    },
+    {
+        "type": "force",
+        "label": "힘",
+        "icon": "✊",
         "color": "#9b59b6",
         "category": "basic",
-        "description": "순수한 마력과 추상 작용을 다루는 기초 속성입니다.",
-        "stats": { "castingTime": 2, "instability": 3, "power": 4, "range": 3, "manaCost": 4, "duration": 2 }
+        "description": "밀고 당기는 작용의 크기를 다루는 기초 속성입니다.",
+        "stats": { "castingTime": 2, "instability": 3, "power": 5, "range": 2, "manaCost": 4, "duration": 1 }
     },
     {
         "type": "coordinate",
@@ -61,6 +79,33 @@
         "category": "action",
         "description": "대상이나 효과의 위치를 변화시킵니다.",
         "stats": { "castingTime": 1, "instability": 1, "power": 1, "range": 4, "manaCost": 2, "duration": 1 }
+    },
+    {
+        "type": "rotate",
+        "label": "회전",
+        "icon": "🌀",
+        "color": "#48c9b0",
+        "category": "action",
+        "description": "대상이나 효과의 방향을 돌리고 휘감는 작용입니다.",
+        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 2, "manaCost": 2, "duration": 2 }
+    },
+    {
+        "type": "emit",
+        "label": "방출",
+        "icon": "☄️",
+        "color": "#ff8f4f",
+        "category": "action",
+        "description": "모인 효과를 바깥으로 내보내거나 쏘아냅니다.",
+        "stats": { "castingTime": 1, "instability": 2, "power": 4, "range": 4, "manaCost": 3, "duration": 1 }
+    },
+    {
+        "type": "shape",
+        "label": "성형",
+        "icon": "◇",
+        "color": "#c39bd3",
+        "category": "action",
+        "description": "효과의 윤곽과 형태를 원하는 모양으로 빚습니다.",
+        "stats": { "castingTime": 2, "instability": 1, "power": 1, "range": 1, "manaCost": 2, "duration": 3 }
     },
     {
         "type": "diffuse",
@@ -88,6 +133,16 @@
         "category": "control",
         "description": "효과가 일정 시간 지속되도록 붙잡습니다.",
         "stats": { "castingTime": 2, "instability": 1, "power": 1, "range": 2, "manaCost": 3, "duration": 5 }
+    },
+    {
+        "type": "repeat",
+        "label": "반복",
+        "icon": "🔁",
+        "color": "#f8c471",
+        "category": "control",
+        "description": "같은 효과가 일정한 간격으로 다시 일어나게 합니다.",
+        "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 1, "manaCost": 4, "duration": 4 },
+        "connectionRules": { "allowCycleFromOutput": true }
     },
     {
         "type": "disperse",
@@ -133,6 +188,17 @@
         "category": "extension",
         "description": "대상이나 효과를 독립된 부분으로 나눕니다.",
         "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 2, "manaCost": 3, "duration": 1 },
+        "statRules": { "castingTime": { "branchAggregation": "max" } },
+        "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
+    },
+    {
+        "type": "branch",
+        "label": "분기",
+        "icon": "⑂",
+        "color": "#f4d03f",
+        "category": "extension",
+        "description": "효과의 흐름을 여러 방향으로 갈라 보냅니다.",
+        "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 3, "manaCost": 3, "duration": 1 },
         "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
     },

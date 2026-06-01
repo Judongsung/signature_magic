@@ -12,7 +12,7 @@ import {
 import type { MagicNode, MagicTypeConfig } from '../../types/magic';
 
 const magicTypes = [
-    { type: 'fire', label: 'Fire', icon: '', color: '#fff', category: 'basic', description: 'basic' },
+    { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'basic' },
     {
         type: 'split',
         label: 'Split',
@@ -24,7 +24,7 @@ const magicTypes = [
     },
 ] as MagicTypeConfig[];
 
-function node(id: string, magicType: MagicNode['data']['magicType'] = 'fire'): MagicNode {
+function node(id: string, magicType: MagicNode['data']['magicType'] = 'ignition'): MagicNode {
     return {
         id,
         type: 'magicNode',
@@ -39,13 +39,13 @@ function edge(source: string, target: string): Edge {
 
 describe('graphActions', () => {
     it('creates nodes with injected stable ids', () => {
-        const created = createNode('water', { x: 10, y: 20 }, () => 'fixed-id');
+        const created = createNode('stream', { x: 10, y: 20 }, () => 'fixed-id');
 
         expect(created).toEqual({
             id: 'node-fixed-id',
             type: 'magicNode',
             position: { x: 10, y: 20 },
-            data: { magicType: 'water', isRoot: true, isLeaf: true, inputHandleCount: 1, outputHandleCount: 1 },
+            data: { magicType: 'stream', isRoot: true, isLeaf: true, inputHandleCount: 1, outputHandleCount: 1 },
         });
     });
 
@@ -108,8 +108,8 @@ describe('graphActions', () => {
 
     it('keeps the same node references when role flags and handle counts are already current', () => {
         const nodes = [
-            { ...node('a'), data: { magicType: 'fire' as const, isRoot: true, isLeaf: false, inputHandleCount: 1, outputHandleCount: 1 } },
-            { ...node('b'), data: { magicType: 'fire' as const, isRoot: false, isLeaf: true, inputHandleCount: 1, outputHandleCount: 1 } },
+            { ...node('a'), data: { magicType: 'ignition' as const, isRoot: true, isLeaf: false, inputHandleCount: 1, outputHandleCount: 1 } },
+            { ...node('b'), data: { magicType: 'ignition' as const, isRoot: false, isLeaf: true, inputHandleCount: 1, outputHandleCount: 1 } },
         ];
 
         const result = refreshNodeRoles(nodes, [edge('a', 'b')], magicTypes);

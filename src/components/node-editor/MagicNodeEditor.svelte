@@ -13,6 +13,7 @@
         Controls,
         BackgroundVariant,
         ConnectionMode,
+        SelectionMode,
         useSvelteFlow,
         type Connection,
         type Edge,
@@ -35,6 +36,7 @@
     const edgeTypes = { magicEdge: CustomEdge };
     const snapGrid = EDITOR_CANVAS.SNAP_GRID as SnapGrid;
     const canvasExtent = EDITOR_CANVAS.EXTENT as CoordinateExtent;
+    const panOnDragButtons = [...EDITOR_CANVAS.PAN_ON_DRAG_BUTTONS];
     const { screenToFlowPosition } = useSvelteFlow();
 
     let activeCategoryIds = $state<MagicNodeCategory[]>(['basic']);
@@ -68,6 +70,10 @@
         const flowPosition = screenToFlowPosition({ x: event.clientX, y: event.clientY });
         const position = resolveDropPosition(flowPosition, snapGrid, canvasExtent);
         graphStore.addNode(magicType, position);
+    }
+
+    function preventCanvasContextMenu(event: MouseEvent) {
+        event.preventDefault();
     }
 
     const onDelete: OnDelete<MagicNode, Edge> = ({ nodes, edges }) => {
@@ -132,6 +138,7 @@
         class="flow-wrapper"
         ondragover={onDragOver}
         ondrop={onDrop}
+        oncontextmenu={preventCanvasContextMenu}
         role="region"
         aria-label="magic node canvas"
     >
@@ -145,6 +152,9 @@
             {snapGrid}
             translateExtent={canvasExtent}
             nodeExtent={canvasExtent}
+            panOnDrag={panOnDragButtons}
+            selectionOnDrag={true}
+            selectionMode={SelectionMode.Partial}
             isValidConnection={(edge) => graphStore.checkConnection(edge)}
             onbeforeconnect={(conn) => graphStore.prepareEdge(conn)}
             onconnect={(conn: Connection) => graphStore.onEdgeConnected(conn)}

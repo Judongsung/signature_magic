@@ -1,7 +1,12 @@
-import type { CyoaAction, MagicNodeCategory } from '../../constants/gameConfigs';
+import {
+    MAGIC_CONNECTION_RULE_KEYS,
+    type CyoaAction,
+    type MagicNodeCategory,
+} from '../../constants/gameConfigs';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import {
     MAGIC_STAT_KEYS,
+    type MagicNodeConnectionRules,
     type MagicNodeStatRulesConfig,
     type MagicTypeConfig,
     type MagicStatsConfig,
@@ -46,6 +51,30 @@ function isValidChoiceWidth(width: string): boolean {
 
 function isValidConnectionLimit(limit: number | null | undefined): boolean {
     return limit === undefined || limit === null || (Number.isInteger(limit) && limit > 0);
+}
+
+function validateMagicConnectionRules(
+    type: string,
+    connectionRules: MagicNodeConnectionRules | undefined
+): string[] {
+    if (!connectionRules) return [];
+
+    const errors: string[] = [];
+    const validKeys = new Set<keyof MagicNodeConnectionRules>([
+        MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT,
+    ]);
+
+    Object.entries(connectionRules).forEach(([key, value]) => {
+        if (!validKeys.has(key as keyof MagicNodeConnectionRules)) {
+            errors.push(`Unknown magic connection rule key: ${type} -> ${key}`);
+            return;
+        }
+        if (key === MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT && typeof value !== 'boolean') {
+            errors.push(`Invalid magic connection rule ${MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT}: ${type} -> ${value}`);
+        }
+    });
+
+    return errors;
 }
 
 function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): string[] {
@@ -104,6 +133,7 @@ export function validateMagicTypes(
         if (!isValidConnectionLimit(magicType.connectionLimits?.maxOutputs)) {
             errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
         }
+        errors.push(...validateMagicConnectionRules(magicType.type, magicType.connectionRules));
         errors.push(...validateMagicStats(magicType.type, magicType.stats));
         errors.push(...validateMagicStatRules(magicType.type, magicType.statRules));
     });

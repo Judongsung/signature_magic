@@ -63,9 +63,18 @@ function calculateGraphStat(
         .filter(node => (graph.inDegree.get(node.id) ?? 0) === 0)
         .map(node => node.id);
 
-    if (rootIds.length === 0) return 0;
+    if (rootIds.length === 0) {
+        return calculateFlatStat(statKey, nodes, edges, magicTypes, 'total');
+    }
+
+    const rootReachableIds = reachableNodeIds(rootIds, graph);
+    const unrootedNodes = nodes.filter(node => !rootReachableIds.has(node.id));
+    const unrootedValue = unrootedNodes.length > 0
+        ? calculateFlatStat(statKey, unrootedNodes, edges, magicTypes, 'total')
+        : 0;
+
     if (rootIds.length === 1) {
-        return evaluateFrom(rootIds[0], statKey, graph, magicTypes, undefined, new Set());
+        return evaluateFrom(rootIds[0], statKey, graph, magicTypes, undefined, new Set()) + unrootedValue;
     }
 
     const mergeNodeId = findNearestCommonReachableNode(rootIds, graph);
@@ -86,7 +95,7 @@ function calculateGraphStat(
             edges,
             magicTypes,
         }
-    ) + mergedValue;
+    ) + mergedValue + unrootedValue;
 }
 
 interface StatGraph {
@@ -231,4 +240,21 @@ function reachableDistances(startNodeId: string, graph: StatGraph): Map<string, 
     }
 
     return distances;
+}
+
+function reachableNodeIds(startNodeIds: readonly string[], graph: StatGraph): Set<string> {
+    const reachable = new Set<string>();
+    const queue = [...startNodeIds];
+
+    while (queue.length > 0) {
+        const nodeId = queue.shift()!;
+        if (reachable.has(nodeId)) continue;
+
+        reachable.add(nodeId);
+        (graph.outEdges.get(nodeId) ?? []).forEach(nextId => {
+            queue.push(nextId);
+        });
+    }
+
+    return reachable;
 }

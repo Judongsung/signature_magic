@@ -20,13 +20,13 @@ describe('buildMagicCircleRenderModels', () => {
     it('creates ring and glyph band layouts for each node', () => {
         const [model] = buildMagicCircleRenderModels([
             circle([
-                node('fire', 'fire'),
-                node('water', 'water'),
-                node('earth', 'earth'),
+                node('ignition', 'ignition'),
+                node('stream', 'stream'),
+                node('soil', 'soil'),
             ]),
         ]);
 
-        expect(model.rings.map(ring => ring.node.id)).toEqual(['fire', 'water', 'earth']);
+        expect(model.rings.map(ring => ring.node.id)).toEqual(['ignition', 'stream', 'soil']);
         expect(model.stats).toEqual(EMPTY_MAGIC_STATS);
         expect(model.rings.map(ring => ring.radius)).toEqual([
             MAGIC_CIRCLE_PREVIEW.INNER_RADIUS,
@@ -57,7 +57,7 @@ describe('buildMagicCircleRenderModels', () => {
 
     it('uses rune sequences instead of repeating one mark shape', () => {
         const [model] = buildMagicCircleRenderModels([
-            circle([node('fire', 'fire')]),
+            circle([node('ignition', 'ignition')]),
         ]);
 
         expect(model.bands[0].marks.slice(0, 4).map(mark => mark.kind)).toEqual([
@@ -71,31 +71,31 @@ describe('buildMagicCircleRenderModels', () => {
     it('creates a node-count star polygon for multi-node circles', () => {
         const [fourPointModel] = buildMagicCircleRenderModels([
             circle([
-                node('earth-1', 'earth'),
-                node('earth-2', 'earth'),
-                node('earth-3', 'earth'),
-                node('earth-4', 'earth'),
+                node('soil-1', 'soil'),
+                node('soil-2', 'soil'),
+                node('soil-3', 'soil'),
+                node('soil-4', 'soil'),
             ]),
         ]);
         const [sixPointModel] = buildMagicCircleRenderModels([
             circle([
-                node('fire-1', 'fire'),
-                node('fire-2', 'fire'),
-                node('fire-3', 'fire'),
-                node('fire-4', 'fire'),
-                node('fire-5', 'fire'),
-                node('fire-6', 'fire'),
+                node('ignition-1', 'ignition'),
+                node('ignition-2', 'ignition'),
+                node('ignition-3', 'ignition'),
+                node('ignition-4', 'ignition'),
+                node('ignition-5', 'ignition'),
+                node('ignition-6', 'ignition'),
             ]),
         ]);
         const [sevenPointModel] = buildMagicCircleRenderModels([
             circle([
-                node('water-1', 'water'),
-                node('water-2', 'water'),
-                node('water-3', 'water'),
-                node('water-4', 'water'),
-                node('water-5', 'water'),
-                node('water-6', 'water'),
-                node('water-7', 'water'),
+                node('stream-1', 'stream'),
+                node('stream-2', 'stream'),
+                node('stream-3', 'stream'),
+                node('stream-4', 'stream'),
+                node('stream-5', 'stream'),
+                node('stream-6', 'stream'),
+                node('stream-7', 'stream'),
             ]),
         ]);
 
@@ -121,11 +121,11 @@ describe('buildMagicCircleRenderModels', () => {
     it('keeps the outer glyph band inside the visible guide circle', () => {
         const [model] = buildMagicCircleRenderModels([
             circle([
-                node('fire', 'fire'),
-                node('water', 'water'),
-                node('wind', 'wind'),
-                node('earth', 'earth'),
-                node('arcane', 'arcane'),
+                node('ignition', 'ignition'),
+                node('stream', 'stream'),
+                node('air', 'air'),
+                node('soil', 'soil'),
+                node('force', 'force'),
             ]),
         ]);
         const outerBandRadii = model.bands.map(band => {

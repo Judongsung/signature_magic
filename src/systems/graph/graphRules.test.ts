@@ -1,6 +1,7 @@
 import type { Connection, Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import type { MagicNode, MagicTypeConfig } from '../../types/magic';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 import {
     filterEdgesReplacedByConnection,
     hasCycleDFS,
@@ -10,7 +11,7 @@ import {
 } from './graphRules';
 
 const magicTypes = [
-    { type: 'fire', label: 'Fire', icon: '', color: '#fff', category: 'basic', description: 'basic' },
+    { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'basic' },
     {
         type: 'split',
         label: 'Split',
@@ -29,6 +30,15 @@ const magicTypes = [
         description: 'merge',
         connectionLimits: { maxInputs: null, maxOutputs: 1 },
     },
+    {
+        type: 'repeat',
+        label: 'Repeat',
+        icon: '',
+        color: '#fff',
+        category: 'control',
+        description: 'repeat',
+        connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+    },
 ] as MagicTypeConfig[];
 
 function edge(source: string, target: string, sourceHandle = 'output-0', targetHandle = 'input-0'): Edge {
@@ -44,7 +54,7 @@ function connection(
     return { source, target, sourceHandle, targetHandle };
 }
 
-function node(id: string, magicType: MagicNode['data']['magicType'] = 'fire'): MagicNode {
+function node(id: string, magicType: MagicNode['data']['magicType'] = 'ignition'): MagicNode {
     return {
         id,
         type: 'magicNode',
@@ -67,6 +77,20 @@ describe('graphRules', () => {
 
         expect(hasCycleDFS(connection('c', 'a'), edges)).toBe(true);
         expect(isConnectionValid(connection('c', 'a'), edges, nodes, magicTypes)).toBe(false);
+    });
+
+    it('allows a cycle when the source node allows output cycles', () => {
+        const edges = [edge('a', 'b'), edge('b', 'repeat')];
+        const nodes = [node('a'), node('b'), node('repeat', 'repeat')];
+
+        expect(hasCycleDFS(connection('repeat', 'a'), edges)).toBe(true);
+        expect(isConnectionValid(connection('repeat', 'a'), edges, nodes, magicTypes)).toBe(true);
+    });
+
+    it('still rejects self-connections when the source node allows output cycles', () => {
+        const nodes = [node('repeat', 'repeat')];
+
+        expect(isConnectionValid(connection('repeat', 'repeat'), [], nodes, magicTypes)).toBe(false);
     });
 
     it('rejects self-connections and missing nodes', () => {

@@ -8,7 +8,7 @@ import {
 } from './graphEventHandlers';
 
 const magicTypes = [
-    { type: 'fire', label: 'Fire', icon: '', color: '#fff', category: 'basic', description: 'basic' },
+    { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'basic' },
     {
         type: 'merge',
         label: 'Merge',
@@ -20,7 +20,7 @@ const magicTypes = [
     },
 ] as MagicTypeConfig[];
 
-function node(id: string, magicType: MagicNode['data']['magicType'] = 'fire'): MagicNode {
+function node(id: string, magicType: MagicNode['data']['magicType'] = 'ignition'): MagicNode {
     return {
         id,
         type: 'magicNode',

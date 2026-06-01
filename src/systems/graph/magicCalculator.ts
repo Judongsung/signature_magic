@@ -5,6 +5,7 @@ import {
     type CirclePath,
     type MagicCalculationResult,
 } from '../../types/magic';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 
 export function calculateMagic(
@@ -62,7 +63,18 @@ function calculateCirclesWithMagicTypes(
         const degree = inDegree.get(node.id) ?? 0;
         return degree > 1;
     });
-    const uniqueStartNodes = dedupeNodes([...rootStartNodes, ...branchStartNodes, ...mergeStartNodes]);
+    const rootReachableNodeIds = reachableNodeIds(rootStartNodes.map(node => node.id), outEdges);
+    const cycleStartNodes = nodes.filter(node =>
+        magicTypeMap.get(node.data.magicType)
+            ?.connectionRules?.[MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT] &&
+        !rootReachableNodeIds.has(node.id)
+    );
+    const uniqueStartNodes = dedupeNodes([
+        ...rootStartNodes,
+        ...branchStartNodes,
+        ...mergeStartNodes,
+        ...cycleStartNodes,
+    ]);
 
     return uniqueStartNodes
         .flatMap(startNode => collectCircleChains(startNode, nodeMap, outEdges, inDegree))
@@ -82,28 +94,46 @@ function dedupeNodes(nodes: MagicNode[]): MagicNode[] {
     });
 }
 
+function reachableNodeIds(startNodeIds: string[], outEdges: Map<string, string[]>): Set<string> {
+    const reachable = new Set<string>();
+    const queue = [...startNodeIds];
+
+    while (queue.length > 0) {
+        const nodeId = queue.shift()!;
+        if (reachable.has(nodeId)) continue;
+
+        reachable.add(nodeId);
+        (outEdges.get(nodeId) ?? []).forEach(nextId => {
+            queue.push(nextId);
+        });
+    }
+
+    return reachable;
+}
+
 function collectCircleChains(
     startNode: MagicNode,
     nodeMap: Map<string, MagicNode>,
     outEdges: Map<string, string[]>,
     inDegree: Map<string, number>
 ): MagicNode[][] {
-    const walk = (currentNode: MagicNode, chain: MagicNode[]): MagicNode[][] => {
+    const walk = (currentNode: MagicNode, chain: MagicNode[], visited: Set<string>): MagicNode[][] => {
         const nextIds = outEdges.get(currentNode.id) ?? [];
         if (nextIds.length === 0) return [chain];
         if (nextIds.length > 1) return [chain];
 
         return nextIds.flatMap(nextId => {
+            if (visited.has(nextId)) return [chain];
             if ((inDegree.get(nextId) ?? 0) > 1) return [chain];
 
             const nextNode = nodeMap.get(nextId);
             if (!nextNode) return [chain];
 
-            return walk(nextNode, [...chain, nextNode]);
+            return walk(nextNode, [...chain, nextNode], new Set([...visited, nextId]));
         });
     };
 
-    return walk(startNode, [startNode]);
+    return walk(startNode, [startNode], new Set([startNode.id]));
 }
 
 export function computeNodeRoles(

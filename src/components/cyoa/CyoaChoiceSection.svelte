@@ -40,26 +40,23 @@
     .choice-section {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        padding: 24px;
-        border: 1px solid rgba(141, 115, 74, 0.25);
-        border-radius: 2px;
-        background: rgba(141, 115, 74, 0.04);
-        box-shadow: 
-            inset 0 1px 4px rgba(44, 34, 23, 0.04),
-            0 1px 0 rgba(255, 255, 255, 0.6);
+        gap: 14px;
+        padding: 20px 0 0;
+        border-top: 1px solid rgba(103, 77, 48, 0.16);
+        background: transparent;
+        box-shadow: none;
         position: relative;
         z-index: 2;
     }
 
     h2 {
         margin: 0;
-        color: var(--guild-ink-black);
+        color: #3b2c1d;
         font-family: var(--font-title);
         font-size: 17px;
         font-weight: 800;
-        letter-spacing: 0.5px;
-        border-bottom: 1px solid rgba(141, 115, 74, 0.3);
-        padding-bottom: 8px;
+        letter-spacing: 0.2px;
+        border-bottom: 0;
+        padding-bottom: 0;
     }
 </style>

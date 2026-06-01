@@ -1,6 +1,7 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import type { MagicNode, MagicType, MagicTypeConfig } from '../../types/magic';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { hasMagicStatRuleForEveryKey } from './magicStatRules';
 
@@ -43,11 +44,11 @@ describe('calculateMagicStats', () => {
     });
 
     it('calculates every stat through the rule table', () => {
-        const nodes = [node('a', 'fire'), node('b', 'water')];
+        const nodes = [node('a', 'ignition'), node('b', 'stream')];
         const edges: Edge[] = [];
         const magicTypes = buildMagicTypeMap([
-            magicType('fire', 2),
-            magicType('water', 3),
+            magicType('ignition', 2),
+            magicType('stream', 3),
         ]);
 
         expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
@@ -62,31 +63,31 @@ describe('calculateMagicStats', () => {
 
     it('uses node configured branch aggregation for total casting time', () => {
         const nodes = [
-            node('fire', 'fire'),
+            node('ignition', 'ignition'),
             node('split', 'split'),
-            node('water', 'water'),
-            node('earth', 'earth'),
+            node('stream', 'stream'),
+            node('soil', 'soil'),
             node('merge', 'merge'),
-            node('wind', 'wind'),
+            node('air', 'air'),
         ];
         const edges = [
-            edge('fire', 'split'),
-            edge('split', 'water'),
-            edge('split', 'earth'),
-            edge('water', 'merge'),
-            edge('earth', 'merge'),
-            edge('merge', 'wind'),
+            edge('ignition', 'split'),
+            edge('split', 'stream'),
+            edge('split', 'soil'),
+            edge('stream', 'merge'),
+            edge('soil', 'merge'),
+            edge('merge', 'air'),
         ];
         const magicTypes = buildMagicTypeMap([
-            magicType('fire', 1),
+            magicType('ignition', 1),
             magicType('split', 2, {
                 category: 'extension',
                 statRules: { castingTime: { branchAggregation: 'max' } },
             }),
-            magicType('water', 3),
-            magicType('earth', 4),
+            magicType('stream', 3),
+            magicType('soil', 4),
             magicType('merge', 5, { category: 'extension' }),
-            magicType('wind', 6),
+            magicType('air', 6),
         ]);
 
         expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
@@ -101,24 +102,24 @@ describe('calculateMagicStats', () => {
 
     it('uses merge node branch aggregation when parallel roots join', () => {
         const nodes = [
-            node('fire', 'fire'),
-            node('water', 'water'),
+            node('ignition', 'ignition'),
+            node('stream', 'stream'),
             node('merge', 'merge'),
-            node('wind', 'wind'),
+            node('air', 'air'),
         ];
         const edges = [
-            edge('fire', 'merge'),
-            edge('water', 'merge'),
-            edge('merge', 'wind'),
+            edge('ignition', 'merge'),
+            edge('stream', 'merge'),
+            edge('merge', 'air'),
         ];
         const magicTypes = buildMagicTypeMap([
-            magicType('fire', 1),
-            magicType('water', 3),
+            magicType('ignition', 1),
+            magicType('stream', 3),
             magicType('merge', 5, {
                 category: 'extension',
                 statRules: { castingTime: { branchAggregation: 'max' } },
             }),
-            magicType('wind', 6),
+            magicType('air', 6),
         ]);
 
         expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
@@ -128,6 +129,36 @@ describe('calculateMagicStats', () => {
             range: 15,
             manaCost: 15,
             duration: 15,
+        });
+    });
+
+    it('counts circular graphs once per node instead of requiring a root', () => {
+        const nodes = [
+            node('ignition', 'ignition'),
+            node('repeat', 'repeat'),
+            node('stream', 'stream'),
+        ];
+        const edges = [
+            edge('ignition', 'repeat'),
+            edge('repeat', 'stream'),
+            edge('stream', 'ignition'),
+        ];
+        const magicTypes = buildMagicTypeMap([
+            magicType('ignition', 1),
+            magicType('repeat', 2, {
+                category: 'control',
+                connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+            }),
+            magicType('stream', 3),
+        ]);
+
+        expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
+            castingTime: 6,
+            instability: 6,
+            power: 6,
+            range: 6,
+            manaCost: 6,
+            duration: 6,
         });
     });
 });

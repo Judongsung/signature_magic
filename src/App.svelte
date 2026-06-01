@@ -29,13 +29,14 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background-color: #000;
         color: #fff;
-        overflow: hidden;
+        overflow: auto;
     }
     
     .app-container {
         display: flex;
         width: 100vw;
         height: 100vh;
+        overflow: hidden;
     }
 
     .editor-pane {

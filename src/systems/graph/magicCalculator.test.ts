@@ -2,8 +2,9 @@ import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import { calculateCircles, calculateMagic, computeNodeRoles } from './magicCalculator';
 import { EMPTY_MAGIC_STATS, type MagicNode, type MagicType, type MagicTypeConfig } from '../../types/magic';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 
-function node(id: string, magicType: MagicType = 'fire'): MagicNode {
+function node(id: string, magicType: MagicType = 'ignition'): MagicNode {
     return {
         id,
         type: 'magicNode',
@@ -26,7 +27,7 @@ describe('calculateCircles', () => {
     });
 
     it('creates a chain from a root node until the leaf node', () => {
-        const nodes = [node('a'), node('b', 'water'), node('c', 'earth')];
+        const nodes = [node('a'), node('b', 'stream'), node('c', 'soil')];
         const edges = [edge('a', 'b'), edge('b', 'c')];
 
         expect(calculateCircles(nodes, edges)).toEqual([
@@ -35,11 +36,11 @@ describe('calculateCircles', () => {
     });
 
     it('adds node stats for each calculated circle', () => {
-        const nodes = [node('a', 'fire'), node('b', 'water')];
+        const nodes = [node('a', 'ignition'), node('b', 'stream')];
         const edges = [edge('a', 'b')];
         const magicTypes = [
             {
-                type: 'fire',
+                type: 'ignition',
                 label: 'Fire',
                 icon: '',
                 color: '',
@@ -48,7 +49,7 @@ describe('calculateCircles', () => {
                 stats: { castingTime: 1, instability: 2, power: 3, range: 4, manaCost: 5, duration: 6 },
             },
             {
-                type: 'water',
+                type: 'stream',
                 label: 'Water',
                 icon: '',
                 color: '',
@@ -70,9 +71,9 @@ describe('calculateCircles', () => {
 
     it('starts a new circle at nodes with multiple inputs', () => {
         const a = node('a');
-        const b = node('b', 'water');
-        const c = node('c', 'wind');
-        const d = node('d', 'earth');
+        const b = node('b', 'stream');
+        const c = node('c', 'air');
+        const d = node('d', 'soil');
         const nodes = [a, b, c, d];
         const edges = [edge('a', 'c'), edge('b', 'c'), edge('c', 'd')];
 
@@ -88,8 +89,8 @@ describe('calculateCircles', () => {
     it('separates the pre-split circle from each branch after a split node', () => {
         const a = node('a');
         const split = node('split', 'split');
-        const b = node('b', 'water');
-        const c = node('c', 'earth');
+        const b = node('b', 'stream');
+        const c = node('c', 'soil');
         const nodes = [a, split, b, c];
         const edges = [edge('a', 'split'), edge('split', 'b'), edge('split', 'c')];
 
@@ -105,10 +106,10 @@ describe('calculateCircles', () => {
     it('keeps split branches and post-merge circles separate', () => {
         const a = node('a');
         const split = node('split', 'split');
-        const b = node('b', 'water');
-        const c = node('c', 'earth');
+        const b = node('b', 'stream');
+        const c = node('c', 'soil');
         const merge = node('merge', 'merge');
-        const d = node('d', 'wind');
+        const d = node('d', 'air');
         const nodes = [a, split, b, c, merge, d];
         const edges = [
             edge('a', 'split'),
@@ -128,19 +129,44 @@ describe('calculateCircles', () => {
             ['merge', 'd'],
         ]);
     });
+
+    it('starts a circular chain at a node that allows output cycles', () => {
+        const a = node('a');
+        const repeat = node('repeat', 'repeat');
+        const b = node('b', 'stream');
+        const nodes = [a, repeat, b];
+        const edges = [edge('a', 'repeat'), edge('repeat', 'b'), edge('b', 'a')];
+        const magicTypes = [
+            {
+                type: 'repeat',
+                label: 'Repeat',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Repeat magic.',
+                connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+            },
+        ] as MagicTypeConfig[];
+
+        const circles = calculateCircles(nodes, edges, magicTypes);
+
+        expect(circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
+            ['repeat', 'b', 'a'],
+        ]);
+    });
 });
 
 describe('calculateMagic', () => {
     it('returns circle stats and total graph stats separately', () => {
-        const a = node('a', 'fire');
+        const a = node('a', 'ignition');
         const split = node('split', 'split');
-        const b = node('b', 'water');
-        const c = node('c', 'earth');
+        const b = node('b', 'stream');
+        const c = node('c', 'soil');
         const nodes = [a, split, b, c];
         const edges = [edge('a', 'split'), edge('split', 'b'), edge('split', 'c')];
         const magicTypes = [
             {
-                type: 'fire',
+                type: 'ignition',
                 label: 'Fire',
                 icon: '',
                 color: '',
@@ -158,7 +184,7 @@ describe('calculateMagic', () => {
                 stats: { castingTime: 2, instability: 2, power: 2, range: 2, manaCost: 2, duration: 2 },
             },
             {
-                type: 'water',
+                type: 'stream',
                 label: 'Water',
                 icon: '',
                 color: '',
@@ -167,7 +193,7 @@ describe('calculateMagic', () => {
                 stats: { castingTime: 3, instability: 3, power: 3, range: 3, manaCost: 3, duration: 3 },
             },
             {
-                type: 'earth',
+                type: 'soil',
                 label: 'Earth',
                 icon: '',
                 color: '',
@@ -187,6 +213,58 @@ describe('calculateMagic', () => {
             range: 10,
             manaCost: 10,
             duration: 10,
+        });
+    });
+
+    it('counts each node once when the graph is circular', () => {
+        const a = node('a', 'ignition');
+        const repeat = node('repeat', 'repeat');
+        const b = node('b', 'stream');
+        const nodes = [a, repeat, b];
+        const edges = [edge('a', 'repeat'), edge('repeat', 'b'), edge('b', 'a')];
+        const magicTypes = [
+            {
+                type: 'ignition',
+                label: 'Ignition',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Ignition magic.',
+                stats: { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 },
+            },
+            {
+                type: 'repeat',
+                label: 'Repeat',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Repeat magic.',
+                stats: { castingTime: 2, instability: 2, power: 2, range: 2, manaCost: 2, duration: 2 },
+                connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+            },
+            {
+                type: 'stream',
+                label: 'Stream',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Stream magic.',
+                stats: { castingTime: 3, instability: 3, power: 3, range: 3, manaCost: 3, duration: 3 },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, edges, magicTypes);
+
+        expect(result.circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
+            ['repeat', 'b', 'a'],
+        ]);
+        expect(result.totalStats).toEqual({
+            castingTime: 6,
+            instability: 6,
+            power: 6,
+            range: 6,
+            manaCost: 6,
+            duration: 6,
         });
     });
 });

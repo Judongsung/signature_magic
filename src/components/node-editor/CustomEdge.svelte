@@ -4,9 +4,10 @@
      *
      * - getStraightPath로 직선 경로를 그립니다.
      * - 화살표(polygon)를 target 끝에 배치합니다.
-     * - selected prop을 받아 색상·두께·글로우를 변경합니다.
+     * - selected prop을 받아 색상·두께·선택 강조를 변경합니다.
      */
     import { getStraightPath, type EdgeProps } from '@xyflow/svelte';
+    import { EDITOR_CANVAS } from '../../constants/gameConfigs';
 
     let {
         id,
@@ -39,22 +40,27 @@
     const SELECTED_COLOR = '#f0d0ff';
     const color       = $derived(selected ? SELECTED_COLOR : BASE_COLOR);
     const strokeWidth = $derived(selected ? 3.5 : 2);
-
-    // ── 선택 시 SVG filter 글로우 id (flowId 없이 edge id로 유일하게 만듦) ──
-    const filterId = $derived(`glow-${id}`);
+    const interactionStrokeWidth = EDITOR_CANVAS.EDGE_INTERACTION_STROKE_WIDTH;
+    const selectedGlowStrokeWidth = EDITOR_CANVAS.EDGE_SELECTED_GLOW_STROKE_WIDTH;
 </script>
 
-<!-- SVG filter: 선택 시 글로우 효과 -->
+<!-- 선택/클릭 히트 영역 -->
+<path
+    class="react-flow__edge-interaction"
+    d={edgePath}
+    fill="none"
+    stroke="transparent"
+    stroke-width={interactionStrokeWidth}
+/>
+
 {#if selected}
-<defs>
-    <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="3" result="blur" />
-        <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-        </feMerge>
-    </filter>
-</defs>
+<path
+    class="edge-selected-glow"
+    d={edgePath}
+    fill="none"
+    stroke={SELECTED_COLOR}
+    stroke-width={selectedGlowStrokeWidth}
+/>
 {/if}
 
 <!-- 선 경로 -->
@@ -65,7 +71,6 @@
     fill="none"
     stroke={color}
     stroke-width={strokeWidth}
-    filter={selected ? `url(#${filterId})` : undefined}
     style={style}
 />
 
@@ -74,6 +79,12 @@
     points="-9,-5  9,0  -9,5"
     fill={color}
     transform={`translate(${arrowX}, ${arrowY}) rotate(${angle})`}
-    filter={selected ? `url(#${filterId})` : undefined}
     style="pointer-events: none;"
 />
+
+<style>
+    .edge-selected-glow {
+        opacity: 0.28;
+        pointer-events: none;
+    }
+</style>
