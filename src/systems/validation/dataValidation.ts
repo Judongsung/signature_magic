@@ -303,14 +303,13 @@ export function validateCyoaDialogueScripts(
         }
 
         const optionIds = script.options.map(option => option.id);
-        const optionIdSet = new Set(optionIds);
 
         findDuplicates(optionIds).forEach(id => {
             errors.push(`Duplicate CYOA dialogue option id: ${script.id} -> ${id}`);
         });
 
-        if (!optionIdSet.has(script.defaultOptionId)) {
-            errors.push(`Unknown CYOA dialogue default option: ${script.id} -> ${script.defaultOptionId}`);
+        if (!script.defaultNpcLine.trim()) {
+            errors.push(`Missing CYOA dialogue default NPC line: ${script.id}`);
         }
 
         script.options.forEach(option => {

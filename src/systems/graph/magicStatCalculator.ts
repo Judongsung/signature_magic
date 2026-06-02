@@ -25,9 +25,17 @@ export function calculateMagicStats(
     const result = { ...EMPTY_MAGIC_STATS };
 
     MAGIC_STAT_KEYS.forEach(statKey => {
-        result[statKey] = scope === 'total'
+        const value = scope === 'total'
             ? calculateGraphStat(statKey, nodes, edges, magicTypes)
             : calculateFlatStat(statKey, nodes, edges, magicTypes, scope);
+
+        result[statKey] = MAGIC_STAT_RULES[statKey].scaleFinalValue(value, {
+            statKey,
+            scope,
+            nodes,
+            edges,
+            magicTypes,
+        });
     });
 
     return result;

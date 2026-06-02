@@ -11,13 +11,16 @@
     )[0];
     const DIALOGUE_CHOICES = DIALOGUE_SCRIPT.options.map(option => option.choice);
 
-    let selectedOptionId = $state(DIALOGUE_SCRIPT.defaultOptionId);
+    let selectedOptionId = $state<string | undefined>();
     const selectedOption = $derived(
-        DIALOGUE_SCRIPT.options.find(option => option.id === selectedOptionId) ?? DIALOGUE_SCRIPT.options[0]
+        DIALOGUE_SCRIPT.options.find(option => option.id === selectedOptionId)
+    );
+    const npcLine = $derived(
+        selectedOption?.npcLine ?? DIALOGUE_SCRIPT.defaultNpcLine
     );
 
     function selectDialogueOption(choiceId: string) {
-        selectedOptionId = choiceId;
+        selectedOptionId = selectedOptionId === choiceId ? undefined : choiceId;
     }
 </script>
 
@@ -35,14 +38,14 @@
                 <p class="speaker-title">{DIALOGUE_SCRIPT.npcTitle}</p>
             </div>
             <h2 id="dialogue-script-title">{DIALOGUE_SCRIPT.title}</h2>
-            <p class="npc-line">{selectedOption.npcLine}</p>
+            <p class="npc-line">{npcLine}</p>
         </div>
     </div>
 
     <CyoaChoiceRow
         choices={DIALOGUE_CHOICES}
         layoutColumns={3}
-        selectedChoiceIds={[selectedOptionId]}
+        selectedChoiceIds={selectedOptionId ? [selectedOptionId] : []}
         onSelect={selectDialogueOption}
     />
 </section>

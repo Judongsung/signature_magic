@@ -8,8 +8,10 @@ describe('CyoaDialogueScript', () => {
 
         expect(html).toContain('길드 접수원');
         expect(html).toContain('등록 안내');
+        expect(html).toContain('어서 오십시오.');
         expect(html).toContain('마법사 등록은 왜 필요한가요?');
         expect(html).toContain('접수 절차를 알려주세요.');
         expect(html).toContain('이 도시의 길드는 어떤 곳인가요?');
+        expect(html).not.toContain('aria-pressed="true"');
     });
 });

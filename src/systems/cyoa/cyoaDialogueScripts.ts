@@ -30,7 +30,7 @@ export function mapCyoaDialogueScriptConfig(
         npcTitle: script.npcTitle,
         imageAlt: script.imageAlt,
         imageSrc: resolveImagePath(script.imagePath),
-        defaultOptionId: script.defaultOptionId,
+        defaultNpcLine: script.defaultNpcLine,
         options: script.options.map(mapCyoaDialogueOptionConfig),
     };
 }

@@ -140,7 +140,7 @@
         "icon": "🔁",
         "color": "#f8c471",
         "category": "control",
-        "description": "같은 효과가 일정한 간격으로 다시 일어나게 합니다.",
+        "description": "같은 효과가 일정한 간격으로 다시 일어나게 합니다. 순환 연결을 할 수 있습니다.",
         "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 1, "manaCost": 4, "duration": 4 },
         "connectionRules": { "allowCycleFromOutput": true }
     },
@@ -150,8 +150,8 @@
         "icon": "✦",
         "color": "#85c1e9",
         "category": "extension",
-        "description": "효과를 여러 갈래나 작은 단위로 흩습니다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": 2, "range": 4, "manaCost": 3, "duration": 1 }
+        "description": "출력을 낮추고 효과의 범위를 넓게 퍼트립니다.",
+        "stats": { "castingTime": 2, "instability": 2, "power": -2, "range": 4, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "amplify",
@@ -186,7 +186,7 @@
         "icon": "✂️",
         "color": "#f7dc6f",
         "category": "extension",
-        "description": "대상이나 효과를 독립된 부분으로 나눕니다.",
+        "description": "대상이나 효과를 독립된 부분으로 나눕니다. 여러 출력을 가질 수 있습니다.",
         "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 2, "manaCost": 3, "duration": 1 },
         "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
@@ -197,7 +197,7 @@
         "icon": "⑂",
         "color": "#f4d03f",
         "category": "extension",
-        "description": "효과의 흐름을 여러 방향으로 갈라 보냅니다.",
+        "description": "효과의 흐름을 여러 방향으로 갈라 보냅니다. 여러 출력을 가질 수 있습니다.",
         "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 3, "manaCost": 3, "duration": 1 },
         "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
@@ -208,7 +208,7 @@
         "icon": "🔗",
         "color": "#a569bd",
         "category": "extension",
-        "description": "여러 효과나 흐름을 하나로 합칩니다.",
+        "description": "여러 효과나 흐름을 하나로 합칩니다. 여러 입력을 가질 수 있습니다.",
         "stats": { "castingTime": 2, "instability": 1, "power": 2, "range": 1, "manaCost": 3, "duration": 2 },
         "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": null, "maxOutputs": 1 }

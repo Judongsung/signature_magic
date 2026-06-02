@@ -88,7 +88,7 @@
                 "imageAlt": "청소년",
                 "title": "청소년",
                 "description": "아직 성장과 배움의 시기에 있는 인물입니다.",
-                "width": "1/4"
+                "width": "1/1"
             },
             {
                 "id": "age-young-adult",
@@ -96,7 +96,7 @@
                 "imageAlt": "청년",
                 "title": "청년",
                 "description": "가장 활발하게 경험을 쌓는 시기의 인물입니다.",
-                "width": "1/4"
+                "width": "1/1"
             },
             {
                 "id": "age-middle-aged",
@@ -104,7 +104,7 @@
                 "imageAlt": "중년",
                 "title": "중년",
                 "description": "경험과 책임이 쌓인 시기의 인물입니다.",
-                "width": "1/4"
+                "width": "1/1"
             },
             {
                 "id": "age-elder",
@@ -112,7 +112,7 @@
                 "imageAlt": "노년",
                 "title": "노년",
                 "description": "오랜 세월의 지식과 흔적을 지닌 인물입니다.",
-                "width": "1/4"
+                "width": "1/1"
             }
         ]
     },
@@ -128,7 +128,7 @@
                 "imageAlt": "인간",
                 "title": "인간",
                 "description": "가장 넓은 지역과 조직에 적응한 종족입니다.",
-                "width": "1/4"
+                "width": "1/1"
             },
             {
                 "id": "race-beastkin",
@@ -136,7 +136,7 @@
                 "imageAlt": "수인",
                 "title": "수인",
                 "description": "예민한 감각과 신체적 특징을 지닌 종족입니다.",
-                "width": "1/4"
+                "width": "1/1"
             },
             {
                 "id": "race-elf",
@@ -144,7 +144,7 @@
                 "imageAlt": "엘프",
                 "title": "엘프",
                 "description": "긴 수명과 정교한 마력 감각으로 알려진 종족입니다.",
-                "width": "1/4"
+                "width": "1/1"
             },
             {
                 "id": "race-dwarf",
@@ -152,7 +152,7 @@
                 "imageAlt": "드워프",
                 "title": "드워프",
                 "description": "금속과 도구, 견고한 제작술에 익숙한 종족입니다.",
-                "width": "1/4"
+                "width": "1/1"
             }
         ]
     },
@@ -166,7 +166,7 @@
                 "id": "gender-male",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "남성",
-                "title": "남",
+                "title": "남성",
                 "description": "남성 캐릭터로 시작합니다.",
                 "width": "1/2"
             },
@@ -174,7 +174,7 @@
                 "id": "gender-female",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "여성",
-                "title": "녀",
+                "title": "여성",
                 "description": "여성 캐릭터로 시작합니다.",
                 "width": "1/2"
             }

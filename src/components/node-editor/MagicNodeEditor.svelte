@@ -229,6 +229,7 @@
 
     .drag-btn {
         position: relative;
+        z-index: 1;
         background: #1e1e2e;
         color: #ddd;
         border: 1px solid #3a3a5a;
@@ -242,10 +243,15 @@
     }
 
     .drag-btn:hover {
+        z-index: 30;
         background: #2a2a40;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(155, 89, 182, 0.35);
         border-color: #9b59b6;
+    }
+
+    .drag-btn:focus-visible {
+        z-index: 30;
     }
 
     .drag-btn:active { cursor: grabbing; transform: scale(0.96); }

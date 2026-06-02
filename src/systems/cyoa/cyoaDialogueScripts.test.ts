@@ -11,7 +11,7 @@ describe('cyoaDialogueScripts', () => {
                 npcTitle: '동부 지부',
                 imagePath: '../assets/images/temp.webp',
                 imageAlt: '접수원',
-                defaultOptionId: 'question',
+                defaultNpcLine: '기본 안내입니다.',
                 options: [
                     {
                         id: 'question',

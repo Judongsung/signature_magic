@@ -6,7 +6,7 @@
         "npcTitle": "동부 지부 등록 창구",
         "imagePath": "../assets/images/vera.webp",
         "imageAlt": "길드 접수원",
-        "defaultOptionId": "guild-purpose",
+        "defaultNpcLine": "어서 오십시오. 이곳은 동부 지부 마법사 등록 창구입니다. 처음 방문하셨다면 궁금한 항목을 먼저 물어보셔도 되고, 준비가 되셨다면 아래 신청 항목을 작성하시면 됩니다.",
         "options": [
             {
                 "id": "guild-purpose",

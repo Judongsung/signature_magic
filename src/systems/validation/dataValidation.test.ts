@@ -181,7 +181,7 @@ describe('dataValidation', () => {
                     npcTitle: 'Desk',
                     imagePath: '../assets/images/missing.webp',
                     imageAlt: '',
-                    defaultOptionId: 'missing-option',
+                    defaultNpcLine: '',
                     options: [
                         { id: 'option', playerLine: '', npcLine: '' },
                         { id: 'option', playerLine: 'line', npcLine: 'line' },
@@ -194,7 +194,7 @@ describe('dataValidation', () => {
             errors: [
                 'Unknown CYOA dialogue image path: script -> ../assets/images/missing.webp',
                 'Duplicate CYOA dialogue option id: script -> option',
-                'Unknown CYOA dialogue default option: script -> missing-option',
+                'Missing CYOA dialogue default NPC line: script',
                 'Missing CYOA dialogue player line: script -> option',
                 'Missing CYOA dialogue NPC line: script -> option',
             ],

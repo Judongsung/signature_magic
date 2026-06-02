@@ -1,5 +1,9 @@
 import type { Edge } from '@xyflow/svelte';
 import {
+    MAGIC_STAT_RULE_CONFIGS,
+    MAGIC_STAT_SCALING_OPERATIONS,
+} from '../../constants/gameConfigs';
+import {
     MAGIC_STAT_BRANCH_AGGREGATIONS,
     MAGIC_STAT_KEYS,
     type MagicNode,
@@ -21,7 +25,12 @@ export interface MagicStatRuleContext {
 export interface MagicStatRule {
     combineNodeValues(values: number[], context: MagicStatRuleContext): number;
     combineBranchValues(values: number[], aggregation: MagicStatBranchAggregation, context: MagicStatRuleContext): number;
+    scaleFinalValue(value: number, context: MagicStatRuleContext): number;
 }
+
+const FIRST_NODE_SCALING_EXPONENT_OFFSET = 1;
+const DISPLAY_STAT_PRECISION = 100;
+const DEFAULT_EXPONENTIAL_FACTOR = 1;
 
 function sum(values: number[]): number {
     return values.reduce((total, value) => total + value, 0);
@@ -43,16 +52,35 @@ function combineBranchValues(
     return sum(values);
 }
 
-function rule(): MagicStatRule {
+function roundStat(value: number): number {
+    return Math.round(value * DISPLAY_STAT_PRECISION) / DISPLAY_STAT_PRECISION;
+}
+
+function scaleByNodeCount(value: number, context: MagicStatRuleContext): number {
+    const config = MAGIC_STAT_RULE_CONFIGS[context.statKey as keyof typeof MAGIC_STAT_RULE_CONFIGS];
+
+    if (!config || config.scalingOperation === MAGIC_STAT_SCALING_OPERATIONS.NONE) return value;
+
+    if (config.scalingOperation === MAGIC_STAT_SCALING_OPERATIONS.EXPONENTIAL_BY_NODE_COUNT) {
+        const exponent = Math.max(0, context.nodes.length - FIRST_NODE_SCALING_EXPONENT_OFFSET);
+        const factor = config.exponentialFactor ?? DEFAULT_EXPONENTIAL_FACTOR;
+        return roundStat(value * (factor ** exponent));
+    }
+
+    return value;
+}
+
+function rule(scaleFinalValue: MagicStatRule['scaleFinalValue'] = value => value): MagicStatRule {
     return {
         combineNodeValues: sumNodeValues,
         combineBranchValues,
+        scaleFinalValue,
     };
 }
 
 export const MAGIC_STAT_RULES: Record<MagicStatKey, MagicStatRule> = {
     castingTime: rule(),
-    instability: rule(),
+    instability: rule(scaleByNodeCount),
     power: rule(),
     range: rule(),
     manaCost: rule(),

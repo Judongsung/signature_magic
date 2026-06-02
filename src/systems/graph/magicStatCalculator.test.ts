@@ -53,7 +53,7 @@ describe('calculateMagicStats', () => {
 
         expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
             castingTime: 5,
-            instability: 5,
+            instability: 5.75,
             power: 5,
             range: 5,
             manaCost: 5,
@@ -92,7 +92,7 @@ describe('calculateMagicStats', () => {
 
         expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
             castingTime: 18,
-            instability: 21,
+            instability: 42.24,
             power: 21,
             range: 21,
             manaCost: 21,
@@ -124,7 +124,7 @@ describe('calculateMagicStats', () => {
 
         expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
             castingTime: 14,
-            instability: 15,
+            instability: 22.81,
             power: 15,
             range: 15,
             manaCost: 15,
@@ -154,7 +154,7 @@ describe('calculateMagicStats', () => {
 
         expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
             castingTime: 6,
-            instability: 6,
+            instability: 7.94,
             power: 6,
             range: 6,
             manaCost: 6,

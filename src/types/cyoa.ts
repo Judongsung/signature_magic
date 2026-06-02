@@ -77,7 +77,7 @@ export interface CyoaDialogueScriptConfig {
     npcTitle: string;
     imagePath?: string;
     imageAlt: string;
-    defaultOptionId: string;
+    defaultNpcLine: string;
     options: CyoaDialogueOptionConfig[];
 }
 

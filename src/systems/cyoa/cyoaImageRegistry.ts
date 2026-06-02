@@ -1,4 +1,4 @@
-const imageModules = import.meta.glob<string>('../../assets/**/*.{png,jpg,jpeg,webp,svg}', {
+const imageModules = __NODE_COMPOSITION_ONLY_BUILD__ ? {} : import.meta.glob<string>('../../assets/**/*.{png,jpg,jpeg,webp,svg}', {
     eager: true,
     import: 'default',
     query: '?url',

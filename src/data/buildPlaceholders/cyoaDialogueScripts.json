@@ -1,0 +1,11 @@
+[
+    {
+        "id": "build-placeholder",
+        "title": "등록 안내",
+        "npcName": "길드 접수원",
+        "npcTitle": "등록 창구",
+        "imageAlt": "",
+        "defaultNpcLine": "노드 조합 피드백용 빌드입니다.",
+        "options": []
+    }
+]

@@ -61,7 +61,7 @@ describe('calculateCircles', () => {
 
         expect(calculateCircles(nodes, edges, magicTypes)[0].stats).toEqual({
             castingTime: 3,
-            instability: 5,
+            instability: 5.75,
             power: 7,
             range: 9,
             manaCost: 11,
@@ -208,7 +208,7 @@ describe('calculateMagic', () => {
         expect(result.circles.map(circle => circle.stats.castingTime)).toEqual([3, 3, 4]);
         expect(result.totalStats).toEqual({
             castingTime: 10,
-            instability: 10,
+            instability: 15.21,
             power: 10,
             range: 10,
             manaCost: 10,
@@ -260,7 +260,7 @@ describe('calculateMagic', () => {
         ]);
         expect(result.totalStats).toEqual({
             castingTime: 6,
-            instability: 6,
+            instability: 7.94,
             power: 6,
             range: 6,
             manaCost: 6,
