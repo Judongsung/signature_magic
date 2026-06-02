@@ -15,6 +15,7 @@ export const DEFAULT_INPUT_HANDLE_ID = 'input-0';
 export const DEFAULT_OUTPUT_HANDLE_ID = 'output-0';
 
 type Direction = 'inputs' | 'outputs';
+export type MagicTypeLookup = readonly MagicTypeConfig[] | ReadonlyMap<string, MagicTypeConfig>;
 
 function findNode(nodes: MagicNode[], nodeId: string): MagicNode | undefined {
     return nodes.find(node => node.id === nodeId);
@@ -23,10 +24,18 @@ function findNode(nodes: MagicNode[], nodeId: string): MagicNode | undefined {
 function findMagicTypeConfig(
     nodeId: string,
     nodes: MagicNode[],
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): MagicTypeConfig | undefined {
     const node = findNode(nodes, nodeId);
     if (!node) return undefined;
+    return readMagicTypeConfig(node, magicTypes);
+}
+
+function readMagicTypeConfig(
+    node: MagicNode,
+    magicTypes: MagicTypeLookup
+): MagicTypeConfig | undefined {
+    if ('get' in magicTypes) return magicTypes.get(node.data.magicType);
     return magicTypes.find(magicType => magicType.type === node.data.magicType);
 }
 
@@ -45,10 +54,10 @@ export function resolveConnectionLimit(
 
 export function resolveNodeConnectionLimit(
     node: MagicNode,
-    magicTypes: readonly MagicTypeConfig[],
+    magicTypes: MagicTypeLookup,
     direction: Direction
 ): number | null {
-    const config = magicTypes.find(magicType => magicType.type === node.data.magicType);
+    const config = readMagicTypeConfig(node, magicTypes);
     if (!config) return direction === 'inputs' ? DEFAULT_MAX_INPUTS : DEFAULT_MAX_OUTPUTS;
     return resolveConnectionLimit(config, direction);
 }
@@ -119,7 +128,7 @@ export function isOutputLimitReached(
     sourceId: string,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): boolean {
     const sourceConfig = findMagicTypeConfig(sourceId, nodes, magicTypes);
     if (!sourceConfig) return true;
@@ -134,7 +143,7 @@ export function isInputLimitReached(
     targetId: string,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): boolean {
     const targetConfig = findMagicTypeConfig(targetId, nodes, magicTypes);
     if (!targetConfig) return true;
@@ -154,7 +163,7 @@ export function isDuplicateConnection(connection: Connection, edges: Edge[]): bo
 function allowsCycleFromOutput(
     sourceId: string,
     nodes: MagicNode[],
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): boolean {
     return findMagicTypeConfig(sourceId, nodes, magicTypes)
         ?.connectionRules?.[MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT] === true;
@@ -184,7 +193,7 @@ export function isConnectionValid(
     connection: Connection,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): boolean {
     const { source, target } = connection;
 

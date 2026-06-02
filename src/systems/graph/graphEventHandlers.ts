@@ -1,5 +1,6 @@
 import type { Connection, Edge } from '@xyflow/svelte';
-import type { MagicNode, MagicTypeConfig } from '../../types/magic';
+import type { MagicNode } from '../../types/magic';
+import type { MagicTypeLookup } from './graphRules';
 import {
     createEdgeUpdate,
     filterEdgesForDeletedNodes,
@@ -24,7 +25,7 @@ export interface GraphEdgePreparation {
 export function prepareGraphEdge(
     connection: Connection,
     snapshot: GraphSnapshot,
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): GraphEdgePreparation | false {
     return createEdgeUpdate(connection, snapshot.edges, snapshot.nodes, magicTypes);
 }
@@ -52,7 +53,7 @@ export function removeDeletedGraphElements(
 
 export function syncGraphTopology(
     snapshot: GraphSnapshot,
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): GraphTopologyUpdate {
     const edges = normalizeEdgeHandles(snapshot.edges);
     const nodeRoles = refreshNodeRoles(snapshot.nodes, edges, magicTypes);

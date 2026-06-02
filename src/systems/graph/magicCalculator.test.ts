@@ -1,7 +1,7 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import { calculateCircles, calculateMagic, computeNodeRoles } from './magicCalculator';
-import { EMPTY_MAGIC_STATS, type MagicNode, type MagicType, type MagicTypeConfig } from '../../types/magic';
+import { EMPTY_MAGIC_STATS, type MagicNode, type MagicStats, type MagicType, type MagicTypeConfig } from '../../types/magic';
 import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 
 function node(id: string, magicType: MagicType = 'ignition'): MagicNode {
@@ -19,6 +19,12 @@ function edge(source: string, target: string): Edge {
 
 function circle(nodes: MagicNode[]) {
     return { id: 'circle-0', nodes, stats: EMPTY_MAGIC_STATS };
+}
+
+function expectStatsClose(actual: MagicStats, expected: MagicStats): void {
+    Object.entries(expected).forEach(([key, value]) => {
+        expect(actual[key as keyof MagicStats]).toBeCloseTo(value);
+    });
 }
 
 describe('calculateCircles', () => {
@@ -59,7 +65,7 @@ describe('calculateCircles', () => {
             },
         ] as MagicTypeConfig[];
 
-        expect(calculateCircles(nodes, edges, magicTypes)[0].stats).toEqual({
+        expectStatsClose(calculateCircles(nodes, edges, magicTypes)[0].stats, {
             castingTime: 3,
             instability: 5.75,
             power: 7,
@@ -206,7 +212,7 @@ describe('calculateMagic', () => {
         const result = calculateMagic(nodes, edges, magicTypes);
 
         expect(result.circles.map(circle => circle.stats.castingTime)).toEqual([3, 3, 4]);
-        expect(result.totalStats).toEqual({
+        expectStatsClose(result.totalStats, {
             castingTime: 10,
             instability: 15.21,
             power: 10,
@@ -258,9 +264,9 @@ describe('calculateMagic', () => {
         expect(result.circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
             ['repeat', 'b', 'a'],
         ]);
-        expect(result.totalStats).toEqual({
+        expectStatsClose(result.totalStats, {
             castingTime: 6,
-            instability: 7.94,
+            instability: 7.935,
             power: 6,
             range: 6,
             manaCost: 6,

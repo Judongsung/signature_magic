@@ -23,10 +23,13 @@ export function calculateMagicStats(
     scope: MagicStatScope
 ): MagicStats {
     const result = { ...EMPTY_MAGIC_STATS };
+    const graphAnalysis = scope === 'total'
+        ? buildStatGraphAnalysis(nodes, edges)
+        : undefined;
 
     MAGIC_STAT_KEYS.forEach(statKey => {
         const value = scope === 'total'
-            ? calculateGraphStat(statKey, nodes, edges, magicTypes)
+            ? calculateGraphStat(statKey, graphAnalysis!, magicTypes)
             : calculateFlatStat(statKey, nodes, edges, magicTypes, scope);
 
         result[statKey] = MAGIC_STAT_RULES[statKey].scaleFinalValue(value, {
@@ -60,32 +63,24 @@ function calculateFlatStat(
 
 function calculateGraphStat(
     statKey: MagicStatKey,
-    nodes: readonly MagicNode[],
-    edges: readonly Edge[],
+    analysis: StatGraphAnalysis,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>
 ): number {
-    if (nodes.length === 0) return 0;
+    const { graph, rootIds, unrootedNodes, mergeNodeId } = analysis;
 
-    const graph = buildStatGraph(nodes, edges);
-    const rootIds = nodes
-        .filter(node => (graph.inDegree.get(node.id) ?? 0) === 0)
-        .map(node => node.id);
-
+    if (graph.nodes.length === 0) return 0;
     if (rootIds.length === 0) {
-        return calculateFlatStat(statKey, nodes, edges, magicTypes, 'total');
+        return calculateFlatStat(statKey, graph.nodes, graph.edges, magicTypes, 'total');
     }
 
-    const rootReachableIds = reachableNodeIds(rootIds, graph);
-    const unrootedNodes = nodes.filter(node => !rootReachableIds.has(node.id));
     const unrootedValue = unrootedNodes.length > 0
-        ? calculateFlatStat(statKey, unrootedNodes, edges, magicTypes, 'total')
+        ? calculateFlatStat(statKey, unrootedNodes, graph.edges, magicTypes, 'total')
         : 0;
 
     if (rootIds.length === 1) {
         return evaluateFrom(rootIds[0], statKey, graph, magicTypes, undefined, new Set()) + unrootedValue;
     }
 
-    const mergeNodeId = findNearestCommonReachableNode(rootIds, graph);
     const rootValues = rootIds.map(rootId =>
         evaluateFrom(rootId, statKey, graph, magicTypes, mergeNodeId, new Set())
     );
@@ -99,8 +94,8 @@ function calculateGraphStat(
         {
             statKey,
             scope: 'total',
-            nodes,
-            edges,
+            nodes: graph.nodes,
+            edges: graph.edges,
             magicTypes,
         }
     ) + mergedValue + unrootedValue;
@@ -112,6 +107,32 @@ interface StatGraph {
     inDegree: Map<string, number>;
     edges: readonly Edge[];
     nodes: readonly MagicNode[];
+}
+
+interface StatGraphAnalysis {
+    graph: StatGraph;
+    rootIds: string[];
+    unrootedNodes: readonly MagicNode[];
+    mergeNodeId?: string;
+}
+
+function buildStatGraphAnalysis(nodes: readonly MagicNode[], edges: readonly Edge[]): StatGraphAnalysis {
+    const graph = buildStatGraph(nodes, edges);
+    const rootIds = nodes
+        .filter(node => (graph.inDegree.get(node.id) ?? 0) === 0)
+        .map(node => node.id);
+    const rootReachableIds = reachableNodeIds(rootIds, graph);
+    const unrootedNodes = nodes.filter(node => !rootReachableIds.has(node.id));
+    const mergeNodeId = rootIds.length > 1
+        ? findNearestCommonReachableNode(rootIds, graph)
+        : undefined;
+
+    return {
+        graph,
+        rootIds,
+        unrootedNodes,
+        mergeNodeId,
+    };
 }
 
 function buildStatGraph(nodes: readonly MagicNode[], edges: readonly Edge[]): StatGraph {

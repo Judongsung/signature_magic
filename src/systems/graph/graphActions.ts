@@ -13,9 +13,10 @@ import {
     filterEdgesReplacedByConnection,
     isConnectionValid,
     resolveNodeConnectionLimit,
+    type MagicTypeLookup,
 } from './graphRules';
 import { computeNodeRoles } from './magicCalculator';
-import type { MagicNode, MagicType, MagicTypeConfig } from '../../types/magic';
+import type { MagicNode, MagicType } from '../../types/magic';
 
 export type IdFactory = () => string;
 
@@ -52,7 +53,7 @@ export function createEdge(
     connection: Connection,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: readonly MagicTypeConfig[],
+    magicTypes: MagicTypeLookup,
     createId: IdFactory = createUniqueId
 ): Edge | false {
     if (!isConnectionValid(connection, edges, nodes, magicTypes)) return false;
@@ -70,7 +71,7 @@ export function createEdgeUpdate(
     connection: Connection,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: readonly MagicTypeConfig[],
+    magicTypes: MagicTypeLookup,
     createId: IdFactory = createUniqueId
 ): { edge: Edge; edges: Edge[] } | false {
     const nextEdges = filterEdgesReplacedByConnection(connection, edges);
@@ -88,7 +89,7 @@ export function createEdgeUpdate(
 export function refreshNodeRoles(
     nodes: MagicNode[],
     edges: Edge[],
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): { nodes: MagicNode[]; changed: boolean } {
     const roles = computeNodeRoles(nodes, edges);
     let changed = false;
@@ -118,7 +119,7 @@ function nextVisibleHandleCount(usedCount: number, limit: number | null): number
 export function resolveNodeHandleCounts(
     node: MagicNode,
     edges: Edge[],
-    magicTypes: readonly MagicTypeConfig[]
+    magicTypes: MagicTypeLookup
 ): { inputHandleCount: number; outputHandleCount: number } {
     const maxInputs = resolveNodeConnectionLimit(node, magicTypes, 'inputs');
     const maxOutputs = resolveNodeConnectionLimit(node, magicTypes, 'outputs');

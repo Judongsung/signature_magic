@@ -4,7 +4,7 @@ import type { MagicType, MagicTypeConfig } from '../../types/magic';
 
 export const magicTypes = magicTypesData as MagicTypeConfig[];
 
-export const magicTypeMap = new Map<MagicType, MagicTypeConfig>(
+export const magicTypeMap: ReadonlyMap<string, MagicTypeConfig> = new Map(
     magicTypes.map(config => [config.type, config])
 );
 

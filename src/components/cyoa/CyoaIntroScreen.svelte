@@ -1,104 +1,21 @@
 <script lang="ts">
-    import { APP_PHASES } from '../../constants/gameConfigs';
+    import {
+        APP_PHASES,
+        CYOA_SCREEN_TEXT,
+        UI_BUTTON_TEXT,
+    } from '../../constants/gameConfigs';
     import { appStore } from '../../stores/appStore.svelte';
     import { choiceStore } from '../../stores/choiceStore.svelte';
+    import {
+        REGISTRATION_PREVIEW_INPUT_VALUES,
+        REGISTRATION_PREVIEW_ROWS,
+        REGISTRATION_PREVIEW_SELECTED_CHOICES,
+        REGISTRATION_PREVIEW_VISIBLE_ROWS,
+    } from '../../data/cyoaRegistrationPreview';
     import type { CyoaChoiceRowData } from '../../types/cyoa';
     import CyoaDialogueScript from './CyoaDialogueScript.svelte';
     import CyoaChoiceSection from './CyoaChoiceSection.svelte';
     import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
-
-    const REGISTRATION_PREVIEW_ROWS: CyoaChoiceRowData[] = [
-        {
-            id: 'preview-applicant',
-            title: '신청자',
-            visible: true,
-            selectable: true,
-            required: true,
-            requiredMode: 'always',
-            selectionMode: 'single',
-            layoutColumns: 1,
-            input: {
-                id: 'preview-name',
-                label: '성명',
-            },
-            choices: [],
-        },
-        {
-            id: 'preview-origin',
-            title: '출신 지역',
-            visible: true,
-            selectable: true,
-            required: true,
-            requiredMode: 'always',
-            selectionMode: 'single',
-            layoutColumns: 1,
-            choices: [
-                {
-                    id: 'preview-frontier',
-                    imageAlt: '',
-                    title: '북방 변경',
-                    description: '혹한과 긴 밤에 익숙한 변방 출신. 냉각과 생존술에 강한 적성을 보입니다.',
-                    layoutSpan: 1,
-                },
-            ],
-        },
-        {
-            id: 'preview-catalyst',
-            title: '비술 촉매',
-            visible: true,
-            selectable: true,
-            required: true,
-            requiredMode: 'always',
-            selectionMode: 'single',
-            layoutColumns: 1,
-            choices: [
-                {
-                    id: 'preview-crystal',
-                    imageAlt: '',
-                    title: '균열 수정',
-                    description: '불안정하지만 높은 출력을 끌어내는 촉매. 반복과 방출 계열 의식에 적합합니다.',
-                    layoutSpan: 1,
-                },
-            ],
-        },
-        {
-            id: 'preview-oath',
-            title: '입단 서약',
-            visible: true,
-            selectable: true,
-            required: true,
-            requiredMode: 'always',
-            selectionMode: 'multi',
-            layoutColumns: 1,
-            choices: [
-                {
-                    id: 'preview-oath-study',
-                    imageAlt: '',
-                    title: '비술 연구 허가',
-                    description: '길드의 감시 아래 신규 마법진 조합과 룬 실험을 수행할 수 있습니다.',
-                    layoutSpan: 1,
-                },
-                {
-                    id: 'preview-oath-field',
-                    imageAlt: '',
-                    title: '현장 파견 동의',
-                    description: '의뢰와 탐사 임무에서 실전 마법 운용 기록을 제출합니다.',
-                    layoutSpan: 1,
-                },
-            ],
-        },
-    ];
-    const REGISTRATION_PREVIEW_VISIBLE_ROWS = Object.fromEntries(
-        REGISTRATION_PREVIEW_ROWS.map(row => [row.id, true])
-    );
-    const REGISTRATION_PREVIEW_SELECTED_CHOICES = {
-        'preview-origin': ['preview-frontier'],
-        'preview-catalyst': ['preview-crystal'],
-        'preview-oath': ['preview-oath-study', 'preview-oath-field'],
-    };
-    const REGISTRATION_PREVIEW_INPUT_VALUES = {
-        'preview-name': '엘리안 베르딘',
-    };
 
     function handleChoiceSelect(row: CyoaChoiceRowData, choiceId: string) {
         choiceStore.selectChoice(row, choiceId);
@@ -123,10 +40,10 @@
 
     <section class="intro-panel" aria-labelledby="cyoa-title">
         <div class="intro-copy">
-            <p class="eyebrow">GUILD RECEPTION DESK</p>
-            <h1 id="cyoa-title">길드 등록 접수</h1>
+            <p class="eyebrow">{CYOA_SCREEN_TEXT.EYEBROW}</p>
+            <h1 id="cyoa-title">{CYOA_SCREEN_TEXT.TITLE}</h1>
             <p class="description">
-                업무 시간 내 접수 담당자가 확인할 기본 정보를 순서대로 작성하십시오.
+                {CYOA_SCREEN_TEXT.DESCRIPTION}
             </p>
         </div>
 
@@ -149,7 +66,7 @@
                     class="dev-skip-button"
                     onclick={skipToNodeComposition}
                 >
-                    DEV: 비술 조합실
+                    {UI_BUTTON_TEXT.DEV_SKIP_TO_NODE_COMPOSITION}
                 </button>
             {/if}
             <button
@@ -158,10 +75,9 @@
                 disabled={!choiceStore.canContinue}
                 onclick={continueToNodeComposition}
             >
-                등록 신청서 제출
+                {UI_BUTTON_TEXT.SUBMIT_REGISTRATION}
             </button>
         </div>
-
     </section>
 
     <CyoaRegistrationSummary

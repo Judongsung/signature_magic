@@ -1,12 +1,4 @@
 <script lang="ts">
-    /**
-     * MagicNodeEditor.svelte
-     *
-     * 역할: 순수 UI 컴포넌트
-     * - SvelteFlow 캔버스를 렌더링합니다.
-     * - 사용자 이벤트를 graphStore 액션으로 위임합니다.
-     * - 비즈니스 로직을 직접 포함하지 않습니다.
-     */
     import {
         SvelteFlow,
         Background,
@@ -24,7 +16,13 @@
     import '@xyflow/svelte/dist/style.css';
 
     import { graphStore } from '../../stores/graphStore.svelte';
-    import { EDITOR_CANVAS, MAGIC_NODE_CATEGORIES, type MagicNodeCategory } from '../../constants/gameConfigs';
+    import {
+        DEFAULT_ACTIVE_MAGIC_NODE_CATEGORY_IDS,
+        EDITOR_CANVAS,
+        MAGIC_NODE_CATEGORIES,
+        NODE_EDITOR_TEXT,
+        type MagicNodeCategory,
+    } from '../../constants/gameConfigs';
     import { resolveDropPosition } from '../../systems/graph/editorCanvas';
     import { getMagicTypesByCategory } from '../../systems/graph/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
@@ -39,7 +37,7 @@
     const panOnDragButtons = [...EDITOR_CANVAS.PAN_ON_DRAG_BUTTONS];
     const { screenToFlowPosition } = useSvelteFlow();
 
-    let activeCategoryIds = $state<MagicNodeCategory[]>(['basic']);
+    let activeCategoryIds = $state<MagicNodeCategory[]>([...DEFAULT_ACTIVE_MAGIC_NODE_CATEGORY_IDS]);
     const visibleMagicTypes = $derived(
         getMagicTypesByCategory(activeCategoryIds),
     );
@@ -49,8 +47,6 @@
             ? activeCategoryIds.filter((id) => id !== categoryId)
             : [...activeCategoryIds, categoryId];
     }
-
-    // ── 드래그 앤 드롭 ──────────────────────────────────────────────────────
 
     function onDragStart(event: DragEvent, magicType: MagicType) {
         event.dataTransfer?.setData('application/magictype', magicType);
@@ -82,10 +78,9 @@
 </script>
 
 <div class="editor-container">
-    <!-- 툴바 -->
     <div class="toolbar">
-        <span class="toolbar-label">노드</span>
-        <div class="category-tabs" aria-label="노드 카테고리">
+        <span class="toolbar-label">{NODE_EDITOR_TEXT.TOOLBAR_LABEL}</span>
+        <div class="category-tabs" aria-label={NODE_EDITOR_TEXT.CATEGORY_ARIA_LABEL}>
             {#each MAGIC_NODE_CATEGORIES as category}
                 {@const isActive = activeCategoryIds.includes(category.id)}
                 <button
@@ -118,29 +113,27 @@
             </button>
         {/each}
         {#if visibleMagicTypes.length === 0}
-            <span class="toolbar-empty">표시할 노드 없음</span>
+            <span class="toolbar-empty">{NODE_EDITOR_TEXT.EMPTY_CATEGORY}</span>
         {/if}
 
         <div class="toolbar-divider"></div>
 
         <button class="action-btn clear-btn" onclick={() => graphStore.clear()}>
-            🗑 전체 초기화
+            {NODE_EDITOR_TEXT.CLEAR_ALL}
         </button>
 
         <div class="toolbar-hint">
-            드래그하여 배치 &nbsp;·&nbsp;
-            선택 후 <kbd>Delete</kbd> 로 삭제
+            {NODE_EDITOR_TEXT.TOOLBAR_HINT}
         </div>
     </div>
 
-    <!-- SvelteFlow 캔버스 -->
     <div
         class="flow-wrapper"
         ondragover={onDragOver}
         ondrop={onDrop}
         oncontextmenu={preventCanvasContextMenu}
         role="region"
-        aria-label="magic node canvas"
+        aria-label={NODE_EDITOR_TEXT.CANVAS_ARIA_LABEL}
     >
         <SvelteFlow
             bind:nodes={graphStore.nodes}
@@ -254,7 +247,10 @@
         z-index: 30;
     }
 
-    .drag-btn:active { cursor: grabbing; transform: scale(0.96); }
+    .drag-btn:active {
+        cursor: grabbing;
+        transform: scale(0.96);
+    }
 
     .toolbar-empty {
         color: #66667a;
@@ -298,16 +294,6 @@
         color: #444;
         font-size: 11px;
         white-space: nowrap;
-    }
-
-    kbd {
-        background: #222;
-        border: 1px solid #444;
-        border-radius: 4px;
-        padding: 1px 5px;
-        font-size: 10px;
-        font-family: monospace;
-        color: #aaa;
     }
 
     .flow-wrapper {

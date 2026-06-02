@@ -1,6 +1,6 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
-import type { MagicNode, MagicType, MagicTypeConfig } from '../../types/magic';
+import type { MagicNode, MagicStats, MagicType, MagicTypeConfig } from '../../types/magic';
 import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { hasMagicStatRuleForEveryKey } from './magicStatRules';
@@ -38,6 +38,12 @@ function edge(source: string, target: string): Edge {
     return { id: `${source}-${target}`, source, target };
 }
 
+function expectStatsClose(actual: MagicStats, expected: MagicStats): void {
+    Object.entries(expected).forEach(([key, value]) => {
+        expect(actual[key as keyof MagicStats]).toBeCloseTo(value);
+    });
+}
+
 describe('calculateMagicStats', () => {
     it('uses a stat rule for every supported magic stat', () => {
         expect(hasMagicStatRuleForEveryKey()).toBe(true);
@@ -51,7 +57,7 @@ describe('calculateMagicStats', () => {
             magicType('stream', 3),
         ]);
 
-        expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
+        expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
             castingTime: 5,
             instability: 5.75,
             power: 5,
@@ -90,7 +96,7 @@ describe('calculateMagicStats', () => {
             magicType('air', 6),
         ]);
 
-        expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
+        expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
             castingTime: 18,
             instability: 42.24,
             power: 21,
@@ -122,7 +128,7 @@ describe('calculateMagicStats', () => {
             magicType('air', 6),
         ]);
 
-        expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
+        expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
             castingTime: 14,
             instability: 22.81,
             power: 15,
@@ -152,9 +158,9 @@ describe('calculateMagicStats', () => {
             magicType('stream', 3),
         ]);
 
-        expect(calculateMagicStats(nodes, edges, magicTypes, 'total')).toEqual({
+        expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
             castingTime: 6,
-            instability: 7.94,
+            instability: 7.935,
             power: 6,
             range: 6,
             manaCost: 6,

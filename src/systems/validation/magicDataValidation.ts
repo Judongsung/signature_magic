@@ -1,0 +1,187 @@
+import {
+    MAGIC_CONNECTION_RULE_KEYS,
+    type MagicNodeCategory,
+} from '../../constants/gameConfigs';
+import {
+    MAGIC_STAT_KEYS,
+    type MagicNodeConnectionRules,
+    type MagicNodeStatRulesConfig,
+    type MagicTypeConfig,
+    type MagicStatsConfig,
+} from '../../types/magic';
+import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
+import { isGlyphKind, type GlyphShape } from '../graph/magicGlyphShapes';
+import { isMagicStatBranchAggregation } from '../graph/magicStatRules';
+import { findDuplicates, result, type DataValidationResult } from './commonValidation';
+
+function isValidConnectionLimit(limit: number | null | undefined): boolean {
+    return limit === undefined || limit === null || (Number.isInteger(limit) && limit > 0);
+}
+
+function validateMagicConnectionRules(
+    type: string,
+    connectionRules: MagicNodeConnectionRules | undefined
+): string[] {
+    if (!connectionRules) return [];
+
+    const errors: string[] = [];
+    const validKeys = new Set<keyof MagicNodeConnectionRules>([
+        MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT,
+    ]);
+
+    Object.entries(connectionRules).forEach(([key, value]) => {
+        if (!validKeys.has(key as keyof MagicNodeConnectionRules)) {
+            errors.push(`Unknown magic connection rule key: ${type} -> ${key}`);
+            return;
+        }
+        if (key === MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT && typeof value !== 'boolean') {
+            errors.push(`Invalid magic connection rule ${MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT}: ${type} -> ${value}`);
+        }
+    });
+
+    return errors;
+}
+
+function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): string[] {
+    if (!stats) return [`Missing magic type stats: ${type}`];
+
+    return MAGIC_STAT_KEYS.flatMap(key => {
+        const value = stats[key];
+        return Number.isFinite(value)
+            ? []
+            : [`Invalid magic type stat: ${type} -> ${key}`];
+    });
+}
+
+function validateMagicStatRules(type: string, statRules: MagicNodeStatRulesConfig | undefined): string[] {
+    if (!statRules) return [];
+
+    const errors: string[] = [];
+    const validStatKeys = new Set<string>(MAGIC_STAT_KEYS);
+
+    Object.entries(statRules).forEach(([statKey, rule]) => {
+        if (!validStatKeys.has(statKey)) {
+            errors.push(`Unknown magic stat rule key: ${type} -> ${statKey}`);
+            return;
+        }
+        if (!rule) return;
+        if (rule.branchAggregation !== undefined && !isMagicStatBranchAggregation(rule.branchAggregation)) {
+            errors.push(`Invalid magic stat branch aggregation: ${type} -> ${statKey} -> ${rule.branchAggregation}`);
+        }
+    });
+
+    return errors;
+}
+
+export function validateMagicTypes(
+    magicTypes: MagicTypeConfig[],
+    categories: readonly { id: MagicNodeCategory }[]
+): DataValidationResult {
+    const errors: string[] = [];
+    const categoryIds = new Set(categories.map(category => category.id));
+    const duplicateTypes = findDuplicates(magicTypes.map(magicType => magicType.type));
+
+    duplicateTypes.forEach(type => {
+        errors.push(`Duplicate magic type id: ${type}`);
+    });
+
+    magicTypes.forEach(magicType => {
+        if (!categoryIds.has(magicType.category)) {
+            errors.push(`Unknown magic type category: ${magicType.type} -> ${magicType.category}`);
+        }
+        if (!magicType.description.trim()) {
+            errors.push(`Missing magic type description: ${magicType.type}`);
+        }
+        if (!isValidConnectionLimit(magicType.connectionLimits?.maxInputs)) {
+            errors.push(`Invalid magic type maxInputs: ${magicType.type} -> ${magicType.connectionLimits?.maxInputs}`);
+        }
+        if (!isValidConnectionLimit(magicType.connectionLimits?.maxOutputs)) {
+            errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
+        }
+        errors.push(...validateMagicConnectionRules(magicType.type, magicType.connectionRules));
+        errors.push(...validateMagicStats(magicType.type, magicType.stats));
+        errors.push(...validateMagicStatRules(magicType.type, magicType.statRules));
+    });
+
+    return result(errors);
+}
+
+export function validateMagicGlyphs(
+    glyphs: MagicGlyphConfig[],
+    magicTypes: MagicTypeConfig[]
+): DataValidationResult {
+    const errors: string[] = [];
+    const magicTypeIds = new Set(magicTypes.map(magicType => magicType.type));
+    const glyphTypeIds = glyphs.map(glyph => glyph.magicType);
+    const glyphTypeIdSet = new Set(glyphTypeIds);
+
+    findDuplicates(glyphTypeIds).forEach(type => {
+        errors.push(`Duplicate magic glyph config: ${type}`);
+    });
+
+    magicTypes.forEach(magicType => {
+        if (!glyphTypeIdSet.has(magicType.type)) {
+            errors.push(`Missing magic glyph config: ${magicType.type}`);
+        }
+    });
+
+    glyphs.forEach(glyph => {
+        if (!magicTypeIds.has(glyph.magicType)) {
+            errors.push(`Unknown magic glyph type: ${glyph.magicType}`);
+        }
+        if (!isGlyphKind(glyph.kind)) {
+            errors.push(`Unknown magic glyph kind: ${glyph.magicType} -> ${glyph.kind}`);
+        }
+        glyph.runeKinds?.forEach((kind, index) => {
+            if (!isGlyphKind(kind)) {
+                errors.push(`Unknown magic rune kind: ${glyph.magicType} -> ${index} -> ${kind}`);
+            }
+        });
+        if (!Number.isInteger(glyph.baseCount) || glyph.baseCount <= 0) {
+            errors.push(`Invalid magic glyph baseCount: ${glyph.magicType} -> ${glyph.baseCount}`);
+        }
+    });
+
+    return result(errors);
+}
+
+export function validateMagicGlyphShapes(
+    shapes: Record<string, GlyphShape>
+): DataValidationResult {
+    const errors: string[] = [];
+    const entries = Object.entries(shapes);
+
+    if (entries.length === 0) {
+        errors.push('Missing magic glyph shapes');
+    }
+
+    entries.forEach(([kind, shape]) => {
+        const paths = shape.paths ?? [];
+        const circles = shape.circles ?? [];
+        const rects = shape.rects ?? [];
+
+        if (paths.length + circles.length + rects.length === 0) {
+            errors.push(`Empty magic glyph shape: ${kind}`);
+        }
+
+        paths.forEach((path, index) => {
+            if (!path.d.trim()) {
+                errors.push(`Invalid magic glyph path: ${kind} -> ${index}`);
+            }
+        });
+
+        circles.forEach((circle, index) => {
+            if (!Number.isFinite(circle.r) || circle.r <= 0) {
+                errors.push(`Invalid magic glyph circle radius: ${kind} -> ${index}`);
+            }
+        });
+
+        rects.forEach((rect, index) => {
+            if (!Number.isFinite(rect.width) || rect.width <= 0 || !Number.isFinite(rect.height) || rect.height <= 0) {
+                errors.push(`Invalid magic glyph rect size: ${kind} -> ${index}`);
+            }
+        });
+    });
+
+    return result(errors);
+}

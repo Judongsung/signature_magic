@@ -29,7 +29,6 @@ export interface MagicStatRule {
 }
 
 const FIRST_NODE_SCALING_EXPONENT_OFFSET = 1;
-const DISPLAY_STAT_PRECISION = 100;
 const DEFAULT_EXPONENTIAL_FACTOR = 1;
 
 function sum(values: number[]): number {
@@ -52,10 +51,6 @@ function combineBranchValues(
     return sum(values);
 }
 
-function roundStat(value: number): number {
-    return Math.round(value * DISPLAY_STAT_PRECISION) / DISPLAY_STAT_PRECISION;
-}
-
 function scaleByNodeCount(value: number, context: MagicStatRuleContext): number {
     const config = MAGIC_STAT_RULE_CONFIGS[context.statKey as keyof typeof MAGIC_STAT_RULE_CONFIGS];
 
@@ -64,7 +59,7 @@ function scaleByNodeCount(value: number, context: MagicStatRuleContext): number 
     if (config.scalingOperation === MAGIC_STAT_SCALING_OPERATIONS.EXPONENTIAL_BY_NODE_COUNT) {
         const exponent = Math.max(0, context.nodes.length - FIRST_NODE_SCALING_EXPONENT_OFFSET);
         const factor = config.exponentialFactor ?? DEFAULT_EXPONENTIAL_FACTOR;
-        return roundStat(value * (factor ** exponent));
+        return value * (factor ** exponent);
     }
 
     return value;

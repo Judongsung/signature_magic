@@ -9,7 +9,12 @@ const BUILD_CYOA_DATA_ALIASES = {
   cyoaIntroScreen: './src/components/cyoa/buildPlaceholders/CyoaIntroScreen.svelte',
 } as const
 
-const ENABLE_NODE_COMPOSITION_ONLY_BUILD = false
+const NODE_COMPOSITION_ONLY_BUILD_ENV = 'NODE_COMPOSITION_ONLY'
+const ENABLED_ENV_VALUES = new Set(['1', 'true', 'yes'])
+
+function isNodeCompositionOnlyBuild(command: string, env: NodeJS.ProcessEnv): boolean {
+  return command === 'build' && ENABLED_ENV_VALUES.has(env[NODE_COMPOSITION_ONLY_BUILD_ENV]?.toLowerCase() ?? '')
+}
 
 function buildCyoaDataExclusionPlugin(enabled: boolean) {
   const cyoaRowsPlaceholder = fileURLToPath(new URL(BUILD_CYOA_DATA_ALIASES.cyoaRows, import.meta.url))
@@ -41,7 +46,7 @@ function buildCyoaDataExclusionPlugin(enabled: boolean) {
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
-  const excludeCyoaData = ENABLE_NODE_COMPOSITION_ONLY_BUILD && command === 'build'
+  const excludeCyoaData = isNodeCompositionOnlyBuild(command, process.env)
 
   return {
     base: './',

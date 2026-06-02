@@ -8,7 +8,7 @@ import {
 } from '../systems/graph/graphEventHandlers';
 import { calculateMagic } from '../systems/graph/magicCalculator';
 import { isConnectionValid } from '../systems/graph/graphRules';
-import { magicTypes } from '../systems/graph/magicTypeRegistry';
+import { magicTypeMap, magicTypes } from '../systems/graph/magicTypeRegistry';
 import type { CirclePath, MagicCalculationResult, MagicNode, MagicStats, MagicType } from '../types/magic';
 
 class GraphStore {
@@ -35,11 +35,11 @@ class GraphStore {
             targetHandle: edge.targetHandle ?? null,
         };
 
-        return isConnectionValid(conn, this.edges, this.nodes, magicTypes);
+        return isConnectionValid(conn, this.edges, this.nodes, magicTypeMap);
     }
 
     prepareEdge(connection: Connection): Edge | false {
-        const update = prepareGraphEdge(connection, this.snapshot(), magicTypes);
+        const update = prepareGraphEdge(connection, this.snapshot(), magicTypeMap);
         if (!update) return false;
 
         this.edges = update.edges;
@@ -63,7 +63,7 @@ class GraphStore {
     }
 
     private syncTopology(): void {
-        const update = syncGraphTopology(this.snapshot(), magicTypes);
+        const update = syncGraphTopology(this.snapshot(), magicTypeMap);
         if (!update.changed) return;
 
         this.nodes = update.nodes;

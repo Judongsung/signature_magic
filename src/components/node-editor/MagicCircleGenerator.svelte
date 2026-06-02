@@ -1,6 +1,6 @@
 <script lang="ts">
     import { graphStore } from '../../stores/graphStore.svelte';
-    import { MAGIC_CIRCLE_PREVIEW } from '../../constants/gameConfigs';
+    import { MAGIC_CIRCLE_PREVIEW, MAGIC_CIRCLE_TEXT } from '../../constants/gameConfigs';
     import { magicTypeColorMap } from '../../systems/graph/magicTypeRegistry';
     import { MAGIC_STAT_KEYS, MAGIC_STAT_LABELS } from '../../types/magic';
     import {
@@ -8,6 +8,7 @@
         buildMagicCircleRenderModels,
         magicCircleRingStrokeWidth,
     } from '../../systems/graph/magicCircleRenderer';
+    import { formatMagicStat } from '../../systems/graph/magicStatFormatting';
     import MagicGlyphMark from './MagicGlyphMark.svelte';
 
     const CIRCLE = DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS;
@@ -22,20 +23,20 @@
     <div class="header">
         <div class="circle-count">
             {#if graphStore.circles.length === 0}
-                <span class="hint">노드를 연결하면 마법진이 생성됩니다.</span>
+                <span class="hint">{MAGIC_CIRCLE_TEXT.EMPTY_HINT}</span>
             {:else}
                 <span class="count-number">{graphStore.circles.length}</span>
-                <span class="count-label">서클 마법</span>
+                <span class="count-label">{MAGIC_CIRCLE_TEXT.CIRCLE_COUNT_LABEL}</span>
             {/if}
         </div>
         {#if graphStore.circles.length > 0}
-            <section class="total-stats" aria-label="Total magic stats">
-                <div class="total-stats-label">Total Stats</div>
+            <section class="total-stats" aria-label={MAGIC_CIRCLE_TEXT.TOTAL_STATS_ARIA_LABEL}>
+                <div class="total-stats-label">{MAGIC_CIRCLE_TEXT.TOTAL_STATS_LABEL}</div>
                 <dl class="stats-grid total-stats-grid">
                     {#each MAGIC_STAT_KEYS as statKey}
                         <div class="stat-item total-stat-item">
                             <dt>{MAGIC_STAT_LABELS[statKey]}</dt>
-                            <dd>{graphStore.totalStats[statKey]}</dd>
+                            <dd>{formatMagicStat(graphStore.totalStats[statKey])}</dd>
                         </div>
                     {/each}
                 </dl>
@@ -46,13 +47,13 @@
     <div class="circles-grid">
         {#each renderCircles as circle, ci}
             <div class="circle-card">
-                <div class="circle-label">Circle {ci + 1}</div>
+                <div class="circle-label">{MAGIC_CIRCLE_TEXT.CIRCLE_LABEL} {ci + 1}</div>
                 <svg
                     width={MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}
                     height={MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}
                     viewBox={`0 0 ${MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE} ${MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}`}
                     class="magic-svg"
-                    aria-label={`Magic circle ${ci + 1}`}
+                    aria-label={`${MAGIC_CIRCLE_TEXT.CIRCLE_ARIA_LABEL} ${ci + 1}`}
                 >
                     <defs>
                         <filter id="glow-{ci}">
@@ -136,11 +137,11 @@
                     <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_GLOW_RADIUS} class="core-glow" filter={`url(#glow-soft-${ci})`} />
                     <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_DOT_RADIUS} class="core-dot" />
                 </svg>
-                <dl class="stats-grid" aria-label={`Magic circle ${ci + 1} stats`}>
+                <dl class="stats-grid" aria-label={`${MAGIC_CIRCLE_TEXT.CIRCLE_ARIA_LABEL} ${ci + 1} stats`}>
                     {#each MAGIC_STAT_KEYS as statKey}
                         <div class="stat-item">
                             <dt>{MAGIC_STAT_LABELS[statKey]}</dt>
-                            <dd>{circle.stats[statKey]}</dd>
+                            <dd>{formatMagicStat(circle.stats[statKey])}</dd>
                         </div>
                     {/each}
                 </dl>
