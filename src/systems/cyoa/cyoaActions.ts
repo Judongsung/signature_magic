@@ -1,4 +1,3 @@
-import { CYOA_ACTIONS } from '../../constants/gameConfigs';
 import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceRowConfig, CyoaChoiceRowData } from '../../types/cyoa';
 
 type RowVisibility = Record<string, boolean>;
@@ -7,11 +6,8 @@ type InputValues = Record<string, string>;
 type ChoiceWidth = { numerator: number; denominator: number };
 
 const DEFAULT_CHOICE_WIDTH = '1/3';
-
-function resolveRequiredMode(row: CyoaChoiceRowConfig): CyoaChoiceRowData['requiredMode'] {
-    if (row.requiredMode) return row.requiredMode;
-    return row.required === false ? 'never' : 'always';
-}
+const DEFAULT_REQUIRED_COUNT = 1;
+const INPUT_REQUIRED_COUNT = 1;
 
 function greatestCommonDivisor(a: number, b: number): number {
     return b === 0 ? a : greatestCommonDivisor(b, a % b);
@@ -56,7 +52,6 @@ export function mapCyoaChoiceConfig(
         width: choice.width ?? DEFAULT_CHOICE_WIDTH,
         layoutSpan: Math.max(1, (layoutColumns / width.denominator) * width.numerator),
         disabled: choice.disabled,
-        actions: choice.actions,
     };
 }
 
@@ -64,7 +59,6 @@ export function mapCyoaRowConfig(
     row: CyoaChoiceRowConfig,
     resolveImagePath: (imagePath?: string) => string | undefined
 ): CyoaChoiceRowData {
-    const requiredMode = resolveRequiredMode(row);
     const choiceConfigs = row.choices ?? [];
     const widths = choiceConfigs.map(choice => parseChoiceWidth(choice.width));
     const layoutColumns = resolveLayoutColumns(widths);
@@ -74,8 +68,8 @@ export function mapCyoaRowConfig(
         title: row.title,
         visible: row.visible ?? true,
         selectable: row.selectable ?? true,
-        required: requiredMode !== 'never',
-        requiredMode,
+        requiredCount: row.requiredCount ?? DEFAULT_REQUIRED_COUNT,
+        visibleWhen: row.visibleWhen,
         selectionMode: row.selectionMode ?? 'single',
         layoutColumns,
         input: row.input,
@@ -91,7 +85,7 @@ export function mapCyoaRows(
 }
 
 export function createInitialRowVisibility(rows: CyoaChoiceRowData[]): RowVisibility {
-    return Object.fromEntries(rows.map(row => [row.id, row.visible]));
+    return resolveCyoaRowVisibility(rows, {});
 }
 
 export function createInitialInputValues(rows: CyoaChoiceRowData[]): InputValues {
@@ -102,21 +96,52 @@ export function createInitialInputValues(rows: CyoaChoiceRowData[]): InputValues
     );
 }
 
+function isChoiceSelected(selectedChoiceIds: RowSelections, choiceId: string): boolean {
+    return Object.values(selectedChoiceIds).some(rowSelections => rowSelections.includes(choiceId));
+}
+
+function isRowVisible(row: CyoaChoiceRowData, selectedChoiceIds: RowSelections): boolean {
+    const condition = row.visibleWhen;
+    if (!condition) return row.visible;
+
+    if (condition.choiceSelected && !isChoiceSelected(selectedChoiceIds, condition.choiceSelected)) {
+        return false;
+    }
+
+    if (condition.anyChoiceSelected?.length) {
+        const anySelected = condition.anyChoiceSelected.some(choiceId => isChoiceSelected(selectedChoiceIds, choiceId));
+        if (!anySelected) return false;
+    }
+
+    if (condition.allChoicesSelected?.length) {
+        const allSelected = condition.allChoicesSelected.every(choiceId => isChoiceSelected(selectedChoiceIds, choiceId));
+        if (!allSelected) return false;
+    }
+
+    return true;
+}
+
+export function resolveCyoaRowVisibility(
+    rows: CyoaChoiceRowData[],
+    selectedChoiceIds: RowSelections
+): RowVisibility {
+    return Object.fromEntries(rows.map(row => [row.id, isRowVisible(row, selectedChoiceIds)]));
+}
+
 export function canContinueCyoa(
     rows: CyoaChoiceRowData[],
-    visibleRowIds: RowVisibility,
     selectedChoiceIds: RowSelections,
     inputValues: InputValues = {}
 ): boolean {
     return rows
-        .filter(row => {
-            if (!row.selectable || row.requiredMode === 'never') return false;
-            if (row.requiredMode === 'visible') return visibleRowIds[row.id];
-            return true;
-        })
+        .filter(row => row.selectable && row.requiredCount > 0)
         .every(row => {
-            if (row.input) return (inputValues[row.input.id]?.trim().length ?? 0) > 0;
-            return (selectedChoiceIds[row.id]?.length ?? 0) > 0;
+            if (row.input) {
+                return row.requiredCount <= INPUT_REQUIRED_COUNT
+                    && (inputValues[row.input.id]?.trim().length ?? 0) > 0;
+            }
+
+            return (selectedChoiceIds[row.id]?.length ?? 0) >= row.requiredCount;
         });
 }
 
@@ -141,21 +166,4 @@ export function toggleCyoaChoiceSelection(
         ...selectedChoiceIds,
         [row.id]: nextRowSelections,
     };
-}
-
-export function applyCyoaChoiceActions(
-    choice: CyoaChoice,
-    visibleRowIds: RowVisibility,
-    active: boolean
-): RowVisibility {
-    return (choice.actions ?? []).reduce<RowVisibility>((nextVisibleRowIds, action) => {
-        if (action.func === CYOA_ACTIONS.OPEN_ROW && action.target_id) {
-            return {
-                ...nextVisibleRowIds,
-                [action.target_id]: active,
-            };
-        }
-
-        return nextVisibleRowIds;
-    }, visibleRowIds);
 }

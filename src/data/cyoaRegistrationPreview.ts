@@ -6,8 +6,7 @@ export const REGISTRATION_PREVIEW_ROWS: CyoaChoiceRowData[] = [
         title: '신청자',
         visible: true,
         selectable: true,
-        required: true,
-        requiredMode: 'always',
+        requiredCount: 1,
         selectionMode: 'single',
         layoutColumns: 1,
         input: {
@@ -21,8 +20,7 @@ export const REGISTRATION_PREVIEW_ROWS: CyoaChoiceRowData[] = [
         title: '출신 지역',
         visible: true,
         selectable: true,
-        required: true,
-        requiredMode: 'always',
+        requiredCount: 1,
         selectionMode: 'single',
         layoutColumns: 1,
         choices: [
@@ -40,8 +38,7 @@ export const REGISTRATION_PREVIEW_ROWS: CyoaChoiceRowData[] = [
         title: '비술 촉매',
         visible: true,
         selectable: true,
-        required: true,
-        requiredMode: 'always',
+        requiredCount: 1,
         selectionMode: 'single',
         layoutColumns: 1,
         choices: [
@@ -59,8 +56,7 @@ export const REGISTRATION_PREVIEW_ROWS: CyoaChoiceRowData[] = [
         title: '입단 서약',
         visible: true,
         selectable: true,
-        required: true,
-        requiredMode: 'always',
+        requiredCount: 1,
         selectionMode: 'multi',
         layoutColumns: 1,
         choices: [

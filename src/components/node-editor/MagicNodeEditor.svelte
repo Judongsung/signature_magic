@@ -20,9 +20,12 @@
         DEFAULT_ACTIVE_MAGIC_NODE_CATEGORY_IDS,
         EDITOR_CANVAS,
         MAGIC_NODE_CATEGORIES,
-        NODE_EDITOR_TEXT,
         type MagicNodeCategory,
     } from '../../constants/gameConfigs';
+    import {
+        MAGIC_NODE_CATEGORY_LABELS,
+        NODE_EDITOR_TEXT,
+    } from '../../constants/uiText';
     import { resolveDropPosition } from '../../systems/graph/editorCanvas';
     import { getMagicTypesByCategory } from '../../systems/graph/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
@@ -81,16 +84,16 @@
     <div class="toolbar">
         <span class="toolbar-label">{NODE_EDITOR_TEXT.TOOLBAR_LABEL}</span>
         <div class="category-tabs" aria-label={NODE_EDITOR_TEXT.CATEGORY_ARIA_LABEL}>
-            {#each MAGIC_NODE_CATEGORIES as category}
-                {@const isActive = activeCategoryIds.includes(category.id)}
+            {#each MAGIC_NODE_CATEGORIES as categoryId}
+                {@const isActive = activeCategoryIds.includes(categoryId)}
                 <button
                     type="button"
                     class="category-tab"
                     class:active={isActive}
                     aria-pressed={isActive}
-                    onclick={() => toggleCategory(category.id)}
+                    onclick={() => toggleCategory(categoryId)}
                 >
-                    {category.label}
+                    {MAGIC_NODE_CATEGORY_LABELS[categoryId]}
                 </button>
             {/each}
         </div>

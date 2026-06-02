@@ -1,10 +1,9 @@
 import cyoaRowsData from '../data/cyoaRows.json';
 import {
-    applyCyoaChoiceActions,
     canContinueCyoa,
     createInitialInputValues,
-    createInitialRowVisibility,
     mapCyoaRows,
+    resolveCyoaRowVisibility,
     toggleCyoaChoiceSelection,
 } from '../systems/cyoa/cyoaActions';
 import { resolveCyoaImagePath } from '../systems/cyoa/cyoaImageRegistry';
@@ -20,12 +19,14 @@ class ChoiceStore {
         resolveCyoaImagePath
     );
 
-    visibleRowIds = $state<RowVisibility>(createInitialRowVisibility(this.rows));
     selectedChoiceIds = $state<RowSelections>({});
     inputValues = $state<InputValues>(createInitialInputValues(this.rows));
+    readonly visibleRowIds: RowVisibility = $derived(
+        resolveCyoaRowVisibility(this.rows, this.selectedChoiceIds)
+    );
 
     readonly canContinue = $derived(
-        canContinueCyoa(this.rows, this.visibleRowIds, this.selectedChoiceIds, this.inputValues)
+        canContinueCyoa(this.rows, this.selectedChoiceIds, this.inputValues)
     );
 
     selectChoice(row: CyoaChoiceRowData, choiceId: string): void {
@@ -34,11 +35,7 @@ class ChoiceStore {
         const choice = row.choices.find(item => item.id === choiceId);
         if (!choice || choice.disabled) return;
 
-        const nextSelectedChoiceIds = toggleCyoaChoiceSelection(row, this.selectedChoiceIds, choiceId);
-        const active = nextSelectedChoiceIds[row.id]?.includes(choiceId) ?? false;
-
-        this.visibleRowIds = applyCyoaChoiceActions(choice, this.visibleRowIds, active);
-        this.selectedChoiceIds = nextSelectedChoiceIds;
+        this.selectedChoiceIds = toggleCyoaChoiceSelection(row, this.selectedChoiceIds, choiceId);
     }
 
     updateInputValue(inputId: string, value: string): void {
@@ -49,7 +46,6 @@ class ChoiceStore {
     }
 
     reset(): void {
-        this.visibleRowIds = createInitialRowVisibility(this.rows);
         this.selectedChoiceIds = {};
         this.inputValues = createInitialInputValues(this.rows);
     }

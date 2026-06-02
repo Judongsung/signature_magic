@@ -1,9 +1,11 @@
 <script lang="ts">
     import {
         APP_PHASES,
+    } from '../../constants/gameConfigs';
+    import {
         CYOA_SCREEN_TEXT,
         UI_BUTTON_TEXT,
-    } from '../../constants/gameConfigs';
+    } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
     import { choiceStore } from '../../stores/choiceStore.svelte';
     import {

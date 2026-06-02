@@ -1,17 +1,14 @@
-import type { CyoaAction } from '../constants/gameConfigs';
-
-export type CyoaRequirementMode = 'always' | 'visible' | 'never';
+export interface CyoaRowVisibilityCondition {
+    choiceSelected?: string;
+    anyChoiceSelected?: string[];
+    allChoicesSelected?: string[];
+}
 
 export interface CyoaTextInputConfig {
     id: string;
     label: string;
     placeholder?: string;
     defaultValue?: string;
-}
-
-export interface CyoaChoiceActionConfig {
-    func: CyoaAction;
-    target_id?: string;
 }
 
 export interface CyoaChoiceConfig {
@@ -23,7 +20,6 @@ export interface CyoaChoiceConfig {
     tooltip?: string;
     width?: string;
     disabled?: boolean;
-    actions?: CyoaChoiceActionConfig[];
 }
 
 export interface CyoaChoiceRowConfig {
@@ -31,8 +27,8 @@ export interface CyoaChoiceRowConfig {
     title: string;
     visible?: boolean;
     selectable?: boolean;
-    required?: boolean;
-    requiredMode?: CyoaRequirementMode;
+    requiredCount?: number;
+    visibleWhen?: CyoaRowVisibilityCondition;
     selectionMode?: 'single' | 'multi';
     input?: CyoaTextInputConfig;
     choices?: CyoaChoiceConfig[];
@@ -48,7 +44,6 @@ export interface CyoaChoice {
     width?: string;
     layoutSpan?: number;
     disabled?: boolean;
-    actions?: CyoaChoiceActionConfig[];
 }
 
 export interface CyoaChoiceRowData {
@@ -56,8 +51,8 @@ export interface CyoaChoiceRowData {
     title: string;
     visible: boolean;
     selectable: boolean;
-    required: boolean;
-    requiredMode: CyoaRequirementMode;
+    requiredCount: number;
+    visibleWhen?: CyoaRowVisibilityCondition;
     selectionMode: 'single' | 'multi';
     layoutColumns: number;
     input?: CyoaTextInputConfig;

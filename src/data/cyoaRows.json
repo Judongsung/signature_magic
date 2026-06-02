@@ -3,84 +3,47 @@
         "id": "toc",
         "title": "목차",
         "visible": true,
-        "required": false,
-        "requiredMode": "never",
         "selectionMode": "multi",
         "choices": [
             {
                 "id": "toc-personal",
                 "title": "인적사항",
-                "tooltip": "이름, 나이, 종족, 성별, 소속, 역할을 정합니다.",
-                "actions": [
-                    {
-                        "func": "OPEN_ROW",
-                        "target_id": "personal-name"
-                    },
-                    {
-                        "func": "OPEN_ROW",
-                        "target_id": "personal-age"
-                    },
-                    {
-                        "func": "OPEN_ROW",
-                        "target_id": "personal-race"
-                    },
-                    {
-                        "func": "OPEN_ROW",
-                        "target_id": "personal-gender"
-                    },
-                    {
-                        "func": "OPEN_ROW",
-                        "target_id": "personal-affiliation"
-                    },
-                    {
-                        "func": "OPEN_ROW",
-                        "target_id": "personal-role"
-                    }
-                ],
+                "tooltip": "이름, 나이, 종족, 성별, 소속, 직종을 정합니다.",
                 "width": "1/3"
             },
             {
                 "id": "toc-region",
                 "title": "지역",
                 "tooltip": "출신과 시작 환경을 선택합니다.",
-                "actions": [
-                    {
-                        "func": "OPEN_ROW",
-                        "target_id": "region"
-                    }
-                ],
                 "width": "1/3"
             },
             {
                 "id": "toc-catalyst",
                 "title": "촉매",
                 "tooltip": "마법을 발현할 매개체를 선택합니다.",
-                "actions": [
-                    {
-                        "func": "OPEN_ROW",
-                        "target_id": "catalyst"
-                    }
-                ],
                 "width": "1/3"
             }
-        ]
+        ],
+        "requiredCount": 0
     },
     {
         "id": "personal-name",
         "title": "이름",
         "visible": false,
-        "requiredMode": "always",
         "input": {
             "id": "personal-name-input",
             "label": "이름",
             "placeholder": "이름 입력"
-        }
+        },
+        "visibleWhen": {
+            "choiceSelected": "toc-personal"
+        },
+        "requiredCount": 1
     },
     {
         "id": "personal-age",
         "title": "나이",
         "visible": false,
-        "requiredMode": "always",
         "choices": [
             {
                 "id": "age-teen",
@@ -114,13 +77,16 @@
                 "description": "오랜 세월의 지식과 흔적을 지닌 인물입니다.",
                 "width": "1/1"
             }
-        ]
+        ],
+        "visibleWhen": {
+            "choiceSelected": "toc-personal"
+        },
+        "requiredCount": 1
     },
     {
         "id": "personal-race",
         "title": "종족",
         "visible": false,
-        "requiredMode": "always",
         "choices": [
             {
                 "id": "race-human",
@@ -154,13 +120,16 @@
                 "description": "금속과 도구, 견고한 제작술에 익숙한 종족입니다.",
                 "width": "1/1"
             }
-        ]
+        ],
+        "visibleWhen": {
+            "choiceSelected": "toc-personal"
+        },
+        "requiredCount": 1
     },
     {
         "id": "personal-gender",
         "title": "성별",
         "visible": false,
-        "requiredMode": "always",
         "choices": [
             {
                 "id": "gender-male",
@@ -178,13 +147,16 @@
                 "description": "여성 캐릭터로 시작합니다.",
                 "width": "1/2"
             }
-        ]
+        ],
+        "visibleWhen": {
+            "choiceSelected": "toc-personal"
+        },
+        "requiredCount": 1
     },
     {
         "id": "personal-affiliation",
         "title": "소속",
         "visible": false,
-        "requiredMode": "always",
         "choices": [
             {
                 "id": "affiliation-imperial-bureau",
@@ -210,45 +182,67 @@
                 "description": "의뢰와 계약을 통해 실전 경험을 쌓습니다.",
                 "width": "1/3"
             }
-        ]
+        ],
+        "visibleWhen": {
+            "choiceSelected": "toc-personal"
+        },
+        "requiredCount": 1
     },
     {
-        "id": "personal-role",
-        "title": "역할",
+        "id": "personal-class",
+        "title": "직종",
         "visible": false,
-        "requiredMode": "always",
         "choices": [
             {
-                "id": "role-researcher",
+                "id": "class-student",
                 "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "연구자",
-                "title": "연구자",
-                "description": "마법 구조와 원리를 분석하는 역할입니다.",
+                "imageAlt": "학생",
+                "title": "학생",
+                "description": "재능이 아직 개화되지 않은 직종입니다. 추가 효과는 없습니다.",
                 "width": "1/3"
             },
             {
-                "id": "role-caster",
+                "id": "class-scholar",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "학자",
+                "title": "학자",
+                "description": "마법 구조와 원리를 분석하는 직종입니다. 불안정성 증가율이 줄어듭니다.",
+                "width": "1/3"
+            },
+            {
+                "id": "class-battlemage",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "전투 마법사",
+                "title": "전투 마법사",
+                "description": "대인 전투에 능한 직종입니다. 시전 시간이 줄어듭니다.",
+                "width": "1/3"
+            },
+            {
+                "id": "class-caster",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "시전자",
                 "title": "시전자",
-                "description": "전장에서 직접 마법을 구현하는 역할입니다.",
+                "description": "전장에서 직접 마법을 구현하는 직종입니다. 출력이 증가합니다.",
                 "width": "1/3"
             },
             {
-                "id": "role-artificer",
+                "id": "class-adventurer",
                 "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "공방술사",
-                "title": "공방술사",
-                "description": "촉매와 도구를 통해 마법을 안정화하는 역할입니다.",
+                "imageAlt": "모험가",
+                "title": "모험가",
+                "description": "다양한 생존 기술을 지닌 직종입니다. 3서클 이하 마법의 최종 능력치가 전체적으로 상승합니다.",
                 "width": "1/3"
             }
-        ]
+        ],
+        "visibleWhen": {
+            "choiceSelected": "toc-personal"
+        },
+        "requiredCount": 1
     },
     {
         "id": "region",
         "title": "지역",
         "visible": false,
-        "requiredMode": "always",
         "choices": [
             {
                 "id": "region-empire-center",
@@ -314,13 +308,16 @@
                 "description": "불확실하지만 새로운 규칙을 발견할 수 있는 변방입니다.",
                 "width": "1/4"
             }
-        ]
+        ],
+        "visibleWhen": {
+            "choiceSelected": "toc-region"
+        },
+        "requiredCount": 1
     },
     {
         "id": "catalyst",
         "title": "촉매",
         "visible": false,
-        "requiredMode": "always",
         "choices": [
             {
                 "id": "catalyst-staff",
@@ -379,6 +376,10 @@
                 "disabled": true,
                 "width": "1/3"
             }
-        ]
+        ],
+        "visibleWhen": {
+            "choiceSelected": "toc-catalyst"
+        },
+        "requiredCount": 1
     }
 ]

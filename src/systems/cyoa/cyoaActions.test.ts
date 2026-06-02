@@ -1,49 +1,53 @@
 import { describe, expect, it } from 'vitest';
-import { CYOA_ACTIONS } from '../../constants/gameConfigs';
 import type { CyoaChoiceRowData } from '../../types/cyoa';
 import {
-    applyCyoaChoiceActions,
     canContinueCyoa,
     createInitialInputValues,
     createInitialRowVisibility,
     mapCyoaChoiceConfig,
     mapCyoaRows,
+    resolveCyoaRowVisibility,
     toggleCyoaChoiceSelection,
 } from './cyoaActions';
 
 const rows: CyoaChoiceRowData[] = [
     {
         id: 'toc',
-        title: '목차',
+        title: 'Table of Contents',
         visible: true,
         selectable: true,
-        required: false,
-        requiredMode: 'never',
+        requiredCount: 0,
         selectionMode: 'multi',
         layoutColumns: 1,
-        choices: [],
+        choices: [
+            { id: 'toc-region', imageAlt: '', title: 'Region', layoutSpan: 1 },
+            { id: 'toc-catalyst', imageAlt: '', title: 'Catalyst', layoutSpan: 1 },
+        ],
     },
     {
         id: 'region',
-        title: '지역',
+        title: 'Region',
         visible: false,
+        visibleWhen: { choiceSelected: 'toc-region' },
         selectable: true,
-        required: true,
-        requiredMode: 'always',
+        requiredCount: 1,
         selectionMode: 'single',
         layoutColumns: 1,
-        choices: [],
+        choices: [
+            { id: 'region-frontier', imageAlt: '', title: 'Frontier', layoutSpan: 1 },
+        ],
     },
     {
         id: 'catalyst',
-        title: '촉매',
+        title: 'Catalyst',
         visible: false,
         selectable: true,
-        required: true,
-        requiredMode: 'always',
+        requiredCount: 1,
         selectionMode: 'single',
         layoutColumns: 1,
-        choices: [],
+        choices: [
+            { id: 'catalyst-staff', imageAlt: '', title: 'Staff', layoutSpan: 1 },
+        ],
     },
 ];
 
@@ -55,12 +59,12 @@ describe('cyoaActions', () => {
                 imageAlt: '',
                 title: '',
                 description: '',
-                tooltip: '툴팁 설명',
+                tooltip: 'More detail',
             },
             (imagePath) => imagePath ? '/resolved.webp' : undefined
         )).toMatchObject({
             imageSrc: undefined,
-            tooltip: '툴팁 설명',
+            tooltip: 'More detail',
             width: '1/3',
             layoutSpan: 1,
         });
@@ -70,7 +74,7 @@ describe('cyoaActions', () => {
         const mapped = mapCyoaRows([
             {
                 id: 'layout',
-                title: '레이아웃',
+                title: 'Layout',
                 choices: [
                     { id: 'a', imageAlt: '', title: '', description: '', width: '1/2' },
                     { id: 'b', imageAlt: '', title: '', description: '', width: '1/4' },
@@ -83,7 +87,7 @@ describe('cyoaActions', () => {
         expect(mapped[0].choices.map(choice => choice.layoutSpan)).toEqual([2, 1, 1]);
     });
 
-    it('creates initial row visibility from row config data', () => {
+    it('creates initial row visibility from row config data and visibility conditions', () => {
         expect(createInitialRowVisibility(rows)).toEqual({
             toc: true,
             region: false,
@@ -97,43 +101,58 @@ describe('cyoaActions', () => {
                 ...rows[1],
                 input: {
                     id: 'name',
-                    label: '이름',
-                    defaultValue: '아린',
+                    label: 'Name',
+                    defaultValue: 'Aurin',
                 },
             },
         ];
 
-        expect(createInitialInputValues(inputRows)).toEqual({ name: '아린' });
+        expect(createInitialInputValues(inputRows)).toEqual({ name: 'Aurin' });
     });
 
-    it('opens rows through OPEN_ROW choice actions', () => {
-        expect(applyCyoaChoiceActions(
-            {
-                id: 'open-region',
-                imageSrc: '/image.png',
-                imageAlt: '',
-                title: '지역',
-                description: '',
-                actions: [{ func: CYOA_ACTIONS.OPEN_ROW, target_id: 'region' }],
-            },
-            { toc: true, region: false },
-            true
-        )).toEqual({ toc: true, region: true });
+    it('opens rows through row visibility conditions', () => {
+        expect(resolveCyoaRowVisibility(rows, { toc: ['toc-region'] })).toEqual({
+            toc: true,
+            region: true,
+            catalyst: false,
+        });
     });
 
-    it('closes rows through deselected OPEN_ROW choice actions', () => {
-        expect(applyCyoaChoiceActions(
+    it('closes rows when row visibility conditions are no longer met', () => {
+        expect(resolveCyoaRowVisibility(rows, { toc: [] })).toEqual({
+            toc: true,
+            region: false,
+            catalyst: false,
+        });
+    });
+
+    it('supports any-choice visibility conditions', () => {
+        const conditionalRows = [
             {
-                id: 'open-region',
-                imageSrc: '/image.png',
-                imageAlt: '',
-                title: '지역',
-                description: '',
-                actions: [{ func: CYOA_ACTIONS.OPEN_ROW, target_id: 'region' }],
+                ...rows[1],
+                visibleWhen: { anyChoiceSelected: ['toc-region', 'toc-catalyst'] },
             },
-            { toc: true, region: true },
-            false
-        )).toEqual({ toc: true, region: false });
+        ];
+
+        expect(resolveCyoaRowVisibility(conditionalRows, { toc: ['toc-catalyst'] })).toEqual({
+            region: true,
+        });
+    });
+
+    it('supports all-choice visibility conditions', () => {
+        const conditionalRows = [
+            {
+                ...rows[1],
+                visibleWhen: { allChoicesSelected: ['toc-region', 'toc-catalyst'] },
+            },
+        ];
+
+        expect(resolveCyoaRowVisibility(conditionalRows, { toc: ['toc-region'] })).toEqual({
+            region: false,
+        });
+        expect(resolveCyoaRowVisibility(conditionalRows, { toc: ['toc-region', 'toc-catalyst'] })).toEqual({
+            region: true,
+        });
     });
 
     it('toggles selectable row choices', () => {
@@ -164,15 +183,13 @@ describe('cyoaActions', () => {
         )).toEqual({ toc: ['toc-catalyst'] });
     });
 
-    it('requires every required selectable row to be selected before continuing', () => {
+    it('requires every required selectable row before continuing regardless of visibility', () => {
         expect(canContinueCyoa(
             rows,
-            { toc: true, region: true, catalyst: false },
             { region: ['region-frontier'] }
         )).toBe(false);
         expect(canContinueCyoa(
             rows,
-            { toc: true, region: true, catalyst: true },
             { region: ['region-frontier'], catalyst: ['catalyst-staff'] }
         )).toBe(true);
     });
@@ -183,30 +200,24 @@ describe('cyoaActions', () => {
                 ...rows[1],
                 input: {
                     id: 'name',
-                    label: '이름',
+                    label: 'Name',
                 },
             },
         ];
 
-        expect(canContinueCyoa(inputRows, { region: true }, {}, {})).toBe(false);
-        expect(canContinueCyoa(inputRows, { region: true }, {}, { name: '아린' })).toBe(true);
+        expect(canContinueCyoa(inputRows, {}, {})).toBe(false);
+        expect(canContinueCyoa(inputRows, {}, { name: 'Aurin' })).toBe(true);
     });
 
-    it('requires visible-only rows only while they are open', () => {
-        const optionalVisibleRows = [
-            { ...rows[0], requiredMode: 'never' as const },
-            { ...rows[1], requiredMode: 'visible' as const },
+    it('supports minimum selection counts on multi-select rows', () => {
+        const multiRows: CyoaChoiceRowData[] = [
+            {
+                ...rows[0],
+                requiredCount: 2,
+            },
         ];
 
-        expect(canContinueCyoa(
-            optionalVisibleRows,
-            { toc: true, region: false },
-            {}
-        )).toBe(true);
-        expect(canContinueCyoa(
-            optionalVisibleRows,
-            { toc: true, region: true },
-            {}
-        )).toBe(false);
+        expect(canContinueCyoa(multiRows, { toc: ['toc-region'] })).toBe(false);
+        expect(canContinueCyoa(multiRows, { toc: ['toc-region', 'toc-catalyst'] })).toBe(true);
     });
 });

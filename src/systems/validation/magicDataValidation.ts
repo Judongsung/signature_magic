@@ -75,10 +75,10 @@ function validateMagicStatRules(type: string, statRules: MagicNodeStatRulesConfi
 
 export function validateMagicTypes(
     magicTypes: MagicTypeConfig[],
-    categories: readonly { id: MagicNodeCategory }[]
+    categories: readonly MagicNodeCategory[]
 ): DataValidationResult {
     const errors: string[] = [];
-    const categoryIds = new Set(categories.map(category => category.id));
+    const categoryIds = new Set(categories);
     const duplicateTypes = findDuplicates(magicTypes.map(magicType => magicType.type));
 
     duplicateTypes.forEach(type => {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-    CYOA_ACTIONS,
     MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_CATEGORIES,
 } from '../../constants/gameConfigs';
@@ -67,10 +66,9 @@ describe('dataValidation', () => {
         });
     });
 
-    it('validates configured CYOA rows against action and image registries', () => {
+    it('validates configured CYOA rows against visibility conditions and image registries', () => {
         expect(validateCyoaRows(
             cyoaRowsData as CyoaChoiceRowConfig[],
-            CYOA_ACTIONS,
             isKnownCyoaImagePath
         )).toEqual({ valid: true, errors: [] });
     });
@@ -142,6 +140,12 @@ describe('dataValidation', () => {
                 {
                     id: 'toc',
                     title: 'TOC',
+                    requiredCount: -1,
+                    visibleWhen: {
+                        choiceSelected: 'missing-choice',
+                        anyChoiceSelected: ['missing-any'],
+                        allChoicesSelected: ['missing-all'],
+                    },
                     choices: [
                         {
                             id: 'open-missing',
@@ -151,22 +155,22 @@ describe('dataValidation', () => {
                             description: 123,
                             tooltip: 456,
                             width: '3/2',
-                            actions: [{ func: 'UNKNOWN', target_id: 'missing-row' }],
                         },
                     ],
                 },
             ] as unknown as CyoaChoiceRowConfig[],
-            CYOA_ACTIONS,
             isKnownCyoaImagePath
         )).toEqual({
             valid: false,
             errors: [
+                'Invalid CYOA required count: toc -> -1',
+                'Unknown CYOA visibleWhen choice: toc -> missing-choice',
+                'Unknown CYOA visibleWhen any choice: toc -> missing-any',
+                'Unknown CYOA visibleWhen all choice: toc -> missing-all',
                 'Unknown CYOA image path: open-missing -> ../assets/images/missing.webp',
                 'Invalid CYOA choice description: open-missing',
                 'Invalid CYOA choice tooltip: open-missing',
                 'Invalid CYOA choice width: open-missing -> 3/2',
-                'Unknown CYOA action: open-missing -> UNKNOWN',
-                'Unknown CYOA action target: open-missing -> missing-row',
             ],
         });
     });

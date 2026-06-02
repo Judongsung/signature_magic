@@ -1,6 +1,7 @@
-import type { CyoaAction } from '../../constants/gameConfigs';
 import type { CyoaChoiceRowConfig, CyoaDialogueScriptConfig } from '../../types/cyoa';
 import { findDuplicates, result, success, type DataValidationResult } from './commonValidation';
+
+const MAX_INPUT_REQUIRED_COUNT = 1;
 
 function isValidChoiceWidth(width: string): boolean {
     const match = width.match(/^(\d+)\/(\d+)$/);
@@ -13,16 +14,14 @@ function isValidChoiceWidth(width: string): boolean {
 
 export function validateCyoaRows(
     rows: CyoaChoiceRowConfig[],
-    actions: Record<string, CyoaAction>,
     isKnownImagePath: (imagePath: string) => boolean
 ): DataValidationResult {
     if (rows.length === 0) return success();
 
     const errors: string[] = [];
     const rowIds = rows.map(row => row.id);
-    const rowIdSet = new Set(rowIds);
-    const actionSet = new Set(Object.values(actions));
     const choiceIds = rows.flatMap(row => (row.choices ?? []).map(choice => choice.id));
+    const choiceIdSet = new Set(choiceIds);
     const inputIds = rows.flatMap(row => row.input ? [row.input.id] : []);
 
     findDuplicates(rowIds).forEach(id => {
@@ -38,12 +37,31 @@ export function validateCyoaRows(
     });
 
     rows.forEach(row => {
-        if (row.requiredMode && !['always', 'visible', 'never'].includes(row.requiredMode)) {
-            errors.push(`Unknown CYOA required mode: ${row.id} -> ${row.requiredMode}`);
+        if (row.requiredCount !== undefined && (!Number.isInteger(row.requiredCount) || row.requiredCount < 0)) {
+            errors.push(`Invalid CYOA required count: ${row.id} -> ${row.requiredCount}`);
         }
         if (row.input && (row.choices?.length ?? 0) > 0) {
             errors.push(`CYOA row cannot mix input and choices: ${row.id}`);
         }
+        if (row.input && (row.requiredCount ?? 0) > MAX_INPUT_REQUIRED_COUNT) {
+            errors.push(`Invalid CYOA input required count: ${row.id} -> ${row.requiredCount}`);
+        }
+        if (!row.input && row.requiredCount !== undefined && row.requiredCount > (row.choices?.length ?? 0)) {
+            errors.push(`CYOA required count exceeds choices: ${row.id} -> ${row.requiredCount}`);
+        }
+        if (row.visibleWhen?.choiceSelected && !choiceIdSet.has(row.visibleWhen.choiceSelected)) {
+            errors.push(`Unknown CYOA visibleWhen choice: ${row.id} -> ${row.visibleWhen.choiceSelected}`);
+        }
+        row.visibleWhen?.anyChoiceSelected?.forEach(choiceId => {
+            if (!choiceIdSet.has(choiceId)) {
+                errors.push(`Unknown CYOA visibleWhen any choice: ${row.id} -> ${choiceId}`);
+            }
+        });
+        row.visibleWhen?.allChoicesSelected?.forEach(choiceId => {
+            if (!choiceIdSet.has(choiceId)) {
+                errors.push(`Unknown CYOA visibleWhen all choice: ${row.id} -> ${choiceId}`);
+            }
+        });
 
         (row.choices ?? []).forEach(choice => {
             if (choice.imagePath && !isKnownImagePath(choice.imagePath)) {
@@ -58,15 +76,6 @@ export function validateCyoaRows(
             if (choice.width && !isValidChoiceWidth(choice.width)) {
                 errors.push(`Invalid CYOA choice width: ${choice.id} -> ${choice.width}`);
             }
-
-            choice.actions?.forEach(action => {
-                if (!actionSet.has(action.func)) {
-                    errors.push(`Unknown CYOA action: ${choice.id} -> ${action.func}`);
-                }
-                if (action.target_id && !rowIdSet.has(action.target_id)) {
-                    errors.push(`Unknown CYOA action target: ${choice.id} -> ${action.target_id}`);
-                }
-            });
         });
     });
 

@@ -8,8 +8,7 @@ const row: CyoaChoiceRowData = {
     title: '지역',
     visible: true,
     selectable: true,
-    required: true,
-    requiredMode: 'always',
+    requiredCount: 1,
     selectionMode: 'single',
     layoutColumns: 1,
     choices: [
