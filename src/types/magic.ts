@@ -21,6 +21,26 @@ export type MagicStats = Record<MagicStatKey, number>;
 
 export type MagicStatsConfig = Partial<MagicStats>;
 
+export const MAGIC_STAT_EFFECT_PHASES = ['node', 'final'] as const;
+
+export type MagicStatEffectPhase = (typeof MAGIC_STAT_EFFECT_PHASES)[number];
+
+export const MAGIC_STAT_EFFECT_OPERATIONS = ['add', 'multiply'] as const;
+
+export type MagicStatEffectOperation = (typeof MAGIC_STAT_EFFECT_OPERATIONS)[number];
+
+export interface MagicStatEffectConfig {
+    phase: MagicStatEffectPhase;
+    operation: MagicStatEffectOperation;
+    stat: MagicStatKey;
+    value: number;
+}
+
+export interface MagicStatEffectBundle {
+    nodeEffects: MagicStatEffectConfig[];
+    finalEffects: MagicStatEffectConfig[];
+}
+
 export const MAGIC_STAT_BRANCH_AGGREGATIONS = ['sum', 'max'] as const;
 
 export type MagicStatBranchAggregation = (typeof MAGIC_STAT_BRANCH_AGGREGATIONS)[number];

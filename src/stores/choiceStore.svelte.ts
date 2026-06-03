@@ -7,7 +7,12 @@ import {
     toggleCyoaChoiceSelection,
 } from '../systems/cyoa/cyoaActions';
 import { resolveCyoaImagePath } from '../systems/cyoa/cyoaImageRegistry';
+import {
+    calculateCyoaStatEffects,
+    mapCyoaStatEffectsByChoiceId,
+} from '../systems/cyoa/cyoaStatEffects';
 import type { CyoaChoiceRowConfig, CyoaChoiceRowData } from '../types/cyoa';
+import type { MagicStatEffectBundle } from '../types/magic';
 
 type RowVisibility = Record<string, boolean>;
 type RowSelections = Record<string, string[]>;
@@ -24,9 +29,13 @@ class ChoiceStore {
     readonly visibleRowIds: RowVisibility = $derived(
         resolveCyoaRowVisibility(this.rows, this.selectedChoiceIds)
     );
+    readonly statEffectsByChoiceId = mapCyoaStatEffectsByChoiceId(this.rows);
 
     readonly canContinue = $derived(
         canContinueCyoa(this.rows, this.selectedChoiceIds, this.inputValues)
+    );
+    readonly statEffects: MagicStatEffectBundle = $derived(
+        calculateCyoaStatEffects(this.selectedChoiceIds, this.statEffectsByChoiceId)
     );
 
     selectChoice(row: CyoaChoiceRowData, choiceId: string): void {

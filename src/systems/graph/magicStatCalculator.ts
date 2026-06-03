@@ -4,11 +4,13 @@ import {
     MAGIC_STAT_KEYS,
     type MagicNode,
     type MagicStatBranchAggregation,
+    type MagicStatEffectConfig,
     type MagicStatKey,
     type MagicStats,
     type MagicTypeConfig,
 } from '../../types/magic';
 import { MAGIC_STAT_RULES, type MagicStatScope } from './magicStatRules';
+import { applyMagicStatEffects } from './magicStatEffects';
 
 export function buildMagicTypeMap(
     magicTypes: readonly MagicTypeConfig[]
@@ -20,7 +22,8 @@ export function calculateMagicStats(
     nodes: readonly MagicNode[],
     edges: readonly Edge[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
-    scope: MagicStatScope
+    scope: MagicStatScope,
+    nodeStatEffects: readonly MagicStatEffectConfig[] = []
 ): MagicStats {
     const result = { ...EMPTY_MAGIC_STATS };
     const graphAnalysis = scope === 'total'
@@ -29,8 +32,8 @@ export function calculateMagicStats(
 
     MAGIC_STAT_KEYS.forEach(statKey => {
         const value = scope === 'total'
-            ? calculateGraphStat(statKey, graphAnalysis!, magicTypes)
-            : calculateFlatStat(statKey, nodes, edges, magicTypes, scope);
+            ? calculateGraphStat(statKey, graphAnalysis!, magicTypes, nodeStatEffects)
+            : calculateFlatStat(statKey, nodes, edges, magicTypes, scope, nodeStatEffects);
 
         result[statKey] = MAGIC_STAT_RULES[statKey].scaleFinalValue(value, {
             statKey,
@@ -49,9 +52,10 @@ function calculateFlatStat(
     nodes: readonly MagicNode[],
     edges: readonly Edge[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
-    scope: MagicStatScope
+    scope: MagicStatScope,
+    nodeStatEffects: readonly MagicStatEffectConfig[]
 ): number {
-    const values = nodes.map(node => readNodeStat(node, statKey, magicTypes));
+    const values = nodes.map(node => readNodeStat(node, statKey, magicTypes, nodeStatEffects));
     return MAGIC_STAT_RULES[statKey].combineNodeValues(values, {
         statKey,
         scope,
@@ -64,28 +68,29 @@ function calculateFlatStat(
 function calculateGraphStat(
     statKey: MagicStatKey,
     analysis: StatGraphAnalysis,
-    magicTypes: ReadonlyMap<string, MagicTypeConfig>
+    magicTypes: ReadonlyMap<string, MagicTypeConfig>,
+    nodeStatEffects: readonly MagicStatEffectConfig[]
 ): number {
     const { graph, rootIds, unrootedNodes, mergeNodeId } = analysis;
 
     if (graph.nodes.length === 0) return 0;
     if (rootIds.length === 0) {
-        return calculateFlatStat(statKey, graph.nodes, graph.edges, magicTypes, 'total');
+        return calculateFlatStat(statKey, graph.nodes, graph.edges, magicTypes, 'total', nodeStatEffects);
     }
 
     const unrootedValue = unrootedNodes.length > 0
-        ? calculateFlatStat(statKey, unrootedNodes, graph.edges, magicTypes, 'total')
+        ? calculateFlatStat(statKey, unrootedNodes, graph.edges, magicTypes, 'total', nodeStatEffects)
         : 0;
 
     if (rootIds.length === 1) {
-        return evaluateFrom(rootIds[0], statKey, graph, magicTypes, undefined, new Set()) + unrootedValue;
+        return evaluateFrom(rootIds[0], statKey, graph, magicTypes, nodeStatEffects, undefined, new Set()) + unrootedValue;
     }
 
     const rootValues = rootIds.map(rootId =>
-        evaluateFrom(rootId, statKey, graph, magicTypes, mergeNodeId, new Set())
+        evaluateFrom(rootId, statKey, graph, magicTypes, nodeStatEffects, mergeNodeId, new Set())
     );
     const mergedValue = mergeNodeId
-        ? evaluateFrom(mergeNodeId, statKey, graph, magicTypes, undefined, new Set())
+        ? evaluateFrom(mergeNodeId, statKey, graph, magicTypes, nodeStatEffects, undefined, new Set())
         : 0;
 
     return MAGIC_STAT_RULES[statKey].combineBranchValues(
@@ -160,6 +165,7 @@ function evaluateFrom(
     statKey: MagicStatKey,
     graph: StatGraph,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
+    nodeStatEffects: readonly MagicStatEffectConfig[],
     stopNodeId: string | undefined,
     visiting: Set<string>
 ): number {
@@ -170,7 +176,7 @@ function evaluateFrom(
     if (!node) return 0;
 
     visiting.add(nodeId);
-    const ownValue = readNodeStat(node, statKey, magicTypes);
+    const ownValue = readNodeStat(node, statKey, magicTypes, nodeStatEffects);
     const nextIds = graph.outEdges.get(nodeId) ?? [];
 
     if (nextIds.length === 0) {
@@ -179,14 +185,14 @@ function evaluateFrom(
     }
 
     if (nextIds.length === 1) {
-        const value = ownValue + evaluateFrom(nextIds[0], statKey, graph, magicTypes, stopNodeId, visiting);
+        const value = ownValue + evaluateFrom(nextIds[0], statKey, graph, magicTypes, nodeStatEffects, stopNodeId, visiting);
         visiting.delete(nodeId);
         return value;
     }
 
     const mergeNodeId = findNearestCommonReachableNode(nextIds, graph);
     const branchValues = nextIds.map(nextId =>
-        evaluateFrom(nextId, statKey, graph, magicTypes, mergeNodeId, new Set(visiting))
+        evaluateFrom(nextId, statKey, graph, magicTypes, nodeStatEffects, mergeNodeId, new Set(visiting))
     );
     const branchValue = MAGIC_STAT_RULES[statKey].combineBranchValues(
         branchValues,
@@ -200,7 +206,7 @@ function evaluateFrom(
         }
     );
     const afterMergeValue = mergeNodeId
-        ? evaluateFrom(mergeNodeId, statKey, graph, magicTypes, stopNodeId, visiting)
+        ? evaluateFrom(mergeNodeId, statKey, graph, magicTypes, nodeStatEffects, stopNodeId, visiting)
         : 0;
 
     visiting.delete(nodeId);
@@ -210,9 +216,11 @@ function evaluateFrom(
 function readNodeStat(
     node: MagicNode,
     statKey: MagicStatKey,
-    magicTypes: ReadonlyMap<string, MagicTypeConfig>
+    magicTypes: ReadonlyMap<string, MagicTypeConfig>,
+    nodeStatEffects: readonly MagicStatEffectConfig[]
 ): number {
-    return magicTypes.get(node.data.magicType)?.stats?.[statKey] ?? 0;
+    const value = magicTypes.get(node.data.magicType)?.stats?.[statKey] ?? 0;
+    return applyMagicStatEffects(value, statKey, nodeStatEffects);
 }
 
 function readBranchAggregation(

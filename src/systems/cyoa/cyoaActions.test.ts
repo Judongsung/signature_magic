@@ -67,6 +67,27 @@ describe('cyoaActions', () => {
             tooltip: 'More detail',
             width: '1/3',
             layoutSpan: 1,
+            statEffects: undefined,
+        });
+    });
+
+    it('keeps configured stat effects on mapped choices', () => {
+        expect(mapCyoaChoiceConfig(
+            {
+                id: 'choice',
+                imageAlt: '',
+                title: '',
+                statEffects: [
+                    { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.9 },
+                    { phase: 'final', operation: 'add', stat: 'power', value: 2 },
+                ],
+            },
+            () => undefined
+        )).toMatchObject({
+            statEffects: [
+                { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.9 },
+                { phase: 'final', operation: 'add', stat: 'power', value: 2 },
+            ],
         });
     });
 

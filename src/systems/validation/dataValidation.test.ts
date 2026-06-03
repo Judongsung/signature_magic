@@ -155,6 +155,12 @@ describe('dataValidation', () => {
                             description: 123,
                             tooltip: 456,
                             width: '3/2',
+                            statEffects: [
+                                { phase: 'before', operation: 'add', stat: 'power', value: 1 },
+                                { phase: 'node', operation: 'divide', stat: 'power', value: 1 },
+                                { phase: 'node', operation: 'add', stat: 'unknown', value: 1 },
+                                { phase: 'final', operation: 'add', stat: 'power', value: Number.NaN },
+                            ],
                         },
                     ],
                 },
@@ -171,6 +177,10 @@ describe('dataValidation', () => {
                 'Invalid CYOA choice description: open-missing',
                 'Invalid CYOA choice tooltip: open-missing',
                 'Invalid CYOA choice width: open-missing -> 3/2',
+                'Invalid CYOA stat effect phase: open-missing -> 0 -> before',
+                'Invalid CYOA stat effect operation: open-missing -> 1 -> divide',
+                'Unknown CYOA stat effect key: open-missing -> 2 -> unknown',
+                'Invalid CYOA stat effect value: open-missing -> 3 -> power',
             ],
         });
     });

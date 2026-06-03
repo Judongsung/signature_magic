@@ -1,3 +1,5 @@
+import type { MagicStatEffectConfig } from './magic';
+
 export interface CyoaRowVisibilityCondition {
     choiceSelected?: string;
     anyChoiceSelected?: string[];
@@ -20,6 +22,7 @@ export interface CyoaChoiceConfig {
     tooltip?: string;
     width?: string;
     disabled?: boolean;
+    statEffects?: MagicStatEffectConfig[];
 }
 
 export interface CyoaChoiceRowConfig {
@@ -44,6 +47,7 @@ export interface CyoaChoice {
     width?: string;
     layoutSpan?: number;
     disabled?: boolean;
+    statEffects?: MagicStatEffectConfig[];
 }
 
 export interface CyoaChoiceRowData {

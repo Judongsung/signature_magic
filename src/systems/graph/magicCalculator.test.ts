@@ -214,12 +214,68 @@ describe('calculateMagic', () => {
         expect(result.circles.map(circle => circle.stats.castingTime)).toEqual([3, 3, 4]);
         expectStatsClose(result.totalStats, {
             castingTime: 10,
-            instability: 15.21,
+            instability: 10.45,
             power: 10,
             range: 10,
             manaCost: 10,
             duration: 10,
         });
+    });
+
+    it('sums circle instability so parallel branches avoid one combined node-count exponent', () => {
+        const a = node('a', 'ignition');
+        const split = node('split', 'split');
+        const b = node('b', 'stream');
+        const c = node('c', 'soil');
+        const nodes = [a, split, b, c];
+        const edges = [edge('a', 'split'), edge('split', 'b'), edge('split', 'c')];
+        const magicTypes = [
+            {
+                type: 'ignition',
+                label: 'Fire',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Fire magic.',
+                stats: { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 },
+            },
+            {
+                type: 'split',
+                label: 'Split',
+                icon: '',
+                color: '',
+                category: 'extension',
+                description: 'Split magic.',
+                stats: { castingTime: 2, instability: 2, power: 2, range: 2, manaCost: 2, duration: 2 },
+            },
+            {
+                type: 'stream',
+                label: 'Water',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Water magic.',
+                stats: { castingTime: 3, instability: 3, power: 3, range: 3, manaCost: 3, duration: 3 },
+            },
+            {
+                type: 'soil',
+                label: 'Earth',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Earth magic.',
+                stats: { castingTime: 4, instability: 4, power: 4, range: 4, manaCost: 4, duration: 4 },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, edges, magicTypes);
+
+        expect(result.circles.map(circle => circle.stats.instability)).toEqual([
+            expect.closeTo(3.45),
+            expect.closeTo(3),
+            expect.closeTo(4),
+        ]);
+        expect(result.totalStats.instability).toBeCloseTo(10.45);
     });
 
     it('counts each node once when the graph is circular', () => {
@@ -271,6 +327,87 @@ describe('calculateMagic', () => {
             range: 6,
             manaCost: 6,
             duration: 6,
+        });
+    });
+
+    it('applies node stat effects before circle and total stat calculation', () => {
+        const nodes = [node('a', 'ignition'), node('b', 'ignition')];
+        const edges = [edge('a', 'b')];
+        const magicTypes = [
+            {
+                type: 'ignition',
+                label: 'Ignition',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Ignition magic.',
+                stats: { castingTime: 1, instability: 2, power: 1, range: 1, manaCost: 1, duration: 1 },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, edges, magicTypes, {
+            nodeEffects: [
+                { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.5 },
+                { phase: 'node', operation: 'add', stat: 'power', value: 1 },
+            ],
+            finalEffects: [],
+        });
+
+        expectStatsClose(result.totalStats, {
+            castingTime: 2,
+            instability: 2.3,
+            power: 4,
+            range: 2,
+            manaCost: 2,
+            duration: 2,
+        });
+        expectStatsClose(result.circles[0].stats, {
+            castingTime: 2,
+            instability: 2.3,
+            power: 4,
+            range: 2,
+            manaCost: 2,
+            duration: 2,
+        });
+    });
+
+    it('applies final stat effects to total stats without changing circle stats', () => {
+        const nodes = [node('a', 'ignition')];
+        const magicTypes = [
+            {
+                type: 'ignition',
+                label: 'Ignition',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Ignition magic.',
+                stats: { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, [], magicTypes, {
+            nodeEffects: [],
+            finalEffects: [
+                { phase: 'final', operation: 'add', stat: 'power', value: 3 },
+                { phase: 'final', operation: 'multiply', stat: 'range', value: 2 },
+            ],
+        });
+
+        expectStatsClose(result.totalStats, {
+            castingTime: 1,
+            instability: 1,
+            power: 4,
+            range: 2,
+            manaCost: 1,
+            duration: 1,
+        });
+        expectStatsClose(result.circles[0].stats, {
+            castingTime: 1,
+            instability: 1,
+            power: 1,
+            range: 1,
+            manaCost: 1,
+            duration: 1,
         });
     });
 });

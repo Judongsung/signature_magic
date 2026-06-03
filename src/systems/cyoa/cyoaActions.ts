@@ -52,6 +52,7 @@ export function mapCyoaChoiceConfig(
         width: choice.width ?? DEFAULT_CHOICE_WIDTH,
         layoutSpan: Math.max(1, (layoutColumns / width.denominator) * width.numerator),
         disabled: choice.disabled,
+        statEffects: choice.statEffects,
     };
 }
 

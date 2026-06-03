@@ -1,40 +1,67 @@
 import type { Edge } from '@xyflow/svelte';
 import {
     type MagicNode,
+    type MagicStatEffectBundle,
+    type MagicStatEffectConfig,
+    type MagicStats,
     type MagicTypeConfig,
     type CirclePath,
     type MagicCalculationResult,
 } from '../../types/magic';
 import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
+import { applyMagicStatEffectsToStats } from './magicStatEffects';
+
+const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
+    nodeEffects: [],
+    finalEffects: [],
+};
 
 export function calculateMagic(
     nodes: MagicNode[],
     edges: Edge[],
-    magicTypes: readonly MagicTypeConfig[] = []
+    magicTypes: readonly MagicTypeConfig[] = [],
+    statEffects: MagicStatEffectBundle = EMPTY_MAGIC_STAT_EFFECTS
 ): MagicCalculationResult {
     const magicTypeMap = buildMagicTypeMap(magicTypes);
+    const circles = calculateCirclesWithMagicTypes(nodes, edges, magicTypeMap, statEffects.nodeEffects);
+    const totalStats = calculateMagicStats(nodes, edges, magicTypeMap, 'total', statEffects.nodeEffects);
 
     return {
-        circles: calculateCirclesWithMagicTypes(nodes, edges, magicTypeMap),
-        totalStats: calculateMagicStats(nodes, edges, magicTypeMap, 'total'),
+        circles,
+        totalStats: applyMagicStatEffectsToStats(
+            applyCircleInstabilityToTotalStats(totalStats, circles),
+            statEffects.finalEffects
+        ),
+    };
+}
+
+function applyCircleInstabilityToTotalStats(
+    totalStats: MagicStats,
+    circles: readonly CirclePath[]
+): MagicStats {
+    return {
+        ...totalStats,
+        instability: circles.reduce((total, circle) => total + circle.stats.instability, 0),
     };
 }
 
 export function calculateCircles(
     nodes: MagicNode[],
     edges: Edge[],
-    magicTypes: readonly MagicTypeConfig[] = []
+    magicTypes: readonly MagicTypeConfig[] = [],
+    nodeStatEffects: readonly MagicStatEffectConfig[] = []
 ): CirclePath[] {
     if (nodes.length === 0) return [];
 
-    return calculateCirclesWithMagicTypes(nodes, edges, buildMagicTypeMap(magicTypes));
+    return calculateCirclesWithMagicTypes(nodes, edges, buildMagicTypeMap(magicTypes), nodeStatEffects);
 }
 
 function calculateCirclesWithMagicTypes(
     nodes: MagicNode[],
     edges: Edge[],
-    magicTypeMap: ReadonlyMap<string, MagicTypeConfig>
+    magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
+    nodeStatEffects: readonly MagicStatEffectConfig[] = []
 ): CirclePath[] {
     const inDegree = new Map<string, number>();
     const outEdges = new Map<string, string[]>();
@@ -81,7 +108,7 @@ function calculateCirclesWithMagicTypes(
         .map((chain, index) => ({
             id: `circle-${index}`,
             nodes: chain,
-            stats: calculateMagicStats(chain, edges, magicTypeMap, 'circle'),
+            stats: calculateMagicStats(chain, edges, magicTypeMap, 'circle', nodeStatEffects),
         }));
 }
 

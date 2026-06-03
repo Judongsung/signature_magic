@@ -9,6 +9,7 @@ import {
 import { calculateMagic } from '../systems/graph/magicCalculator';
 import { isConnectionValid } from '../systems/graph/graphRules';
 import { magicTypeMap, magicTypes } from '../systems/graph/magicTypeRegistry';
+import { choiceStore } from './choiceStore.svelte';
 import type { CirclePath, MagicCalculationResult, MagicNode, MagicStats, MagicType } from '../types/magic';
 
 class GraphStore {
@@ -17,7 +18,7 @@ class GraphStore {
     private topologySyncScheduled = false;
 
     readonly calculation: MagicCalculationResult = $derived(
-        calculateMagic(this.nodes, this.edges, magicTypes)
+        calculateMagic(this.nodes, this.edges, magicTypes, choiceStore.statEffects)
     );
     readonly circles: CirclePath[] = $derived(this.calculation.circles);
     readonly totalStats: MagicStats = $derived(this.calculation.totalStats);

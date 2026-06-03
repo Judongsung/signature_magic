@@ -1,4 +1,9 @@
 import type { CyoaChoiceRowConfig, CyoaDialogueScriptConfig } from '../../types/cyoa';
+import {
+    MAGIC_STAT_EFFECT_OPERATIONS,
+    MAGIC_STAT_EFFECT_PHASES,
+    MAGIC_STAT_KEYS,
+} from '../../types/magic';
 import { findDuplicates, result, success, type DataValidationResult } from './commonValidation';
 
 const MAX_INPUT_REQUIRED_COUNT = 1;
@@ -10,6 +15,43 @@ function isValidChoiceWidth(width: string): boolean {
     const numerator = Number(match[1]);
     const denominator = Number(match[2]);
     return numerator > 0 && denominator > 0 && numerator <= denominator;
+}
+
+function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string[] {
+    if (statEffects === undefined) return [];
+    if (!Array.isArray(statEffects)) {
+        return [`Invalid CYOA stat effects: ${choiceId}`];
+    }
+
+    const errors: string[] = [];
+    const validPhases = new Set<string>(MAGIC_STAT_EFFECT_PHASES);
+    const validOperations = new Set<string>(MAGIC_STAT_EFFECT_OPERATIONS);
+    const validStatKeys = new Set<string>(MAGIC_STAT_KEYS);
+
+    statEffects.forEach((effect, index) => {
+        if (!effect || typeof effect !== 'object' || Array.isArray(effect)) {
+            errors.push(`Invalid CYOA stat effect: ${choiceId} -> ${index}`);
+            return;
+        }
+
+        const { phase, operation, stat, value } = effect as Record<string, unknown>;
+
+        if (!validPhases.has(String(phase))) {
+            errors.push(`Invalid CYOA stat effect phase: ${choiceId} -> ${index} -> ${String(phase)}`);
+        }
+        if (!validOperations.has(String(operation))) {
+            errors.push(`Invalid CYOA stat effect operation: ${choiceId} -> ${index} -> ${String(operation)}`);
+        }
+        if (!validStatKeys.has(String(stat))) {
+            errors.push(`Unknown CYOA stat effect key: ${choiceId} -> ${index} -> ${String(stat)}`);
+            return;
+        }
+        if (!Number.isFinite(value)) {
+            errors.push(`Invalid CYOA stat effect value: ${choiceId} -> ${index} -> ${String(stat)}`);
+        }
+    });
+
+    return errors;
 }
 
 export function validateCyoaRows(
@@ -76,6 +118,7 @@ export function validateCyoaRows(
             if (choice.width && !isValidChoiceWidth(choice.width)) {
                 errors.push(`Invalid CYOA choice width: ${choice.id} -> ${choice.width}`);
             }
+            errors.push(...validateCyoaStatEffects(choice.id, choice.statEffects));
         });
     });
 
