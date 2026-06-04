@@ -1,4 +1,5 @@
 import type { MagicNodeCategory } from './gameConfigs';
+import type { MagicStatKey } from '../types/magic';
 
 export const CYOA_SCREEN_TEXT = {
     EYEBROW: 'GUILD RECEPTION DESK',
@@ -50,6 +51,15 @@ export const UI_BUTTON_TEXT = {
     SUBMIT_REGISTRATION: '등록 신청서 제출',
     COMPLETE_REQUIRED_FIELDS_TOOLTIP: '필수 사항을 전부 기재해 주세요.',
 } as const;
+
+export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
+    castingTime: '캐스팅 시간',
+    instability: '불안정성',
+    power: '출력',
+    range: '범위',
+    manaCost: '마나 소모',
+    duration: '지속 시간',
+};
 
 export const MAGIC_NODE_CATEGORY_LABELS: Record<MagicNodeCategory, string> = {
     basic: '기초',

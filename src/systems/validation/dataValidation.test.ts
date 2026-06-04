@@ -3,14 +3,19 @@ import {
     MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_CATEGORIES,
 } from '../../constants/gameConfigs';
+import {
+    MAGIC_STAT_AGGREGATION_OPERATION_IDS,
+    MAGIC_STAT_SCALING_OPERATION_IDS,
+} from '../../constants/magicStatConfigs';
 import cyoaDialogueScriptsData from '../../data/cyoaDialogueScripts.json';
 import cyoaRowsData from '../../data/cyoaRows.json';
 import magicGlyphsData from '../../data/magicGlyphs.json';
 import magicGlyphShapesData from '../../data/magicGlyphShapes.json';
+import magicStatRulesData from '../../data/magicStatRules.json';
 import magicTypesData from '../../data/magicTypes.json';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import type { CyoaDialogueScriptConfig } from '../../types/cyoa';
-import type { MagicTypeConfig } from '../../types/magic';
+import type { MagicStatRulesConfig, MagicTypeConfig } from '../../types/magic';
 import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
 import type { GlyphShape } from '../graph/magicGlyphShapes';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
@@ -19,6 +24,7 @@ import {
     validateCyoaRows,
     validateMagicGlyphShapes,
     validateMagicGlyphs,
+    validateMagicStatRuleConfigs,
     validateMagicTypes,
 } from './dataValidation';
 
@@ -30,6 +36,59 @@ describe('dataValidation', () => {
             magicTypesData as MagicTypeConfig[],
             MAGIC_NODE_CATEGORIES
         )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('validates configured magic stat rule operations', () => {
+        expect(validateMagicStatRuleConfigs(
+            magicStatRulesData as MagicStatRulesConfig
+        )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('reports invalid magic stat rule operations', () => {
+        expect(validateMagicStatRuleConfigs({
+            castingTime: {
+                nodeAggregation: 'average',
+                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                scaling: { operation: MAGIC_STAT_SCALING_OPERATION_IDS.NONE },
+            },
+            instability: {
+                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                serialAggregation: 'fastest',
+                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                scaling: { operation: MAGIC_STAT_SCALING_OPERATION_IDS.EXPONENTIAL_BY_NODE_COUNT },
+            },
+            power: {
+                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                branchAggregation: 'nearest',
+                scaling: { operation: MAGIC_STAT_SCALING_OPERATION_IDS.NONE },
+            },
+            range: {
+                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.MULTIPLY,
+                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.MULTIPLY,
+                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.MAX,
+                scaling: { operation: 'curve' },
+            },
+            unknown: {
+                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                scaling: { operation: MAGIC_STAT_SCALING_OPERATION_IDS.NONE },
+            },
+        } as unknown as MagicStatRulesConfig)).toEqual({
+            valid: false,
+            errors: [
+                'Unknown magic stat rule config key: unknown',
+                'Invalid magic stat node aggregation: castingTime -> average',
+                'Invalid magic stat serial aggregation: instability -> fastest',
+                'Invalid magic stat scaling factor: instability -> undefined',
+                'Invalid magic stat branch aggregation config: power -> nearest',
+                'Invalid magic stat scaling operation: range -> curve',
+                'Missing magic stat rule config: manaCost',
+                'Missing magic stat rule config: duration',
+            ],
+        });
     });
 
     it('reports invalid magic type categories, duplicate type ids, and connection limits', () => {

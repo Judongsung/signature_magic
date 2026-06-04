@@ -1,0 +1,38 @@
+{
+    "castingTime": {
+        "nodeAggregation": "sum",
+        "serialAggregation": "sum",
+        "branchAggregation": "sum",
+        "scaling": { "operation": "none" }
+    },
+    "instability": {
+        "nodeAggregation": "sum",
+        "serialAggregation": "sum",
+        "branchAggregation": "sum",
+        "scaling": { "operation": "exponentialByNodeCount", "factor": 1.15 }
+    },
+    "power": {
+        "nodeAggregation": "sum",
+        "serialAggregation": "sum",
+        "branchAggregation": "sum",
+        "scaling": { "operation": "none" }
+    },
+    "range": {
+        "nodeAggregation": "multiply",
+        "serialAggregation": "multiply",
+        "branchAggregation": "max",
+        "scaling": { "operation": "none" }
+    },
+    "manaCost": {
+        "nodeAggregation": "sum",
+        "serialAggregation": "sum",
+        "branchAggregation": "sum",
+        "scaling": { "operation": "none" }
+    },
+    "duration": {
+        "nodeAggregation": "sum",
+        "serialAggregation": "sum",
+        "branchAggregation": "sum",
+        "scaling": { "operation": "none" }
+    }
+}

@@ -6,5 +6,6 @@ export {
 export {
     validateMagicGlyphShapes,
     validateMagicGlyphs,
+    validateMagicStatRuleConfigs,
     validateMagicTypes,
 } from './magicDataValidation';

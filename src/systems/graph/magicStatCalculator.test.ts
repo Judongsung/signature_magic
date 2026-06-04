@@ -61,9 +61,45 @@ describe('calculateMagicStats', () => {
             castingTime: 5,
             instability: 5.75,
             power: 5,
-            range: 5,
+            range: 3,
             manaCost: 5,
             duration: 5,
+        });
+    });
+
+    it('multiplies flat circle range values through the stat rule table', () => {
+        const nodes = [node('a', 'ignition'), node('b', 'stream')];
+        const edges: Edge[] = [];
+        const magicTypes = buildMagicTypeMap([
+            magicType('ignition', 2),
+            magicType('stream', 3),
+        ]);
+
+        expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'circle'), {
+            castingTime: 5,
+            instability: 5.75,
+            power: 5,
+            range: 6,
+            manaCost: 5,
+            duration: 5,
+        });
+    });
+
+    it('multiplies serial range values through the stat rule table', () => {
+        const nodes = [node('a', 'ignition'), node('b', 'stream')];
+        const edges = [edge('a', 'b')];
+        const magicTypes = buildMagicTypeMap([
+            magicType('ignition', 2),
+            magicType('stream', 4),
+        ]);
+
+        expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
+            castingTime: 6,
+            instability: 6.9,
+            power: 6,
+            range: 8,
+            manaCost: 6,
+            duration: 6,
         });
     });
 
@@ -100,7 +136,7 @@ describe('calculateMagicStats', () => {
             castingTime: 18,
             instability: 42.24,
             power: 21,
-            range: 21,
+            range: 240,
             manaCost: 21,
             duration: 21,
         });
@@ -132,7 +168,7 @@ describe('calculateMagicStats', () => {
             castingTime: 14,
             instability: 22.81,
             power: 15,
-            range: 15,
+            range: 90,
             manaCost: 15,
             duration: 15,
         });

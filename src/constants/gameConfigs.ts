@@ -26,26 +26,6 @@ export type MagicNodeCategory = (typeof MAGIC_NODE_CATEGORIES)[number];
 
 export const DEFAULT_ACTIVE_MAGIC_NODE_CATEGORY_IDS: MagicNodeCategory[] = ['basic'];
 
-export const MAGIC_STAT_SCALING_OPERATIONS = {
-    NONE: 'none',
-    EXPONENTIAL_BY_NODE_COUNT: 'exponentialByNodeCount',
-} as const;
-
-export type MagicStatScalingOperation =
-    (typeof MAGIC_STAT_SCALING_OPERATIONS)[keyof typeof MAGIC_STAT_SCALING_OPERATIONS];
-
-export interface MagicStatRuleConfig {
-    scalingOperation: MagicStatScalingOperation;
-    exponentialFactor?: number;
-}
-
-export const MAGIC_STAT_RULE_CONFIGS: Record<string, MagicStatRuleConfig> = {
-    instability: {
-        scalingOperation: MAGIC_STAT_SCALING_OPERATIONS.EXPONENTIAL_BY_NODE_COUNT,
-        exponentialFactor: 1.15,
-    },
-} as const;
-
 export const MAGIC_CONNECTION_RULE_KEYS = {
     ALLOW_CYCLE_FROM_OUTPUT: 'allowCycleFromOutput',
 } as const;

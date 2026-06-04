@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { MAGIC_STAT_KEYS, MAGIC_STAT_LABELS, type MagicStats } from '../../types/magic';
+    import { MAGIC_STAT_LABELS } from '../../constants/uiText';
+    import { MAGIC_STAT_KEYS, type MagicStats } from '../../types/magic';
     import { formatMagicStat } from '../../systems/graph/magicStatFormatting';
 
     let {

@@ -2,16 +2,23 @@ import {
     MAGIC_CONNECTION_RULE_KEYS,
     type MagicNodeCategory,
 } from '../../constants/gameConfigs';
+import { MAGIC_STAT_SCALING_OPERATION_IDS } from '../../constants/magicStatConfigs';
 import {
     MAGIC_STAT_KEYS,
     type MagicNodeConnectionRules,
     type MagicNodeStatRulesConfig,
+    type MagicStatRuleConfig,
+    type MagicStatRulesConfig,
     type MagicTypeConfig,
     type MagicStatsConfig,
 } from '../../types/magic';
 import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
 import { isGlyphKind, type GlyphShape } from '../graph/magicGlyphShapes';
-import { isMagicStatBranchAggregation } from '../graph/magicStatRules';
+import {
+    isMagicStatAggregationOperation,
+    isMagicStatBranchAggregation,
+    isMagicStatScalingOperation,
+} from '../graph/magicStatRules';
 import { findDuplicates, result, type DataValidationResult } from './commonValidation';
 
 function isValidConnectionLimit(limit: number | null | undefined): boolean {
@@ -53,7 +60,7 @@ function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): 
     });
 }
 
-function validateMagicStatRules(type: string, statRules: MagicNodeStatRulesConfig | undefined): string[] {
+function validateMagicNodeStatRules(type: string, statRules: MagicNodeStatRulesConfig | undefined): string[] {
     if (!statRules) return [];
 
     const errors: string[] = [];
@@ -71,6 +78,50 @@ function validateMagicStatRules(type: string, statRules: MagicNodeStatRulesConfi
     });
 
     return errors;
+}
+
+function validateMagicStatRuleConfig(statKey: string, rule: MagicStatRuleConfig | undefined): string[] {
+    if (!rule) return [`Missing magic stat rule config: ${statKey}`];
+
+    const errors: string[] = [];
+
+    if (!isMagicStatAggregationOperation(rule.nodeAggregation)) {
+        errors.push(`Invalid magic stat node aggregation: ${statKey} -> ${rule.nodeAggregation}`);
+    }
+    if (!isMagicStatAggregationOperation(rule.serialAggregation)) {
+        errors.push(`Invalid magic stat serial aggregation: ${statKey} -> ${rule.serialAggregation}`);
+    }
+    if (!isMagicStatAggregationOperation(rule.branchAggregation)) {
+        errors.push(`Invalid magic stat branch aggregation config: ${statKey} -> ${rule.branchAggregation}`);
+    }
+    if (!rule.scaling || !isMagicStatScalingOperation(rule.scaling.operation)) {
+        errors.push(`Invalid magic stat scaling operation: ${statKey} -> ${rule.scaling?.operation}`);
+    }
+    if (
+        rule.scaling?.operation === MAGIC_STAT_SCALING_OPERATION_IDS.EXPONENTIAL_BY_NODE_COUNT &&
+        (rule.scaling.factor === undefined || !Number.isFinite(rule.scaling.factor))
+    ) {
+        errors.push(`Invalid magic stat scaling factor: ${statKey} -> ${rule.scaling.factor}`);
+    }
+
+    return errors;
+}
+
+export function validateMagicStatRuleConfigs(statRules: MagicStatRulesConfig): DataValidationResult {
+    const errors: string[] = [];
+    const validStatKeys = new Set<string>(MAGIC_STAT_KEYS);
+
+    Object.keys(statRules).forEach(statKey => {
+        if (!validStatKeys.has(statKey)) {
+            errors.push(`Unknown magic stat rule config key: ${statKey}`);
+        }
+    });
+
+    MAGIC_STAT_KEYS.forEach(statKey => {
+        errors.push(...validateMagicStatRuleConfig(statKey, statRules[statKey]));
+    });
+
+    return result(errors);
 }
 
 export function validateMagicTypes(
@@ -100,7 +151,7 @@ export function validateMagicTypes(
         }
         errors.push(...validateMagicConnectionRules(magicType.type, magicType.connectionRules));
         errors.push(...validateMagicStats(magicType.type, magicType.stats));
-        errors.push(...validateMagicStatRules(magicType.type, magicType.statRules));
+        errors.push(...validateMagicNodeStatRules(magicType.type, magicType.statRules));
     });
 
     return result(errors);

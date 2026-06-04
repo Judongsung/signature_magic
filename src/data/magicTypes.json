@@ -6,7 +6,7 @@
         "color": "#e74c3c",
         "category": "basic",
         "description": "불이 붙고 타오르는 변화를 일으키는 기초 속성입니다.",
-        "stats": { "castingTime": 1, "instability": 2, "power": 4, "range": 2, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 1, "instability": 2, "power": 4, "range": 1, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "cooling",
@@ -15,7 +15,7 @@
         "color": "#7fbfff",
         "category": "basic",
         "description": "열을 빼앗고 낮은 온도로 기울게 하는 기초 속성입니다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 3, "manaCost": 2, "duration": 3 }
+        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 1, "manaCost": 2, "duration": 3 }
     },
     {
         "type": "stream",
@@ -24,7 +24,7 @@
         "color": "#3498db",
         "category": "basic",
         "description": "물이 흐르고 번지는 성질을 다루는 기초 속성입니다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 3, "manaCost": 2, "duration": 3 }
+        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 1, "manaCost": 2, "duration": 3 }
     },
     {
         "type": "air",
@@ -33,7 +33,7 @@
         "color": "#2ecc71",
         "category": "basic",
         "description": "기체의 흐름과 방향을 다루는 기초 속성입니다.",
-        "stats": { "castingTime": 1, "instability": 2, "power": 2, "range": 4, "manaCost": 2, "duration": 1 }
+        "stats": { "castingTime": 1, "instability": 2, "power": 2, "range": 1, "manaCost": 2, "duration": 1 }
     },
     {
         "type": "soil",
@@ -42,7 +42,7 @@
         "color": "#e67e22",
         "category": "basic",
         "description": "흙과 돌의 형태와 밀도를 다루는 기초 속성입니다.",
-        "stats": { "castingTime": 2, "instability": 1, "power": 3, "range": 2, "manaCost": 3, "duration": 4 }
+        "stats": { "castingTime": 2, "instability": 1, "power": 3, "range": 1, "manaCost": 3, "duration": 4 }
     },
     {
         "type": "metal",
@@ -51,7 +51,7 @@
         "color": "#95a5a6",
         "category": "basic",
         "description": "금속의 단단함과 전도성을 다루는 기초 속성입니다.",
-        "stats": { "castingTime": 2, "instability": 1, "power": 4, "range": 2, "manaCost": 3, "duration": 4 }
+        "stats": { "castingTime": 2, "instability": 1, "power": 4, "range": 1, "manaCost": 3, "duration": 4 }
     },
     {
         "type": "force",
@@ -60,7 +60,7 @@
         "color": "#9b59b6",
         "category": "basic",
         "description": "밀고 당기는 작용의 크기를 다루는 기초 속성입니다.",
-        "stats": { "castingTime": 2, "instability": 3, "power": 5, "range": 2, "manaCost": 4, "duration": 1 }
+        "stats": { "castingTime": 2, "instability": 3, "power": 5, "range": 1, "manaCost": 4, "duration": 1 }
     },
     {
         "type": "coordinate",
@@ -69,7 +69,7 @@
         "color": "#f1c40f",
         "category": "action",
         "description": "마법이 작동할 기준 위치를 지정합니다.",
-        "stats": { "castingTime": 1, "instability": 0, "power": 0, "range": 5, "manaCost": 1, "duration": 0 }
+        "stats": { "castingTime": 1, "instability": 0, "power": 0, "range": 1, "manaCost": 1, "duration": 0 }
     },
     {
         "type": "move",
@@ -78,7 +78,7 @@
         "color": "#1abc9c",
         "category": "action",
         "description": "대상이나 효과의 위치를 변화시킵니다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 1, "range": 4, "manaCost": 2, "duration": 1 }
+        "stats": { "castingTime": 1, "instability": 1, "power": 1, "range": 1, "manaCost": 2, "duration": 1 }
     },
     {
         "type": "rotate",
@@ -87,7 +87,7 @@
         "color": "#48c9b0",
         "category": "action",
         "description": "대상이나 효과의 방향을 돌리고 휘감는 작용입니다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 2, "manaCost": 2, "duration": 2 }
+        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 1, "manaCost": 2, "duration": 2 }
     },
     {
         "type": "emit",
@@ -96,7 +96,7 @@
         "color": "#ff8f4f",
         "category": "action",
         "description": "모인 효과를 바깥으로 내보내거나 쏘아냅니다.",
-        "stats": { "castingTime": 1, "instability": 2, "power": 4, "range": 4, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 1, "instability": 2, "power": 4, "range": 1, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "shape",
@@ -114,7 +114,7 @@
         "color": "#5dade2",
         "category": "extension",
         "description": "효과가 넓은 범위로 퍼지게 만듭니다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 5, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 2, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "detect",
@@ -123,7 +123,7 @@
         "color": "#af7ac5",
         "category": "action",
         "description": "조건, 대상, 변화를 찾아내는 작용입니다.",
-        "stats": { "castingTime": 1, "instability": 0, "power": 1, "range": 4, "manaCost": 2, "duration": 2 }
+        "stats": { "castingTime": 1, "instability": 0, "power": 1, "range": 1, "manaCost": 2, "duration": 2 }
     },
     {
         "type": "sustain",
@@ -132,7 +132,7 @@
         "color": "#f5b041",
         "category": "control",
         "description": "효과가 일정 시간 지속되도록 붙잡습니다.",
-        "stats": { "castingTime": 2, "instability": 1, "power": 1, "range": 2, "manaCost": 3, "duration": 5 }
+        "stats": { "castingTime": 2, "instability": 1, "power": 1, "range": 1, "manaCost": 3, "duration": 5 }
     },
     {
         "type": "repeat",
@@ -151,7 +151,7 @@
         "color": "#85c1e9",
         "category": "extension",
         "description": "출력을 낮추고 효과의 범위를 넓게 퍼트립니다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": -2, "range": 4, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 2, "instability": 2, "power": -2, "range": 2, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "amplify",
@@ -178,7 +178,7 @@
         "color": "#d35400",
         "category": "control",
         "description": "효과를 좁은 범위에 밀집시켜 응축합니다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": 3, "range": -2, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 2, "instability": 2, "power": 3, "range": 1, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "split",
@@ -187,7 +187,7 @@
         "color": "#f7dc6f",
         "category": "extension",
         "description": "대상이나 효과를 독립된 부분으로 나눕니다. 여러 출력을 가질 수 있습니다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 2, "manaCost": 3, "duration": 1 },
+        "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 1, "manaCost": 3, "duration": 1 },
         "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
     },
@@ -198,7 +198,7 @@
         "color": "#f4d03f",
         "category": "extension",
         "description": "효과의 흐름을 여러 방향으로 갈라 보냅니다. 여러 출력을 가질 수 있습니다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 3, "manaCost": 3, "duration": 1 },
+        "stats": { "castingTime": 2, "instability": 2, "power": 1, "range": 1, "manaCost": 3, "duration": 1 },
         "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
     },

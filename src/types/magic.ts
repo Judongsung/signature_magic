@@ -1,6 +1,11 @@
 import type { Node } from '@xyflow/svelte';
 import magicTypesData from '../data/magicTypes.json';
 import { MAGIC_CONNECTION_RULE_KEYS, type MagicNodeCategory } from '../constants/gameConfigs';
+import {
+    MAGIC_STAT_AGGREGATION_OPERATION_IDS,
+    MAGIC_STAT_BRANCH_AGGREGATION_IDS,
+    MAGIC_STAT_SCALING_OPERATION_IDS,
+} from '../constants/magicStatConfigs';
 
 type MagicTypesData = typeof magicTypesData;
 
@@ -41,9 +46,28 @@ export interface MagicStatEffectBundle {
     finalEffects: MagicStatEffectConfig[];
 }
 
-export const MAGIC_STAT_BRANCH_AGGREGATIONS = ['sum', 'max'] as const;
+export type MagicStatBranchAggregation =
+    (typeof MAGIC_STAT_BRANCH_AGGREGATION_IDS)[keyof typeof MAGIC_STAT_BRANCH_AGGREGATION_IDS];
 
-export type MagicStatBranchAggregation = (typeof MAGIC_STAT_BRANCH_AGGREGATIONS)[number];
+export type MagicStatAggregationOperation =
+    (typeof MAGIC_STAT_AGGREGATION_OPERATION_IDS)[keyof typeof MAGIC_STAT_AGGREGATION_OPERATION_IDS];
+
+export type MagicStatScalingOperation =
+    (typeof MAGIC_STAT_SCALING_OPERATION_IDS)[keyof typeof MAGIC_STAT_SCALING_OPERATION_IDS];
+
+export interface MagicStatScalingConfig {
+    operation: MagicStatScalingOperation;
+    factor?: number;
+}
+
+export interface MagicStatRuleConfig {
+    nodeAggregation: MagicStatAggregationOperation;
+    serialAggregation: MagicStatAggregationOperation;
+    branchAggregation: MagicStatAggregationOperation;
+    scaling: MagicStatScalingConfig;
+}
+
+export type MagicStatRulesConfig = Partial<Record<MagicStatKey, MagicStatRuleConfig>>;
 
 export interface MagicNodeStatRuleConfig {
     branchAggregation?: MagicStatBranchAggregation;
@@ -58,15 +82,6 @@ export const EMPTY_MAGIC_STATS: MagicStats = {
     range: 0,
     manaCost: 0,
     duration: 0,
-};
-
-export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
-    castingTime: '캐스팅 시간',
-    instability: '불안정성',
-    power: '출력',
-    range: '범위',
-    manaCost: '마나 소모',
-    duration: '지속 시간',
 };
 
 export interface MagicNodeConnectionLimits {

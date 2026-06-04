@@ -83,7 +83,15 @@ function calculateGraphStat(
         : 0;
 
     if (rootIds.length === 1) {
-        return evaluateFrom(rootIds[0], statKey, graph, magicTypes, nodeStatEffects, undefined, new Set()) + unrootedValue;
+        return combineComponentValues(
+            statKey,
+            [
+                evaluateFrom(rootIds[0], statKey, graph, magicTypes, nodeStatEffects, undefined, new Set()),
+                ...(unrootedNodes.length > 0 ? [unrootedValue] : []),
+            ],
+            graph,
+            magicTypes
+        );
     }
 
     const rootValues = rootIds.map(rootId =>
@@ -93,9 +101,9 @@ function calculateGraphStat(
         ? evaluateFrom(mergeNodeId, statKey, graph, magicTypes, nodeStatEffects, undefined, new Set())
         : 0;
 
-    return MAGIC_STAT_RULES[statKey].combineBranchValues(
+    const branchValue = MAGIC_STAT_RULES[statKey].combineBranchValues(
         rootValues,
-        mergeNodeId ? readBranchAggregationByNodeId(mergeNodeId, statKey, magicTypes, graph) : 'sum',
+        mergeNodeId ? readBranchAggregationByNodeId(mergeNodeId, statKey, magicTypes, graph) : undefined,
         {
             statKey,
             scope: 'total',
@@ -103,7 +111,26 @@ function calculateGraphStat(
             edges: graph.edges,
             magicTypes,
         }
-    ) + mergedValue + unrootedValue;
+    );
+    const rootedValue = combineSerialValues(
+        statKey,
+        [
+            branchValue,
+            ...(mergeNodeId ? [mergedValue] : []),
+        ],
+        graph,
+        magicTypes
+    );
+
+    return combineComponentValues(
+        statKey,
+        [
+            rootedValue,
+            ...(unrootedNodes.length > 0 ? [unrootedValue] : []),
+        ],
+        graph,
+        magicTypes
+    );
 }
 
 interface StatGraph {
@@ -185,7 +212,14 @@ function evaluateFrom(
     }
 
     if (nextIds.length === 1) {
-        const value = ownValue + evaluateFrom(nextIds[0], statKey, graph, magicTypes, nodeStatEffects, stopNodeId, visiting);
+        const value = nextIds[0] === stopNodeId
+            ? ownValue
+            : combineSerialValues(
+                statKey,
+                [ownValue, evaluateFrom(nextIds[0], statKey, graph, magicTypes, nodeStatEffects, stopNodeId, visiting)],
+                graph,
+                magicTypes
+            );
         visiting.delete(nodeId);
         return value;
     }
@@ -210,7 +244,56 @@ function evaluateFrom(
         : 0;
 
     visiting.delete(nodeId);
-    return ownValue + branchValue + afterMergeValue;
+    return combineSerialValues(
+        statKey,
+        [
+            ownValue,
+            branchValue,
+            ...(mergeNodeId ? [afterMergeValue] : []),
+        ],
+        graph,
+        magicTypes
+    );
+}
+
+function combineSerialValues(
+    statKey: MagicStatKey,
+    values: readonly number[],
+    graph: StatGraph,
+    magicTypes: ReadonlyMap<string, MagicTypeConfig>
+): number {
+    const [firstValue, ...restValues] = values;
+    if (firstValue === undefined) return 0;
+
+    return restValues.reduce(
+        (value, nextValue) => MAGIC_STAT_RULES[statKey].combineSerialValues(
+            value,
+            nextValue,
+            {
+                statKey,
+                scope: 'total',
+                nodes: graph.nodes,
+                edges: graph.edges,
+                magicTypes,
+            }
+        ),
+        firstValue
+    );
+}
+
+function combineComponentValues(
+    statKey: MagicStatKey,
+    values: readonly number[],
+    graph: StatGraph,
+    magicTypes: ReadonlyMap<string, MagicTypeConfig>
+): number {
+    return MAGIC_STAT_RULES[statKey].combineNodeValues([...values], {
+        statKey,
+        scope: 'total',
+        nodes: graph.nodes,
+        edges: graph.edges,
+        magicTypes,
+    });
 }
 
 function readNodeStat(
@@ -227,8 +310,8 @@ function readBranchAggregation(
     node: MagicNode,
     statKey: MagicStatKey,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>
-): MagicStatBranchAggregation {
-    return magicTypes.get(node.data.magicType)?.statRules?.[statKey]?.branchAggregation ?? 'sum';
+): MagicStatBranchAggregation | undefined {
+    return magicTypes.get(node.data.magicType)?.statRules?.[statKey]?.branchAggregation;
 }
 
 function readBranchAggregationByNodeId(
@@ -236,9 +319,9 @@ function readBranchAggregationByNodeId(
     statKey: MagicStatKey,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     graph?: StatGraph
-): MagicStatBranchAggregation {
+): MagicStatBranchAggregation | undefined {
     const node = graph?.nodeMap.get(nodeId);
-    if (!node) return 'sum';
+    if (!node) return undefined;
 
     return readBranchAggregation(node, statKey, magicTypes);
 }

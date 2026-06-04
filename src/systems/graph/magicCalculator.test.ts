@@ -69,7 +69,7 @@ describe('calculateCircles', () => {
             castingTime: 3,
             instability: 5.75,
             power: 7,
-            range: 9,
+            range: 20,
             manaCost: 11,
             duration: 13,
         });
@@ -216,7 +216,7 @@ describe('calculateMagic', () => {
             castingTime: 10,
             instability: 10.45,
             power: 10,
-            range: 10,
+            range: 8,
             manaCost: 10,
             duration: 10,
         });
@@ -357,7 +357,7 @@ describe('calculateMagic', () => {
             castingTime: 2,
             instability: 2.3,
             power: 4,
-            range: 2,
+            range: 1,
             manaCost: 2,
             duration: 2,
         });
@@ -365,7 +365,7 @@ describe('calculateMagic', () => {
             castingTime: 2,
             instability: 2.3,
             power: 4,
-            range: 2,
+            range: 1,
             manaCost: 2,
             duration: 2,
         });
