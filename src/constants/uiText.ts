@@ -29,7 +29,7 @@ export const NODE_EDITOR_TEXT = {
     CATEGORY_ARIA_LABEL: '노드 카테고리',
     EMPTY_CATEGORY: '표시할 노드 없음',
     CLEAR_ALL: '전체 초기화',
-    TOOLBAR_HINT: '드래그해서 배치 · 선택 후 Delete 로 제거',
+    TOOLBAR_HINT: '클릭하면 중앙 배치 · 드래그해서 원하는 위치에 배치 · 선택 후 Delete 로 제거',
     CANVAS_ARIA_LABEL: 'magic node canvas',
     ROOT_BADGE: 'START',
     LEAF_BADGE: 'END',

@@ -4,26 +4,16 @@
         CYOA_REGISTRATION_SUMMARY_TEXT,
         UI_BUTTON_TEXT,
     } from '../../../constants/uiText';
-    import type { CyoaChoice, CyoaChoiceRowData } from '../../../types/cyoa';
+    import {
+        buildCyoaRegistrationSummary,
+        type InputValues,
+        type RowSelections,
+        type RowVisibility,
+    } from '../../../systems/cyoa/cyoaRegistrationSummary';
+    import type { CyoaChoiceRowData } from '../../../types/cyoa';
     import CyoaRegistrationSummaryBody from './CyoaRegistrationSummaryBody.svelte';
     import CyoaRegistrationSummaryFooter from './CyoaRegistrationSummaryFooter.svelte';
     import CyoaRegistrationSummaryHeader from './CyoaRegistrationSummaryHeader.svelte';
-
-    const SUMMARY_EXCLUDED_ROW_IDS = new Set(['toc']);
-
-    interface SummaryInputItem {
-        id: string;
-        label: string;
-        value: string;
-        requiredMissing: boolean;
-    }
-
-    interface SummaryChoiceItem {
-        id: string;
-        title: string;
-        choices: CyoaChoice[];
-        requiredMissing: boolean;
-    }
 
     let {
         rows = choiceStore.rows,
@@ -37,9 +27,9 @@
         submitDisabled = false,
     }: {
         rows?: CyoaChoiceRowData[];
-        visibleRowIds?: Record<string, boolean>;
-        selectedChoiceIds?: Record<string, string[]>;
-        inputValues?: Record<string, string>;
+        visibleRowIds?: RowVisibility;
+        selectedChoiceIds?: RowSelections;
+        inputValues?: InputValues;
         onSubmit?: () => void;
         onBack?: () => void;
         submitLabel?: string;
@@ -47,48 +37,19 @@
         submitDisabled?: boolean;
     } = $props();
 
-    function isRequiredRow(row: CyoaChoiceRowData): boolean {
-        return row.selectable && row.requiredCount > 0;
-    }
-
-    const summaryRows = $derived(rows.filter(row =>
-        !SUMMARY_EXCLUDED_ROW_IDS.has(row.id) &&
-        (visibleRowIds[row.id] || isRequiredRow(row))
-    ));
-
-    const inputItems = $derived(summaryRows.flatMap<SummaryInputItem>(row => {
-        if (!row.input) return [];
-
-        const value = inputValues[row.input.id]?.trim() ?? '';
-
-        return [{
-            id: row.input.id,
-            label: row.input.label,
-            value: value || CYOA_REGISTRATION_SUMMARY_TEXT.EMPTY_VALUE_LABEL,
-            requiredMissing: isRequiredRow(row) && value.length === 0,
-        }];
-    }));
-
-    const choiceItems = $derived(summaryRows.flatMap<SummaryChoiceItem>(row => {
-        if (row.input) return [];
-
-        const selectedIds = selectedChoiceIds[row.id] ?? [];
-        const selectedChoices = row.choices.filter(choice => selectedIds.includes(choice.id));
-
-        return [{
-            id: row.id,
-            title: row.title,
-            choices: selectedChoices,
-            requiredMissing: isRequiredRow(row) && selectedChoices.length < row.requiredCount,
-        }];
+    const summary = $derived(buildCyoaRegistrationSummary({
+        rows,
+        visibleRowIds,
+        selectedChoiceIds,
+        inputValues,
     }));
 </script>
 
 <section class="registration-summary" aria-labelledby="registration-summary-title">
     <CyoaRegistrationSummaryHeader />
     <CyoaRegistrationSummaryBody
-        {inputItems}
-        {choiceItems}
+        inputItems={summary.inputItems}
+        choiceItems={summary.choiceItems}
     />
     <CyoaRegistrationSummaryFooter
         {onBack}

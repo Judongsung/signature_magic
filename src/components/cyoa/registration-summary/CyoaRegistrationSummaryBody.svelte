@@ -1,27 +1,16 @@
 <script lang="ts">
     import { CYOA_REGISTRATION_SUMMARY_TEXT } from '../../../constants/uiText';
-    import type { CyoaChoice } from '../../../types/cyoa';
-
-    interface SummaryInputItem {
-        id: string;
-        label: string;
-        value: string;
-        requiredMissing: boolean;
-    }
-
-    interface SummaryChoiceItem {
-        id: string;
-        title: string;
-        choices: CyoaChoice[];
-        requiredMissing: boolean;
-    }
+    import type {
+        CyoaRegistrationSummaryChoiceItem,
+        CyoaRegistrationSummaryInputItem,
+    } from '../../../systems/cyoa/cyoaRegistrationSummary';
 
     let {
         inputItems,
         choiceItems,
     }: {
-        inputItems: SummaryInputItem[];
-        choiceItems: SummaryChoiceItem[];
+        inputItems: CyoaRegistrationSummaryInputItem[];
+        choiceItems: CyoaRegistrationSummaryChoiceItem[];
     } = $props();
 </script>
 
@@ -36,7 +25,9 @@
                     <div class="input-entry">
                         <dt>{item.label}</dt>
                         <dd class:required-missing={item.requiredMissing}>
-                            {item.requiredMissing ? CYOA_REGISTRATION_SUMMARY_TEXT.REQUIRED_NOTICE_LABEL : item.value}
+                            {item.requiredMissing
+                                ? CYOA_REGISTRATION_SUMMARY_TEXT.REQUIRED_NOTICE_LABEL
+                                : item.value || CYOA_REGISTRATION_SUMMARY_TEXT.EMPTY_VALUE_LABEL}
                         </dd>
                     </div>
                 {/each}

@@ -22,7 +22,10 @@
         type MagicNodeCategory,
     } from '../../constants/gameConfigs';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
-    import { resolveDropPosition } from '../../systems/graph/editorCanvas';
+    import {
+        resolveCenteredDropPosition,
+        resolveDropPosition,
+    } from '../../systems/graph/editorCanvas';
     import { getMagicTypesByCategory } from '../../systems/graph/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
@@ -37,6 +40,7 @@
     const { screenToFlowPosition } = useSvelteFlow();
 
     let activeCategoryIds = $state<MagicNodeCategory[]>([...DEFAULT_ACTIVE_MAGIC_NODE_CATEGORY_IDS]);
+    let flowWrapperElement: HTMLDivElement | undefined;
     const visibleMagicTypes = $derived(
         getMagicTypesByCategory(activeCategoryIds),
     );
@@ -50,6 +54,25 @@
     function onDragStart(event: DragEvent, magicType: MagicType) {
         event.dataTransfer?.setData('application/magictype', magicType);
         if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+    }
+
+    function addNodeAtCanvasCenter(magicType: MagicType) {
+        const bounds = flowWrapperElement?.getBoundingClientRect();
+        const screenPosition = bounds
+            ? {
+                x: bounds.left + bounds.width / 2,
+                y: bounds.top + bounds.height / 2,
+            }
+            : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        const flowPosition = screenToFlowPosition(screenPosition);
+        const position = resolveCenteredDropPosition(
+            flowPosition,
+            EDITOR_CANVAS.CLICK_PLACEMENT_NODE_SIZE,
+            snapGrid,
+            canvasExtent
+        );
+
+        graphStore.addNode(magicType, position);
     }
 
     function onDragOver(event: DragEvent) {
@@ -81,11 +104,13 @@
         {activeCategoryIds}
         {visibleMagicTypes}
         onToggleCategory={toggleCategory}
+        onAddNode={addNodeAtCanvasCenter}
         {onDragStart}
         onClear={() => graphStore.clear()}
     />
 
     <div
+        bind:this={flowWrapperElement}
         class="flow-wrapper"
         ondragover={onDragOver}
         ondrop={onDrop}

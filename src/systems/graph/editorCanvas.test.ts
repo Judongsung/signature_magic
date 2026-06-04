@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { clampPointToExtent, resolveDropPosition, snapPointToGrid } from './editorCanvas';
+import {
+    clampPointToExtent,
+    resolveCenteredDropPosition,
+    resolveDropPosition,
+    snapPointToGrid,
+} from './editorCanvas';
 
 const grid = [40, 40] as const;
 const extent = [[-1200, -800], [1200, 800]] as const;
@@ -23,5 +28,13 @@ describe('editorCanvas', () => {
             y: 800,
         });
     });
-});
 
+    it('converts a desired node center to a snapped top-left position', () => {
+        expect(resolveCenteredDropPosition(
+            { x: 0, y: 0 },
+            { width: 160, height: 80 },
+            grid,
+            extent
+        )).toEqual({ x: -80, y: -40 });
+    });
+});

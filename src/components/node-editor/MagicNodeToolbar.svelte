@@ -14,12 +14,14 @@
         activeCategoryIds,
         visibleMagicTypes,
         onToggleCategory,
+        onAddNode,
         onDragStart,
         onClear,
     }: {
         activeCategoryIds: MagicNodeCategory[];
         visibleMagicTypes: MagicTypeConfig[];
         onToggleCategory: (categoryId: MagicNodeCategory) => void;
+        onAddNode: (magicType: MagicType) => void;
         onDragStart: (event: DragEvent, magicType: MagicType) => void;
         onClear: () => void;
     } = $props();
@@ -47,8 +49,10 @@
     {#each visibleMagicTypes as { type, label, icon, description }}
         <button
             class="drag-btn tooltip-host"
+            type="button"
             draggable="true"
             aria-describedby={`magic-node-tooltip-${type}`}
+            onclick={() => onAddNode(type)}
             ondragstart={(event) => onDragStart(event, type)}
         >
             <span>{icon} {label}</span>

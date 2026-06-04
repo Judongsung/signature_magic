@@ -1,4 +1,5 @@
 export type Point = { x: number; y: number };
+export type Size = { width: number; height: number };
 export type GridSize = readonly [number, number];
 export type CanvasExtent = readonly [
     readonly [number, number],
@@ -31,3 +32,14 @@ export function resolveDropPosition(
     return clampPointToExtent(snapPointToGrid(flowPosition, grid), extent);
 }
 
+export function resolveCenteredDropPosition(
+    flowCenterPosition: Point,
+    nodeSize: Size,
+    grid: GridSize,
+    extent: CanvasExtent
+): Point {
+    return resolveDropPosition({
+        x: flowCenterPosition.x - nodeSize.width / 2,
+        y: flowCenterPosition.y - nodeSize.height / 2,
+    }, grid, extent);
+}
