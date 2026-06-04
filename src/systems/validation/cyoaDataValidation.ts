@@ -79,6 +79,9 @@ export function validateCyoaRows(
     });
 
     rows.forEach(row => {
+        if (row.description !== undefined && typeof row.description !== 'string') {
+            errors.push(`Invalid CYOA row description: ${row.id}`);
+        }
         if (row.requiredCount !== undefined && (!Number.isInteger(row.requiredCount) || row.requiredCount < 0)) {
             errors.push(`Invalid CYOA required count: ${row.id} -> ${row.requiredCount}`);
         }

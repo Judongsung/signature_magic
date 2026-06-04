@@ -26,3 +26,4 @@ src/SOURCE_MAP.md
 *.njsproj
 *.sln
 *.sw?
+.VSCodeCounter/*

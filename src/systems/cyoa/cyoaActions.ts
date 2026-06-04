@@ -67,6 +67,7 @@ export function mapCyoaRowConfig(
     return {
         id: row.id,
         title: row.title,
+        description: row.description,
         visible: row.visible ?? true,
         selectable: row.selectable ?? true,
         requiredCount: row.requiredCount ?? DEFAULT_REQUIRED_COUNT,

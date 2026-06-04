@@ -256,6 +256,7 @@
     {
         "id": "region",
         "title": "지역",
+        "description": "출신 지역은 마법의 기초 성향에 영향을 줍니다.",
         "visible": false,
         "choices": [
             {
@@ -270,8 +271,8 @@
                 "id": "region-university-city",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마법 연구가 이루어지는 대학도시",
-                "title": "대학도시",
-                "description": "학파와 연구실이 밀집한 지식의 거점입니다.",
+                "title": "대륙연합학원 아타라",
+                "description": "",
                 "width": "1/4"
             },
             {
@@ -285,17 +286,17 @@
             {
                 "id": "region-northern-snowfield",
                 "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "북부의 설원",
-                "title": "북부 설원",
-                "description": "혹한과 침묵이 오래된 힘을 보존합니다.",
+                "imageAlt": "대륙 북부 설원",
+                "title": "대륙 북부 설원",
+                "description": "사시사철 눈이 덮인 설원이자 대륙에서 가장 척박한 땅이다. 이곳에서는 오로지 힘과 효율만이 전부이다.",
                 "width": "1/4"
             },
             {
-                "id": "region-southern-grassland",
+                "id": "region-southern",
                 "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "남부의 넓은 초원",
-                "title": "남부 초원",
-                "description": "넓은 이동로와 생명력이 흐르는 개방지입니다.",
+                "imageAlt": "대륙 남부 해안",
+                "title": "대륙 남부 해안",
+                "description": "무역상과 뱃사람들로 북적이는 이곳은 대륙 무역의 중심지이다.\n날씨가 맑은 날이면 바다 건너 대륙의 그 높이가 가히 하늘에 닿는 거대한 나무의 모습을 볼 수 있다.",
                 "width": "1/4"
             },
             {
@@ -338,15 +339,15 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마력을 담는 지팡이",
                 "title": "지팡이",
-                "description": "마력을 안정적으로 집중시키는 전통적인 촉매입니다.",
+                "description": "마력을 안정적으로 집중시키는 전통적인 촉매이다.",
                 "width": "1/3"
             },
             {
-                "id": "catalyst-dagger",
+                "id": "catalyst-sword",
                 "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "의식용 단검",
-                "title": "단검",
-                "description": "짧고 날카로운 의식으로 힘의 방향을 고정합니다.",
+                "imageAlt": "검",
+                "title": "검",
+                "description": "",
                 "width": "1/3"
             },
             {

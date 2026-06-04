@@ -140,6 +140,7 @@ describe('dataValidation', () => {
                 {
                     id: 'toc',
                     title: 'TOC',
+                    description: 123,
                     requiredCount: -1,
                     visibleWhen: {
                         choiceSelected: 'missing-choice',
@@ -169,6 +170,7 @@ describe('dataValidation', () => {
         )).toEqual({
             valid: false,
             errors: [
+                'Invalid CYOA row description: toc',
                 'Invalid CYOA required count: toc -> -1',
                 'Unknown CYOA visibleWhen choice: toc -> missing-choice',
                 'Unknown CYOA visibleWhen any choice: toc -> missing-any',

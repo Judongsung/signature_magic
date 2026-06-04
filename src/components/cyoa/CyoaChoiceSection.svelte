@@ -19,7 +19,12 @@
 </script>
 
 <section class="choice-section" aria-labelledby={`choice-row-${row.id}`}>
-    <h2 id={`choice-row-${row.id}`}>{row.title}</h2>
+    <div class="section-heading">
+        <h2 id={`choice-row-${row.id}`}>{row.title}</h2>
+        {#if row.description}
+            <p class="row-description">{row.description}</p>
+        {/if}
+    </div>
     {#if row.input}
         <CyoaTextInputRow
             input={row.input}
@@ -58,5 +63,19 @@
         letter-spacing: 0.2px;
         border-bottom: 0;
         padding-bottom: 0;
+    }
+
+    .section-heading {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .row-description {
+        margin: 0;
+        color: rgba(59, 44, 29, 0.72);
+        font-size: 13px;
+        line-height: 1.55;
+        word-break: keep-all;
     }
 </style>

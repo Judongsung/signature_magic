@@ -96,6 +96,7 @@ describe('cyoaActions', () => {
             {
                 id: 'layout',
                 title: 'Layout',
+                description: 'Choose a layout.',
                 choices: [
                     { id: 'a', imageAlt: '', title: '', description: '', width: '1/2' },
                     { id: 'b', imageAlt: '', title: '', description: '', width: '1/4' },
@@ -105,6 +106,7 @@ describe('cyoaActions', () => {
         ], (imagePath) => imagePath ?? '/fallback.webp');
 
         expect(mapped[0].layoutColumns).toBe(4);
+        expect(mapped[0].description).toBe('Choose a layout.');
         expect(mapped[0].choices.map(choice => choice.layoutSpan)).toEqual([2, 1, 1]);
     });
 

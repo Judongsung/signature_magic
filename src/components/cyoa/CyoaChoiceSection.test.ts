@@ -6,6 +6,7 @@ import type { CyoaChoiceRowData } from '../../types/cyoa';
 const row: CyoaChoiceRowData = {
     id: 'region',
     title: '지역',
+    description: 'Region row description',
     visible: true,
     selectable: true,
     requiredCount: 1,
@@ -30,6 +31,7 @@ describe('CyoaChoiceSection', () => {
 
         expect(html).toContain('aria-labelledby="choice-row-region"');
         expect(html).toContain('id="choice-row-region"');
+        expect(html).toContain('Region row description');
         expect(html).toContain('지역');
         expect(html).toContain('미개척지');
     });

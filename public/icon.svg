@@ -1,0 +1,222 @@
+<svg width="512" height="512" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 부드러운 발광 필터 (네온 효과) -->
+    <filter id="magic-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.0" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- 중심부 강한 발광 필터 -->
+    <filter id="intense-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.0" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- 중앙 빛의 구체 그라데이션 -->
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffffff; stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#bdfeff; stop-opacity:0.8" />
+      <stop offset="70%" style="stop-color:#25d2ff; stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#101726; stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- 전체 레이어 그룹 (발광 효과 적용, 배경 투명) -->
+  <g filter="url(#magic-glow)">
+    
+    <!-- 1. 가장 바깥쪽 미세 장식 프레임 -->
+    <circle cx="50" cy="50" r="48.5" fill="none" stroke="#253248" stroke-width="0.3" />
+    <circle cx="50" cy="50" r="47.5" fill="none" stroke="#9d4edd" stroke-width="0.2" stroke-dasharray="1, 1.5" opacity="0.6" />
+    <circle cx="50" cy="50" r="45.5" fill="none" stroke="#1c2333" stroke-width="0.4" />
+
+    <!-- 2. 완벽한 수학적 대칭의 육각별 (중심 50,50 / 반지름 37.5) -->
+    <!-- 위를 향하는 정삼각형 -->
+    <polygon points="50,12.5 82.48,68.75 17.52,68.75" fill="none" stroke="#3d4f6d" stroke-width="0.6" />
+    <!-- 아래를 향하는 정삼각형 -->
+    <polygon points="50,87.5 17.52,31.25 82.48,31.25" fill="none" stroke="#3d4f6d" stroke-width="0.6" />
+
+    <!-- 3. 보라색 외부 룬 트랙 -->
+    <circle cx="50" cy="50" r="43.5" fill="none" stroke="#7b2cbf" stroke-width="0.4" opacity="0.8" />
+    <circle cx="50" cy="50" r="37.5" fill="none" stroke="#7b2cbf" stroke-width="0.4" opacity="0.8" />
+
+    <!-- 보라색 룬 문자 (총 12개 대칭 배치, 반경 40.5) -->
+    <g fill="none" stroke="#c77dff" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">
+      <!-- 0도 (상단) -->
+      <g transform="rotate(0 50 50)">
+        <path d="M50 8 L50 11 M48 8.5 L52 8.5 M48 10.5 L52 10.5 M50 8 L48 9.5 M50 8 L52 9.5" />
+      </g>
+      <!-- 30도 -->
+      <g transform="rotate(30 50 50)">
+        <path d="M48.5 8.5 L51.5 11 M51.5 8.5 L48.5 11 M48.5 8.5 H51.5" />
+      </g>
+      <!-- 60도 -->
+      <g transform="rotate(60 50 50)">
+        <path d="M48 9 L52 9 L50 11.5 L48 9" />
+      </g>
+      <!-- 90도 (우측) -->
+      <g transform="rotate(90 50 50)">
+        <path d="M48 8.5 H52 L48 11.5 H52" />
+      </g>
+      <!-- 120도 -->
+      <g transform="rotate(120 50 50)">
+        <path d="M48.5 8.5 Q51.5 10 48.5 11.5 M50 8.5 V11.5" />
+      </g>
+      <!-- 150도 -->
+      <g transform="rotate(150 50 50)">
+        <path d="M48.5 9 L50 11 L51.5 9 M50 11 V8" />
+      </g>
+      <!-- 180도 (하단) -->
+      <g transform="rotate(180 50 50)">
+        <path d="M50 8 L50 11 M48 8.5 L52 8.5 M48 10.5 L52 10.5 M50 8 L48 9.5 M50 8 L52 9.5" />
+      </g>
+      <!-- 210도 -->
+      <g transform="rotate(210 50 50)">
+        <path d="M48.5 8.5 L51.5 11 M51.5 8.5 L48.5 11 M48.5 8.5 H51.5" />
+      </g>
+      <!-- 240도 -->
+      <g transform="rotate(240 50 50)">
+        <path d="M48 9 L52 9 L50 11.5 L48 9" />
+      </g>
+      <!-- 270도 (좌측) -->
+      <g transform="rotate(270 50 50)">
+        <path d="M48 8.5 H52 L48 11.5 H52" />
+      </g>
+      <!-- 300도 -->
+      <g transform="rotate(300 50 50)">
+        <path d="M48.5 8.5 Q51.5 10 48.5 11.5 M50 8.5 V11.5" />
+      </g>
+      <!-- 330도 -->
+      <g transform="rotate(330 50 50)">
+        <path d="M48.5 9 L50 11 L51.5 9 M50 11 V8" />
+      </g>
+    </g>
+
+    <!-- 4. 마법 입자 도트 링 (반경 34.5) -->
+    <g fill="#e0aaff" opacity="0.7">
+      <circle cx="50" cy="15.5" r="0.4" /><circle cx="50" cy="84.5" r="0.4" />
+      <circle cx="15.5" cy="50" r="0.4" /><circle cx="84.5" cy="50" r="0.4" />
+      <circle cx="32.7" cy="32.7" r="0.4" /><circle cx="67.3" cy="32.7" r="0.4" />
+      <circle cx="32.7" cy="67.3" r="0.4" /><circle cx="67.3" cy="67.3" r="0.4" />
+    </g>
+
+    <!-- 5. 주황색 중간 룬 트랙 -->
+    <circle cx="50" cy="50" r="32.5" fill="none" stroke="#d94e06" stroke-width="0.35" opacity="0.8" />
+    <circle cx="50" cy="50" r="24.5" fill="none" stroke="#d94e06" stroke-width="0.35" opacity="0.8" />
+
+    <!-- 주황색 룬 문자 (총 12개 배치, 반경 28.5) -->
+    <g fill="none" stroke="#ff9f1c" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round">
+      <!-- 15도 -->
+      <g transform="rotate(15 50 50)">
+        <rect x="48" y="20" width="4" height="4" rx="0.5" />
+      </g>
+      <!-- 45도 -->
+      <g transform="rotate(45 50 50)">
+        <circle cx="50" cy="22" r="1.8" />
+        <line x1="48" y1="22" x2="52" y2="22" />
+      </g>
+      <!-- 75도 -->
+      <g transform="rotate(75 50 50)">
+        <path d="M48 20.5 L52 23.5 M52 20.5 L48 23.5" />
+      </g>
+      <!-- 105도 -->
+      <g transform="rotate(105 50 50)">
+        <path d="M48 22 H52 M50 20 V24" />
+      </g>
+      <!-- 135도 -->
+      <g transform="rotate(135 50 50)">
+        <path d="M48 23.5 L50 20.5 L52 23.5 Z M50 20.5 V23.5" />
+      </g>
+      <!-- 165도 -->
+      <g transform="rotate(165 50 50)">
+        <path d="M48 21 Q49 19.5 50 21 T52 21 M48 23 Q49 21.5 50 23 T52 23" />
+      </g>
+      <!-- 195도 -->
+      <g transform="rotate(195 50 50)">
+        <rect x="48" y="20" width="4" height="4" rx="0.5" />
+      </g>
+      <!-- 225도 -->
+      <g transform="rotate(225 50 50)">
+        <circle cx="50" cy="22" r="1.8" />
+        <line x1="48" y1="22" x2="52" y2="22" />
+      </g>
+      <!-- 255도 -->
+      <g transform="rotate(255 50 50)">
+        <path d="M48 20.5 L52 23.5 M52 20.5 L48 23.5" />
+      </g>
+      <!-- 285도 -->
+      <g transform="rotate(285 50 50)">
+        <path d="M48 22 H52 M50 20 V24" />
+      </g>
+      <!-- 315도 -->
+      <g transform="rotate(315 50 50)">
+        <path d="M48 23.5 L50 20.5 L52 23.5 Z M50 20.5 V23.5" />
+      </g>
+      <!-- 345도 -->
+      <g transform="rotate(345 50 50)">
+        <path d="M48 21 Q49 19.5 50 21 T52 21 M48 23 Q49 21.5 50 23 T52 23" />
+      </g>
+    </g>
+
+    <!-- 6. 청록색 내부 룬 트랙 -->
+    <circle cx="50" cy="50" r="20.5" fill="none" stroke="#0096c7" stroke-width="0.3" opacity="0.8" />
+    <circle cx="50" cy="50" r="14.5" fill="none" stroke="#0096c7" stroke-width="0.3" opacity="0.8" />
+
+    <!-- 청록색 룬 문자 (총 8개 배치, 반경 17.5) -->
+    <g fill="none" stroke="#00f5d4" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round">
+      <!-- 0도 -->
+      <g transform="rotate(0 50 50)">
+        <path d="M48.5 16 L50 18.5 L51.5 16 Z" />
+      </g>
+      <!-- 45도 -->
+      <g transform="rotate(45 50 50)">
+        <path d="M48.5 16 H51.5 M50 16 V19" />
+      </g>
+      <!-- 90도 -->
+      <g transform="rotate(90 50 50)">
+        <path d="M48.5 16 L51.5 19 M51.5 16 L48.5 19" />
+      </g>
+      <!-- 135도 -->
+      <g transform="rotate(135 50 50)">
+        <circle cx="50" cy="17.5" r="1.1" />
+      </g>
+      <!-- 180도 -->
+      <g transform="rotate(180 50 50)">
+        <path d="M48.5 16 L50 18.5 L51.5 16 Z" />
+      </g>
+      <!-- 225도 -->
+      <g transform="rotate(225 50 50)">
+        <path d="M48.5 16 H51.5 M50 16 V19" />
+      </g>
+      <!-- 270도 -->
+      <g transform="rotate(270 50 50)">
+        <path d="M48.5 16 L51.5 19 M51.5 16 L48.5 19" />
+      </g>
+      <!-- 315도 -->
+      <g transform="rotate(315 50 50)">
+        <circle cx="50" cy="17.5" r="1.1" />
+      </g>
+    </g>
+
+    <!-- 7. 핵심 코어 영역 장식 도트 (반경 12.5) -->
+    <g fill="#9bf6ff" opacity="0.8">
+      <circle cx="50" cy="37.5" r="0.3" /><circle cx="50" cy="62.5" r="0.3" />
+      <circle cx="37.5" cy="50" r="0.3" /><circle cx="62.5" cy="50" r="0.3" />
+      <circle cx="41.16" cy="41.16" r="0.3" /><circle cx="58.84" cy="41.16" r="0.3" />
+      <circle cx="41.16" cy="58.84" r="0.3" /><circle cx="58.84" cy="58.84" r="0.3" />
+      <g transform="rotate(30 50 50)"><circle cx="50" cy="37.5" r="0.25" /><circle cx="50" cy="62.5" r="0.25" /><circle cx="37.5" cy="50" r="0.25" /><circle cx="62.5" cy="50" r="0.25" /></g>
+      <g transform="rotate(60 50 50)"><circle cx="50" cy="37.5" r="0.25" /><circle cx="50" cy="62.5" r="0.25" /><circle cx="37.5" cy="50" r="0.25" /><circle cx="62.5" cy="50" r="0.25" /></g>
+    </g>
+
+    <!-- 8. 중앙 구체 (강한 코어 빛) -->
+    <circle cx="50" cy="50" r="11" fill="url(#coreGlow)" filter="url(#intense-glow)" />
+    <!-- 가장 밝은 흰색 센터 코어 -->
+    <circle cx="50" cy="50" r="4.5" fill="#ffffff" filter="url(#intense-glow)" />
+    <circle cx="50" cy="50" r="2.5" fill="#ffffff" />
+  </g>
+</svg>

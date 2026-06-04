@@ -28,6 +28,7 @@ export interface CyoaChoiceConfig {
 export interface CyoaChoiceRowConfig {
     id: string;
     title: string;
+    description?: string;
     visible?: boolean;
     selectable?: boolean;
     requiredCount?: number;
@@ -53,6 +54,7 @@ export interface CyoaChoice {
 export interface CyoaChoiceRowData {
     id: string;
     title: string;
+    description?: string;
     visible: boolean;
     selectable: boolean;
     requiredCount: number;
