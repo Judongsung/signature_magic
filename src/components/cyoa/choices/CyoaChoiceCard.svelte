@@ -1,6 +1,6 @@
 <script lang="ts">
-    import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
-    import type { CyoaChoice } from '../../types/cyoa';
+    import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
+    import type { CyoaChoice } from '../../../types/cyoa';
 
     const TOOLTIP_ID_SUFFIX = 'tooltip';
 

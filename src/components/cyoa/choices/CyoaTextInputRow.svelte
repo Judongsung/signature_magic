@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { CyoaTextInputConfig } from '../../types/cyoa';
+    import type { CyoaTextInputConfig } from '../../../types/cyoa';
 
     let {
         input,

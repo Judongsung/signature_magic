@@ -2,6 +2,7 @@
     import { tick } from 'svelte';
     import { Handle, Position, useUpdateNodeInternals } from '@xyflow/svelte';
     import type { MagicNodeData } from '../../types/magic';
+    import { NODE_EDITOR_TEXT } from '../../constants/uiText';
     import { getMagicTypeConfig } from '../../systems/graph/magicTypeRegistry';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
 
@@ -59,7 +60,7 @@
         연결을 생성하면 isLeaf=false가 되어 이 배지가 사라집니다.
     -->
     <div class="badge-wrap top-badge-wrap">
-        {#if isLeaf}<span class="badge leaf-badge">END</span>{/if}
+        {#if isLeaf}<span class="badge leaf-badge">{NODE_EDITOR_TEXT.LEAF_BADGE}</span>{/if}
     </div>
     {#each outputHandles as index}
         <Handle
@@ -93,7 +94,7 @@
         />
     {/each}
     <div class="badge-wrap bottom-badge-wrap">
-        {#if isRoot}<span class="badge root-badge">START</span>{/if}
+        {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
     </div>
 
     {#if description}

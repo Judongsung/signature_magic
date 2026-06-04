@@ -1,9 +1,9 @@
 <script lang="ts">
-    import dialogueScriptsData from '../../data/cyoaDialogueScripts.json';
-    import { mapCyoaDialogueScripts } from '../../systems/cyoa/cyoaDialogueScripts';
-    import { resolveCyoaImagePath } from '../../systems/cyoa/cyoaImageRegistry';
-    import type { CyoaDialogueScriptConfig } from '../../types/cyoa';
-    import CyoaChoiceRow from './CyoaChoiceRow.svelte';
+    import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
+    import { mapCyoaDialogueScripts } from '../../../systems/cyoa/cyoaDialogueScripts';
+    import { resolveCyoaImagePath } from '../../../systems/cyoa/cyoaImageRegistry';
+    import type { CyoaDialogueScriptConfig } from '../../../types/cyoa';
+    import CyoaChoiceRow from '../choices/CyoaChoiceRow.svelte';
 
     const DIALOGUE_SCRIPT = mapCyoaDialogueScripts(
         dialogueScriptsData as CyoaDialogueScriptConfig[],

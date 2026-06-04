@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run validate:data",
     "build": "vite build",
     "preview": "vite preview",
+    "validate:data": "vitest run src/systems/validation/dataValidation.test.ts",
     "test": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },

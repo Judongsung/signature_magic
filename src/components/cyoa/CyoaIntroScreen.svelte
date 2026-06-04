@@ -8,16 +8,10 @@
     } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
     import { choiceStore } from '../../stores/choiceStore.svelte';
-    import {
-        REGISTRATION_PREVIEW_INPUT_VALUES,
-        REGISTRATION_PREVIEW_ROWS,
-        REGISTRATION_PREVIEW_SELECTED_CHOICES,
-        REGISTRATION_PREVIEW_VISIBLE_ROWS,
-    } from '../../data/cyoaRegistrationPreview';
     import type { CyoaChoiceRowData } from '../../types/cyoa';
-    import CyoaDialogueScript from './CyoaDialogueScript.svelte';
-    import CyoaChoiceSection from './CyoaChoiceSection.svelte';
-    import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
+    import CyoaChoiceSection from './choices/CyoaChoiceSection.svelte';
+    import CyoaDialogueScript from './dialogue/CyoaDialogueScript.svelte';
+    import CyoaRegistrationSummary from './registration-summary/CyoaRegistrationSummary.svelte';
 
     function handleChoiceSelect(row: CyoaChoiceRowData, choiceId: string) {
         choiceStore.selectChoice(row, choiceId);
@@ -61,8 +55,8 @@
             {/if}
         {/each}
 
-        <div class="actions">
-            {#if import.meta.env.DEV}
+        {#if import.meta.env.DEV}
+            <div class="actions">
                 <button
                     type="button"
                     class="dev-skip-button"
@@ -70,23 +64,14 @@
                 >
                     {UI_BUTTON_TEXT.DEV_SKIP_TO_NODE_COMPOSITION}
                 </button>
-            {/if}
-            <button
-                type="button"
-                class="continue-button"
-                disabled={!choiceStore.canContinue}
-                onclick={continueToNodeComposition}
-            >
-                {UI_BUTTON_TEXT.SUBMIT_REGISTRATION}
-            </button>
-        </div>
+            </div>
+        {/if}
     </section>
 
     <CyoaRegistrationSummary
-        rows={REGISTRATION_PREVIEW_ROWS}
-        visibleRowIds={REGISTRATION_PREVIEW_VISIBLE_ROWS}
-        selectedChoiceIds={REGISTRATION_PREVIEW_SELECTED_CHOICES}
-        inputValues={REGISTRATION_PREVIEW_INPUT_VALUES}
+        onSubmit={continueToNodeComposition}
+        submitLabel={UI_BUTTON_TEXT.SUBMIT_REGISTRATION}
+        submitDisabled={!choiceStore.canContinue}
     />
 </main>
 
@@ -172,7 +157,6 @@
         z-index: 2;
     }
 
-    .continue-button,
     .dev-skip-button {
         min-width: 160px;
         height: 46px;
@@ -191,24 +175,11 @@
         box-sizing: border-box;
     }
 
-    .continue-button {
-        background: linear-gradient(180deg, #8a5a32, #5f3b20);
-        color: #fff7e6;
-        box-shadow: 0 8px 18px rgba(80, 52, 27, 0.2);
-    }
-
     .dev-skip-button {
         background: linear-gradient(180deg, #3e6f67, #284c46);
         color: #f1fffb;
         border-color: rgba(43, 94, 84, 0.36);
         box-shadow: 0 8px 18px rgba(35, 73, 67, 0.18);
-    }
-
-    .continue-button:hover:not(:disabled) {
-        background: linear-gradient(180deg, #9c673a, #704726);
-        border-color: rgba(103, 77, 48, 0.58);
-        box-shadow: 0 12px 24px rgba(80, 52, 27, 0.28);
-        transform: translateY(-1px);
     }
 
     .dev-skip-button:hover {
@@ -218,23 +189,14 @@
         transform: translateY(-1px);
     }
 
-    .continue-button:active:not(:disabled),
     .dev-skip-button:active {
         transform: translateY(1px);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
     }
 
-    .continue-button:focus-visible,
     .dev-skip-button:focus-visible {
         outline: 2px solid #8a5a32;
         outline-offset: 2px;
-    }
-
-    .continue-button:disabled {
-        cursor: not-allowed;
-        opacity: 0.4;
-        filter: grayscale(0.7);
-        box-shadow: none;
     }
 
     @media (max-width: 720px) {
@@ -261,7 +223,6 @@
             gap: 12px;
         }
 
-        .continue-button,
         .dev-skip-button {
             width: 100%;
         }

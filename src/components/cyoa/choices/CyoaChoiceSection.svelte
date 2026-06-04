@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { CyoaChoiceRowData } from '../../types/cyoa';
+    import type { CyoaChoiceRowData } from '../../../types/cyoa';
     import CyoaChoiceRow from './CyoaChoiceRow.svelte';
     import CyoaTextInputRow from './CyoaTextInputRow.svelte';
 

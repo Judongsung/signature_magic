@@ -1,7 +1,7 @@
 <script lang="ts">
-    const BUILD_PLACEHOLDER_LABEL = 'node composition only build';
+    import { CYOA_BUILD_PLACEHOLDER_TEXT } from '../../../constants/uiText';
 </script>
 
 <div class="cyoa-build-placeholder" aria-hidden="true">
-    {BUILD_PLACEHOLDER_LABEL}
+    {CYOA_BUILD_PLACEHOLDER_TEXT.NODE_COMPOSITION_ONLY}
 </div>
