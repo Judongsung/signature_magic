@@ -103,6 +103,7 @@ describe('cyoaRegistrationSummary', () => {
             choices: [],
             requiredMissing: false,
         });
+        expect(summary.signatureName).toBe('');
     });
 
     it('marks selected choices and filled inputs as complete', () => {
@@ -129,5 +130,6 @@ describe('cyoaRegistrationSummary', () => {
                 requiredMissing: false,
             },
         ]);
+        expect(summary.signatureName).toBe(summary.inputItems[0].value);
     });
 });

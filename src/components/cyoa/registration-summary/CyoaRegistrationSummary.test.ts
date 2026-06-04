@@ -6,7 +6,7 @@ import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
 const rows: CyoaChoiceRowData[] = [
     {
         id: 'toc',
-        title: '목차',
+        title: 'Table of contents',
         visible: true,
         selectable: true,
         requiredCount: 0,
@@ -16,13 +16,27 @@ const rows: CyoaChoiceRowData[] = [
             {
                 id: 'toc-region',
                 imageAlt: '',
-                title: '지역',
+                title: 'Region',
             },
         ],
     },
     {
+        id: 'name',
+        title: 'Name',
+        visible: false,
+        selectable: true,
+        requiredCount: 1,
+        selectionMode: 'single',
+        layoutColumns: 1,
+        input: {
+            id: 'name-input',
+            label: 'Name',
+        },
+        choices: [],
+    },
+    {
         id: 'region',
-        title: '지역',
+        title: 'Region',
         visible: false,
         selectable: true,
         requiredCount: 1,
@@ -32,7 +46,7 @@ const rows: CyoaChoiceRowData[] = [
             {
                 id: 'region-frontier',
                 imageAlt: '',
-                title: '변경 지대',
+                title: 'Frontier',
             },
         ],
     },
@@ -43,15 +57,49 @@ describe('CyoaRegistrationSummary', () => {
         const { html } = render(CyoaRegistrationSummary, {
             props: {
                 rows,
-                visibleRowIds: { toc: true, region: false },
+                visibleRowIds: { toc: true, name: false, region: false },
                 selectedChoiceIds: {},
                 inputValues: {},
             },
         });
 
-        expect(html).not.toContain('>목차</h4>');
-        expect(html).toContain('>지역</h4>');
-        expect(html).toContain('필수 사항');
+        expect(html).not.toContain('>Table of contents</h4>');
+        expect(html).toContain('>Region</h4>');
         expect(html).toContain('required-missing');
+    });
+
+    it('renders the signature name in the document and submit action outside it', () => {
+        const { html } = render(CyoaRegistrationSummary, {
+            props: {
+                rows,
+                visibleRowIds: { toc: true, name: true, region: false },
+                selectedChoiceIds: {},
+                inputValues: { 'name-input': 'Arin' },
+                onSubmit: () => {},
+                submitLabel: 'Submit',
+            },
+        });
+
+        expect(html).toContain('signature-name');
+        expect(html).toContain('>Arin</span>');
+        expect(html.lastIndexOf('</section>')).toBeLessThan(html.indexOf('>Submit</button>'));
+    });
+
+    it('shows a required-fields tooltip for the disabled submit action', () => {
+        const { html } = render(CyoaRegistrationSummary, {
+            props: {
+                rows,
+                visibleRowIds: { toc: true, name: false, region: false },
+                selectedChoiceIds: {},
+                inputValues: {},
+                onSubmit: () => {},
+                submitLabel: 'Submit',
+                submitDisabled: true,
+            },
+        });
+
+        expect(html).toContain('tooltip-host');
+        expect(html).toContain('registration-submit-disabled-tooltip');
+        expect(html).toContain('필수 사항을 전부 기재해 주세요.');
     });
 });

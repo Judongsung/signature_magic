@@ -2,17 +2,9 @@
     import { CYOA_REGISTRATION_SUMMARY_TEXT } from '../../../constants/uiText';
 
     let {
-        onSubmit,
-        onBack,
-        submitLabel,
-        backLabel,
-        submitDisabled = false,
+        signatureName,
     }: {
-        onSubmit?: () => void;
-        onBack?: () => void;
-        submitLabel: string;
-        backLabel: string;
-        submitDisabled?: boolean;
+        signatureName: string;
     } = $props();
 </script>
 
@@ -22,38 +14,71 @@
         <span>{CYOA_REGISTRATION_SUMMARY_TEXT.SEAL_BOTTOM}</span>
     </div>
 
-    {#if onBack || onSubmit}
-        <div class="summary-actions">
-            {#if onBack}
-                <button type="button" class="secondary-action" onclick={onBack}>
-                    {backLabel}
-                </button>
-            {/if}
-            {#if onSubmit}
-                <button
-                    type="button"
-                    class="primary-action"
-                    disabled={submitDisabled}
-                    onclick={onSubmit}
-                >
-                    {submitLabel}
-                </button>
-            {/if}
-        </div>
-    {/if}
+    <div class="signature-block">
+        <span class="signature-label">{CYOA_REGISTRATION_SUMMARY_TEXT.SIGNATURE_LABEL}</span>
+        <span class="signature-line">
+            <span class="signature-name">{signatureName}</span>
+            <span class="signature-stamp">(인)</span>
+        </span>
+    </div>
 </div>
 
 <style>
     .summary-footer {
-        min-height: 82px;
+        min-height: 112px;
         position: relative;
         z-index: 1;
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
-        gap: 18px;
+        gap: 28px;
         border-top: 1px solid rgba(141, 115, 74, 0.24);
-        padding-top: 18px;
+        padding-top: 28px;
+    }
+
+    .signature-block {
+        width: min(360px, 100%);
+        display: grid;
+        gap: 10px;
+        margin-left: auto;
+    }
+
+    .signature-label {
+        color: var(--guild-ink-muted);
+        font-family: var(--font-title);
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.4px;
+    }
+
+    .signature-line {
+        min-height: 42px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 2px solid rgba(141, 115, 74, 0.48);
+        padding: 0 12px 7px;
+    }
+
+    .signature-name {
+        flex: 1;
+        min-height: 22px;
+        color: var(--guild-ink-black);
+        font-family: var(--font-body);
+        font-size: 19px;
+        font-weight: 800;
+        line-height: 1.2;
+        text-align: left;
+    }
+
+    .signature-stamp {
+        flex: 0 0 auto;
+        color: var(--guild-ink-black);
+        font-family: var(--font-title);
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 1.2;
     }
 
     .seal {
@@ -73,74 +98,6 @@
         transform: rotate(-9deg);
     }
 
-    .summary-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    button {
-        min-width: 142px;
-        height: 44px;
-        border-radius: 2px;
-        font-family: var(--font-title);
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: 0.4px;
-        cursor: pointer;
-        transition:
-            background 0.16s ease,
-            box-shadow 0.16s ease,
-            transform 0.16s ease;
-    }
-
-    .primary-action {
-        border: 1px solid var(--guild-leather);
-        background: linear-gradient(180deg, #882222, #661616);
-        color: #fcf8ee;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
-    }
-
-    .secondary-action {
-        border: 1px solid rgba(141, 115, 74, 0.55);
-        background: rgba(141, 115, 74, 0.08);
-        color: var(--guild-ink-black);
-    }
-
-    button:hover {
-        transform: translateY(-1px);
-    }
-
-    .primary-action:hover {
-        background: linear-gradient(180deg, #992c2c, #771c1c);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
-    }
-
-    .secondary-action:hover {
-        background: rgba(141, 115, 74, 0.14);
-        box-shadow: 0 4px 10px rgba(44, 34, 23, 0.08);
-    }
-
-    button:focus-visible {
-        outline: 2px solid var(--guild-brass);
-        outline-offset: 2px;
-    }
-
-    button:disabled {
-        cursor: not-allowed;
-        opacity: 0.42;
-        filter: grayscale(0.65);
-        box-shadow: none;
-        transform: none;
-    }
-
-    .primary-action:disabled:hover,
-    .secondary-action:disabled:hover {
-        box-shadow: none;
-        transform: none;
-    }
-
     @media (max-width: 720px) {
         .summary-footer {
             align-items: stretch;
@@ -149,14 +106,6 @@
 
         .seal {
             align-self: flex-start;
-        }
-
-        .summary-actions {
-            flex-direction: column;
-        }
-
-        button {
-            width: 100%;
         }
     }
 </style>

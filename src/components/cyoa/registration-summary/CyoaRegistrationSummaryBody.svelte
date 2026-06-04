@@ -43,24 +43,23 @@
             {#each choiceItems as item}
                 <article class="choice-entry">
                     <h4>{item.title}</h4>
-                    {#if item.choices.length > 0}
-                        <ul>
-                            {#each item.choices as choice}
-                                <li>
-                                    <span class="choice-title">{choice.title}</span>
-                                    {#if choice.description}
-                                        <span class="choice-description">{choice.description}</span>
-                                    {/if}
-                                </li>
-                            {/each}
-                        </ul>
-                    {:else}
-                        <p class:required-missing={item.requiredMissing} class="empty-selection">
-                            {item.requiredMissing
-                                ? CYOA_REGISTRATION_SUMMARY_TEXT.REQUIRED_NOTICE_LABEL
-                                : CYOA_REGISTRATION_SUMMARY_TEXT.EMPTY_SELECTION_LABEL}
-                        </p>
-                    {/if}
+                    <div class="choice-field">
+                        {#if item.choices.length > 0}
+                            <ul>
+                                {#each item.choices as choice}
+                                    <li>
+                                        <span class="choice-title">{choice.title}</span>
+                                    </li>
+                                {/each}
+                            </ul>
+                        {:else}
+                            <p class:required-missing={item.requiredMissing} class="empty-selection">
+                                {item.requiredMissing
+                                    ? CYOA_REGISTRATION_SUMMARY_TEXT.REQUIRED_NOTICE_LABEL
+                                    : CYOA_REGISTRATION_SUMMARY_TEXT.EMPTY_SELECTION_LABEL}
+                            </p>
+                        {/if}
+                    </div>
                 </article>
             {/each}
         </div>
@@ -130,16 +129,14 @@
 
     .choice-list {
         display: grid;
-        gap: 12px;
+        gap: 14px;
     }
 
     .choice-entry {
-        padding: 16px 18px;
-        border: 1px solid rgba(141, 115, 74, 0.25);
-        background: rgba(141, 115, 74, 0.04);
-        box-shadow:
-            inset 0 1px 4px rgba(44, 34, 23, 0.04),
-            0 1px 0 rgba(255, 255, 255, 0.48);
+        display: grid;
+        grid-template-columns: minmax(110px, 0.28fr) minmax(0, 1fr);
+        gap: 12px 18px;
+        align-items: end;
     }
 
     h4 {
@@ -150,17 +147,25 @@
         letter-spacing: 0.5px;
     }
 
+    .choice-field {
+        min-height: 34px;
+        display: flex;
+        align-items: flex-end;
+        border-bottom: 2px solid rgba(141, 115, 74, 0.42);
+        padding: 0 0 6px;
+    }
+
     ul {
-        display: grid;
-        gap: 10px;
-        padding: 12px 0 0;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        padding: 0;
         list-style: none;
     }
 
     li {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+        min-width: 0;
     }
 
     .choice-title {
@@ -170,12 +175,12 @@
         line-height: 1.35;
     }
 
-    .choice-description,
     .empty-selection {
+        width: 100%;
         color: var(--guild-ink-muted);
         font-size: 13.5px;
         font-weight: 500;
-        line-height: 1.55;
+        line-height: 1.35;
     }
 
     .required-missing {
@@ -186,6 +191,11 @@
     @media (max-width: 720px) {
         .input-list {
             grid-template-columns: 1fr;
+        }
+
+        .choice-entry {
+            grid-template-columns: 1fr;
+            gap: 7px;
         }
     }
 </style>

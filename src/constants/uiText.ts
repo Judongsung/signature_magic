@@ -11,10 +11,11 @@ export const CYOA_REGISTRATION_SUMMARY_TEXT = {
     TITLE: '마법사 등록 신청서',
     DESCRIPTION: '아래 내용으로 길드 명부 등록을 신청합니다.',
     APPLICANT_SECTION_TITLE: '신청자 기재 사항',
-    SELECTION_SECTION_TITLE: '선택 내역',
+    SELECTION_SECTION_TITLE: '신청 항목',
     EMPTY_VALUE_LABEL: '미기재',
     EMPTY_SELECTION_LABEL: '미선택',
     REQUIRED_NOTICE_LABEL: '필수 사항',
+    SIGNATURE_LABEL: '신청자 서명',
     DEFAULT_BACK_LABEL: '선택 수정',
     SEAL_TOP: 'GUILD',
     SEAL_BOTTOM: 'APPROVAL',
@@ -47,6 +48,7 @@ export const MAGIC_CIRCLE_TEXT = {
 export const UI_BUTTON_TEXT = {
     DEV_SKIP_TO_NODE_COMPOSITION: 'DEV: 비술 조합실',
     SUBMIT_REGISTRATION: '등록 신청서 제출',
+    COMPLETE_REQUIRED_FIELDS_TOOLTIP: '필수 사항을 전부 기재해 주세요.',
 } as const;
 
 export const MAGIC_NODE_CATEGORY_LABELS: Record<MagicNodeCategory, string> = {
