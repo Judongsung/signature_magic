@@ -49,7 +49,7 @@ export const MAGIC_CONNECTION_RULE_KEYS = {
     ALLOW_CYCLE_FROM_OUTPUT: 'allowCycleFromOutput',
 } as const;
 
-export const MAGIC_CIRCLE_PREVIEW = {
+export const MAGIC_CIRCLE_RENDERING_CONFIG = {
     VIEWBOX_SIZE: 260,
     CENTER: 130,
     INNER_RADIUS: 34,

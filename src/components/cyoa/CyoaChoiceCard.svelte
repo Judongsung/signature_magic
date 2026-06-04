@@ -187,6 +187,7 @@
         font-size: 13.5px;
         line-height: 1.5;
         font-weight: 500;
+        white-space: pre-line;
     }
 
     @media (max-width: 560px) {

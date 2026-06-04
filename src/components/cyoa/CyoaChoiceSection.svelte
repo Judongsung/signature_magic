@@ -76,6 +76,7 @@
         color: rgba(59, 44, 29, 0.72);
         font-size: 13px;
         line-height: 1.55;
+        white-space: pre-line;
         word-break: keep-all;
     }
 </style>

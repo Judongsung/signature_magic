@@ -1,6 +1,6 @@
 <script lang="ts">
     import { graphStore } from '../../stores/graphStore.svelte';
-    import { MAGIC_CIRCLE_PREVIEW } from '../../constants/gameConfigs';
+    import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../constants/gameConfigs';
     import { MAGIC_CIRCLE_TEXT } from '../../constants/uiText';
     import { magicTypeColorMap } from '../../systems/graph/magicTypeRegistry';
     import { MAGIC_STAT_KEYS, MAGIC_STAT_LABELS } from '../../types/magic';
@@ -50,9 +50,9 @@
             <div class="circle-card">
                 <div class="circle-label">{MAGIC_CIRCLE_TEXT.CIRCLE_LABEL} {ci + 1}</div>
                 <svg
-                    width={MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}
-                    height={MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}
-                    viewBox={`0 0 ${MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE} ${MAGIC_CIRCLE_PREVIEW.VIEWBOX_SIZE}`}
+                    width={MAGIC_CIRCLE_RENDERING_CONFIG.VIEWBOX_SIZE}
+                    height={MAGIC_CIRCLE_RENDERING_CONFIG.VIEWBOX_SIZE}
+                    viewBox={`0 0 ${MAGIC_CIRCLE_RENDERING_CONFIG.VIEWBOX_SIZE} ${MAGIC_CIRCLE_RENDERING_CONFIG.VIEWBOX_SIZE}`}
                     class="magic-svg"
                     aria-label={`${MAGIC_CIRCLE_TEXT.CIRCLE_ARIA_LABEL} ${ci + 1}`}
                 >
@@ -78,10 +78,10 @@
                         </radialGradient>
                     </defs>
 
-                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_GRADIENT_RADIUS} fill={`url(#circle-core-${ci})`} />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_RENDERING_CONFIG.CORE_GRADIENT_RADIUS} fill={`url(#circle-core-${ci})`} />
                     <circle cx={CIRCLE.center} cy={CIRCLE.center} r={CIRCLE.outerFrameRadius} class="outer-ring" />
-                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS} class="outer-guide" />
-                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.INNER_GUIDE_RADIUS} class="inner-guide" />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_GUIDE_RADIUS} class="outer-guide" />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_RENDERING_CONFIG.INNER_GUIDE_RADIUS} class="inner-guide" />
 
                     {#if circle.nodeStar}
                         {#each circle.nodeStar.polygons as points}
@@ -105,7 +105,7 @@
                                 <circle
                                     cx={CIRCLE.center}
                                     cy={CIRCLE.center}
-                                    r={ring.radius + MAGIC_CIRCLE_PREVIEW.NODE_RING_ECHO_OFFSET}
+                                    r={ring.radius + MAGIC_CIRCLE_RENDERING_CONFIG.NODE_RING_ECHO_OFFSET}
                                     fill="none"
                                     stroke="var(--node-color)"
                                     stroke-width="0.45"
@@ -135,8 +135,8 @@
                         </g>
                     {/each}
 
-                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_GLOW_RADIUS} class="core-glow" filter={`url(#glow-soft-${ci})`} />
-                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_PREVIEW.CORE_DOT_RADIUS} class="core-dot" />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_RENDERING_CONFIG.CORE_GLOW_RADIUS} class="core-glow" filter={`url(#glow-soft-${ci})`} />
+                    <circle cx={CIRCLE.center} cy={CIRCLE.center} r={MAGIC_CIRCLE_RENDERING_CONFIG.CORE_DOT_RADIUS} class="core-dot" />
                 </svg>
                 <dl class="stats-grid" aria-label={`${MAGIC_CIRCLE_TEXT.CIRCLE_ARIA_LABEL} ${ci + 1} stats`}>
                     {#each MAGIC_STAT_KEYS as statKey}

@@ -1,5 +1,5 @@
 import type { CirclePath, MagicNode, MagicStats, MagicType } from '../../types/magic';
-import { MAGIC_CIRCLE_PREVIEW } from '../../constants/gameConfigs';
+import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../constants/gameConfigs';
 import { magicGlyphMap, type MagicGlyphConfig } from './magicGlyphRegistry';
 import type { GlyphKind } from './magicGlyphShapes';
 
@@ -52,10 +52,10 @@ export interface MagicCircleRenderModel {
 }
 
 export const DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS: MagicCircleRenderOptions = {
-    center: MAGIC_CIRCLE_PREVIEW.CENTER,
-    innerRadius: MAGIC_CIRCLE_PREVIEW.INNER_RADIUS,
-    outerRadius: MAGIC_CIRCLE_PREVIEW.OUTER_RADIUS,
-    outerFrameRadius: MAGIC_CIRCLE_PREVIEW.OUTER_FRAME_RADIUS,
+    center: MAGIC_CIRCLE_RENDERING_CONFIG.CENTER,
+    innerRadius: MAGIC_CIRCLE_RENDERING_CONFIG.INNER_RADIUS,
+    outerRadius: MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_RADIUS,
+    outerFrameRadius: MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_FRAME_RADIUS,
 };
 
 export function buildMagicCircleRenderModels(
@@ -85,15 +85,15 @@ function buildNodeStar(
     pointCount: number,
     options: MagicCircleRenderOptions
 ): NodeStarLayout | undefined {
-    if (pointCount < MAGIC_CIRCLE_PREVIEW.NODE_STAR_MIN_POINTS) return undefined;
+    if (pointCount < MAGIC_CIRCLE_RENDERING_CONFIG.NODE_STAR_MIN_POINTS) return undefined;
 
-    const radius = MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS;
+    const radius = MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_GUIDE_RADIUS;
     const step = nodeStarStep(pointCount);
     const polygons = nodeStarIndexCycles(pointCount, step).map(indexes =>
         indexes
             .map(index => {
-                const angle = (MAGIC_CIRCLE_PREVIEW.FULL_TURN_DEGREES / pointCount) * index;
-                const radians = ((angle - MAGIC_CIRCLE_PREVIEW.SVG_UP_DEGREES) * Math.PI) / MAGIC_CIRCLE_PREVIEW.HALF_TURN_DEGREES;
+                const angle = (MAGIC_CIRCLE_RENDERING_CONFIG.FULL_TURN_DEGREES / pointCount) * index;
+                const radians = ((angle - MAGIC_CIRCLE_RENDERING_CONFIG.SVG_UP_DEGREES) * Math.PI) / MAGIC_CIRCLE_RENDERING_CONFIG.HALF_TURN_DEGREES;
                 const x = options.center + radius * Math.cos(radians);
                 const y = options.center + radius * Math.sin(radians);
 
@@ -116,7 +116,7 @@ function nodeStarStep(pointCount: number): number {
     const preferred = Math.floor(pointCount / 2);
     for (let step = preferred; step >= 2; step -= 1) {
         const divisor = greatestCommonDivisor(pointCount, step);
-        if (pointCount / divisor >= MAGIC_CIRCLE_PREVIEW.NODE_STAR_MIN_POINTS) return step;
+        if (pointCount / divisor >= MAGIC_CIRCLE_RENDERING_CONFIG.NODE_STAR_MIN_POINTS) return step;
     }
 
     return 1;
@@ -175,21 +175,21 @@ function buildGlyphBand(
     }
 
     const count = definition.baseCount
-        + Math.min(index, MAGIC_CIRCLE_PREVIEW.GLYPH_INDEX_COUNT_STEP_LIMIT)
-        * MAGIC_CIRCLE_PREVIEW.GLYPH_INDEX_COUNT_STEP;
+        + Math.min(index, MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_INDEX_COUNT_STEP_LIMIT)
+        * MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_INDEX_COUNT_STEP;
 
     return {
         id: `${circleId}-band-${node.id}`,
         node,
         kind: definition.kind,
-        spinDuration: MAGIC_CIRCLE_PREVIEW.BASE_SPIN_SECONDS + index * MAGIC_CIRCLE_PREVIEW.SPIN_STEP_SECONDS,
+        spinDuration: MAGIC_CIRCLE_RENDERING_CONFIG.BASE_SPIN_SECONDS + index * MAGIC_CIRCLE_RENDERING_CONFIG.SPIN_STEP_SECONDS,
         spinDirection: index % 2 === 0 ? 'normal' : 'reverse',
         marks: glyphMarks(definition, count, bandRadius(total, index, options), index, options.center),
     };
 }
 
 function nodeRadius(total: number, index: number, options: MagicCircleRenderOptions): number {
-    if (total <= 1) return MAGIC_CIRCLE_PREVIEW.SINGLE_NODE_RADIUS;
+    if (total <= 1) return MAGIC_CIRCLE_RENDERING_CONFIG.SINGLE_NODE_RADIUS;
     return options.innerRadius + ((options.outerRadius - options.innerRadius) * index) / (total - 1);
 }
 
@@ -199,14 +199,14 @@ function bandRadius(total: number, index: number, options: MagicCircleRenderOpti
     if (total > 1) return outerGlyphBandRadius();
 
     const previous = index > 0 ? nodeRadius(total, index - 1, options) : options.innerRadius;
-    const spacing = Math.max(MAGIC_CIRCLE_PREVIEW.MIN_OUTER_BAND_SPACING, current - previous);
+    const spacing = Math.max(MAGIC_CIRCLE_RENDERING_CONFIG.MIN_OUTER_BAND_SPACING, current - previous);
     return Math.min(outerGlyphBandRadius(), current + spacing / 2);
 }
 
 function outerGlyphBandRadius(): number {
-    return MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS
-        - MAGIC_CIRCLE_PREVIEW.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_PREVIEW.MAX_GLYPH_SCALE
-        - MAGIC_CIRCLE_PREVIEW.OUTER_GLYPH_CLEARANCE;
+    return MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_GUIDE_RADIUS
+        - MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_RENDERING_CONFIG.MAX_GLYPH_SCALE
+        - MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_GLYPH_CLEARANCE;
 }
 
 function glyphMarks(
@@ -216,15 +216,15 @@ function glyphMarks(
     bandIndex: number,
     center: number
 ): GlyphMarkLayout[] {
-    const phase = (bandIndex % 2) * (MAGIC_CIRCLE_PREVIEW.HALF_TURN_DEGREES / count);
+    const phase = (bandIndex % 2) * (MAGIC_CIRCLE_RENDERING_CONFIG.HALF_TURN_DEGREES / count);
     const scale = Math.max(
-        MAGIC_CIRCLE_PREVIEW.MIN_GLYPH_SCALE,
-        Math.min(MAGIC_CIRCLE_PREVIEW.MAX_GLYPH_SCALE, radius / MAGIC_CIRCLE_PREVIEW.GLYPH_SCALE_RADIUS)
+        MAGIC_CIRCLE_RENDERING_CONFIG.MIN_GLYPH_SCALE,
+        Math.min(MAGIC_CIRCLE_RENDERING_CONFIG.MAX_GLYPH_SCALE, radius / MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_SCALE_RADIUS)
     );
 
     return Array.from({ length: count }, (_, index) => {
-        const angle = phase + (MAGIC_CIRCLE_PREVIEW.FULL_TURN_DEGREES / count) * index;
-        const radians = ((angle - MAGIC_CIRCLE_PREVIEW.SVG_UP_DEGREES) * Math.PI) / MAGIC_CIRCLE_PREVIEW.HALF_TURN_DEGREES;
+        const angle = phase + (MAGIC_CIRCLE_RENDERING_CONFIG.FULL_TURN_DEGREES / count) * index;
+        const radians = ((angle - MAGIC_CIRCLE_RENDERING_CONFIG.SVG_UP_DEGREES) * Math.PI) / MAGIC_CIRCLE_RENDERING_CONFIG.HALF_TURN_DEGREES;
 
         return {
             id: `glyph-${bandIndex}-${index}`,
@@ -245,7 +245,7 @@ function glyphMarkKind(definition: MagicGlyphConfig, index: number, bandIndex: n
 }
 
 export function magicCircleRingStrokeWidth(total: number): number {
-    return total > MAGIC_CIRCLE_PREVIEW.DENSE_RING_THRESHOLD
-        ? MAGIC_CIRCLE_PREVIEW.DENSE_RING_STROKE_WIDTH
-        : MAGIC_CIRCLE_PREVIEW.RING_STROKE_WIDTH;
+    return total > MAGIC_CIRCLE_RENDERING_CONFIG.DENSE_RING_THRESHOLD
+        ? MAGIC_CIRCLE_RENDERING_CONFIG.DENSE_RING_STROKE_WIDTH
+        : MAGIC_CIRCLE_RENDERING_CONFIG.RING_STROKE_WIDTH;
 }

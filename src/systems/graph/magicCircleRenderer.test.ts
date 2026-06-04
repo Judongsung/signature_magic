@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAGIC_CIRCLE_PREVIEW } from '../../constants/gameConfigs';
+import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../constants/gameConfigs';
 import { buildMagicCircleRenderModels } from './magicCircleRenderer';
 import { EMPTY_MAGIC_STATS, type CirclePath, type MagicNode, type MagicType } from '../../types/magic';
 
@@ -29,15 +29,15 @@ describe('buildMagicCircleRenderModels', () => {
         expect(model.rings.map(ring => ring.node.id)).toEqual(['ignition', 'stream', 'soil']);
         expect(model.stats).toEqual(EMPTY_MAGIC_STATS);
         expect(model.rings.map(ring => ring.radius)).toEqual([
-            MAGIC_CIRCLE_PREVIEW.INNER_RADIUS,
-            (MAGIC_CIRCLE_PREVIEW.INNER_RADIUS + MAGIC_CIRCLE_PREVIEW.OUTER_RADIUS) / 2,
-            MAGIC_CIRCLE_PREVIEW.OUTER_RADIUS,
+            MAGIC_CIRCLE_RENDERING_CONFIG.INNER_RADIUS,
+            (MAGIC_CIRCLE_RENDERING_CONFIG.INNER_RADIUS + MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_RADIUS) / 2,
+            MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_RADIUS,
         ]);
         expect(model.bands.map(band => band.kind)).toEqual(['flame', 'wave', 'stone']);
         expect(model.bands.map(band => band.marks.length)).toEqual([
             12,
-            16 + MAGIC_CIRCLE_PREVIEW.GLYPH_INDEX_COUNT_STEP,
-            12 + MAGIC_CIRCLE_PREVIEW.GLYPH_INDEX_COUNT_STEP * 2,
+            16 + MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_INDEX_COUNT_STEP,
+            12 + MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_INDEX_COUNT_STEP * 2,
         ]);
     });
 
@@ -114,8 +114,8 @@ describe('buildMagicCircleRenderModels', () => {
         expect(sevenPointModel.nodeStar?.polygons[0].split(' ')).toHaveLength(7);
 
         const [x, y] = sevenPointModel.nodeStar!.polygons[0].split(' ')[0].split(',').map(Number);
-        const vertexRadius = Math.hypot(x - MAGIC_CIRCLE_PREVIEW.CENTER, y - MAGIC_CIRCLE_PREVIEW.CENTER);
-        expect(vertexRadius).toBe(MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS);
+        const vertexRadius = Math.hypot(x - MAGIC_CIRCLE_RENDERING_CONFIG.CENTER, y - MAGIC_CIRCLE_RENDERING_CONFIG.CENTER);
+        expect(vertexRadius).toBe(MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_GUIDE_RADIUS);
     });
 
     it('keeps the outer glyph band inside the visible guide circle', () => {
@@ -130,16 +130,16 @@ describe('buildMagicCircleRenderModels', () => {
         ]);
         const outerBandRadii = model.bands.map(band => {
             const mark = band.marks[0];
-            return Math.hypot(mark.x - MAGIC_CIRCLE_PREVIEW.CENTER, mark.y - MAGIC_CIRCLE_PREVIEW.CENTER);
+            return Math.hypot(mark.x - MAGIC_CIRCLE_RENDERING_CONFIG.CENTER, mark.y - MAGIC_CIRCLE_RENDERING_CONFIG.CENTER);
         });
         const maxGlyphRadius = Math.max(...outerBandRadii)
-            + MAGIC_CIRCLE_PREVIEW.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_PREVIEW.MAX_GLYPH_SCALE
-            + MAGIC_CIRCLE_PREVIEW.OUTER_GLYPH_CLEARANCE;
+            + MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_RENDERING_CONFIG.MAX_GLYPH_SCALE
+            + MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_GLYPH_CLEARANCE;
         const outerGlyphInnerRadius = Math.max(...outerBandRadii)
-            - MAGIC_CIRCLE_PREVIEW.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_PREVIEW.MAX_GLYPH_SCALE;
+            - MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_DESIGN_RADIUS * MAGIC_CIRCLE_RENDERING_CONFIG.MAX_GLYPH_SCALE;
         const outerRingRadius = Math.max(...model.rings.map(ring => ring.radius));
 
-        expect(maxGlyphRadius).toBeLessThanOrEqual(MAGIC_CIRCLE_PREVIEW.OUTER_GUIDE_RADIUS);
+        expect(maxGlyphRadius).toBeLessThanOrEqual(MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_GUIDE_RADIUS);
         expect(outerRingRadius).toBeLessThan(outerGlyphInnerRadius);
     });
 });
