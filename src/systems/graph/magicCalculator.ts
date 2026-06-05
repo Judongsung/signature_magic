@@ -9,10 +9,12 @@ import {
     type MagicCalculationResult,
 } from '../../types/magic';
 import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
+import { MAGIC_CIRCLE_ID_PREFIX } from '../../constants/graphConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
 import { buildGraphTopology, type GraphTopology } from './topology/graphTopology';
 import { reachableNodeIds } from './topology/graphTraversal';
+import { filterCalculableMagicGraph } from './systemMagicNodes';
 
 const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
     nodeEffects: [],
@@ -26,8 +28,20 @@ export function calculateMagic(
     statEffects: MagicStatEffectBundle = EMPTY_MAGIC_STAT_EFFECTS
 ): MagicCalculationResult {
     const magicTypeMap = buildMagicTypeMap(magicTypes);
-    const circles = calculateCirclesWithMagicTypes(nodes, edges, magicTypeMap, statEffects.nodeEffects);
-    const totalStats = calculateMagicStats(nodes, edges, magicTypeMap, 'total', statEffects.nodeEffects);
+    const calculableGraph = filterCalculableMagicGraph(nodes, edges);
+    const circles = calculateCirclesWithMagicTypes(
+        calculableGraph.nodes,
+        calculableGraph.edges,
+        magicTypeMap,
+        statEffects.nodeEffects
+    );
+    const totalStats = calculateMagicStats(
+        calculableGraph.nodes,
+        calculableGraph.edges,
+        magicTypeMap,
+        'total',
+        statEffects.nodeEffects
+    );
 
     return {
         circles,
@@ -93,7 +107,7 @@ function calculateCirclesWithMagicTypes(
     return uniqueStartNodes
         .flatMap(startNode => collectCircleChains(startNode, topology))
         .map((chain, index) => ({
-            id: `circle-${index}`,
+            id: `${MAGIC_CIRCLE_ID_PREFIX}-${index}`,
             nodes: chain,
             stats: calculateMagicStats(chain, topology.edges, magicTypeMap, 'circle', nodeStatEffects),
         }));

@@ -2,6 +2,7 @@
     import { tick } from 'svelte';
     import { Handle, Position, useUpdateNodeInternals } from '@xyflow/svelte';
     import type { MagicNodeData } from '../../types/magic';
+    import { MAGIC_NODE_HANDLE_CONFIG } from '../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
     import { getMagicTypeConfig } from '../../systems/graph/magicTypeRegistry';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
@@ -18,15 +19,18 @@
 
     const nodeConfig = $derived(getMagicTypeConfig(data.magicType));
 
-    const color  = $derived(nodeConfig?.color || '#888');
-    const icon   = $derived(nodeConfig?.icon  || '?');
+    const FALLBACK_NODE_COLOR = '#888';
+    const FALLBACK_NODE_ICON = '?';
+
+    const color  = $derived(nodeConfig?.color || FALLBACK_NODE_COLOR);
+    const icon   = $derived(nodeConfig?.icon  || FALLBACK_NODE_ICON);
     const label  = $derived(nodeConfig?.label || data.magicType);
     const description = $derived(nodeConfig?.description || '');
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
-    const inputHandleCount = $derived(data.inputHandleCount ?? 1);
-    const outputHandleCount = $derived(data.outputHandleCount ?? 1);
+    const inputHandleCount = $derived(data.inputHandleCount ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT);
+    const outputHandleCount = $derived(data.outputHandleCount ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT);
     const inputHandles = $derived(createHandleIndexes(inputHandleCount));
     const outputHandles = $derived(createHandleIndexes(outputHandleCount));
     const updateNodeInternals = useUpdateNodeInternals();
@@ -38,7 +42,7 @@
     });
 
     function createHandleIndexes(count: number): number[] {
-        return Array.from({ length: Math.max(1, count) }, (_, index) => index);
+        return Array.from({ length: Math.max(0, count) }, (_, index) => index);
     }
 
     function handleLeft(index: number, count: number): string {
@@ -66,7 +70,7 @@
         <Handle
             type="source"
             position={Position.Top}
-            id={`output-${index}`}
+            id={`${MAGIC_NODE_HANDLE_CONFIG.OUTPUT_PREFIX}-${index}`}
             isConnectable={isConnectable}
             class="node-handle source-handle"
             style={`left: ${handleLeft(index, outputHandleCount)}; --handle-color: ${color};`}
@@ -87,7 +91,7 @@
         <Handle
             type="target"
             position={Position.Bottom}
-            id={`input-${index}`}
+            id={`${MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX}-${index}`}
             isConnectable={isConnectable}
             class="node-handle target-handle"
             style={`left: ${handleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
@@ -114,7 +118,8 @@
         padding: 14px 22px;
         color: #eee;
         text-align: center;
-        min-width: 110px;
+        width: 110px;
+        box-sizing: border-box;
         font-family: sans-serif;
         transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
         position: relative;
@@ -122,7 +127,6 @@
     .custom-node:hover { box-shadow: 0 0 22px var(--c) !important; }
     .custom-node.is-root { border-top: 3px solid var(--c); }
     .custom-node.is-leaf { border-bottom: 3px solid var(--c); }
-
     :global(.node-handle) {
         width: 10px;
         height: 10px;
@@ -141,7 +145,15 @@
 
     .node-body { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     .icon { font-size: 26px; filter: drop-shadow(0 0 6px var(--c)); }
-    .label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--c); }
+    .label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: var(--c);
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        line-height: 1.2;
+    }
 
     .badge-wrap {
         position: absolute;

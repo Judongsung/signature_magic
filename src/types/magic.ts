@@ -1,5 +1,8 @@
 import type { Node } from '@xyflow/svelte';
-import { MAGIC_CONNECTION_RULE_KEYS, type MagicNodeCategory } from '../constants/gameConfigs';
+import {
+    MAGIC_CONNECTION_RULE_KEYS,
+    type MagicNodeCategory,
+} from '../constants/gameConfigs';
 import {
     MAGIC_STAT_AGGREGATION_OPERATION_IDS,
     MAGIC_STAT_BRANCH_AGGREGATION_IDS,
@@ -90,6 +93,8 @@ export interface MagicNodeConnectionRules {
     [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]?: boolean;
 }
 
+export type MagicNodeKind = 'user' | 'system';
+
 export interface MagicTypeConfig {
     type: MagicType;
     label: string;
@@ -105,6 +110,7 @@ export interface MagicTypeConfig {
 
 export interface MagicNodeData extends Record<string, unknown> {
     magicType: MagicType;
+    nodeKind?: MagicNodeKind;
     isRoot?: boolean;
     isLeaf?: boolean;
     inputHandleCount?: number;

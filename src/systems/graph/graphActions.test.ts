@@ -1,6 +1,12 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import {
+    GRAPH_EDGE_TYPES,
+    GRAPH_NODE_TYPES,
+    MAGIC_NODE_HANDLE_CONFIG,
+    MAGIC_NODE_KINDS,
+} from '../../constants/graphConfigs';
+import {
     createEdge,
     createEdgeUpdate,
     createNode,
@@ -27,7 +33,7 @@ const magicTypes = [
 function node(id: string, magicType: MagicNode['data']['magicType'] = 'ignition'): MagicNode {
     return {
         id,
-        type: 'magicNode',
+        type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position: { x: 0, y: 0 },
         data: { magicType, isRoot: true, isLeaf: true, inputHandleCount: 1, outputHandleCount: 1 },
     };
@@ -43,9 +49,16 @@ describe('graphActions', () => {
 
         expect(created).toEqual({
             id: 'node-fixed-id',
-            type: 'magicNode',
+            type: GRAPH_NODE_TYPES.MAGIC_NODE,
             position: { x: 10, y: 20 },
-            data: { magicType: 'stream', isRoot: true, isLeaf: true, inputHandleCount: 1, outputHandleCount: 1 },
+            data: {
+                magicType: 'stream',
+                nodeKind: MAGIC_NODE_KINDS.USER,
+                isRoot: true,
+                isLeaf: true,
+                inputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
+                outputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
+            },
         });
     });
 
@@ -62,9 +75,9 @@ describe('graphActions', () => {
             id: 'edge-edge-id',
             source: 'a',
             target: 'b',
-            sourceHandle: 'output-0',
-            targetHandle: 'input-0',
-            type: 'magicEdge',
+            sourceHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
+            targetHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID,
+            type: GRAPH_EDGE_TYPES.MAGIC_EDGE,
         });
     });
 

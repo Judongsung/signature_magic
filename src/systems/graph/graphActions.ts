@@ -8,6 +8,15 @@
 
 import type { Connection, Edge } from '@xyflow/svelte';
 import {
+    GRAPH_EDGE_TYPES,
+    GRAPH_NODE_TYPES,
+    MAGIC_EDGE_ID_PREFIX,
+    MAGIC_NODE_HANDLE_CONFIG,
+    MAGIC_NODE_ID_PREFIX,
+    MAGIC_NODE_KINDS,
+} from '../../constants/graphConfigs';
+import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
+import {
     DEFAULT_INPUT_HANDLE_ID,
     DEFAULT_OUTPUT_HANDLE_ID,
     filterEdgesReplacedByConnection,
@@ -17,6 +26,7 @@ import {
 } from './graphRules';
 import { computeNodeRoles } from './magicCalculator';
 import type { MagicNode, MagicType } from '../../types/magic';
+import { isSystemMagicNode } from './systemMagicNodes';
 
 export type IdFactory = () => string;
 
@@ -36,10 +46,17 @@ export function createNode(
     createId: IdFactory = createUniqueId
 ): MagicNode {
     return {
-        id: `node-${createId()}`,
-        type: 'magicNode',
+        id: `${MAGIC_NODE_ID_PREFIX}-${createId()}`,
+        type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position,
-        data: { magicType, isRoot: true, isLeaf: true, inputHandleCount: 1, outputHandleCount: 1 },
+        data: {
+            magicType,
+            nodeKind: MAGIC_NODE_KINDS.USER,
+            isRoot: true,
+            isLeaf: true,
+            inputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
+            outputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
+        },
     };
 }
 
@@ -58,12 +75,12 @@ export function createEdge(
 ): Edge | false {
     if (!isConnectionValid(connection, edges, nodes, magicTypes)) return false;
     return {
-        id: `edge-${createId()}`,
+        id: `${MAGIC_EDGE_ID_PREFIX}-${createId()}`,
         source: connection.source!,
         target: connection.target!,
         sourceHandle: connection.sourceHandle ?? DEFAULT_OUTPUT_HANDLE_ID,
         targetHandle: connection.targetHandle ?? DEFAULT_INPUT_HANDLE_ID,
-        type: 'magicEdge',
+        type: GRAPH_EDGE_TYPES.MAGIC_EDGE,
     };
 }
 
@@ -98,20 +115,27 @@ export function refreshNodeRoles(
         const role = roles.get(n.id);
         if (!role) return n;
         const handleCounts = resolveNodeHandleCounts(n, edges, magicTypes);
+        const nodeRole = isSystemMagicNode(n)
+            ? {
+                isRoot: n.id === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
+                isLeaf: n.id === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
+            }
+            : role;
         if (
-            n.data.isRoot === role.isRoot &&
-            n.data.isLeaf === role.isLeaf &&
+            n.data.isRoot === nodeRole.isRoot &&
+            n.data.isLeaf === nodeRole.isLeaf &&
             n.data.inputHandleCount === handleCounts.inputHandleCount &&
             n.data.outputHandleCount === handleCounts.outputHandleCount
         ) return n;
         changed = true;
-        return { ...n, data: { ...n.data, ...role, ...handleCounts } };
+        return { ...n, data: { ...n.data, ...nodeRole, ...handleCounts } };
     });
 
     return { nodes: updated, changed };
 }
 
 function nextVisibleHandleCount(usedCount: number, limit: number | null): number {
+    if (limit === 0) return 0;
     if (limit === null) return usedCount + 1;
     return Math.max(1, Math.min(limit, usedCount + 1));
 }
@@ -149,7 +173,9 @@ function normalizeDirectionalHandles(
 ): Edge[] {
     const handleKey = direction === 'source' ? 'sourceHandle' : 'targetHandle';
     const fallbackHandleId = direction === 'source' ? DEFAULT_OUTPUT_HANDLE_ID : DEFAULT_INPUT_HANDLE_ID;
-    const handlePrefix = direction === 'source' ? 'output' : 'input';
+    const handlePrefix = direction === 'source'
+        ? MAGIC_NODE_HANDLE_CONFIG.OUTPUT_PREFIX
+        : MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX;
     const nodeEdges = edges
         .map((edge, index) => ({ edge, index }))
         .filter(({ edge }) => edge[direction] === nodeId)

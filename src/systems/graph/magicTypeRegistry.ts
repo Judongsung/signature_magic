@@ -1,8 +1,14 @@
 import magicTypesData from '../../data/magicTypes.json';
 import type { MagicNodeCategory } from '../../constants/gameConfigs';
 import type { MagicType, MagicTypeConfig } from '../../types/magic';
+import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
 
-export const magicTypes = magicTypesData as MagicTypeConfig[];
+export const userMagicTypes = magicTypesData as MagicTypeConfig[];
+
+export const magicTypes = [
+    ...userMagicTypes,
+    ...SYSTEM_MAGIC_TYPE_CONFIGS,
+];
 
 export const magicTypeMap: ReadonlyMap<string, MagicTypeConfig> = new Map(
     magicTypes.map(config => [config.type, config])
@@ -18,5 +24,5 @@ export function getMagicTypeConfig(type: MagicType): MagicTypeConfig | undefined
 
 export function getMagicTypesByCategory(categoryIds: readonly MagicNodeCategory[]): MagicTypeConfig[] {
     const activeCategoryIds = new Set(categoryIds);
-    return magicTypes.filter(magicType => activeCategoryIds.has(magicType.category));
+    return userMagicTypes.filter(magicType => activeCategoryIds.has(magicType.category));
 }

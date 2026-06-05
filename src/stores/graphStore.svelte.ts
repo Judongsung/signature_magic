@@ -9,6 +9,7 @@ import {
 import { calculateMagic } from '../systems/graph/magicCalculator';
 import { isConnectionValid } from '../systems/graph/graphRules';
 import { magicTypeMap, magicTypes } from '../systems/graph/magicTypeRegistry';
+import { createInitialSystemNodes } from '../systems/graph/systemMagicNodes';
 import type {
     CirclePath,
     MagicCalculationResult,
@@ -24,7 +25,7 @@ const EMPTY_EXTERNAL_STAT_EFFECTS: MagicStatEffectBundle = {
 };
 
 class GraphStore {
-    nodes = $state.raw<MagicNode[]>([]);
+    nodes = $state.raw<MagicNode[]>(createInitialSystemNodes());
     edges = $state.raw<Edge[]>([]);
     externalStatEffects = $state.raw<MagicStatEffectBundle>(EMPTY_EXTERNAL_STAT_EFFECTS);
     private topologySyncScheduled = false;
@@ -75,7 +76,7 @@ class GraphStore {
     }
 
     clear(): void {
-        this.nodes = [];
+        this.nodes = createInitialSystemNodes();
         this.edges = [];
     }
 

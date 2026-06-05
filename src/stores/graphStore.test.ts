@@ -1,6 +1,8 @@
 import type { Connection } from '@xyflow/svelte';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { graphStore } from './graphStore.svelte';
+import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
+import { isSystemMagicNode } from '../systems/graph/systemMagicNodes';
 
 const EMPTY_EFFECTS = {
     nodeEffects: [],
@@ -21,16 +23,60 @@ function connection(source: string, target: string): Connection {
     };
 }
 
+function userNodes() {
+    return graphStore.nodes.filter(node => !isSystemMagicNode(node));
+}
+
+function systemNode(id: string) {
+    return graphStore.nodes.find(node => node.id === id);
+}
+
 describe('graphStore', () => {
     beforeEach(() => {
         resetGraphStore();
     });
 
-    it('adds nodes and exposes calculated circles from graph state', () => {
+    it('starts with the fixed system nodes', () => {
+        expect(graphStore.nodes).toHaveLength(2);
+        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)?.data.inputHandleCount).toBe(0);
+        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)?.data.outputHandleCount).toBe(0);
+    });
+
+    it('clear resets the graph back to only the fixed system nodes', () => {
+        graphStore.addNode('ignition', { x: 0, y: 0 });
+        graphStore.clear();
+
+        expect(graphStore.nodes).toHaveLength(2);
+        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
+        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
+        expect(graphStore.edges).toHaveLength(0);
+    });
+
+    it('adds nodes without calculating them until they are between source and output', () => {
         graphStore.addNode('ignition', { x: 0, y: 0 });
 
-        expect(graphStore.nodes).toHaveLength(1);
-        expect(graphStore.nodes[0].data.magicType).toBe('ignition');
+        expect(userNodes()).toHaveLength(1);
+        expect(userNodes()[0].data.magicType).toBe('ignition');
+        expect(graphStore.circles).toHaveLength(0);
+        expect(graphStore.totalStats.power).toBe(0);
+    });
+
+    it('calculates only user nodes connected from source to final output', () => {
+        graphStore.addNode('ignition', { x: 0, y: 0 });
+        graphStore.addNode('stream', { x: 80, y: 0 });
+
+        const [connected, disconnected] = userNodes();
+        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
+        const output = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)!;
+        const sourceEdge = graphStore.prepareEdge(connection(source.id, connected.id));
+        const outputEdge = graphStore.prepareEdge(connection(connected.id, output.id));
+
+        graphStore.edges = [
+            ...(sourceEdge ? [sourceEdge] : []),
+            ...(outputEdge ? [outputEdge] : []),
+        ];
+
+        expect(disconnected.data.magicType).toBe('stream');
         expect(graphStore.circles).toHaveLength(1);
         expect(graphStore.totalStats.power).toBe(4);
     });
@@ -39,7 +85,7 @@ describe('graphStore', () => {
         graphStore.addNode('ignition', { x: 0, y: 0 });
         graphStore.addNode('stream', { x: 80, y: 0 });
 
-        const [source, target] = graphStore.nodes;
+        const [source, target] = userNodes();
         const conn = connection(source.id, target.id);
         const firstEdge = graphStore.prepareEdge(conn);
 
@@ -58,6 +104,15 @@ describe('graphStore', () => {
 
     it('applies externally injected stat effects without depending on CYOA state', () => {
         graphStore.addNode('ignition', { x: 0, y: 0 });
+        const [userNode] = userNodes();
+        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
+        const output = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)!;
+        const sourceEdge = graphStore.prepareEdge(connection(source.id, userNode.id));
+        const outputEdge = graphStore.prepareEdge(connection(userNode.id, output.id));
+        graphStore.edges = [
+            ...(sourceEdge ? [sourceEdge] : []),
+            ...(outputEdge ? [outputEdge] : []),
+        ];
 
         graphStore.setExternalStatEffects({
             nodeEffects: [],
@@ -67,5 +122,14 @@ describe('graphStore', () => {
         });
 
         expect(graphStore.totalStats.power).toBe(14);
+    });
+
+    it('keeps system nodes when deletion events include them', () => {
+        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
+
+        graphStore.onDelete([source], []);
+
+        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
+        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
     });
 });

@@ -7,6 +7,7 @@ import {
     normalizeEdgeHandles,
     refreshNodeRoles,
 } from './graphActions';
+import { ensureSystemMagicNodes, isSystemMagicNode } from './systemMagicNodes';
 
 export interface GraphSnapshot {
     nodes: MagicNode[];
@@ -36,9 +37,10 @@ export function removeDeletedGraphElements(
     deletedEdges: Edge[]
 ): GraphSnapshot {
     let { nodes, edges } = snapshot;
+    const shouldMaintainSystemNodes = hasSystemNodes(snapshot.nodes) || deletedNodes.some(isSystemMagicNode);
 
     if (deletedNodes.length) {
-        const ids = new Set(deletedNodes.map(node => node.id));
+        const ids = new Set(deletedNodes.filter(node => !isSystemMagicNode(node)).map(node => node.id));
         nodes = nodes.filter(node => !ids.has(node.id));
         edges = filterEdgesForDeletedNodes(ids, edges);
     }
@@ -48,22 +50,34 @@ export function removeDeletedGraphElements(
         edges = edges.filter(edge => !ids.has(edge.id));
     }
 
-    return { nodes, edges };
+    return {
+        nodes: shouldMaintainSystemNodes ? ensureSystemMagicNodes(nodes) : nodes,
+        edges,
+    };
 }
 
 export function syncGraphTopology(
     snapshot: GraphSnapshot,
     magicTypes: MagicTypeLookup
 ): GraphTopologyUpdate {
+    const nodes = hasSystemNodes(snapshot.nodes)
+        ? ensureSystemMagicNodes(snapshot.nodes)
+        : snapshot.nodes;
     const edges = normalizeEdgeHandles(snapshot.edges);
-    const nodeRoles = refreshNodeRoles(snapshot.nodes, edges, magicTypes);
-    const changed = !areEdgesEquivalent(snapshot.edges, edges) || nodeRoles.changed;
+    const nodeRoles = refreshNodeRoles(nodes, edges, magicTypes);
+    const changed = snapshot.nodes.length !== nodes.length ||
+        !areEdgesEquivalent(snapshot.edges, edges) ||
+        nodeRoles.changed;
 
     return {
         nodes: nodeRoles.nodes,
         edges,
         changed,
     };
+}
+
+function hasSystemNodes(nodes: MagicNode[]): boolean {
+    return nodes.some(isSystemMagicNode);
 }
 
 function areEdgesEquivalent(a: Edge[], b: Edge[]): boolean {

@@ -1,6 +1,14 @@
 import type { Connection, Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import type { MagicNode, MagicTypeConfig } from '../../types/magic';
+import {
+    GRAPH_NODE_TYPES,
+    MAGIC_NODE_HANDLE_CONFIG,
+} from '../../constants/graphConfigs';
+import {
+    SYSTEM_MAGIC_NODE_CONFIGS,
+    SYSTEM_MAGIC_TYPE_CONFIGS,
+} from '../../constants/systemMagicNodeConfigs';
 import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 import {
     filterEdgesReplacedByConnection,
@@ -39,17 +47,23 @@ const magicTypes = [
         description: 'repeat',
         connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
     },
+    ...SYSTEM_MAGIC_TYPE_CONFIGS,
 ] as MagicTypeConfig[];
 
-function edge(source: string, target: string, sourceHandle = 'output-0', targetHandle = 'input-0'): Edge {
+function edge(
+    source: string,
+    target: string,
+    sourceHandle = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
+    targetHandle = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID
+): Edge {
     return { id: `${source}-${target}`, source, target, sourceHandle, targetHandle };
 }
 
 function connection(
     source: string,
     target: string,
-    sourceHandle: string | null = 'output-0',
-    targetHandle: string | null = 'input-0'
+    sourceHandle: string | null = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
+    targetHandle: string | null = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID
 ): Connection {
     return { source, target, sourceHandle, targetHandle };
 }
@@ -57,7 +71,7 @@ function connection(
 function node(id: string, magicType: MagicNode['data']['magicType'] = 'ignition'): MagicNode {
     return {
         id,
-        type: 'magicNode',
+        type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position: { x: 0, y: 0 },
         data: { magicType },
     };
@@ -145,6 +159,19 @@ describe('graphRules', () => {
             nodes,
             magicTypes
         )).toBe(true);
+    });
+
+    it('enforces fixed system node connection direction', () => {
+        const nodes = [
+            node(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id, SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id),
+            node(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id, SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id),
+            node('a'),
+        ];
+
+        expect(isConnectionValid(connection('a', SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id), [], nodes, magicTypes)).toBe(false);
+        expect(isConnectionValid(connection(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id, 'a'), [], nodes, magicTypes)).toBe(false);
+        expect(isConnectionValid(connection(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id, 'a'), [], nodes, magicTypes)).toBe(true);
+        expect(isConnectionValid(connection('a', SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id), [], nodes, magicTypes)).toBe(true);
     });
 
     it('removes the existing edge when a connection reuses the same handle', () => {

@@ -21,6 +21,7 @@
         EDITOR_CANVAS,
         type MagicNodeCategory,
     } from '../../constants/gameConfigs';
+    import { GRAPH_EDGE_TYPES, GRAPH_NODE_TYPES } from '../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
     import {
         resolveCenteredDropPosition,
@@ -32,8 +33,8 @@
     import MagicNodeToolbar from './MagicNodeToolbar.svelte';
     import type { MagicNode, MagicType } from '../../types/magic';
 
-    const nodeTypes = { magicNode: CustomNode };
-    const edgeTypes = { magicEdge: CustomEdge };
+    const nodeTypes = { [GRAPH_NODE_TYPES.MAGIC_NODE]: CustomNode };
+    const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: CustomEdge };
     const snapGrid = EDITOR_CANVAS.SNAP_GRID as SnapGrid;
     const canvasExtent = EDITOR_CANVAS.EXTENT as CoordinateExtent;
     const panOnDragButtons = [...EDITOR_CANVAS.PAN_ON_DRAG_BUTTONS];

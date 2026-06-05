@@ -1,7 +1,9 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import type { MagicNodeCategory } from '../../constants/gameConfigs';
+import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
 import type { MagicTypeConfig } from '../../types/magic';
+import { getMagicTypesByCategory } from '../../systems/graph/magicTypeRegistry';
 import MagicNodeToolbar from './MagicNodeToolbar.svelte';
 
 const visibleMagicTypes: MagicTypeConfig[] = [
@@ -45,5 +47,18 @@ describe('MagicNodeToolbar', () => {
 
         expect(html).toContain('toolbar-empty');
         expect(html).not.toContain('drag-btn tooltip-host');
+    });
+
+    it('does not expose fixed system node types in category palettes', () => {
+        const { html } = render(MagicNodeToolbar, {
+            props: {
+                ...props,
+                visibleMagicTypes: getMagicTypesByCategory(['basic']),
+            },
+        });
+
+        SYSTEM_MAGIC_TYPE_CONFIGS.forEach(systemType => {
+            expect(html).not.toContain(systemType.label);
+        });
     });
 });

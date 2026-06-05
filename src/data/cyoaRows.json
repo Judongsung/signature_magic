@@ -113,21 +113,54 @@
     {
         "id": "personal-affiliation",
         "title": "소속",
+        "description": "어느 기관에서 일을 하시는지 쓰시면 돼요. 비워두셔도 되지만 행정상의 불이익은 본인이 감당하세요.",
         "choices": [
+            {
+                "id": "affiliation-blank",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "공란",
+                "title": "공란",
+                "description": "소속이 없거나 사정이 있어 밝힐 수 없다.",
+                "width": "1/3"
+            },
             {
                 "id": "affiliation-imperial-bureau",
                 "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "제국 관청",
-                "title": "제국 관청",
+                "imageAlt": "집행기관",
+                "title": "집행기관",
                 "description": "제국의 법과 행정 체계 안에서 마법을 다룹니다.",
                 "width": "1/3"
             },
             {
-                "id": "affiliation-magic-academy",
+                "id": "affiliation-noblesse",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "유력가문",
+                "title": "유력가문",
+                "description": "귀족의 혈통이거나 그들의 후원을 받는다.\n가문의 지원을 받아 상급의 재료를 수급하여 사용할 수 있다.\n촉매의 효율이 상승한다.",
+                "width": "1/3"
+            },
+            {
+                "id": "affiliation-business",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "사업장",
+                "title": "사업장",
+                "description": "",
+                "width": "1/3"
+            },
+            {
+                "id": "affiliation-academy",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "마법 학회",
                 "title": "마법 학회",
-                "description": "연구와 이론을 중심으로 마법 체계를 익힙니다.",
+                "description": "연구와 이론을 중심으로 마법 체계를 익힌다.",
+                "width": "1/3"
+            },
+            {
+                "id": "affiliation-religion",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "종교 단체",
+                "title": "종교 단체",
+                "description": "신의 이름으로 마법을 부린다.",
                 "width": "1/3"
             },
             {
@@ -135,7 +168,15 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "자유 길드",
                 "title": "자유 길드",
-                "description": "의뢰와 계약을 통해 실전 경험을 쌓습니다.",
+                "description": "길드에서 의뢰와 계약을 수주받아 임무를 수행한다.",
+                "width": "1/3"
+            },
+            {
+                "id": "affiliation-extra",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "기타",
+                "title": "기타",
+                "description": "그외의 기관에 소속되어 있다.",
                 "width": "1/3"
             }
         ],
@@ -183,7 +224,7 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "전투 마법사",
                 "title": "전투 마법사",
-                "description": "오로지 인간을 상대하기 위해 단련한 마법사이다.\n더 높은 경지의 마법사라도 이들을 상대로 승리를 장담할 수 없다.\n마법의 시전 시간이 줄어든다.",
+                "description": "대인 전투를 단련한 마법사이다.\n빠른 시전 속도와 허를 찌르는 전술로 상대의 빈틈을 노린다.\n더 높은 경지의 마법사라도 이들을 상대로 승리를 장담할 수 없다.\n마법의 시전 시간이 줄어든다.",
                 "width": "1/3"
             },
             {
@@ -227,7 +268,7 @@
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "모험가",
                 "title": "모험가",
-                "description": "낭만을 찾아 모험을 떠나는 직종이다. 이들에게 마법은 생존을 위한 수단일 뿐이다. 3서클 이하 마법의 최종 능력치가 전체적으로 상승한다.",
+                "description": "낭만을 찾아 세상을 떠도는 이들이다. 이들에게 마법은 생존을 위한 수단일 뿐이다. 3서클 이하 마법의 최종 능력치가 전체적으로 상승한다.",
                 "width": "1/3"
             }
         ],
