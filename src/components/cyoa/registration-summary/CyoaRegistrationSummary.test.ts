@@ -5,22 +5,6 @@ import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
 
 const rows: CyoaChoiceRowData[] = [
     {
-        id: 'toc',
-        title: 'Table of contents',
-        visible: true,
-        selectable: true,
-        requiredCount: 0,
-        selectionMode: 'multi',
-        layoutColumns: 1,
-        choices: [
-            {
-                id: 'toc-region',
-                imageAlt: '',
-                title: 'Region',
-            },
-        ],
-    },
-    {
         id: 'name',
         title: 'Name',
         visible: false,
@@ -53,17 +37,16 @@ const rows: CyoaChoiceRowData[] = [
 ];
 
 describe('CyoaRegistrationSummary', () => {
-    it('hides the table of contents and shows required rows before selection', () => {
+    it('shows required rows before selection', () => {
         const { html } = render(CyoaRegistrationSummary, {
             props: {
                 rows,
-                visibleRowIds: { toc: true, name: false, region: false },
+                visibleRowIds: { name: false, region: false },
                 selectedChoiceIds: {},
                 inputValues: {},
             },
         });
 
-        expect(html).not.toContain('>Table of contents</h4>');
         expect(html).toContain('>Region</h4>');
         expect(html).toContain('required-missing');
     });
@@ -72,7 +55,7 @@ describe('CyoaRegistrationSummary', () => {
         const { html } = render(CyoaRegistrationSummary, {
             props: {
                 rows,
-                visibleRowIds: { toc: true, name: true, region: false },
+                visibleRowIds: { name: true, region: false },
                 selectedChoiceIds: {},
                 inputValues: { 'name-input': 'Arin' },
                 onSubmit: () => {},
@@ -89,7 +72,7 @@ describe('CyoaRegistrationSummary', () => {
         const { html } = render(CyoaRegistrationSummary, {
             props: {
                 rows,
-                visibleRowIds: { toc: true, name: false, region: false },
+                visibleRowIds: { name: false, region: false },
                 selectedChoiceIds: {},
                 inputValues: {},
                 onSubmit: () => {},

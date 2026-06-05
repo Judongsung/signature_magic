@@ -7,24 +7,8 @@ import {
 
 const rows: CyoaChoiceRowData[] = [
     {
-        id: 'toc',
-        title: '목차',
-        visible: true,
-        selectable: true,
-        requiredCount: 0,
-        selectionMode: 'multi',
-        layoutColumns: 1,
-        choices: [
-            {
-                id: 'toc-region',
-                imageAlt: '',
-                title: '지역',
-            },
-        ],
-    },
-    {
         id: 'name',
-        title: '이름',
+        title: 'Name',
         visible: false,
         selectable: true,
         requiredCount: 1,
@@ -32,13 +16,13 @@ const rows: CyoaChoiceRowData[] = [
         layoutColumns: 1,
         input: {
             id: 'name-input',
-            label: '이름',
+            label: 'Name',
         },
         choices: [],
     },
     {
         id: 'region',
-        title: '지역',
+        title: 'Region',
         visible: false,
         selectable: true,
         requiredCount: 1,
@@ -48,13 +32,13 @@ const rows: CyoaChoiceRowData[] = [
             {
                 id: 'region-frontier',
                 imageAlt: '',
-                title: '변경 지대',
+                title: 'Frontier',
             },
         ],
     },
     {
         id: 'optional',
-        title: '선택 항목',
+        title: 'Optional',
         visible: true,
         selectable: true,
         requiredCount: 0,
@@ -64,7 +48,7 @@ const rows: CyoaChoiceRowData[] = [
             {
                 id: 'optional-choice',
                 imageAlt: '',
-                title: '선택지',
+                title: 'Optional choice',
             },
         ],
     },
@@ -72,14 +56,14 @@ const rows: CyoaChoiceRowData[] = [
 
 describe('cyoaRegistrationSummary', () => {
     it('detects required registration rows', () => {
-        expect(isCyoaRegistrationRequiredRow(rows[0])).toBe(false);
-        expect(isCyoaRegistrationRequiredRow(rows[1])).toBe(true);
+        expect(isCyoaRegistrationRequiredRow(rows[0])).toBe(true);
+        expect(isCyoaRegistrationRequiredRow(rows[2])).toBe(false);
     });
 
-    it('excludes table of contents and includes required rows before they are visible', () => {
+    it('includes required rows before they are visible', () => {
         const summary = buildCyoaRegistrationSummary({
             rows,
-            visibleRowIds: { toc: true, name: false, region: false, optional: true },
+            visibleRowIds: { name: false, region: false, optional: true },
             selectedChoiceIds: {},
             inputValues: {},
         });
@@ -87,7 +71,7 @@ describe('cyoaRegistrationSummary', () => {
         expect(summary.inputItems).toEqual([
             {
                 id: 'name-input',
-                label: '이름',
+                label: 'Name',
                 value: '',
                 requiredMissing: true,
             },
@@ -109,24 +93,24 @@ describe('cyoaRegistrationSummary', () => {
     it('marks selected choices and filled inputs as complete', () => {
         const summary = buildCyoaRegistrationSummary({
             rows,
-            visibleRowIds: { toc: true, name: true, region: true, optional: false },
+            visibleRowIds: { name: true, region: true, optional: false },
             selectedChoiceIds: { region: ['region-frontier'] },
-            inputValues: { 'name-input': '  아린  ' },
+            inputValues: { 'name-input': '  Arin  ' },
         });
 
         expect(summary.inputItems).toEqual([
             {
                 id: 'name-input',
-                label: '이름',
-                value: '아린',
+                label: 'Name',
+                value: 'Arin',
                 requiredMissing: false,
             },
         ]);
         expect(summary.choiceItems).toEqual([
             {
                 id: 'region',
-                title: '지역',
-                choices: [rows[2].choices[0]],
+                title: 'Region',
+                choices: [rows[1].choices[0]],
                 requiredMissing: false,
             },
         ]);

@@ -2,9 +2,15 @@
     import { SvelteFlowProvider } from '@xyflow/svelte';
     import { APP_PHASES } from './constants/gameConfigs';
     import { appStore } from './stores/appStore.svelte';
+    import { choiceStore } from './stores/choiceStore.svelte';
+    import { graphStore } from './stores/graphStore.svelte';
     import CyoaIntroScreen from './components/cyoa/CyoaIntroScreen.svelte';
     import MagicNodeEditor from './components/node-editor/MagicNodeEditor.svelte';
     import MagicCircleGenerator from './components/node-editor/MagicCircleGenerator.svelte';
+
+    $effect(() => {
+        graphStore.setExternalStatEffects(choiceStore.statEffects);
+    });
 </script>
 
 {#if appStore.phase === APP_PHASES.CYOA}

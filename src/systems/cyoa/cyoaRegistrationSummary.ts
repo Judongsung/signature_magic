@@ -29,10 +29,8 @@ interface BuildCyoaRegistrationSummaryOptions {
     visibleRowIds: RowVisibility;
     selectedChoiceIds: RowSelections;
     inputValues: InputValues;
-    excludedRowIds?: ReadonlySet<string>;
 }
 
-const DEFAULT_EXCLUDED_ROW_IDS = new Set(['toc']);
 const SIGNATURE_INPUT_ID_PARTS = ['name'];
 
 export function isCyoaRegistrationRequiredRow(row: CyoaChoiceRowData): boolean {
@@ -41,11 +39,9 @@ export function isCyoaRegistrationRequiredRow(row: CyoaChoiceRowData): boolean {
 
 function isSummaryRow(
     row: CyoaChoiceRowData,
-    visibleRowIds: RowVisibility,
-    excludedRowIds: ReadonlySet<string>
+    visibleRowIds: RowVisibility
 ): boolean {
-    return !excludedRowIds.has(row.id) &&
-        (visibleRowIds[row.id] || isCyoaRegistrationRequiredRow(row));
+    return visibleRowIds[row.id] || isCyoaRegistrationRequiredRow(row);
 }
 
 export function buildCyoaRegistrationSummary({
@@ -53,9 +49,8 @@ export function buildCyoaRegistrationSummary({
     visibleRowIds,
     selectedChoiceIds,
     inputValues,
-    excludedRowIds = DEFAULT_EXCLUDED_ROW_IDS,
 }: BuildCyoaRegistrationSummaryOptions): CyoaRegistrationSummaryModel {
-    const summaryRows = rows.filter(row => isSummaryRow(row, visibleRowIds, excludedRowIds));
+    const summaryRows = rows.filter(row => isSummaryRow(row, visibleRowIds));
     const inputItems = summaryRows.flatMap(row => {
         if (!row.input) return [];
 

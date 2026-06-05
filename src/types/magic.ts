@@ -1,5 +1,4 @@
 import type { Node } from '@xyflow/svelte';
-import magicTypesData from '../data/magicTypes.json';
 import { MAGIC_CONNECTION_RULE_KEYS, type MagicNodeCategory } from '../constants/gameConfigs';
 import {
     MAGIC_STAT_AGGREGATION_OPERATION_IDS,
@@ -7,9 +6,7 @@ import {
     MAGIC_STAT_SCALING_OPERATION_IDS,
 } from '../constants/magicStatConfigs';
 
-type MagicTypesData = typeof magicTypesData;
-
-export type MagicType = MagicTypesData[number]['type'];
+export type MagicType = string;
 
 export const MAGIC_STAT_KEYS = [
     'castingTime',
@@ -93,13 +90,18 @@ export interface MagicNodeConnectionRules {
     [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]?: boolean;
 }
 
-export type MagicTypeConfig = Omit<MagicTypesData[number], 'category' | 'connectionLimits' | 'connectionRules' | 'stats' | 'statRules'> & {
+export interface MagicTypeConfig {
+    type: MagicType;
+    label: string;
+    icon: string;
+    color: string;
     category: MagicNodeCategory;
+    description: string;
     connectionLimits?: MagicNodeConnectionLimits;
     connectionRules?: MagicNodeConnectionRules;
     stats?: MagicStatsConfig;
     statRules?: MagicNodeStatRulesConfig;
-};
+}
 
 export interface MagicNodeData extends Record<string, unknown> {
     magicType: MagicType;

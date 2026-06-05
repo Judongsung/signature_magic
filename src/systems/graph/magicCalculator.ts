@@ -11,6 +11,8 @@ import {
 import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
+import { buildGraphTopology, type GraphTopology } from './topology/graphTopology';
+import { reachableNodeIds } from './topology/graphTraversal';
 
 const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
     nodeEffects: [],
@@ -63,35 +65,20 @@ function calculateCirclesWithMagicTypes(
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
     nodeStatEffects: readonly MagicStatEffectConfig[] = []
 ): CirclePath[] {
-    const inDegree = new Map<string, number>();
-    const outEdges = new Map<string, string[]>();
-    const nodeMap = new Map<string, MagicNode>();
-
-    nodes.forEach(node => {
-        inDegree.set(node.id, 0);
-        outEdges.set(node.id, []);
-        nodeMap.set(node.id, node);
-    });
-
-    edges.forEach(edge => {
-        inDegree.set(edge.target, (inDegree.get(edge.target) ?? 0) + 1);
-        outEdges.get(edge.source)?.push(edge.target);
-    });
-
-    const rootStartNodes = nodes.filter(node => {
-        const degree = inDegree.get(node.id) ?? 0;
-        return degree === 0;
-    });
-    const branchStartNodes = edges
-        .filter(edge => (outEdges.get(edge.source)?.length ?? 0) > 1)
-        .map(edge => nodeMap.get(edge.target))
+    const topology = buildGraphTopology(nodes, edges);
+    const rootStartNodes = topology.rootIds
+        .map(nodeId => topology.nodeMap.get(nodeId))
         .filter((node): node is MagicNode => Boolean(node));
-    const mergeStartNodes = nodes.filter(node => {
-        const degree = inDegree.get(node.id) ?? 0;
+    const branchStartNodes = topology.edges
+        .filter(edge => (topology.outEdges.get(edge.source)?.length ?? 0) > 1)
+        .map(edge => topology.nodeMap.get(edge.target))
+        .filter((node): node is MagicNode => Boolean(node));
+    const mergeStartNodes = topology.nodes.filter(node => {
+        const degree = topology.inDegree.get(node.id) ?? 0;
         return degree > 1;
     });
-    const rootReachableNodeIds = reachableNodeIds(rootStartNodes.map(node => node.id), outEdges);
-    const cycleStartNodes = nodes.filter(node =>
+    const rootReachableNodeIds = reachableNodeIds(topology, topology.rootIds);
+    const cycleStartNodes = topology.nodes.filter(node =>
         magicTypeMap.get(node.data.magicType)
             ?.connectionRules?.[MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT] &&
         !rootReachableNodeIds.has(node.id)
@@ -104,11 +91,11 @@ function calculateCirclesWithMagicTypes(
     ]);
 
     return uniqueStartNodes
-        .flatMap(startNode => collectCircleChains(startNode, nodeMap, outEdges, inDegree))
+        .flatMap(startNode => collectCircleChains(startNode, topology))
         .map((chain, index) => ({
             id: `circle-${index}`,
             nodes: chain,
-            stats: calculateMagicStats(chain, edges, magicTypeMap, 'circle', nodeStatEffects),
+            stats: calculateMagicStats(chain, topology.edges, magicTypeMap, 'circle', nodeStatEffects),
         }));
 }
 
@@ -121,39 +108,20 @@ function dedupeNodes(nodes: MagicNode[]): MagicNode[] {
     });
 }
 
-function reachableNodeIds(startNodeIds: string[], outEdges: Map<string, string[]>): Set<string> {
-    const reachable = new Set<string>();
-    const queue = [...startNodeIds];
-
-    while (queue.length > 0) {
-        const nodeId = queue.shift()!;
-        if (reachable.has(nodeId)) continue;
-
-        reachable.add(nodeId);
-        (outEdges.get(nodeId) ?? []).forEach(nextId => {
-            queue.push(nextId);
-        });
-    }
-
-    return reachable;
-}
-
 function collectCircleChains(
     startNode: MagicNode,
-    nodeMap: Map<string, MagicNode>,
-    outEdges: Map<string, string[]>,
-    inDegree: Map<string, number>
+    topology: GraphTopology
 ): MagicNode[][] {
     const walk = (currentNode: MagicNode, chain: MagicNode[], visited: Set<string>): MagicNode[][] => {
-        const nextIds = outEdges.get(currentNode.id) ?? [];
+        const nextIds = topology.outEdges.get(currentNode.id) ?? [];
         if (nextIds.length === 0) return [chain];
         if (nextIds.length > 1) return [chain];
 
         return nextIds.flatMap(nextId => {
             if (visited.has(nextId)) return [chain];
-            if ((inDegree.get(nextId) ?? 0) > 1) return [chain];
+            if ((topology.inDegree.get(nextId) ?? 0) > 1) return [chain];
 
-            const nextNode = nodeMap.get(nextId);
+            const nextNode = topology.nodeMap.get(nextId);
             if (!nextNode) return [chain];
 
             return walk(nextNode, [...chain, nextNode], new Set([...visited, nextId]));
@@ -167,19 +135,13 @@ export function computeNodeRoles(
     nodes: MagicNode[],
     edges: Edge[]
 ): Map<string, { isRoot: boolean; isLeaf: boolean }> {
-    const inDegree = new Map<string, number>();
-    const hasSomeOutput = new Set<string>();
-
-    nodes.forEach(node => inDegree.set(node.id, 0));
-    edges.forEach(edge => {
-        inDegree.set(edge.target, (inDegree.get(edge.target) ?? 0) + 1);
-        hasSomeOutput.add(edge.source);
-    });
+    const topology = buildGraphTopology(nodes, edges);
+    const hasSomeOutput = new Set(topology.edges.map(edge => edge.source));
 
     const roles = new Map<string, { isRoot: boolean; isLeaf: boolean }>();
     nodes.forEach(node => {
         roles.set(node.id, {
-            isRoot: (inDegree.get(node.id) ?? 0) === 0,
+            isRoot: (topology.inDegree.get(node.id) ?? 0) === 0,
             isLeaf: !hasSomeOutput.has(node.id),
         });
     });

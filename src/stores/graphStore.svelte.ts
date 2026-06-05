@@ -9,19 +9,35 @@ import {
 import { calculateMagic } from '../systems/graph/magicCalculator';
 import { isConnectionValid } from '../systems/graph/graphRules';
 import { magicTypeMap, magicTypes } from '../systems/graph/magicTypeRegistry';
-import { choiceStore } from './choiceStore.svelte';
-import type { CirclePath, MagicCalculationResult, MagicNode, MagicStats, MagicType } from '../types/magic';
+import type {
+    CirclePath,
+    MagicCalculationResult,
+    MagicNode,
+    MagicStatEffectBundle,
+    MagicStats,
+    MagicType,
+} from '../types/magic';
+
+const EMPTY_EXTERNAL_STAT_EFFECTS: MagicStatEffectBundle = {
+    nodeEffects: [],
+    finalEffects: [],
+};
 
 class GraphStore {
     nodes = $state.raw<MagicNode[]>([]);
     edges = $state.raw<Edge[]>([]);
+    externalStatEffects = $state.raw<MagicStatEffectBundle>(EMPTY_EXTERNAL_STAT_EFFECTS);
     private topologySyncScheduled = false;
 
     readonly calculation: MagicCalculationResult = $derived(
-        calculateMagic(this.nodes, this.edges, magicTypes, choiceStore.statEffects)
+        calculateMagic(this.nodes, this.edges, magicTypes, this.externalStatEffects)
     );
     readonly circles: CirclePath[] = $derived(this.calculation.circles);
     readonly totalStats: MagicStats = $derived(this.calculation.totalStats);
+
+    setExternalStatEffects(statEffects: MagicStatEffectBundle): void {
+        this.externalStatEffects = statEffects;
+    }
 
     addNode(magicType: MagicType, position: { x: number; y: number }): void {
         this.nodes = [...this.nodes, createNode(magicType, position)];

@@ -1,49 +1,17 @@
 [
     {
-        "id": "toc",
-        "title": "목차",
-        "visible": true,
-        "selectionMode": "multi",
-        "choices": [
-            {
-                "id": "toc-personal",
-                "title": "인적사항",
-                "tooltip": "이름, 나이, 종족, 성별, 소속, 직종을 정합니다.",
-                "width": "1/3"
-            },
-            {
-                "id": "toc-region",
-                "title": "지역",
-                "tooltip": "출신과 시작 환경을 선택합니다.",
-                "width": "1/3"
-            },
-            {
-                "id": "toc-catalyst",
-                "title": "촉매",
-                "tooltip": "마법을 발현할 매개체를 선택합니다.",
-                "width": "1/3"
-            }
-        ],
-        "requiredCount": 0
-    },
-    {
         "id": "personal-name",
         "title": "이름",
-        "visible": false,
         "input": {
             "id": "personal-name-input",
             "label": "이름",
             "placeholder": "이름 입력"
-        },
-        "visibleWhen": {
-            "choiceSelected": "toc-personal"
         },
         "requiredCount": 1
     },
     {
         "id": "personal-age",
         "title": "나이",
-        "visible": false,
         "choices": [
             {
                 "id": "age-teen",
@@ -78,15 +46,11 @@
                 "width": "1/1"
             }
         ],
-        "visibleWhen": {
-            "choiceSelected": "toc-personal"
-        },
         "requiredCount": 1
     },
     {
         "id": "personal-race",
         "title": "종족",
-        "visible": false,
         "choices": [
             {
                 "id": "race-human",
@@ -121,15 +85,11 @@
                 "width": "1/1"
             }
         ],
-        "visibleWhen": {
-            "choiceSelected": "toc-personal"
-        },
         "requiredCount": 1
     },
     {
         "id": "personal-gender",
         "title": "성별",
-        "visible": false,
         "choices": [
             {
                 "id": "gender-male",
@@ -148,15 +108,11 @@
                 "width": "1/2"
             }
         ],
-        "visibleWhen": {
-            "choiceSelected": "toc-personal"
-        },
         "requiredCount": 1
     },
     {
         "id": "personal-affiliation",
         "title": "소속",
-        "visible": false,
         "choices": [
             {
                 "id": "affiliation-imperial-bureau",
@@ -183,81 +139,104 @@
                 "width": "1/3"
             }
         ],
-        "visibleWhen": {
-            "choiceSelected": "toc-personal"
-        },
         "requiredCount": 1
     },
     {
         "id": "personal-class",
         "title": "직종",
-        "visible": false,
+        "description": "어떤 일을 하시는지 쓰시면 돼요.",
         "choices": [
             {
                 "id": "class-student",
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "학생",
                 "title": "학생",
-                "description": "재능이 아직 개화되지 않은 직종입니다. 추가 효과는 없습니다.",
+                "description": "수많은 가능성을 품고, 재능을 개화하기 위해 전진하는 이들이다.\n추가 효과는 없다.",
                 "width": "1/3"
             },
             {
                 "id": "class-scholar",
                 "statEffects": [
-                    { "phase": "node", "operation": "multiply", "stat": "instability", "value": 0.9 }
+                    {
+                        "phase": "node",
+                        "operation": "multiply",
+                        "stat": "instability",
+                        "value": 0.9
+                    }
                 ],
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "학자",
                 "title": "학자",
-                "description": "마법 구조와 원리를 분석하는 직종입니다. 불안정성 증가율이 줄어듭니다.",
+                "description": "마법의 구조와 원리를 분석하여 진리를 찾고자 하는 이들이다.\n현대 마법의 근간이 이들에 의해 만들어졌다.\n불안정성 증가율이 줄어든다.",
                 "width": "1/3"
             },
             {
                 "id": "class-battlemage",
                 "statEffects": [
-                    { "phase": "node", "operation": "multiply", "stat": "castingTime", "value": 0.9 }
+                    {
+                        "phase": "node",
+                        "operation": "multiply",
+                        "stat": "castingTime",
+                        "value": 0.9
+                    }
                 ],
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "전투 마법사",
                 "title": "전투 마법사",
-                "description": "대인 전투에 능한 직종입니다. 시전 시간이 줄어듭니다.",
+                "description": "오로지 인간을 상대하기 위해 단련한 마법사이다.\n더 높은 경지의 마법사라도 이들을 상대로 승리를 장담할 수 없다.\n마법의 시전 시간이 줄어든다.",
                 "width": "1/3"
             },
             {
                 "id": "class-caster",
                 "statEffects": [
-                    { "phase": "final", "operation": "add", "stat": "power", "value": 2 }
+                    {
+                        "phase": "final",
+                        "operation": "add",
+                        "stat": "power",
+                        "value": 2
+                    }
                 ],
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "시전자",
                 "title": "시전자",
-                "description": "전장에서 직접 마법을 구현하는 직종입니다. 출력이 증가합니다.",
+                "description": "지휘관의 지휘 아래, 전장에서 직접 마법을 구현하는 직종이다. 출력이 증가한다.",
                 "width": "1/3"
             },
             {
                 "id": "class-adventurer",
                 "statEffects": [
-                    { "phase": "final", "operation": "add", "stat": "power", "value": 1 },
-                    { "phase": "final", "operation": "add", "stat": "range", "value": 1 },
-                    { "phase": "final", "operation": "add", "stat": "duration", "value": 1 }
+                    {
+                        "phase": "final",
+                        "operation": "add",
+                        "stat": "power",
+                        "value": 1
+                    },
+                    {
+                        "phase": "final",
+                        "operation": "add",
+                        "stat": "range",
+                        "value": 1
+                    },
+                    {
+                        "phase": "final",
+                        "operation": "add",
+                        "stat": "duration",
+                        "value": 1
+                    }
                 ],
                 "imagePath": "../assets/images/temp.webp",
                 "imageAlt": "모험가",
                 "title": "모험가",
-                "description": "다양한 생존 기술을 지닌 직종입니다. 3서클 이하 마법의 최종 능력치가 전체적으로 상승합니다.",
+                "description": "낭만을 찾아 모험을 떠나는 직종이다. 이들에게 마법은 생존을 위한 수단일 뿐이다. 3서클 이하 마법의 최종 능력치가 전체적으로 상승한다.",
                 "width": "1/3"
             }
         ],
-        "visibleWhen": {
-            "choiceSelected": "toc-personal"
-        },
         "requiredCount": 1
     },
     {
         "id": "region",
-        "title": "지역",
-        "description": "출신 지역은 마법의 기초 성향에 영향을 줍니다.",
-        "visible": false,
+        "title": "활동지",
+        "description": "주로 활동하시는 지역을 쓰시면 됩니다. 다음 행선지를 쓰셔도 되고요. 행정을 위한거니까 제대로 써주세요.",
         "choices": [
             {
                 "id": "region-empire-center",
@@ -270,7 +249,7 @@
             {
                 "id": "region-university-city",
                 "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "마법 연구가 이루어지는 대학도시",
+                "imageAlt": "",
                 "title": "대륙연합학원 아타라",
                 "description": "",
                 "width": "1/4"
@@ -324,15 +303,11 @@
                 "width": "1/4"
             }
         ],
-        "visibleWhen": {
-            "choiceSelected": "toc-region"
-        },
         "requiredCount": 1
     },
     {
         "id": "catalyst",
         "title": "촉매",
-        "visible": false,
         "choices": [
             {
                 "id": "catalyst-staff",
@@ -392,9 +367,6 @@
                 "width": "1/3"
             }
         ],
-        "visibleWhen": {
-            "choiceSelected": "toc-catalyst"
-        },
         "requiredCount": 1
     }
 ]

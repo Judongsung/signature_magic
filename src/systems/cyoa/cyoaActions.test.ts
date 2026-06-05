@@ -12,23 +12,23 @@ import {
 
 const rows: CyoaChoiceRowData[] = [
     {
-        id: 'toc',
-        title: 'Table of Contents',
+        id: 'focus',
+        title: 'Focus',
         visible: true,
         selectable: true,
         requiredCount: 0,
         selectionMode: 'multi',
         layoutColumns: 1,
         choices: [
-            { id: 'toc-region', imageAlt: '', title: 'Region', layoutSpan: 1 },
-            { id: 'toc-catalyst', imageAlt: '', title: 'Catalyst', layoutSpan: 1 },
+            { id: 'focus-region', imageAlt: '', title: 'Region', layoutSpan: 1 },
+            { id: 'focus-catalyst', imageAlt: '', title: 'Catalyst', layoutSpan: 1 },
         ],
     },
     {
         id: 'region',
         title: 'Region',
         visible: false,
-        visibleWhen: { choiceSelected: 'toc-region' },
+        visibleWhen: { choiceSelected: 'focus-region' },
         selectable: true,
         requiredCount: 1,
         selectionMode: 'single',
@@ -112,7 +112,7 @@ describe('cyoaActions', () => {
 
     it('creates initial row visibility from row config data and visibility conditions', () => {
         expect(createInitialRowVisibility(rows)).toEqual({
-            toc: true,
+            focus: true,
             region: false,
             catalyst: false,
         });
@@ -134,16 +134,16 @@ describe('cyoaActions', () => {
     });
 
     it('opens rows through row visibility conditions', () => {
-        expect(resolveCyoaRowVisibility(rows, { toc: ['toc-region'] })).toEqual({
-            toc: true,
+        expect(resolveCyoaRowVisibility(rows, { focus: ['focus-region'] })).toEqual({
+            focus: true,
             region: true,
             catalyst: false,
         });
     });
 
     it('closes rows when row visibility conditions are no longer met', () => {
-        expect(resolveCyoaRowVisibility(rows, { toc: [] })).toEqual({
-            toc: true,
+        expect(resolveCyoaRowVisibility(rows, { focus: [] })).toEqual({
+            focus: true,
             region: false,
             catalyst: false,
         });
@@ -153,11 +153,11 @@ describe('cyoaActions', () => {
         const conditionalRows = [
             {
                 ...rows[1],
-                visibleWhen: { anyChoiceSelected: ['toc-region', 'toc-catalyst'] },
+                visibleWhen: { anyChoiceSelected: ['focus-region', 'focus-catalyst'] },
             },
         ];
 
-        expect(resolveCyoaRowVisibility(conditionalRows, { toc: ['toc-catalyst'] })).toEqual({
+        expect(resolveCyoaRowVisibility(conditionalRows, { focus: ['focus-catalyst'] })).toEqual({
             region: true,
         });
     });
@@ -166,14 +166,14 @@ describe('cyoaActions', () => {
         const conditionalRows = [
             {
                 ...rows[1],
-                visibleWhen: { allChoicesSelected: ['toc-region', 'toc-catalyst'] },
+                visibleWhen: { allChoicesSelected: ['focus-region', 'focus-catalyst'] },
             },
         ];
 
-        expect(resolveCyoaRowVisibility(conditionalRows, { toc: ['toc-region'] })).toEqual({
+        expect(resolveCyoaRowVisibility(conditionalRows, { focus: ['focus-region'] })).toEqual({
             region: false,
         });
-        expect(resolveCyoaRowVisibility(conditionalRows, { toc: ['toc-region', 'toc-catalyst'] })).toEqual({
+        expect(resolveCyoaRowVisibility(conditionalRows, { focus: ['focus-region', 'focus-catalyst'] })).toEqual({
             region: true,
         });
     });
@@ -191,19 +191,19 @@ describe('cyoaActions', () => {
         )).toEqual({ region: [] });
     });
 
-    it('supports multi-select rows for the table of contents', () => {
-        const tocRow = rows[0];
+    it('supports multi-select rows', () => {
+        const focusRow = rows[0];
 
         expect(toggleCyoaChoiceSelection(
-            tocRow,
-            { toc: ['toc-region'] },
-            'toc-catalyst'
-        )).toEqual({ toc: ['toc-region', 'toc-catalyst'] });
+            focusRow,
+            { focus: ['focus-region'] },
+            'focus-catalyst'
+        )).toEqual({ focus: ['focus-region', 'focus-catalyst'] });
         expect(toggleCyoaChoiceSelection(
-            tocRow,
-            { toc: ['toc-region', 'toc-catalyst'] },
-            'toc-region'
-        )).toEqual({ toc: ['toc-catalyst'] });
+            focusRow,
+            { focus: ['focus-region', 'focus-catalyst'] },
+            'focus-region'
+        )).toEqual({ focus: ['focus-catalyst'] });
     });
 
     it('requires every required selectable row before continuing regardless of visibility', () => {
@@ -240,7 +240,7 @@ describe('cyoaActions', () => {
             },
         ];
 
-        expect(canContinueCyoa(multiRows, { toc: ['toc-region'] })).toBe(false);
-        expect(canContinueCyoa(multiRows, { toc: ['toc-region', 'toc-catalyst'] })).toBe(true);
+        expect(canContinueCyoa(multiRows, { focus: ['focus-region'] })).toBe(false);
+        expect(canContinueCyoa(multiRows, { focus: ['focus-region', 'focus-catalyst'] })).toBe(true);
     });
 });

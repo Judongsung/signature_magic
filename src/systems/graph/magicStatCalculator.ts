@@ -11,6 +11,11 @@ import {
 } from '../../types/magic';
 import { MAGIC_STAT_RULES, type MagicStatScope } from './magicStatRules';
 import { applyMagicStatEffects } from './magicStatEffects';
+import { buildGraphTopology, type GraphTopology } from './topology/graphTopology';
+import {
+    findNearestCommonReachableNode,
+    reachableNodeIds,
+} from './topology/graphTraversal';
 
 export function buildMagicTypeMap(
     magicTypes: readonly MagicTypeConfig[]
@@ -133,30 +138,20 @@ function calculateGraphStat(
     );
 }
 
-interface StatGraph {
-    nodeMap: Map<string, MagicNode>;
-    outEdges: Map<string, string[]>;
-    inDegree: Map<string, number>;
-    edges: readonly Edge[];
-    nodes: readonly MagicNode[];
-}
-
 interface StatGraphAnalysis {
-    graph: StatGraph;
-    rootIds: string[];
+    graph: GraphTopology;
+    rootIds: readonly string[];
     unrootedNodes: readonly MagicNode[];
     mergeNodeId?: string;
 }
 
 function buildStatGraphAnalysis(nodes: readonly MagicNode[], edges: readonly Edge[]): StatGraphAnalysis {
-    const graph = buildStatGraph(nodes, edges);
-    const rootIds = nodes
-        .filter(node => (graph.inDegree.get(node.id) ?? 0) === 0)
-        .map(node => node.id);
-    const rootReachableIds = reachableNodeIds(rootIds, graph);
+    const graph = buildGraphTopology(nodes, edges);
+    const rootIds = graph.rootIds;
+    const rootReachableIds = reachableNodeIds(graph, rootIds);
     const unrootedNodes = nodes.filter(node => !rootReachableIds.has(node.id));
     const mergeNodeId = rootIds.length > 1
-        ? findNearestCommonReachableNode(rootIds, graph)
+        ? findNearestCommonReachableNode(graph, rootIds)
         : undefined;
 
     return {
@@ -167,30 +162,10 @@ function buildStatGraphAnalysis(nodes: readonly MagicNode[], edges: readonly Edg
     };
 }
 
-function buildStatGraph(nodes: readonly MagicNode[], edges: readonly Edge[]): StatGraph {
-    const nodeMap = new Map<string, MagicNode>();
-    const outEdges = new Map<string, string[]>();
-    const inDegree = new Map<string, number>();
-
-    nodes.forEach(node => {
-        nodeMap.set(node.id, node);
-        outEdges.set(node.id, []);
-        inDegree.set(node.id, 0);
-    });
-
-    edges.forEach(edge => {
-        if (!nodeMap.has(edge.source) || !nodeMap.has(edge.target)) return;
-        outEdges.get(edge.source)?.push(edge.target);
-        inDegree.set(edge.target, (inDegree.get(edge.target) ?? 0) + 1);
-    });
-
-    return { nodeMap, outEdges, inDegree, edges, nodes };
-}
-
 function evaluateFrom(
     nodeId: string,
     statKey: MagicStatKey,
-    graph: StatGraph,
+    graph: GraphTopology,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     nodeStatEffects: readonly MagicStatEffectConfig[],
     stopNodeId: string | undefined,
@@ -224,7 +199,7 @@ function evaluateFrom(
         return value;
     }
 
-    const mergeNodeId = findNearestCommonReachableNode(nextIds, graph);
+    const mergeNodeId = findNearestCommonReachableNode(graph, nextIds);
     const branchValues = nextIds.map(nextId =>
         evaluateFrom(nextId, statKey, graph, magicTypes, nodeStatEffects, mergeNodeId, new Set(visiting))
     );
@@ -259,7 +234,7 @@ function evaluateFrom(
 function combineSerialValues(
     statKey: MagicStatKey,
     values: readonly number[],
-    graph: StatGraph,
+    graph: GraphTopology,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>
 ): number {
     const [firstValue, ...restValues] = values;
@@ -284,7 +259,7 @@ function combineSerialValues(
 function combineComponentValues(
     statKey: MagicStatKey,
     values: readonly number[],
-    graph: StatGraph,
+    graph: GraphTopology,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>
 ): number {
     return MAGIC_STAT_RULES[statKey].combineNodeValues([...values], {
@@ -318,63 +293,10 @@ function readBranchAggregationByNodeId(
     nodeId: string,
     statKey: MagicStatKey,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
-    graph?: StatGraph
+    graph?: GraphTopology
 ): MagicStatBranchAggregation | undefined {
     const node = graph?.nodeMap.get(nodeId);
     if (!node) return undefined;
 
     return readBranchAggregation(node, statKey, magicTypes);
-}
-
-function findNearestCommonReachableNode(
-    startNodeIds: readonly string[],
-    graph: StatGraph
-): string | undefined {
-    const distanceMaps = startNodeIds.map(startNodeId => reachableDistances(startNodeId, graph));
-    if (distanceMaps.length === 0) return undefined;
-
-    const [first, ...rest] = distanceMaps;
-    const commonNodeIds = [...first.keys()].filter(nodeId => rest.every(distances => distances.has(nodeId)));
-
-    return commonNodeIds
-        .map(nodeId => ({
-            nodeId,
-            maxDistance: Math.max(...distanceMaps.map(distances => distances.get(nodeId) ?? Number.POSITIVE_INFINITY)),
-            totalDistance: distanceMaps.reduce((total, distances) => total + (distances.get(nodeId) ?? 0), 0),
-        }))
-        .sort((a, b) => a.maxDistance - b.maxDistance || a.totalDistance - b.totalDistance)[0]?.nodeId;
-}
-
-function reachableDistances(startNodeId: string, graph: StatGraph): Map<string, number> {
-    const distances = new Map<string, number>();
-    const queue = [{ nodeId: startNodeId, distance: 0 }];
-
-    while (queue.length > 0) {
-        const current = queue.shift()!;
-        if (distances.has(current.nodeId)) continue;
-
-        distances.set(current.nodeId, current.distance);
-        (graph.outEdges.get(current.nodeId) ?? []).forEach(nextId => {
-            queue.push({ nodeId: nextId, distance: current.distance + 1 });
-        });
-    }
-
-    return distances;
-}
-
-function reachableNodeIds(startNodeIds: readonly string[], graph: StatGraph): Set<string> {
-    const reachable = new Set<string>();
-    const queue = [...startNodeIds];
-
-    while (queue.length > 0) {
-        const nodeId = queue.shift()!;
-        if (reachable.has(nodeId)) continue;
-
-        reachable.add(nodeId);
-        (graph.outEdges.get(nodeId) ?? []).forEach(nextId => {
-            queue.push(nextId);
-        });
-    }
-
-    return reachable;
 }
