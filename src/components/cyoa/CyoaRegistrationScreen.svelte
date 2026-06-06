@@ -1,16 +1,19 @@
 <script lang="ts">
+    import veraChibiImageSrc from '../../assets/images/vera_chibi.png';
     import {
         APP_PHASES,
     } from '../../constants/gameConfigs';
     import {
+        CYOA_GUIDE_SPEECH_TEXT,
         CYOA_SCREEN_TEXT,
         UI_BUTTON_TEXT,
     } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
     import { choiceStore } from '../../stores/choiceStore.svelte';
     import type { CyoaChoiceRowData } from '../../types/cyoa';
+    import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
+    import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
     import CyoaChoiceSection from './choices/CyoaChoiceSection.svelte';
-    import CyoaDialogueScript from './dialogue/CyoaDialogueScript.svelte';
     import CyoaRegistrationSummary from './registration-summary/CyoaRegistrationSummary.svelte';
 
     function handleChoiceSelect(row: CyoaChoiceRowData, choiceId: string) {
@@ -25,23 +28,22 @@
         if (!choiceStore.canContinue) return;
         appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
     }
-
-    function skipToNodeComposition() {
-        appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
-    }
 </script>
 
 <main class="cyoa-screen">
-    <CyoaDialogueScript />
+    <DevPhaseNavigation />
 
-    <section class="intro-panel" aria-labelledby="cyoa-title">
-        <div class="intro-copy">
+    <section class="registration-panel" aria-labelledby="cyoa-title">
+        <div class="registration-copy">
             <p class="eyebrow">{CYOA_SCREEN_TEXT.EYEBROW}</p>
             <h1 id="cyoa-title">{CYOA_SCREEN_TEXT.TITLE}</h1>
-            <p class="description">
-                {CYOA_SCREEN_TEXT.DESCRIPTION}
-            </p>
         </div>
+
+        <CharacterSpeechBubble
+            imageSrc={veraChibiImageSrc}
+            imageAlt={CYOA_GUIDE_SPEECH_TEXT.IMAGE_ALT}
+            message={CYOA_SCREEN_TEXT.DESCRIPTION}
+        />
 
         {#each choiceStore.rows as row (row.id)}
             {#if choiceStore.visibleRowIds[row.id]}
@@ -54,18 +56,6 @@
                 />
             {/if}
         {/each}
-
-        {#if import.meta.env.DEV}
-            <div class="actions">
-                <button
-                    type="button"
-                    class="dev-skip-button"
-                    onclick={skipToNodeComposition}
-                >
-                    {UI_BUTTON_TEXT.DEV_SKIP_TO_NODE_COMPOSITION}
-                </button>
-            </div>
-        {/if}
     </section>
 
     <CyoaRegistrationSummary
@@ -92,7 +82,7 @@
             linear-gradient(90deg, #efe2c7, #f8efd9 42%, #dfcda8);
     }
 
-    .intro-panel {
+    .registration-panel {
         width: min(1080px, 100%);
         display: flex;
         flex-direction: column;
@@ -109,11 +99,11 @@
         box-sizing: border-box;
     }
 
-    .intro-panel::before {
+    .registration-panel::before {
         content: none;
     }
 
-    .intro-copy {
+    .registration-copy {
         max-width: 760px;
         padding: 0;
         position: relative;
@@ -140,76 +130,17 @@
         padding-bottom: 0;
     }
 
-    .description {
-        margin: 16px 0 0;
-        color: #6a5944;
-        font-family: var(--font-body);
-        font-size: 15px;
-        line-height: 1.7;
-    }
-
-    .actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 16px;
-        margin-top: 4px;
-        position: relative;
-        z-index: 2;
-    }
-
-    .dev-skip-button {
-        min-width: 160px;
-        height: 46px;
-        border: 1px solid rgba(103, 77, 48, 0.32);
-        border-radius: 4px;
-        font-family: var(--font-title);
-        font-size: 14px;
-        font-weight: 800;
-        cursor: pointer;
-        transition:
-            background 0.16s ease,
-            border-color 0.16s ease,
-            box-shadow 0.16s ease,
-            transform 0.16s ease;
-        letter-spacing: 0.5px;
-        box-sizing: border-box;
-    }
-
-    .dev-skip-button {
-        background: linear-gradient(180deg, #3e6f67, #284c46);
-        color: #f1fffb;
-        border-color: rgba(43, 94, 84, 0.36);
-        box-shadow: 0 8px 18px rgba(35, 73, 67, 0.18);
-    }
-
-    .dev-skip-button:hover {
-        background: linear-gradient(180deg, #4a8278, #315b54);
-        border-color: rgba(43, 94, 84, 0.58);
-        box-shadow: 0 12px 24px rgba(35, 73, 67, 0.24);
-        transform: translateY(-1px);
-    }
-
-    .dev-skip-button:active {
-        transform: translateY(1px);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
-    }
-
-    .dev-skip-button:focus-visible {
-        outline: 2px solid #8a5a32;
-        outline-offset: 2px;
-    }
-
     @media (max-width: 720px) {
         .cyoa-screen {
             padding: 16px 12px;
             gap: 20px;
         }
 
-        .intro-panel {
+        .registration-panel {
             padding: 24px 20px 20px;
         }
 
-        .intro-panel::before {
+        .registration-panel::before {
             content: none;
         }
 
@@ -217,14 +148,5 @@
             font-size: 30px;
         }
 
-        .actions {
-            justify-content: stretch;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .dev-skip-button {
-            width: 100%;
-        }
     }
 </style>

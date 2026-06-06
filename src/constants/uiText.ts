@@ -1,5 +1,22 @@
-import type { MagicNodeCategory } from './gameConfigs';
+import { APP_PHASES, type AppPhase, type MagicNodeCategory } from './gameConfigs';
 import type { MagicStatKey } from '../types/magic';
+
+export const DIALOGUE_SCREEN_TEXT = {
+    CONTINUE_TO_CYOA: 'CYOA로 진행',
+} as const;
+
+export const DEV_PHASE_NAVIGATION_TEXT = {
+    ARIA_LABEL: 'Development phase navigation',
+    PHASE_LABELS: {
+        [APP_PHASES.INTRO_DIALOGUE]: 'NPC 대화',
+        [APP_PHASES.CYOA]: 'CYOA',
+        [APP_PHASES.NODE_COMPOSITION]: '노드 조합',
+    } satisfies Record<AppPhase, string>,
+} as const;
+
+export const CYOA_GUIDE_SPEECH_TEXT = {
+    IMAGE_ALT: 'Vera chibi',
+} as const;
 
 export const CYOA_SCREEN_TEXT = {
     EYEBROW: 'GUILD RECEPTION DESK',

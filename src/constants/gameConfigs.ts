@@ -1,9 +1,16 @@
 export const APP_PHASES = {
-    CYOA: 1,
-    NODE_COMPOSITION: 2,
+    INTRO_DIALOGUE: 1,
+    CYOA: 2,
+    NODE_COMPOSITION: 3,
 } as const;
 
 export type AppPhase = (typeof APP_PHASES)[keyof typeof APP_PHASES];
+
+export const APP_PHASE_ORDER: AppPhase[] = [
+    APP_PHASES.INTRO_DIALOGUE,
+    APP_PHASES.CYOA,
+    APP_PHASES.NODE_COMPOSITION,
+];
 
 export const EDITOR_MOUSE_BUTTONS = {
     LEFT: 0,

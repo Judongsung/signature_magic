@@ -6,7 +6,7 @@ const BUILD_CYOA_DATA_ALIASES = {
   cyoaRows: './src/data/buildPlaceholders/cyoaRows.json',
   cyoaDialogueScripts: './src/data/buildPlaceholders/cyoaDialogueScripts.json',
   cyoaImageRegistry: './src/systems/cyoa/buildPlaceholders/cyoaImageRegistry.ts',
-  cyoaIntroScreen: './src/components/cyoa/buildPlaceholders/CyoaIntroScreen.svelte',
+  cyoaRegistrationScreen: './src/components/cyoa/buildPlaceholders/CyoaRegistrationScreen.svelte',
 } as const
 
 const NODE_COMPOSITION_ONLY_BUILD_ENV = 'NODE_COMPOSITION_ONLY'
@@ -21,7 +21,7 @@ function buildCyoaDataExclusionPlugin(enabled: boolean) {
   const cyoaRowsPlaceholder = fileURLToPath(new URL(BUILD_CYOA_DATA_ALIASES.cyoaRows, import.meta.url))
   const cyoaDialogueScriptsPlaceholder = fileURLToPath(new URL(BUILD_CYOA_DATA_ALIASES.cyoaDialogueScripts, import.meta.url))
   const cyoaImageRegistryPlaceholder = fileURLToPath(new URL(BUILD_CYOA_DATA_ALIASES.cyoaImageRegistry, import.meta.url))
-  const cyoaIntroScreenPlaceholder = fileURLToPath(new URL(BUILD_CYOA_DATA_ALIASES.cyoaIntroScreen, import.meta.url))
+  const cyoaRegistrationScreenPlaceholder = fileURLToPath(new URL(BUILD_CYOA_DATA_ALIASES.cyoaRegistrationScreen, import.meta.url))
 
   return {
     name: 'build-cyoa-data-exclusion',
@@ -37,8 +37,8 @@ function buildCyoaDataExclusionPlugin(enabled: boolean) {
       if (source.replaceAll('\\', '/').endsWith('/systems/cyoa/cyoaImageRegistry')) {
         return cyoaImageRegistryPlaceholder
       }
-      if (source.replaceAll('\\', '/').endsWith('/components/cyoa/CyoaIntroScreen.svelte')) {
-        return cyoaIntroScreenPlaceholder
+      if (source.replaceAll('\\', '/').endsWith('/components/cyoa/CyoaRegistrationScreen.svelte')) {
+        return cyoaRegistrationScreenPlaceholder
       }
       return null
     },

@@ -62,7 +62,7 @@
     .script-panel {
         min-height: 300px;
         display: grid;
-        grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+        grid-template-columns: minmax(220px, 340px) minmax(0, 1fr);
         gap: 28px;
         padding: 20px;
         border: 1px solid rgba(111, 86, 50, 0.26);
@@ -75,7 +75,7 @@
     }
 
     .portrait-frame {
-        min-height: 260px;
+        min-height: 320px;
         margin: 0;
         overflow: hidden;
         border: 1px solid rgba(103, 77, 48, 0.28);
@@ -155,7 +155,7 @@
         }
 
         .portrait-frame {
-            min-height: 220px;
+            min-height: 260px;
         }
 
         .script-copy {
