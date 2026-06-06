@@ -1,9 +1,9 @@
-import { render } from 'svelte/server';
+﻿import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import type { MagicNodeCategory } from '../../constants/gameConfigs';
 import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
 import type { MagicTypeConfig } from '../../types/magic';
-import { getMagicTypesByCategory } from '../../systems/graph/magicTypeRegistry';
+import { getMagicTypesByCategory } from '../../systems/graph/registry/magicTypeRegistry';
 import MagicNodeToolbar from './MagicNodeToolbar.svelte';
 
 const visibleMagicTypes: MagicTypeConfig[] = [

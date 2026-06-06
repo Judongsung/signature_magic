@@ -1,4 +1,4 @@
-export type Point = { x: number; y: number };
+﻿export type Point = { x: number; y: number };
 export type Size = { width: number; height: number };
 export type GridSize = readonly [number, number];
 export type CanvasExtent = readonly [

@@ -1,8 +1,8 @@
-import type { Connection } from '@xyflow/svelte';
+﻿import type { Connection } from '@xyflow/svelte';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { graphStore } from './graphStore.svelte';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
-import { isSystemMagicNode } from '../systems/graph/systemMagicNodes';
+import { isSystemMagicNode } from '../systems/graph/model/systemMagicNodes';
 
 const EMPTY_EFFECTS = {
     nodeEffects: [],

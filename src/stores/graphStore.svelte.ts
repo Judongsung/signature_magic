@@ -1,15 +1,15 @@
-import { type Connection, type Edge } from '@xyflow/svelte';
+﻿import { type Connection, type Edge } from '@xyflow/svelte';
 import type { OnBeforeConnect } from '@xyflow/svelte';
-import { createNode } from '../systems/graph/graphActions';
+import { createNode } from '../systems/graph/model/graphActions';
 import {
     prepareGraphEdge,
     removeDeletedGraphElements,
     syncGraphTopology,
-} from '../systems/graph/graphEventHandlers';
-import { calculateMagic } from '../systems/graph/magicCalculator';
-import { isConnectionValid } from '../systems/graph/graphRules';
-import { magicTypeMap, magicTypes } from '../systems/graph/magicTypeRegistry';
-import { createInitialSystemNodes } from '../systems/graph/systemMagicNodes';
+} from '../systems/graph/model/graphEventHandlers';
+import { calculateMagic } from '../systems/graph/calculation/magicCalculator';
+import { isConnectionValid } from '../systems/graph/model/graphRules';
+import { magicTypeMap, magicTypes } from '../systems/graph/registry/magicTypeRegistry';
+import { createInitialSystemNodes } from '../systems/graph/model/systemMagicNodes';
 import type {
     CirclePath,
     MagicCalculationResult,

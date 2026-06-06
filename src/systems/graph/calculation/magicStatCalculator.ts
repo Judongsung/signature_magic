@@ -1,4 +1,4 @@
-import type { Edge } from '@xyflow/svelte';
+﻿import type { Edge } from '@xyflow/svelte';
 import {
     EMPTY_MAGIC_STATS,
     MAGIC_STAT_KEYS,
@@ -8,14 +8,14 @@ import {
     type MagicStatKey,
     type MagicStats,
     type MagicTypeConfig,
-} from '../../types/magic';
+} from '../../../types/magic';
 import { MAGIC_STAT_RULES, type MagicStatScope } from './magicStatRules';
 import { applyMagicStatEffects } from './magicStatEffects';
-import { buildGraphTopology, type GraphTopology } from './topology/graphTopology';
+import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
 import {
     findNearestCommonReachableNode,
     reachableNodeIds,
-} from './topology/graphTraversal';
+} from '../topology/graphTraversal';
 
 export function buildMagicTypeMap(
     magicTypes: readonly MagicTypeConfig[]

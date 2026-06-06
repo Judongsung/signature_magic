@@ -1,12 +1,12 @@
-<script lang="ts">
+﻿<script lang="ts">
     import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../constants/gameConfigs';
     import { MAGIC_CIRCLE_TEXT } from '../../constants/uiText';
     import {
         DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS,
         magicCircleRingStrokeWidth,
         type MagicCircleRenderModel,
-    } from '../../systems/graph/magicCircleRenderer';
-    import { magicTypeColorMap } from '../../systems/graph/magicTypeRegistry';
+    } from '../../systems/graph/presentation/magicCircleRenderer';
+    import { magicTypeColorMap } from '../../systems/graph/registry/magicTypeRegistry';
     import MagicGlyphMark from './MagicGlyphMark.svelte';
     import MagicStatsGrid from './MagicStatsGrid.svelte';
 

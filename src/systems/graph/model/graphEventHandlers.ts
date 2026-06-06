@@ -1,5 +1,5 @@
-import type { Connection, Edge } from '@xyflow/svelte';
-import type { MagicNode } from '../../types/magic';
+﻿import type { Connection, Edge } from '@xyflow/svelte';
+import type { MagicNode } from '../../../types/magic';
 import type { MagicTypeLookup } from './graphRules';
 import {
     createEdgeUpdate,

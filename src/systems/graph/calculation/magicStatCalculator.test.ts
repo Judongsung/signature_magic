@@ -1,7 +1,7 @@
-import type { Edge } from '@xyflow/svelte';
+﻿import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
-import type { MagicNode, MagicStats, MagicType, MagicTypeConfig } from '../../types/magic';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
+import type { MagicNode, MagicStats, MagicType, MagicTypeConfig } from '../../../types/magic';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { hasMagicStatRuleForEveryKey } from './magicStatRules';
 

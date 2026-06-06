@@ -1,9 +1,9 @@
-import type { Connection, Edge } from '@xyflow/svelte';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
-import { MAGIC_NODE_HANDLE_CONFIG } from '../../constants/graphConfigs';
-import type { MagicNode, MagicTypeConfig } from '../../types/magic';
-import { buildOutEdgeMap } from './topology/graphTopology';
-import { canReach } from './topology/graphTraversal';
+﻿import type { Connection, Edge } from '@xyflow/svelte';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
+import { MAGIC_NODE_HANDLE_CONFIG } from '../../../constants/graphConfigs';
+import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
+import { buildOutEdgeMap } from '../topology/graphTopology';
+import { canReach } from '../topology/graphTraversal';
 import { isProtectedSystemConnection } from './systemMagicNodes';
 
 export const DEFAULT_INPUT_HANDLE_ID = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID;

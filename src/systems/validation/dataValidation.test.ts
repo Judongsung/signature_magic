@@ -16,8 +16,8 @@ import magicTypesData from '../../data/magicTypes.json';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import type { CyoaDialogueScriptConfig } from '../../types/cyoa';
 import type { MagicStatRulesConfig, MagicTypeConfig } from '../../types/magic';
-import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
-import type { GlyphShape } from '../graph/magicGlyphShapes';
+import type { MagicGlyphConfig } from '../graph/presentation/magicGlyphRegistry';
+import type { GlyphShape } from '../graph/presentation/magicGlyphShapes';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
 import {
     validateCyoaDialogueScripts,

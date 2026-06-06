@@ -1,9 +1,9 @@
-import {
+﻿import {
     MAGIC_STAT_KEYS,
     type MagicStatEffectConfig,
     type MagicStatKey,
     type MagicStats,
-} from '../../types/magic';
+} from '../../../types/magic';
 
 export function applyMagicStatEffects(
     value: number,

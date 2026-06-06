@@ -14,8 +14,8 @@ import {
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_ID_PREFIX,
     MAGIC_NODE_KINDS,
-} from '../../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
+} from '../../../constants/graphConfigs';
+import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import {
     DEFAULT_INPUT_HANDLE_ID,
     DEFAULT_OUTPUT_HANDLE_ID,
@@ -24,8 +24,8 @@ import {
     resolveNodeConnectionLimit,
     type MagicTypeLookup,
 } from './graphRules';
-import { computeNodeRoles } from './magicCalculator';
-import type { MagicNode, MagicType } from '../../types/magic';
+import { computeNodeRoles } from '../calculation/magicCalculator';
+import type { MagicNode, MagicType } from '../../../types/magic';
 import { isSystemMagicNode } from './systemMagicNodes';
 
 export type IdFactory = () => string;

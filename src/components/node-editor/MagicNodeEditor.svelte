@@ -1,4 +1,4 @@
-<script lang="ts">
+﻿<script lang="ts">
     import {
         SvelteFlow,
         Background,
@@ -26,8 +26,8 @@
     import {
         resolveCenteredDropPosition,
         resolveDropPosition,
-    } from '../../systems/graph/editorCanvas';
-    import { getMagicTypesByCategory } from '../../systems/graph/magicTypeRegistry';
+    } from '../../systems/graph/editor/editorCanvas';
+    import { getMagicTypesByCategory } from '../../systems/graph/registry/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
     import MagicNodeToolbar from './MagicNodeToolbar.svelte';

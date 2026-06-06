@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../constants/gameConfigs';
+﻿import { describe, expect, it } from 'vitest';
+import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/gameConfigs';
 import { buildMagicCircleRenderModels } from './magicCircleRenderer';
-import { EMPTY_MAGIC_STATS, type CirclePath, type MagicNode, type MagicType } from '../../types/magic';
+import { EMPTY_MAGIC_STATS, type CirclePath, type MagicNode, type MagicType } from '../../../types/magic';
 
 function node(id: string, magicType: MagicType): MagicNode {
     return {

@@ -1,5 +1,5 @@
-import magicGlyphData from '../../data/magicGlyphs.json';
-import type { MagicType } from '../../types/magic';
+﻿import magicGlyphData from '../../../data/magicGlyphs.json';
+import type { MagicType } from '../../../types/magic';
 import type { GlyphKind } from './magicGlyphShapes';
 
 export interface MagicGlyphConfig {

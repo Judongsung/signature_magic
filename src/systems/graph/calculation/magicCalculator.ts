@@ -1,4 +1,4 @@
-import type { Edge } from '@xyflow/svelte';
+﻿import type { Edge } from '@xyflow/svelte';
 import {
     type MagicNode,
     type MagicStatEffectBundle,
@@ -7,14 +7,14 @@ import {
     type MagicTypeConfig,
     type CirclePath,
     type MagicCalculationResult,
-} from '../../types/magic';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
-import { MAGIC_CIRCLE_ID_PREFIX } from '../../constants/graphConfigs';
+} from '../../../types/magic';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
+import { MAGIC_CIRCLE_ID_PREFIX } from '../../../constants/graphConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
-import { buildGraphTopology, type GraphTopology } from './topology/graphTopology';
-import { reachableNodeIds } from './topology/graphTraversal';
-import { filterCalculableMagicGraph } from './systemMagicNodes';
+import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
+import { reachableNodeIds } from '../topology/graphTraversal';
+import { filterCalculableMagicGraph } from '../model/systemMagicNodes';
 
 const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
     nodeEffects: [],

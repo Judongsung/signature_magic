@@ -1,15 +1,15 @@
-import type { Connection, Edge } from '@xyflow/svelte';
+﻿import type { Connection, Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
-import type { MagicNode, MagicTypeConfig } from '../../types/magic';
+import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 import {
     GRAPH_NODE_TYPES,
     MAGIC_NODE_HANDLE_CONFIG,
-} from '../../constants/graphConfigs';
+} from '../../../constants/graphConfigs';
 import {
     SYSTEM_MAGIC_NODE_CONFIGS,
     SYSTEM_MAGIC_TYPE_CONFIGS,
-} from '../../constants/systemMagicNodeConfigs';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../constants/gameConfigs';
+} from '../../../constants/systemMagicNodeConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
 import {
     filterEdgesReplacedByConnection,
     hasCycleDFS,

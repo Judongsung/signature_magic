@@ -1,12 +1,12 @@
-import type { Edge } from '@xyflow/svelte';
-import magicStatRulesData from '../../data/magicStatRules.json';
+﻿import type { Edge } from '@xyflow/svelte';
+import magicStatRulesData from '../../../data/magicStatRules.json';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
     MAGIC_STAT_AGGREGATION_OPERATION_IDS,
     MAGIC_STAT_BRANCH_AGGREGATIONS,
     MAGIC_STAT_SCALING_OPERATION_IDS,
     MAGIC_STAT_SCALING_OPERATIONS,
-} from '../../constants/magicStatConfigs';
+} from '../../../constants/magicStatConfigs';
 import {
     MAGIC_STAT_KEYS,
     type MagicNode,
@@ -17,7 +17,7 @@ import {
     type MagicStatRulesConfig,
     type MagicStatScalingConfig,
     type MagicTypeConfig,
-} from '../../types/magic';
+} from '../../../types/magic';
 
 export type MagicStatScope = 'circle' | 'total';
 

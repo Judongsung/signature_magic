@@ -1,6 +1,6 @@
-import type { Edge } from '@xyflow/svelte';
+﻿import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
-import type { MagicNode, MagicTypeConfig } from '../../types/magic';
+import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 import {
     prepareGraphEdge,
     removeDeletedGraphElements,

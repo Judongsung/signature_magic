@@ -1,11 +1,11 @@
-import type { Edge } from '@xyflow/svelte';
+﻿import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import {
     GRAPH_EDGE_TYPES,
     GRAPH_NODE_TYPES,
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_KINDS,
-} from '../../constants/graphConfigs';
+} from '../../../constants/graphConfigs';
 import {
     createEdge,
     createEdgeUpdate,
@@ -15,7 +15,7 @@ import {
     refreshNodeRoles,
     resolveNodeHandleCounts,
 } from './graphActions';
-import type { MagicNode, MagicTypeConfig } from '../../types/magic';
+import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 
 const magicTypes = [
     { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'basic' },

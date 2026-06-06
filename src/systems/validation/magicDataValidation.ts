@@ -12,13 +12,13 @@ import {
     type MagicTypeConfig,
     type MagicStatsConfig,
 } from '../../types/magic';
-import type { MagicGlyphConfig } from '../graph/magicGlyphRegistry';
-import { isGlyphKind, type GlyphShape } from '../graph/magicGlyphShapes';
+import type { MagicGlyphConfig } from '../graph/presentation/magicGlyphRegistry';
+import { isGlyphKind, type GlyphShape } from '../graph/presentation/magicGlyphShapes';
 import {
     isMagicStatAggregationOperation,
     isMagicStatBranchAggregation,
     isMagicStatScalingOperation,
-} from '../graph/magicStatRules';
+} from '../graph/calculation/magicStatRules';
 import { findDuplicates, result, type DataValidationResult } from './commonValidation';
 
 function isValidConnectionLimit(limit: number | null | undefined): boolean {

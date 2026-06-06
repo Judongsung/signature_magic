@@ -4,7 +4,7 @@
     import type { MagicNodeData } from '../../types/magic';
     import { MAGIC_NODE_HANDLE_CONFIG } from '../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
-    import { getMagicTypeConfig } from '../../systems/graph/magicTypeRegistry';
+    import { getMagicTypeConfig } from '../../systems/graph/registry/magicTypeRegistry';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
 
     let {

@@ -1,12 +1,12 @@
-import type { Edge } from '@xyflow/svelte';
-import { MAGIC_NODE_KINDS } from '../../constants/graphConfigs';
+﻿import type { Edge } from '@xyflow/svelte';
+import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
 import {
     INITIAL_SYSTEM_MAGIC_NODE_CONFIGS,
     SYSTEM_MAGIC_NODE_CONFIGS,
-} from '../../constants/systemMagicNodeConfigs';
-import type { MagicNode } from '../../types/magic';
-import { buildGraphTopology } from './topology/graphTopology';
-import { canReach, reachableNodeIds } from './topology/graphTraversal';
+} from '../../../constants/systemMagicNodeConfigs';
+import type { MagicNode } from '../../../types/magic';
+import { buildGraphTopology } from '../topology/graphTopology';
+import { canReach, reachableNodeIds } from '../topology/graphTraversal';
 
 export function isSystemMagicNode(node: Pick<MagicNode, 'id' | 'data'>): boolean {
     return node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM ||

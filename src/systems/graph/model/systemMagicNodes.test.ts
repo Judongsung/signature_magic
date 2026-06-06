@@ -1,11 +1,11 @@
-import type { Edge } from '@xyflow/svelte';
+﻿import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import {
     GRAPH_NODE_TYPES,
     MAGIC_NODE_KINDS,
-} from '../../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
-import type { MagicNode, MagicType } from '../../types/magic';
+} from '../../../constants/graphConfigs';
+import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
+import type { MagicNode, MagicType } from '../../../types/magic';
 import {
     createInitialSystemNodes,
     ensureSystemMagicNodes,

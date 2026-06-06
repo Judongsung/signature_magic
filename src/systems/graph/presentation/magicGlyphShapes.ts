@@ -1,4 +1,4 @@
-import magicGlyphShapeData from '../../data/magicGlyphShapes.json';
+﻿import magicGlyphShapeData from '../../../data/magicGlyphShapes.json';
 
 interface PathShape {
     d: string;
