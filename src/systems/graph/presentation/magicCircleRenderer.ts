@@ -241,6 +241,7 @@ function glyphMarkKind(definition: MagicGlyphConfig, index: number, bandIndex: n
     const sequence = definition.runeKinds;
     if (!sequence || sequence.length === 0) return definition.kind;
 
+    // runeKinds는 밴드마다 시작 위치를 밀어, 한 문양 반복보다 문장처럼 보이게 한다.
     return sequence[(index + bandIndex) % sequence.length];
 }
 

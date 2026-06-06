@@ -205,6 +205,7 @@ function evaluateFrom(
     );
     const branchValue = MAGIC_STAT_RULES[statKey].combineBranchValues(
         branchValues,
+        // 분기 집계 방식은 분기 시작 노드의 statRules가 정한다. 예: castingTime은 병렬 분기에서 max를 쓸 수 있다.
         readBranchAggregation(node, statKey, magicTypes),
         {
             statKey,

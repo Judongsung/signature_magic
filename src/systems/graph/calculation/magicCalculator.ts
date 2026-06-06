@@ -104,6 +104,7 @@ function calculateCirclesWithMagicTypes(
         ...cycleStartNodes,
     ]);
 
+    // 분기와 병합은 기존 원을 끊고 새 원의 시작점이 되도록 별도 start node로 취급한다.
     return uniqueStartNodes
         .flatMap(startNode => collectCircleChains(startNode, topology))
         .map((chain, index) => ({
@@ -129,6 +130,7 @@ function collectCircleChains(
     const walk = (currentNode: MagicNode, chain: MagicNode[], visited: Set<string>): MagicNode[][] => {
         const nextIds = topology.outEdges.get(currentNode.id) ?? [];
         if (nextIds.length === 0) return [chain];
+        // 출력이 여러 개인 노드는 현재 원을 끝내고, 각 출력 대상에서 별도 원을 시작한다.
         if (nextIds.length > 1) return [chain];
 
         return nextIds.flatMap(nextId => {

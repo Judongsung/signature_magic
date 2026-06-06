@@ -50,6 +50,7 @@ export function mapCyoaChoiceConfig(
         description: choice.description,
         tooltip: choice.tooltip,
         width: choice.width ?? DEFAULT_CHOICE_WIDTH,
+        // JSON의 width 비율은 CSS grid가 바로 쓸 수 있는 열 수와 span으로 정규화한다.
         layoutSpan: Math.max(1, (layoutColumns / width.denominator) * width.numerator),
         disabled: choice.disabled,
         statEffects: choice.statEffects,
@@ -138,6 +139,7 @@ export function canContinueCyoa(
     return rows
         .filter(row => row.selectable && row.requiredCount > 0)
         .every(row => {
+            // visibleWhen은 표시 여부만 제어한다. 숨겨진 행도 requiredCount가 있으면 진행을 막을 수 있다.
             if (row.input) {
                 return row.requiredCount <= INPUT_REQUIRED_COUNT
                     && (inputValues[row.input.id]?.trim().length ?? 0) > 0;

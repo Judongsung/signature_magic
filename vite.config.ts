@@ -13,6 +13,7 @@ const NODE_COMPOSITION_ONLY_BUILD_ENV = 'NODE_COMPOSITION_ONLY'
 const ENABLED_ENV_VALUES = new Set(['1', 'true', 'yes'])
 
 function isNodeCompositionOnlyBuild(command: string, env: NodeJS.ProcessEnv): boolean {
+  // NODE_COMPOSITION_ONLY=1 빌드는 CYOA 데이터와 화면을 placeholder로 바꿔 노드 조합 흐름만 번들링한다.
   return command === 'build' && ENABLED_ENV_VALUES.has(env[NODE_COMPOSITION_ONLY_BUILD_ENV]?.toLowerCase() ?? '')
 }
 

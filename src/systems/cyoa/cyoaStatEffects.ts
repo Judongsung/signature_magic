@@ -36,6 +36,7 @@ export function calculateCyoaStatEffects(
         if (!effects) return;
 
         effects.forEach(effect => {
+            // node 효과는 원/합산 계산 전에, final 효과는 전체 그래프 합산 후 적용한다.
             if (effect.phase === 'node') {
                 result.nodeEffects.push(effect);
                 return;

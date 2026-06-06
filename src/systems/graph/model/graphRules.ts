@@ -42,6 +42,7 @@ export function resolveConnectionLimit(
         ? config.connectionLimits?.maxInputs
         : config.connectionLimits?.maxOutputs;
 
+    // 생략된 제한은 기본값을 쓰고, null은 해당 방향 연결 수가 무제한이라는 뜻이다.
     return limit === undefined
         ? (direction === 'inputs'
             ? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_MAX_INPUTS
@@ -86,6 +87,7 @@ export function filterEdgesReplacedByConnection(connection: Connection, edges: E
     const nextSourceHandle = connectionSourceHandleId(connection);
     const nextTargetHandle = connectionTargetHandleId(connection);
 
+    // 이미 쓰는 핸들에 다시 연결하면 같은 source/target 핸들의 기존 edge를 교체한다.
     return edges.filter(edge => {
         const sameSourceHandle = edge.source === source && sourceHandleId(edge) === nextSourceHandle;
         const sameTargetHandle = edge.target === target && targetHandleId(edge) === nextTargetHandle;
@@ -134,6 +136,7 @@ function allowsCycleFromOutput(
     nodes: MagicNode[],
     magicTypes: MagicTypeLookup
 ): boolean {
+    // allowCycleFromOutput은 출력에서 닫히는 순환만 허용하는 데이터 기반 예외 규칙이다.
     return findMagicTypeConfig(sourceId, nodes, magicTypes)
         ?.connectionRules?.[MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT] === true;
 }

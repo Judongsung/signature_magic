@@ -1,11 +1,3 @@
-/**
- * graphActions.ts
- *
- * 그래프 요소 생성·변환에 관한 순수 함수 모음입니다.
- * 외부 상태(store)에 의존하지 않으며, 입력을 받아 결과를 반환합니다.
- * graphStore는 이 함수들을 호출하고 반환값으로 상태를 갱신합니다.
- */
-
 import type { Connection, Edge } from '@xyflow/svelte';
 import {
     GRAPH_EDGE_TYPES,
@@ -34,12 +26,6 @@ export function createUniqueId(): string {
     return crypto.randomUUID();
 }
 
-// ── 노드 생성 ─────────────────────────────────────────────────────────────────
-
-/**
- * 새 마법 노드 객체를 생성하여 반환합니다.
- * 초기 상태는 항상 isRoot=true, isLeaf=true (연결 없음)입니다.
- */
 export function createNode(
     magicType: MagicType,
     position: { x: number; y: number },
@@ -60,12 +46,6 @@ export function createNode(
     };
 }
 
-// ── 엣지 생성 ─────────────────────────────────────────────────────────────────
-
-/**
- * 연결 요청을 검증한 뒤 새 엣지 객체를 반환합니다.
- * 유효하지 않으면 false를 반환합니다. (SvelteFlow onbeforeconnect 규약)
- */
 export function createEdge(
     connection: Connection,
     edges: Edge[],
@@ -97,12 +77,6 @@ export function createEdgeUpdate(
     return { edge, edges: nextEdges };
 }
 
-// ── 노드 역할 갱신 ────────────────────────────────────────────────────────────
-
-/**
- * 현재 그래프 토폴로지를 기반으로 각 노드의 isRoot / isLeaf를 갱신합니다.
- * 실제로 변경된 노드가 있을 때만 새 배열을 반환하여 불필요한 렌더링을 방지합니다.
- */
 export function refreshNodeRoles(
     nodes: MagicNode[],
     edges: Edge[],
@@ -135,6 +109,7 @@ export function refreshNodeRoles(
 }
 
 function nextVisibleHandleCount(usedCount: number, limit: number | null): number {
+    // 사용된 핸들 뒤에 빈 핸들 하나를 더 보여 주되, 명시된 연결 제한은 넘지 않는다.
     if (limit === 0) return 0;
     if (limit === null) return usedCount + 1;
     return Math.max(1, Math.min(limit, usedCount + 1));
@@ -189,6 +164,7 @@ function normalizeDirectionalHandles(
     if (nodeEdges.length === 0) return edges;
 
     const nextHandleIds = new Map<string, string>();
+    // edge 삭제 뒤에는 남은 핸들 번호를 앞쪽부터 다시 채워 중간 빈칸을 없앤다.
     nodeEdges.forEach(({ edge }, index) => {
         nextHandleIds.set(edge.id, `${handlePrefix}-${index}`);
     });
@@ -216,11 +192,6 @@ export function normalizeEdgeHandles(edges: Edge[]): Edge[] {
     return normalized;
 }
 
-// ── 엣지 필터링 ───────────────────────────────────────────────────────────────
-
-/**
- * 삭제된 노드 id 집합에 연결된 엣지를 모두 제거한 새 배열을 반환합니다.
- */
 export function filterEdgesForDeletedNodes(
     deletedIds: Set<string>,
     edges: Edge[]
