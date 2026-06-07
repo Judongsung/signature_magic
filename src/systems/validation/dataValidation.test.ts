@@ -201,6 +201,7 @@ describe('dataValidation', () => {
                     title: 'TOC',
                     description: 123,
                     requiredCount: -1,
+                    selectionMode: 'double',
                     visibleWhen: {
                         choiceSelected: 'missing-choice',
                         anyChoiceSelected: ['missing-any'],
@@ -231,6 +232,7 @@ describe('dataValidation', () => {
             errors: [
                 'Invalid CYOA row description: toc',
                 'Invalid CYOA required count: toc -> -1',
+                'Invalid CYOA selection mode: toc -> double',
                 'Unknown CYOA visibleWhen choice: toc -> missing-choice',
                 'Unknown CYOA visibleWhen any choice: toc -> missing-any',
                 'Unknown CYOA visibleWhen all choice: toc -> missing-all',
@@ -257,21 +259,46 @@ describe('dataValidation', () => {
                     imagePath: '../assets/images/missing.webp',
                     imageAlt: '',
                     defaultNpcLine: '',
-                    options: [
-                        { id: 'option', playerLine: '', npcLine: '' },
-                        { id: 'option', playerLine: 'line', npcLine: 'line' },
+                    optionRows: [
+                        {
+                            id: 'row',
+                            options: [
+                                { id: 'option', playerLine: '', npcLine: '' },
+                            ],
+                        },
+                        {
+                            id: 'row',
+                            selectionMode: 'double',
+                            visibleWhen: { choiceSelected: 'missing-option' },
+                            options: [
+                                { id: 'option', playerLine: 'line', npcLine: 'line' },
+                                {
+                                    id: 'option-child',
+                                    playerLine: 'line',
+                                    npcLine: '',
+                                    npcImagePath: '../assets/images/missing-option.webp',
+                                    npcImageAlt: 123,
+                                },
+                            ],
+                        },
                     ],
                 },
-            ],
+            ] as unknown as CyoaDialogueScriptConfig[],
             isKnownCyoaImagePath
         )).toEqual({
             valid: false,
             errors: [
                 'Unknown CYOA dialogue image path: script -> ../assets/images/missing.webp',
+                'Duplicate CYOA dialogue option row id: script -> row',
                 'Duplicate CYOA dialogue option id: script -> option',
                 'Missing CYOA dialogue default NPC line: script',
+                'Invalid CYOA dialogue selection mode: script -> row -> double',
+                'Unknown CYOA dialogue visibleWhen choice: script -> row -> missing-option',
                 'Missing CYOA dialogue player line: script -> option',
                 'Missing CYOA dialogue NPC line: script -> option',
+                'Missing CYOA dialogue NPC line: script -> option-child',
+                'Unknown CYOA dialogue option image path: script -> option-child -> ../assets/images/missing-option.webp',
+                'Invalid CYOA dialogue option image alt: script -> option-child',
             ],
         });
     });

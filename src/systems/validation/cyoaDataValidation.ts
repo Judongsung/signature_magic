@@ -1,4 +1,11 @@
-import type { CyoaChoiceRowConfig, CyoaDialogueScriptConfig } from '../../types/cyoa';
+import type {
+    CyoaChoiceRowConfig,
+    CyoaDialogueOptionConfig,
+    CyoaDialogueOptionRowConfig,
+    CyoaDialogueScriptConfig,
+    CyoaRowVisibilityCondition,
+} from '../../types/cyoa';
+import { CYOA_SELECTION_MODE_IDS } from '../../constants/gameConfigs';
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
@@ -7,6 +14,7 @@ import {
 import { findDuplicates, result, success, type DataValidationResult } from './commonValidation';
 
 const MAX_INPUT_REQUIRED_COUNT = 1;
+const CYOA_SELECTION_MODES = new Set<string>(Object.values(CYOA_SELECTION_MODE_IDS));
 
 function isValidChoiceWidth(width: string): boolean {
     const match = width.match(/^(\d+)\/(\d+)$/);
@@ -15,6 +23,10 @@ function isValidChoiceWidth(width: string): boolean {
     const numerator = Number(match[1]);
     const denominator = Number(match[2]);
     return numerator > 0 && denominator > 0 && numerator <= denominator;
+}
+
+function isValidCyoaSelectionMode(selectionMode: unknown): boolean {
+    return typeof selectionMode === 'string' && CYOA_SELECTION_MODES.has(selectionMode);
 }
 
 function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string[] {
@@ -54,6 +66,27 @@ function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string
     return errors;
 }
 
+function getDialogueOptionRowConfigs(script: CyoaDialogueScriptConfig): CyoaDialogueOptionRowConfig[] {
+    if (script.optionRows?.length) return script.optionRows;
+
+    return [
+        {
+            id: script.id,
+            options: script.options ?? [],
+        },
+    ];
+}
+
+function getVisibilityConditionChoiceIds(condition?: CyoaRowVisibilityCondition): string[] {
+    if (!condition) return [];
+
+    return [
+        ...(condition.choiceSelected ? [condition.choiceSelected] : []),
+        ...(condition.anyChoiceSelected ?? []),
+        ...(condition.allChoicesSelected ?? []),
+    ];
+}
+
 export function validateCyoaRows(
     rows: CyoaChoiceRowConfig[],
     isKnownImagePath: (imagePath: string) => boolean
@@ -84,6 +117,9 @@ export function validateCyoaRows(
         }
         if (row.requiredCount !== undefined && (!Number.isInteger(row.requiredCount) || row.requiredCount < 0)) {
             errors.push(`Invalid CYOA required count: ${row.id} -> ${row.requiredCount}`);
+        }
+        if (row.selectionMode !== undefined && !isValidCyoaSelectionMode(row.selectionMode)) {
+            errors.push(`Invalid CYOA selection mode: ${row.id} -> ${String(row.selectionMode)}`);
         }
         if (row.input && (row.choices?.length ?? 0) > 0) {
             errors.push(`CYOA row cannot mix input and choices: ${row.id}`);
@@ -146,7 +182,18 @@ export function validateCyoaDialogueScripts(
             errors.push(`Unknown CYOA dialogue image path: ${script.id} -> ${script.imagePath}`);
         }
 
-        const optionIds = script.options.map(option => option.id);
+        const optionRows = getDialogueOptionRowConfigs(script);
+        const rowIds = optionRows.map(row => row.id);
+        const options = optionRows.flatMap(row => row.options);
+        const optionIds = options.map(option => option.id);
+        const optionIdSet = new Set(optionIds);
+        const parentOptionIds = new Set(
+            optionRows.flatMap(row => getVisibilityConditionChoiceIds(row.visibleWhen))
+        );
+
+        findDuplicates(rowIds).forEach(id => {
+            errors.push(`Duplicate CYOA dialogue option row id: ${script.id} -> ${id}`);
+        });
 
         findDuplicates(optionIds).forEach(id => {
             errors.push(`Duplicate CYOA dialogue option id: ${script.id} -> ${id}`);
@@ -156,12 +203,30 @@ export function validateCyoaDialogueScripts(
             errors.push(`Missing CYOA dialogue default NPC line: ${script.id}`);
         }
 
-        script.options.forEach(option => {
+        optionRows.forEach(row => {
+            if (row.selectionMode !== undefined && !isValidCyoaSelectionMode(row.selectionMode)) {
+                errors.push(`Invalid CYOA dialogue selection mode: ${script.id} -> ${row.id} -> ${String(row.selectionMode)}`);
+            }
+
+            getVisibilityConditionChoiceIds(row.visibleWhen).forEach(choiceId => {
+                if (!optionIdSet.has(choiceId)) {
+                    errors.push(`Unknown CYOA dialogue visibleWhen choice: ${script.id} -> ${row.id} -> ${choiceId}`);
+                }
+            });
+        });
+
+        options.forEach(option => {
             if (!option.playerLine.trim()) {
                 errors.push(`Missing CYOA dialogue player line: ${script.id} -> ${option.id}`);
             }
-            if (!option.npcLine.trim()) {
+            if (!parentOptionIds.has(option.id) && !option.npcLine.trim()) {
                 errors.push(`Missing CYOA dialogue NPC line: ${script.id} -> ${option.id}`);
+            }
+            if (option.npcImagePath && !isKnownImagePath(option.npcImagePath)) {
+                errors.push(`Unknown CYOA dialogue option image path: ${script.id} -> ${option.id} -> ${option.npcImagePath}`);
+            }
+            if (option.npcImageAlt !== undefined && typeof option.npcImageAlt !== 'string') {
+                errors.push(`Invalid CYOA dialogue option image alt: ${script.id} -> ${option.id}`);
             }
         });
     });

@@ -1,4 +1,5 @@
 import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceRowConfig, CyoaChoiceRowData } from '../../types/cyoa';
+import { CYOA_SELECTION_MODE_IDS } from '../../constants/gameConfigs';
 
 type RowVisibility = Record<string, boolean>;
 type RowSelections = Record<string, string[]>;
@@ -73,7 +74,7 @@ export function mapCyoaRowConfig(
         selectable: row.selectable ?? true,
         requiredCount: row.requiredCount ?? DEFAULT_REQUIRED_COUNT,
         visibleWhen: row.visibleWhen,
-        selectionMode: row.selectionMode ?? 'single',
+        selectionMode: row.selectionMode ?? CYOA_SELECTION_MODE_IDS.SINGLE,
         layoutColumns,
         input: row.input,
         choices: choiceConfigs.map(choice => mapCyoaChoiceConfig(choice, resolveImagePath, layoutColumns)),
@@ -158,7 +159,7 @@ export function toggleCyoaChoiceSelection(
 
     const rowSelections = selectedChoiceIds[row.id] ?? [];
     const isSelected = rowSelections.includes(choiceId);
-    const nextRowSelections = row.selectionMode === 'multi'
+    const nextRowSelections = row.selectionMode === CYOA_SELECTION_MODE_IDS.MULTI
         ? isSelected
             ? rowSelections.filter(id => id !== choiceId)
             : [...rowSelections, choiceId]

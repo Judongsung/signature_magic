@@ -2,26 +2,83 @@
     {
         "id": "guild-reception",
         "title": "등록 안내",
-        "npcName": "길드 접수원",
-        "npcTitle": "동부 지부 등록 창구",
+        "npcName": "베라 클로비스",
+        "npcTitle": "길드 접수원",
         "imagePath": "../assets/images/vera.webp",
         "imageAlt": "길드 접수원",
-        "defaultNpcLine": "어서 오십시오. 이곳은 동부 지부 마법사 등록 창구입니다. 처음 방문하셨다면 궁금한 항목을 먼저 물어보셔도 되고, 준비가 되셨다면 아래 신청 항목을 작성하시면 됩니다.",
-        "options": [
+        "defaultNpcLine": "어서 오세요. 제국 중앙 마법사 길드의 접수 창구입니다. 무슨 일로 방문하셨나요?",
+        "optionRows": [
             {
-                "id": "guild-purpose",
-                "playerLine": "마법사 등록은 왜 필요한가요?",
-                "npcLine": "길드 등록은 허가증이라기보다 신원 보증에 가깝습니다. 의뢰를 받을 때 누가 어떤 방식의 마법을 쓰는지 기록해 두어야 사고가 났을 때 책임 소재와 보상 절차를 처리할 수 있거든요."
+                "id": "guild-main",
+                "options": [
+                    {
+                        "id": "guild-purpose",
+                        "playerLine": "마법사 길드는 뭐하는 곳인가요?",
+                        "npcLine": "test"
+                    },
+                    {
+                        "id": "guild-process",
+                        "playerLine": "접수 절차는?",
+                        "npcLine": "등록 신청 서류에 인적사항과 등록에 필요한 내용을 적어서 제출하시면 됩니다. 서류에 반드시 사실만을 적을 필요는 없습니다. 마법사는 원래 비밀이 많은 이들이니까요. 다만, 그러면 행정상의 혜택을 받을 수 없기 때문에 정확하게 기입하시는 걸 추천드립니다. 제출 후에는 담당자를 따라 시연장으로 가서 시그니처 마법을 시연하시면 됩니다."
+                    },
+                    {
+                        "id": "guild-vera",
+                        "playerLine": "이름이 어떻게 되시나요?",
+                        "npcLine": "제국 중앙 마법사 길드의 접수원, 베라 클로비스입니다."
+                    }
+                ]
             },
             {
-                "id": "guild-process",
-                "playerLine": "접수 절차를 알려주세요.",
-                "npcLine": "먼저 인적사항과 출신, 사용할 촉매를 확인합니다. 이후 별도 조합실에서 본인의 마법진을 구성하면 접수 서류와 함께 초급 등록 심사로 넘어갑니다."
+                "id": "guild-purpose-followups",
+                "visibleWhen": { "choiceSelected": "guild-purpose" },
+                "options": [
+                    {
+                        "id": "guild-purpose-work",
+                        "playerLine": "길드가 맡는 업무를 알고 싶어요.",
+                        "npcLine": "마법사 길드는 의뢰 중개, 신원 보증, 사고 보상 절차를 맡습니다. 마법 사용 기록을 남겨서 마법사와 의뢰인 모두를 보호하는 곳이에요."
+                    },
+                    {
+                        "id": "guild-purpose-registration",
+                        "playerLine": "등록하면 무엇이 달라지나요?",
+                        "npcLine": "등록된 마법사는 공식 의뢰를 받을 수 있고, 길드 설비를 이용할 수 있습니다. 대신 마법진과 신원 정보가 기록되니 책임도 함께 생깁니다."
+                    }
+                ]
             },
             {
-                "id": "guild-world",
-                "playerLine": "이 도시의 길드는 어떤 곳인가요?",
-                "npcLine": "이곳은 제국 동부의 관문 지부입니다. 상단, 학회, 개척 의뢰가 모두 드나드는 곳이라 실전형 마법사와 연구자가 같은 대기표를 뽑는 조금 바쁜 창구죠."
+                "id": "guild-process-followups",
+                "visibleWhen": { "choiceSelected": "guild-process" },
+                "options": [
+                    {
+                        "id": "guild-process-read",
+                        "playerLine": "글을 못 읽는다.",
+                        "npcLine": "...? 마법사 아니신가요? 마법사가 글을 모른다니요, 말이 되는 소릴 해주세요.\n...하아, 제가 읽어드릴테니까 말로 답변해주세요. 작성은 제가 해드릴테니 서명만 해주세요.",
+                        "npcImagePath": "../assets/images/vera_disgust.webp",
+                        "npcImageAlt": "불쾌한 표정"
+                    },
+                    {
+                        "id": "guild-process-otherman",
+                        "playerLine": "담당자는?",
+                        "npcLine": ""
+                    }
+                ]
+            },
+            {
+                "id": "guild-vera-followups",
+                "visibleWhen": { "choiceSelected": "guild-vera" },
+                "options": [
+                    {
+                        "id": "guild-vera-mage",
+                        "playerLine": "마법사?",
+                        "npcLine": "아뇨, 저는 그냥 접수원일 뿐입니다. 마법사 길드라고 해서 꼭 마법사만 있을 필요는 없죠."
+                    },
+                    {
+                        "id": "guild-vera-personal",
+                        "playerLine": "애인은? 사는 곳? 나이는?",
+                        "npcLine": "쯧. 사적인 질문은 삼가해주세요.\n여기는 그런 곳 아닙니다.\n계속 이러시면 경비를 부를거에요.",
+                        "npcImagePath": "../assets/images/vera_disgust.webp",
+                        "npcImageAlt": "불쾌한 표정"
+                    }
+                ]
             }
         ]
     }

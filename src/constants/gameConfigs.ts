@@ -37,6 +37,13 @@ export const MAGIC_CONNECTION_RULE_KEYS = {
     ALLOW_CYCLE_FROM_OUTPUT: 'allowCycleFromOutput',
 } as const;
 
+export const CYOA_SELECTION_MODE_IDS = {
+    SINGLE: 'single',
+    MULTI: 'multi',
+} as const;
+
+export type CyoaSelectionMode = (typeof CYOA_SELECTION_MODE_IDS)[keyof typeof CYOA_SELECTION_MODE_IDS];
+
 export const MAGIC_CIRCLE_RENDERING_CONFIG = {
     VIEWBOX_SIZE: 260,
     CENTER: 130,

@@ -12,11 +12,29 @@ describe('cyoaDialogueScripts', () => {
                 imagePath: '../assets/images/temp.webp',
                 imageAlt: '접수원',
                 defaultNpcLine: '기본 안내입니다.',
-                options: [
+                optionRows: [
                     {
-                        id: 'question',
-                        playerLine: '질문합니다.',
-                        npcLine: '답변합니다.',
+                        id: 'main',
+                        options: [
+                            {
+                                id: 'question',
+                                playerLine: '질문합니다.',
+                                npcLine: '',
+                            },
+                        ],
+                    },
+                    {
+                        id: 'follow-up-row',
+                        visibleWhen: { choiceSelected: 'question' },
+                        options: [
+                            {
+                                id: 'follow-up',
+                                playerLine: '이어 묻습니다.',
+                                npcLine: '이어 답변합니다.',
+                                npcImagePath: '../assets/images/follow-up.webp',
+                                npcImageAlt: '이어 답변하는 접수원',
+                            },
+                        ],
                     },
                 ],
             },
@@ -29,5 +47,12 @@ describe('cyoaDialogueScripts', () => {
             title: '질문합니다.',
             layoutSpan: 1,
         });
+        expect(script.optionRows[1].visibleWhen).toEqual({ choiceSelected: 'question' });
+        expect(script.optionRows[1].options[0].choice).toMatchObject({
+            id: 'follow-up',
+            title: '이어 묻습니다.',
+            layoutSpan: 1,
+        });
+        expect(script.optionRows[1].options[0].npcImageSrc).toBe('/resolved.webp');
     });
 });

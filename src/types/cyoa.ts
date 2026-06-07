@@ -1,3 +1,4 @@
+import type { CyoaSelectionMode } from '../constants/gameConfigs';
 import type { MagicStatEffectConfig } from './magic';
 
 export interface CyoaRowVisibilityCondition {
@@ -33,7 +34,7 @@ export interface CyoaChoiceRowConfig {
     selectable?: boolean;
     requiredCount?: number;
     visibleWhen?: CyoaRowVisibilityCondition;
-    selectionMode?: 'single' | 'multi';
+    selectionMode?: CyoaSelectionMode;
     input?: CyoaTextInputConfig;
     choices?: CyoaChoiceConfig[];
 }
@@ -59,7 +60,7 @@ export interface CyoaChoiceRowData {
     selectable: boolean;
     requiredCount: number;
     visibleWhen?: CyoaRowVisibilityCondition;
-    selectionMode: 'single' | 'multi';
+    selectionMode: CyoaSelectionMode;
     layoutColumns: number;
     input?: CyoaTextInputConfig;
     choices: CyoaChoice[];
@@ -69,6 +70,15 @@ export interface CyoaDialogueOptionConfig {
     id: string;
     playerLine: string;
     npcLine: string;
+    npcImagePath?: string;
+    npcImageAlt?: string;
+}
+
+export interface CyoaDialogueOptionRowConfig extends Pick<
+    CyoaChoiceRowConfig,
+    'id' | 'visible' | 'visibleWhen' | 'selectionMode'
+> {
+    options: CyoaDialogueOptionConfig[];
 }
 
 export interface CyoaDialogueScriptConfig {
@@ -79,14 +89,21 @@ export interface CyoaDialogueScriptConfig {
     imagePath?: string;
     imageAlt: string;
     defaultNpcLine: string;
-    options: CyoaDialogueOptionConfig[];
+    options?: CyoaDialogueOptionConfig[];
+    optionRows?: CyoaDialogueOptionRowConfig[];
 }
 
 export interface CyoaDialogueOptionData extends CyoaDialogueOptionConfig {
     choice: CyoaChoice;
+    npcImageSrc?: string;
 }
 
-export interface CyoaDialogueScriptData extends Omit<CyoaDialogueScriptConfig, 'imagePath' | 'options'> {
+export interface CyoaDialogueOptionRowData extends CyoaChoiceRowData {
+    options: CyoaDialogueOptionData[];
+}
+
+export interface CyoaDialogueScriptData extends Omit<CyoaDialogueScriptConfig, 'imagePath' | 'options' | 'optionRows'> {
     imageSrc?: string;
     options: CyoaDialogueOptionData[];
+    optionRows: CyoaDialogueOptionRowData[];
 }
