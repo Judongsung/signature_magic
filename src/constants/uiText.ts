@@ -21,7 +21,7 @@ export const CYOA_GUIDE_SPEECH_TEXT = {
 export const CYOA_SCREEN_TEXT = {
     EYEBROW: 'GUILD RECEPTION DESK',
     TITLE: '길드 등록 접수',
-    DESCRIPTION: '업무 시간 내 접수 담당자가 확인할 기본 정보를 순서대로 작성하십시오.',
+    DESCRIPTION: '여기 서류 드릴테니까 빈 칸 채워주세요. 궁금하신 거 있으면 물어보셔도 되고요.',
 } as const;
 
 export const CYOA_REGISTRATION_SUMMARY_TEXT = {

@@ -64,6 +64,8 @@ describe('cyoaActions', () => {
             (imagePath) => imagePath ? '/resolved.webp' : undefined
         )).toMatchObject({
             imageSrc: undefined,
+            imageSize: 'default',
+            imagePlacement: 'left',
             tooltip: 'More detail',
             width: '1/3',
             layoutSpan: 1,
@@ -99,7 +101,15 @@ describe('cyoaActions', () => {
                 description: 'Choose a layout.',
                 choices: [
                     { id: 'a', imageAlt: '', title: '', description: '', width: '1/2' },
-                    { id: 'b', imageAlt: '', title: '', description: '', width: '1/4' },
+                    {
+                        id: 'b',
+                        imageAlt: '',
+                        imageSize: 'large',
+                        imagePlacement: 'top',
+                        title: '',
+                        description: '',
+                        width: '1/4',
+                    },
                     { id: 'c', imageAlt: '', title: '', description: '', width: '1/4' },
                 ],
             },
@@ -108,6 +118,10 @@ describe('cyoaActions', () => {
         expect(mapped[0].layoutColumns).toBe(4);
         expect(mapped[0].description).toBe('Choose a layout.');
         expect(mapped[0].choices.map(choice => choice.layoutSpan)).toEqual([2, 1, 1]);
+        expect(mapped[0].choices[1]).toMatchObject({
+            imageSize: 'large',
+            imagePlacement: 'top',
+        });
     });
 
     it('creates initial row visibility from row config data and visibility conditions', () => {

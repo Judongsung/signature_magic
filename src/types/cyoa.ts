@@ -1,4 +1,8 @@
-import type { CyoaSelectionMode } from '../constants/gameConfigs';
+import type {
+    CyoaChoiceImagePlacement,
+    CyoaChoiceImageSize,
+    CyoaSelectionMode,
+} from '../constants/gameConfigs';
 import type { MagicStatEffectConfig } from './magic';
 
 export interface CyoaRowVisibilityCondition {
@@ -18,6 +22,8 @@ export interface CyoaChoiceConfig {
     id: string;
     imagePath?: string;
     imageAlt: string;
+    imageSize?: CyoaChoiceImageSize;
+    imagePlacement?: CyoaChoiceImagePlacement;
     title: string;
     description?: string;
     tooltip?: string;
@@ -43,6 +49,8 @@ export interface CyoaChoice {
     id: string;
     imageSrc?: string;
     imageAlt: string;
+    imageSize?: CyoaChoiceImageSize;
+    imagePlacement?: CyoaChoiceImagePlacement;
     title: string;
     description?: string;
     tooltip?: string;

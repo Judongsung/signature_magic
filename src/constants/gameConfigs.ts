@@ -44,6 +44,22 @@ export const CYOA_SELECTION_MODE_IDS = {
 
 export type CyoaSelectionMode = (typeof CYOA_SELECTION_MODE_IDS)[keyof typeof CYOA_SELECTION_MODE_IDS];
 
+export const CYOA_CHOICE_IMAGE_SIZES = {
+    DEFAULT: 'default',
+    LARGE: 'large',
+    WIDE: 'wide',
+} as const;
+
+export type CyoaChoiceImageSize = (typeof CYOA_CHOICE_IMAGE_SIZES)[keyof typeof CYOA_CHOICE_IMAGE_SIZES];
+
+export const CYOA_CHOICE_IMAGE_PLACEMENTS = {
+    LEFT: 'left',
+    RIGHT: 'right',
+    TOP: 'top',
+} as const;
+
+export type CyoaChoiceImagePlacement = (typeof CYOA_CHOICE_IMAGE_PLACEMENTS)[keyof typeof CYOA_CHOICE_IMAGE_PLACEMENTS];
+
 export const MAGIC_CIRCLE_RENDERING_CONFIG = {
     VIEWBOX_SIZE: 260,
     CENTER: 130,

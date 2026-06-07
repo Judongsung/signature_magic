@@ -1,4 +1,8 @@
 <script lang="ts">
+    import {
+        CYOA_CHOICE_IMAGE_PLACEMENTS,
+        CYOA_CHOICE_IMAGE_SIZES,
+    } from '../../../constants/gameConfigs';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import type { CyoaChoice } from '../../../types/cyoa';
 
@@ -22,11 +26,13 @@
     }
 
     const tooltipId = $derived(`${choice.id}-${TOOLTIP_ID_SUFFIX}`);
+    const imageSize = $derived(choice.imageSize ?? CYOA_CHOICE_IMAGE_SIZES.DEFAULT);
+    const imagePlacement = $derived(choice.imagePlacement ?? CYOA_CHOICE_IMAGE_PLACEMENTS.LEFT);
 </script>
 
 <button
     type="button"
-    class="choice-card tooltip-host"
+    class={`choice-card tooltip-host image-size-${imageSize} image-placement-${imagePlacement}`}
     class:without-image={!choice.imageSrc}
     class:without-description={!choice.description}
     class:selected
@@ -55,10 +61,15 @@
 
 <style>
     .choice-card {
+        --choice-image-inline-size: clamp(88px, 28%, 120px);
+        --choice-image-aspect-ratio: 1;
+        --choice-card-min-height: calc(var(--choice-image-inline-size) + 28px);
+
         width: 100%;
-        min-height: 126px;
+        min-height: var(--choice-card-min-height);
         display: grid;
-        grid-template-columns: 100px minmax(0, 1fr);
+        grid-template-columns: var(--choice-image-inline-size) minmax(0, 1fr);
+        grid-template-areas: "image body";
         gap: 16px;
         align-items: center;
         padding: 14px;
@@ -75,8 +86,35 @@
         transition: all 0.18s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
+    .choice-card.image-size-large {
+        --choice-image-inline-size: clamp(112px, 34%, 164px);
+    }
+
+    .choice-card.image-size-wide {
+        --choice-image-inline-size: clamp(128px, 42%, 196px);
+    }
+
+    .choice-card.image-placement-right {
+        grid-template-columns: minmax(0, 1fr) var(--choice-image-inline-size);
+        grid-template-areas: "body image";
+    }
+
+    .choice-card.image-placement-top {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "image"
+            "body";
+        align-items: stretch;
+    }
+
+    .choice-card.image-placement-top .image-frame {
+        width: 100%;
+        justify-self: stretch;
+    }
+
     .choice-card.without-image {
         grid-template-columns: 1fr;
+        grid-template-areas: "body";
         min-height: 98px;
     }
 
@@ -135,12 +173,13 @@
     }
 
     .image-frame {
+        grid-area: image;
         display: block;
         overflow: hidden;
         border-radius: 6px;
         background: rgba(230, 219, 198, 0.8);
         border: 1px solid rgba(103, 77, 48, 0.22);
-        aspect-ratio: 1;
+        aspect-ratio: var(--choice-image-aspect-ratio);
         box-shadow: inset 0 0 12px rgba(93, 68, 38, 0.12);
         transition: border-color 0.18s ease;
     }
@@ -165,6 +204,7 @@
     }
 
     .choice-body {
+        grid-area: body;
         min-width: 0;
         display: flex;
         flex-direction: column;
@@ -192,10 +232,18 @@
 
     @media (max-width: 560px) {
         .choice-card {
-            grid-template-columns: 80px minmax(0, 1fr);
-            min-height: 100px;
+            --choice-image-inline-size: clamp(72px, 28%, 92px);
+
             gap: 12px;
             padding: 10px;
+        }
+
+        .choice-card.image-size-large {
+            --choice-image-inline-size: clamp(88px, 34%, 116px);
+        }
+
+        .choice-card.image-size-wide {
+            --choice-image-inline-size: clamp(96px, 42%, 132px);
         }
 
         .choice-title {

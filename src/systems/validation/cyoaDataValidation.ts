@@ -5,7 +5,11 @@ import type {
     CyoaDialogueScriptConfig,
     CyoaRowVisibilityCondition,
 } from '../../types/cyoa';
-import { CYOA_SELECTION_MODE_IDS } from '../../constants/gameConfigs';
+import {
+    CYOA_CHOICE_IMAGE_PLACEMENTS,
+    CYOA_CHOICE_IMAGE_SIZES,
+    CYOA_SELECTION_MODE_IDS,
+} from '../../constants/gameConfigs';
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
@@ -15,6 +19,8 @@ import { findDuplicates, result, success, type DataValidationResult } from './co
 
 const MAX_INPUT_REQUIRED_COUNT = 1;
 const CYOA_SELECTION_MODES = new Set<string>(Object.values(CYOA_SELECTION_MODE_IDS));
+const CYOA_CHOICE_IMAGE_SIZE_VALUES = new Set<string>(Object.values(CYOA_CHOICE_IMAGE_SIZES));
+const CYOA_CHOICE_IMAGE_PLACEMENT_VALUES = new Set<string>(Object.values(CYOA_CHOICE_IMAGE_PLACEMENTS));
 
 function isValidChoiceWidth(width: string): boolean {
     const match = width.match(/^(\d+)\/(\d+)$/);
@@ -27,6 +33,14 @@ function isValidChoiceWidth(width: string): boolean {
 
 function isValidCyoaSelectionMode(selectionMode: unknown): boolean {
     return typeof selectionMode === 'string' && CYOA_SELECTION_MODES.has(selectionMode);
+}
+
+function isValidCyoaChoiceImageSize(imageSize: unknown): boolean {
+    return typeof imageSize === 'string' && CYOA_CHOICE_IMAGE_SIZE_VALUES.has(imageSize);
+}
+
+function isValidCyoaChoiceImagePlacement(imagePlacement: unknown): boolean {
+    return typeof imagePlacement === 'string' && CYOA_CHOICE_IMAGE_PLACEMENT_VALUES.has(imagePlacement);
 }
 
 function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string[] {
@@ -147,6 +161,12 @@ export function validateCyoaRows(
         (row.choices ?? []).forEach(choice => {
             if (choice.imagePath && !isKnownImagePath(choice.imagePath)) {
                 errors.push(`Unknown CYOA image path: ${choice.id} -> ${choice.imagePath}`);
+            }
+            if (choice.imageSize !== undefined && !isValidCyoaChoiceImageSize(choice.imageSize)) {
+                errors.push(`Invalid CYOA choice image size: ${choice.id} -> ${String(choice.imageSize)}`);
+            }
+            if (choice.imagePlacement !== undefined && !isValidCyoaChoiceImagePlacement(choice.imagePlacement)) {
+                errors.push(`Invalid CYOA choice image placement: ${choice.id} -> ${String(choice.imagePlacement)}`);
             }
             if (choice.description !== undefined && typeof choice.description !== 'string') {
                 errors.push(`Invalid CYOA choice description: ${choice.id}`);

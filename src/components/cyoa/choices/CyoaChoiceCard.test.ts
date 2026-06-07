@@ -23,6 +23,21 @@ describe('CyoaChoiceCard', () => {
         expect(html).toContain('선택지 상세 설명');
     });
 
+    it('applies configured image size and placement classes', () => {
+        const { html } = render(CyoaChoiceCard, {
+            props: {
+                choice: {
+                    ...choice,
+                    imageSize: 'large',
+                    imagePlacement: 'top',
+                },
+            },
+        });
+
+        expect(html).toContain('image-size-large');
+        expect(html).toContain('image-placement-top');
+    });
+
     it('marks selected state for assistive technology and styling', () => {
         const { html } = render(CyoaChoiceCard, {
             props: { choice, selected: true },

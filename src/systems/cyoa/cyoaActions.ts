@@ -1,5 +1,9 @@
 import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceRowConfig, CyoaChoiceRowData } from '../../types/cyoa';
-import { CYOA_SELECTION_MODE_IDS } from '../../constants/gameConfigs';
+import {
+    CYOA_CHOICE_IMAGE_PLACEMENTS,
+    CYOA_CHOICE_IMAGE_SIZES,
+    CYOA_SELECTION_MODE_IDS,
+} from '../../constants/gameConfigs';
 
 type RowVisibility = Record<string, boolean>;
 type RowSelections = Record<string, string[]>;
@@ -47,6 +51,8 @@ export function mapCyoaChoiceConfig(
         id: choice.id,
         imageSrc: resolveImagePath(choice.imagePath),
         imageAlt: choice.imageAlt,
+        imageSize: choice.imageSize ?? CYOA_CHOICE_IMAGE_SIZES.DEFAULT,
+        imagePlacement: choice.imagePlacement ?? CYOA_CHOICE_IMAGE_PLACEMENTS.LEFT,
         title: choice.title,
         description: choice.description,
         tooltip: choice.tooltip,
