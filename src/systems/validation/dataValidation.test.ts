@@ -4,9 +4,10 @@ import {
     MAGIC_NODE_CATEGORIES,
 } from '../../constants/gameConfigs';
 import {
-    MAGIC_STAT_AGGREGATION_OPERATION_IDS,
-    MAGIC_STAT_SCALING_OPERATION_IDS,
+    MAGIC_STAT_AGGREGATION_OPERATIONS,
+    MAGIC_STAT_SCALING_OPERATIONS,
 } from '../../constants/magicStatConfigs';
+import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
 import cyoaDialogueScriptsData from '../../data/cyoaDialogueScripts.json';
 import cyoaRowsData from '../../data/cyoaRows.json';
 import magicGlyphsData from '../../data/magicGlyphs.json';
@@ -25,6 +26,7 @@ import {
     validateMagicGlyphShapes,
     validateMagicGlyphs,
     validateMagicStatRuleConfigs,
+    validateSystemMagicTypes,
     validateMagicTypes,
 } from './dataValidation';
 
@@ -34,6 +36,13 @@ describe('dataValidation', () => {
     it('validates configured magic types against category config', () => {
         expect(validateMagicTypes(
             magicTypesData as MagicTypeConfig[],
+            MAGIC_NODE_CATEGORIES
+        )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('validates system magic types with zero connection limits', () => {
+        expect(validateSystemMagicTypes(
+            SYSTEM_MAGIC_TYPE_CONFIGS,
             MAGIC_NODE_CATEGORIES
         )).toEqual({ valid: true, errors: [] });
     });
@@ -48,33 +57,33 @@ describe('dataValidation', () => {
         expect(validateMagicStatRuleConfigs({
             castingTime: {
                 nodeAggregation: 'average',
-                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
-                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
-                scaling: { operation: MAGIC_STAT_SCALING_OPERATION_IDS.NONE },
+                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
+                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
+                scaling: { operation: MAGIC_STAT_SCALING_OPERATIONS.NONE },
             },
             instability: {
-                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 serialAggregation: 'fastest',
-                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
-                scaling: { operation: MAGIC_STAT_SCALING_OPERATION_IDS.EXPONENTIAL_BY_NODE_COUNT },
+                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
+                scaling: { operation: MAGIC_STAT_SCALING_OPERATIONS.EXPONENTIAL_BY_NODE_COUNT },
             },
             power: {
-                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
-                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
+                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
+                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 branchAggregation: 'nearest',
-                scaling: { operation: MAGIC_STAT_SCALING_OPERATION_IDS.NONE },
+                scaling: { operation: MAGIC_STAT_SCALING_OPERATIONS.NONE },
             },
             range: {
-                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.MULTIPLY,
-                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.MULTIPLY,
-                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.MAX,
+                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.MULTIPLY,
+                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.MULTIPLY,
+                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.MAX,
                 scaling: { operation: 'curve' },
             },
             unknown: {
-                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
-                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
-                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM,
-                scaling: { operation: MAGIC_STAT_SCALING_OPERATION_IDS.NONE },
+                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
+                serialAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
+                branchAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
+                scaling: { operation: MAGIC_STAT_SCALING_OPERATIONS.NONE },
             },
         } as unknown as MagicStatRulesConfig)).toEqual({
             valid: false,

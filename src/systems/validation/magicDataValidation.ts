@@ -2,7 +2,7 @@ import {
     MAGIC_CONNECTION_RULE_KEYS,
     type MagicNodeCategory,
 } from '../../constants/gameConfigs';
-import { MAGIC_STAT_SCALING_OPERATION_IDS } from '../../constants/magicStatConfigs';
+import { MAGIC_STAT_SCALING_OPERATIONS } from '../../constants/magicStatConfigs';
 import {
     MAGIC_STAT_KEYS,
     type MagicNodeConnectionRules,
@@ -21,8 +21,19 @@ import {
 } from '../graph/calculation/magicStatRules';
 import { findDuplicates, result, type DataValidationResult } from './commonValidation';
 
-function isValidConnectionLimit(limit: number | null | undefined): boolean {
-    return limit === undefined || limit === null || (Number.isInteger(limit) && limit > 0);
+interface MagicTypeValidationOptions {
+    allowZeroConnectionLimits?: boolean;
+}
+
+function isValidConnectionLimit(
+    limit: number | null | undefined,
+    options: MagicTypeValidationOptions = {}
+): boolean {
+    if (limit === undefined || limit === null) return true;
+    if (!Number.isInteger(limit)) return false;
+
+    // 일반 노드는 양수 제한만 허용하고, 시스템 노드만 0으로 특정 방향 연결을 막을 수 있다.
+    return options.allowZeroConnectionLimits ? limit >= 0 : limit > 0;
 }
 
 function validateMagicConnectionRules(
@@ -98,7 +109,7 @@ function validateMagicStatRuleConfig(statKey: string, rule: MagicStatRuleConfig 
         errors.push(`Invalid magic stat scaling operation: ${statKey} -> ${rule.scaling?.operation}`);
     }
     if (
-        rule.scaling?.operation === MAGIC_STAT_SCALING_OPERATION_IDS.EXPONENTIAL_BY_NODE_COUNT &&
+        rule.scaling?.operation === MAGIC_STAT_SCALING_OPERATIONS.EXPONENTIAL_BY_NODE_COUNT &&
         (rule.scaling.factor === undefined || !Number.isFinite(rule.scaling.factor))
     ) {
         errors.push(`Invalid magic stat scaling factor: ${statKey} -> ${rule.scaling.factor}`);
@@ -124,9 +135,10 @@ export function validateMagicStatRuleConfigs(statRules: MagicStatRulesConfig): D
     return result(errors);
 }
 
-export function validateMagicTypes(
+function validateMagicTypeConfigs(
     magicTypes: MagicTypeConfig[],
-    categories: readonly MagicNodeCategory[]
+    categories: readonly MagicNodeCategory[],
+    options: MagicTypeValidationOptions = {}
 ): DataValidationResult {
     const errors: string[] = [];
     const categoryIds = new Set(categories);
@@ -143,10 +155,10 @@ export function validateMagicTypes(
         if (!magicType.description.trim()) {
             errors.push(`Missing magic type description: ${magicType.type}`);
         }
-        if (!isValidConnectionLimit(magicType.connectionLimits?.maxInputs)) {
+        if (!isValidConnectionLimit(magicType.connectionLimits?.maxInputs, options)) {
             errors.push(`Invalid magic type maxInputs: ${magicType.type} -> ${magicType.connectionLimits?.maxInputs}`);
         }
-        if (!isValidConnectionLimit(magicType.connectionLimits?.maxOutputs)) {
+        if (!isValidConnectionLimit(magicType.connectionLimits?.maxOutputs, options)) {
             errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
         }
         errors.push(...validateMagicConnectionRules(magicType.type, magicType.connectionRules));
@@ -155,6 +167,20 @@ export function validateMagicTypes(
     });
 
     return result(errors);
+}
+
+export function validateMagicTypes(
+    magicTypes: MagicTypeConfig[],
+    categories: readonly MagicNodeCategory[]
+): DataValidationResult {
+    return validateMagicTypeConfigs(magicTypes, categories);
+}
+
+export function validateSystemMagicTypes(
+    magicTypes: MagicTypeConfig[],
+    categories: readonly MagicNodeCategory[]
+): DataValidationResult {
+    return validateMagicTypeConfigs(magicTypes, categories, { allowZeroConnectionLimits: true });
 }
 
 export function validateMagicGlyphs(

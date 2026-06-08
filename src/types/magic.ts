@@ -4,9 +4,9 @@ import {
     type MagicNodeCategory,
 } from '../constants/gameConfigs';
 import {
-    MAGIC_STAT_AGGREGATION_OPERATION_IDS,
-    MAGIC_STAT_BRANCH_AGGREGATION_IDS,
-    MAGIC_STAT_SCALING_OPERATION_IDS,
+    MAGIC_STAT_AGGREGATION_OPERATIONS,
+    MAGIC_STAT_BRANCH_AGGREGATIONS,
+    MAGIC_STAT_SCALING_OPERATIONS,
 } from '../constants/magicStatConfigs';
 
 export type MagicType = string;
@@ -47,13 +47,13 @@ export interface MagicStatEffectBundle {
 }
 
 export type MagicStatBranchAggregation =
-    (typeof MAGIC_STAT_BRANCH_AGGREGATION_IDS)[keyof typeof MAGIC_STAT_BRANCH_AGGREGATION_IDS];
+    (typeof MAGIC_STAT_BRANCH_AGGREGATIONS)[keyof typeof MAGIC_STAT_BRANCH_AGGREGATIONS];
 
 export type MagicStatAggregationOperation =
-    (typeof MAGIC_STAT_AGGREGATION_OPERATION_IDS)[keyof typeof MAGIC_STAT_AGGREGATION_OPERATION_IDS];
+    (typeof MAGIC_STAT_AGGREGATION_OPERATIONS)[keyof typeof MAGIC_STAT_AGGREGATION_OPERATIONS];
 
 export type MagicStatScalingOperation =
-    (typeof MAGIC_STAT_SCALING_OPERATION_IDS)[keyof typeof MAGIC_STAT_SCALING_OPERATION_IDS];
+    (typeof MAGIC_STAT_SCALING_OPERATIONS)[keyof typeof MAGIC_STAT_SCALING_OPERATIONS];
 
 export interface MagicStatScalingConfig {
     operation: MagicStatScalingOperation;
@@ -85,6 +85,7 @@ export const EMPTY_MAGIC_STATS: MagicStats = {
 };
 
 export interface MagicNodeConnectionLimits {
+    // undefined는 기본 제한, null은 무제한, 0은 시스템 노드의 방향별 연결 금지를 뜻한다.
     maxInputs?: number | null;
     maxOutputs?: number | null;
 }

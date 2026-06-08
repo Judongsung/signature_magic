@@ -17,7 +17,7 @@
 
     import { graphStore } from '../../stores/graphStore.svelte';
     import {
-        DEFAULT_ACTIVE_MAGIC_NODE_CATEGORY_IDS,
+        DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES,
         EDITOR_CANVAS,
         type MagicNodeCategory,
     } from '../../constants/gameConfigs';
@@ -40,7 +40,7 @@
     const panOnDragButtons = [...EDITOR_CANVAS.PAN_ON_DRAG_BUTTONS];
     const { screenToFlowPosition } = useSvelteFlow();
 
-    let activeCategoryIds = $state<MagicNodeCategory[]>([...DEFAULT_ACTIVE_MAGIC_NODE_CATEGORY_IDS]);
+    let activeCategoryIds = $state<MagicNodeCategory[]>([...DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES]);
     let flowWrapperElement: HTMLDivElement | undefined;
     const visibleMagicTypes = $derived(
         getMagicTypesByCategory(activeCategoryIds),

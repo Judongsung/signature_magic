@@ -8,7 +8,7 @@ import type {
 import {
     CYOA_CHOICE_IMAGE_PLACEMENTS,
     CYOA_CHOICE_IMAGE_SIZES,
-    CYOA_SELECTION_MODE_IDS,
+    CYOA_SELECTION_MODES,
 } from '../../constants/gameConfigs';
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
@@ -18,7 +18,7 @@ import {
 import { findDuplicates, result, success, type DataValidationResult } from './commonValidation';
 
 const MAX_INPUT_REQUIRED_COUNT = 1;
-const CYOA_SELECTION_MODES = new Set<string>(Object.values(CYOA_SELECTION_MODE_IDS));
+const CYOA_SELECTION_MODE_VALUES = new Set<string>(Object.values(CYOA_SELECTION_MODES));
 const CYOA_CHOICE_IMAGE_SIZE_VALUES = new Set<string>(Object.values(CYOA_CHOICE_IMAGE_SIZES));
 const CYOA_CHOICE_IMAGE_PLACEMENT_VALUES = new Set<string>(Object.values(CYOA_CHOICE_IMAGE_PLACEMENTS));
 
@@ -32,7 +32,7 @@ function isValidChoiceWidth(width: string): boolean {
 }
 
 function isValidCyoaSelectionMode(selectionMode: unknown): boolean {
-    return typeof selectionMode === 'string' && CYOA_SELECTION_MODES.has(selectionMode);
+    return typeof selectionMode === 'string' && CYOA_SELECTION_MODE_VALUES.has(selectionMode);
 }
 
 function isValidCyoaChoiceImageSize(imageSize: unknown): boolean {

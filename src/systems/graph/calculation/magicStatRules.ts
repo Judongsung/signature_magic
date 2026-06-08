@@ -2,10 +2,11 @@
 import magicStatRulesData from '../../../data/magicStatRules.json';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
-    MAGIC_STAT_AGGREGATION_OPERATION_IDS,
+    MAGIC_STAT_AGGREGATION_OPERATION_VALUES,
     MAGIC_STAT_BRANCH_AGGREGATIONS,
-    MAGIC_STAT_SCALING_OPERATION_IDS,
+    MAGIC_STAT_BRANCH_AGGREGATION_VALUES,
     MAGIC_STAT_SCALING_OPERATIONS,
+    MAGIC_STAT_SCALING_OPERATION_VALUES,
 } from '../../../constants/magicStatConfigs';
 import {
     MAGIC_STAT_KEYS,
@@ -64,15 +65,15 @@ function maxSerialValues(left: number, right: number): number {
 }
 
 const nodeAggregationOperations: Record<MagicStatAggregationOperation, (values: number[]) => number> = {
-    [MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM]: sum,
-    [MAGIC_STAT_AGGREGATION_OPERATION_IDS.MULTIPLY]: multiplyNodeValues,
-    [MAGIC_STAT_AGGREGATION_OPERATION_IDS.MAX]: max,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.SUM]: sum,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.MULTIPLY]: multiplyNodeValues,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.MAX]: max,
 };
 
 const serialAggregationOperations: Record<MagicStatAggregationOperation, (left: number, right: number) => number> = {
-    [MAGIC_STAT_AGGREGATION_OPERATION_IDS.SUM]: sumSerialValues,
-    [MAGIC_STAT_AGGREGATION_OPERATION_IDS.MULTIPLY]: multiplySerialValues,
-    [MAGIC_STAT_AGGREGATION_OPERATION_IDS.MAX]: maxSerialValues,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.SUM]: sumSerialValues,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.MULTIPLY]: multiplySerialValues,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.MAX]: maxSerialValues,
 };
 
 function scaleByNodeCount(
@@ -87,7 +88,7 @@ function scaleByNodeCount(
 }
 
 function buildScaleFinalValue(config: MagicStatScalingConfig): MagicStatRule['scaleFinalValue'] {
-    if (config.operation === MAGIC_STAT_SCALING_OPERATION_IDS.EXPONENTIAL_BY_NODE_COUNT) {
+    if (config.operation === MAGIC_STAT_SCALING_OPERATIONS.EXPONENTIAL_BY_NODE_COUNT) {
         return (value, context) => scaleByNodeCount(value, context, config);
     }
 
@@ -124,14 +125,14 @@ export function hasMagicStatRuleForEveryKey(): boolean {
 
 export function isMagicStatAggregationOperation(value: unknown): value is MagicStatAggregationOperation {
     return typeof value === 'string' &&
-        MAGIC_STAT_AGGREGATION_OPERATIONS.includes(value as MagicStatAggregationOperation);
+        MAGIC_STAT_AGGREGATION_OPERATION_VALUES.includes(value as MagicStatAggregationOperation);
 }
 
 export function isMagicStatBranchAggregation(value: unknown): value is MagicStatBranchAggregation {
-    return typeof value === 'string' && MAGIC_STAT_BRANCH_AGGREGATIONS.includes(value as MagicStatBranchAggregation);
+    return typeof value === 'string' && MAGIC_STAT_BRANCH_AGGREGATION_VALUES.includes(value as MagicStatBranchAggregation);
 }
 
 export function isMagicStatScalingOperation(value: unknown): value is MagicStatScalingConfig['operation'] {
     return typeof value === 'string' &&
-        MAGIC_STAT_SCALING_OPERATIONS.includes(value as MagicStatScalingConfig['operation']);
+        MAGIC_STAT_SCALING_OPERATION_VALUES.includes(value as MagicStatScalingConfig['operation']);
 }

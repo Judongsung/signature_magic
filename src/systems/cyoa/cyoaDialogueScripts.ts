@@ -6,7 +6,7 @@ import type {
     CyoaDialogueScriptConfig,
     CyoaDialogueScriptData,
 } from '../../types/cyoa';
-import { CYOA_SELECTION_MODE_IDS } from '../../constants/gameConfigs';
+import { CYOA_SELECTION_MODES } from '../../constants/gameConfigs';
 
 const DEFAULT_DIALOGUE_LAYOUT_COLUMNS = 3;
 const DEFAULT_DIALOGUE_OPTION_ROW_ID = 'default-options';
@@ -53,7 +53,7 @@ function mapCyoaDialogueOptionRowConfig(
         selectable: true,
         requiredCount: 0,
         visibleWhen: row.visibleWhen,
-        selectionMode: row.selectionMode ?? CYOA_SELECTION_MODE_IDS.SINGLE,
+        selectionMode: row.selectionMode ?? CYOA_SELECTION_MODES.SINGLE,
         layoutColumns: DEFAULT_DIALOGUE_LAYOUT_COLUMNS,
         choices: options.map(option => option.choice),
         options,

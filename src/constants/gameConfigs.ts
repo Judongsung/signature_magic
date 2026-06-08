@@ -31,18 +31,18 @@ export const MAGIC_NODE_CATEGORIES = ['basic', 'action', 'control', 'extension']
 
 export type MagicNodeCategory = (typeof MAGIC_NODE_CATEGORIES)[number];
 
-export const DEFAULT_ACTIVE_MAGIC_NODE_CATEGORY_IDS: MagicNodeCategory[] = ['basic'];
+export const DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES: MagicNodeCategory[] = ['basic'];
 
 export const MAGIC_CONNECTION_RULE_KEYS = {
     ALLOW_CYCLE_FROM_OUTPUT: 'allowCycleFromOutput',
 } as const;
 
-export const CYOA_SELECTION_MODE_IDS = {
+export const CYOA_SELECTION_MODES = {
     SINGLE: 'single',
     MULTI: 'multi',
 } as const;
 
-export type CyoaSelectionMode = (typeof CYOA_SELECTION_MODE_IDS)[keyof typeof CYOA_SELECTION_MODE_IDS];
+export type CyoaSelectionMode = (typeof CYOA_SELECTION_MODES)[keyof typeof CYOA_SELECTION_MODES];
 
 export const CYOA_CHOICE_IMAGE_SIZES = {
     DEFAULT: 'default',
