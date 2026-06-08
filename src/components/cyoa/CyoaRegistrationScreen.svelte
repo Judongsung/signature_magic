@@ -24,9 +24,9 @@
         choiceStore.updateInputValue(inputId, value);
     }
 
-    function continueToNodeComposition() {
+    function continueToNodeIntroDialogue() {
         if (!choiceStore.canContinue) return;
-        appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
+        appStore.setPhase(APP_PHASES.NODE_INTRO_DIALOGUE);
     }
 </script>
 
@@ -59,7 +59,7 @@
     </section>
 
     <CyoaRegistrationSummary
-        onSubmit={continueToNodeComposition}
+        onSubmit={continueToNodeIntroDialogue}
         submitLabel={UI_BUTTON_TEXT.SUBMIT_REGISTRATION}
         submitDisabled={!choiceStore.canContinue}
     />

@@ -101,15 +101,18 @@
 
     .choice-card.image-placement-top {
         grid-template-columns: 1fr;
+        grid-template-rows: max-content auto;
         grid-template-areas:
             "image"
             "body";
         align-items: stretch;
+        align-content: start;
     }
 
     .choice-card.image-placement-top .image-frame {
         width: 100%;
         justify-self: stretch;
+        align-self: start;
     }
 
     .choice-card.without-image {

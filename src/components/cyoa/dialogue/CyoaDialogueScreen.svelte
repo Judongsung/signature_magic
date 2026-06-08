@@ -1,27 +1,56 @@
 <script lang="ts">
-    import { APP_PHASES } from '../../../constants/gameConfigs';
+    import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
+    import {
+        APP_PHASES,
+        CYOA_DIALOGUE_SCRIPT_IDS,
+        type AppPhase,
+        type CyoaDialogueScriptId,
+    } from '../../../constants/gameConfigs';
     import { DIALOGUE_SCREEN_TEXT } from '../../../constants/uiText';
     import { appStore } from '../../../stores/appStore.svelte';
+    import { mapCyoaDialogueScripts } from '../../../systems/cyoa/cyoaDialogueScripts';
+    import { resolveCyoaImagePath } from '../../../systems/cyoa/cyoaImageRegistry';
+    import type { CyoaDialogueScriptConfig } from '../../../types/cyoa';
     import DevPhaseNavigation from '../../dev/DevPhaseNavigation.svelte';
     import CyoaDialogueScript from './CyoaDialogueScript.svelte';
 
-    function continueToCyoa() {
-        appStore.setPhase(APP_PHASES.CYOA);
+    let {
+        scriptId = CYOA_DIALOGUE_SCRIPT_IDS.GUILD_RECEPTION,
+        continueLabel = DIALOGUE_SCREEN_TEXT.CONTINUE_TO_CYOA,
+        nextPhase = APP_PHASES.CYOA,
+    }: {
+        scriptId?: CyoaDialogueScriptId;
+        continueLabel?: string;
+        nextPhase?: AppPhase;
+    } = $props();
+
+    const dialogueScripts = mapCyoaDialogueScripts(
+        dialogueScriptsData as CyoaDialogueScriptConfig[],
+        resolveCyoaImagePath
+    );
+    const dialogueScript = $derived(
+        dialogueScripts.find(script => script.id === scriptId) ?? dialogueScripts[0]
+    );
+
+    function continueToNextPhase() {
+        appStore.setPhase(nextPhase);
     }
 </script>
 
 <main class="dialogue-screen">
     <DevPhaseNavigation />
 
-    <CyoaDialogueScript />
+    {#if dialogueScript}
+        <CyoaDialogueScript script={dialogueScript} />
+    {/if}
 
     <div class="actions">
         <button
             type="button"
             class="continue-button"
-            onclick={continueToCyoa}
+            onclick={continueToNextPhase}
         >
-            {DIALOGUE_SCREEN_TEXT.CONTINUE_TO_CYOA}
+            {continueLabel}
         </button>
     </div>
 </main>

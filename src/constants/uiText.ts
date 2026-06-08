@@ -5,11 +5,16 @@ export const DIALOGUE_SCREEN_TEXT = {
     CONTINUE_TO_CYOA: 'CYOA로 진행',
 } as const;
 
+export const NODE_INTRO_DIALOGUE_SCREEN_TEXT = {
+    CONTINUE_TO_NODE_COMPOSITION: '비술 조합실로 이동',
+} as const;
+
 export const DEV_PHASE_NAVIGATION_TEXT = {
     ARIA_LABEL: 'Development phase navigation',
     PHASE_LABELS: {
         [APP_PHASES.INTRO_DIALOGUE]: 'NPC 대화',
         [APP_PHASES.CYOA]: 'CYOA',
+        [APP_PHASES.NODE_INTRO_DIALOGUE]: '조합 안내',
         [APP_PHASES.NODE_COMPOSITION]: '노드 조합',
     } satisfies Record<AppPhase, string>,
 } as const;

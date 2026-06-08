@@ -1,7 +1,8 @@
 export const APP_PHASES = {
     INTRO_DIALOGUE: 1,
     CYOA: 2,
-    NODE_COMPOSITION: 3,
+    NODE_INTRO_DIALOGUE: 3,
+    NODE_COMPOSITION: 4,
 } as const;
 
 export type AppPhase = (typeof APP_PHASES)[keyof typeof APP_PHASES];
@@ -9,8 +10,17 @@ export type AppPhase = (typeof APP_PHASES)[keyof typeof APP_PHASES];
 export const APP_PHASE_ORDER: AppPhase[] = [
     APP_PHASES.INTRO_DIALOGUE,
     APP_PHASES.CYOA,
+    APP_PHASES.NODE_INTRO_DIALOGUE,
     APP_PHASES.NODE_COMPOSITION,
 ];
+
+export const CYOA_DIALOGUE_SCRIPT_IDS = {
+    GUILD_RECEPTION: 'guild-reception',
+    NODE_COMPOSITION_INTRO: 'node-composition-intro',
+} as const;
+
+export type CyoaDialogueScriptId =
+    (typeof CYOA_DIALOGUE_SCRIPT_IDS)[keyof typeof CYOA_DIALOGUE_SCRIPT_IDS];
 
 export const EDITOR_MOUSE_BUTTONS = {
     LEFT: 0,

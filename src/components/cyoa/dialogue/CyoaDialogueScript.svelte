@@ -1,24 +1,22 @@
 <script lang="ts">
-    import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
     import {
         resolveCyoaRowVisibility,
         toggleCyoaChoiceSelection,
     } from '../../../systems/cyoa/cyoaActions';
-    import { mapCyoaDialogueScripts } from '../../../systems/cyoa/cyoaDialogueScripts';
-    import { resolveCyoaImagePath } from '../../../systems/cyoa/cyoaImageRegistry';
     import type {
         CyoaChoiceRowData,
         CyoaDialogueOptionData,
-        CyoaDialogueScriptConfig,
+        CyoaDialogueScriptData,
     } from '../../../types/cyoa';
     import CyoaChoiceRow from '../choices/CyoaChoiceRow.svelte';
 
     type DialogueSelections = Record<string, string[]>;
 
-    const DIALOGUE_SCRIPT = mapCyoaDialogueScripts(
-        dialogueScriptsData as CyoaDialogueScriptConfig[],
-        resolveCyoaImagePath
-    )[0];
+    let {
+        script,
+    }: {
+        script: CyoaDialogueScriptData;
+    } = $props();
 
     let selectedChoiceIds = $state<DialogueSelections>({});
 
@@ -32,7 +30,7 @@
             if (!visibleRowIds[row.id]) continue;
 
             const selectedId = selectedIds[row.id]?.[0];
-            const selectedOption = DIALOGUE_SCRIPT.options.find(option => option.id === selectedId);
+            const selectedOption = script.options.find(option => option.id === selectedId);
             if (selectedOption?.npcLine.trim()) return selectedOption;
         }
 
@@ -43,9 +41,9 @@
         selectedIds: DialogueSelections,
         row: CyoaChoiceRowData
     ): DialogueSelections {
-        const rowIndex = DIALOGUE_SCRIPT.optionRows.findIndex(item => item.id === row.id);
+        const rowIndex = script.optionRows.findIndex(item => item.id === row.id);
         const laterRowIds = new Set(
-            DIALOGUE_SCRIPT.optionRows.slice(rowIndex + 1).map(item => item.id)
+            script.optionRows.slice(rowIndex + 1).map(item => item.id)
         );
 
         return Object.fromEntries(
@@ -54,22 +52,22 @@
     }
 
     const visibleRowIds = $derived(
-        resolveCyoaRowVisibility(DIALOGUE_SCRIPT.optionRows, selectedChoiceIds)
+        resolveCyoaRowVisibility(script.optionRows, selectedChoiceIds)
     );
     const visibleOptionRows = $derived(
-        DIALOGUE_SCRIPT.optionRows.filter(row => visibleRowIds[row.id])
+        script.optionRows.filter(row => visibleRowIds[row.id])
     );
     const selectedDialogueOption = $derived(
-        resolveSelectedDialogueOption(DIALOGUE_SCRIPT.optionRows, selectedChoiceIds, visibleRowIds)
+        resolveSelectedDialogueOption(script.optionRows, selectedChoiceIds, visibleRowIds)
     );
     const npcLine = $derived(
-        selectedDialogueOption?.npcLine ?? DIALOGUE_SCRIPT.defaultNpcLine
+        selectedDialogueOption?.npcLine ?? script.defaultNpcLine
     );
     const portraitImageSrc = $derived(
-        selectedDialogueOption?.npcImageSrc ?? DIALOGUE_SCRIPT.imageSrc
+        selectedDialogueOption?.npcImageSrc ?? script.imageSrc
     );
     const portraitImageAlt = $derived(
-        selectedDialogueOption?.npcImageAlt ?? DIALOGUE_SCRIPT.imageAlt
+        selectedDialogueOption?.npcImageAlt ?? script.imageAlt
     );
 
     function selectDialogueOption(row: CyoaChoiceRowData, choiceId: string) {
@@ -88,10 +86,10 @@
 
         <div class="script-copy">
             <div class="speaker-row">
-                <p class="speaker-name">{DIALOGUE_SCRIPT.npcName}</p>
-                <p class="speaker-title">{DIALOGUE_SCRIPT.npcTitle}</p>
+                <p class="speaker-name">{script.npcName}</p>
+                <p class="speaker-title">{script.npcTitle}</p>
             </div>
-            <h2 id="dialogue-script-title">{DIALOGUE_SCRIPT.title}</h2>
+            <h2 id="dialogue-script-title">{script.title}</h2>
             <p class="npc-line">{npcLine}</p>
         </div>
     </div>

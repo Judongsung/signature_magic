@@ -14,6 +14,7 @@ describe('DevPhaseNavigation', () => {
         expect(html).toContain(DEV_PHASE_NAVIGATION_TEXT.ARIA_LABEL);
         expect(html).toContain(DEV_PHASE_NAVIGATION_TEXT.PHASE_LABELS[APP_PHASES.INTRO_DIALOGUE]);
         expect(html).toContain(DEV_PHASE_NAVIGATION_TEXT.PHASE_LABELS[APP_PHASES.CYOA]);
+        expect(html).toContain(DEV_PHASE_NAVIGATION_TEXT.PHASE_LABELS[APP_PHASES.NODE_INTRO_DIALOGUE]);
         expect(html).toContain(DEV_PHASE_NAVIGATION_TEXT.PHASE_LABELS[APP_PHASES.NODE_COMPOSITION]);
         expect(html).toContain('disabled');
     });
