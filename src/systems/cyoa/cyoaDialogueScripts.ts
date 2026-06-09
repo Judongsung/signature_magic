@@ -7,9 +7,12 @@ import type {
     CyoaDialogueScriptData,
 } from '../../types/cyoa';
 import { CYOA_SELECTION_MODES } from '../../constants/gameConfigs';
+import { getCyoaDialogueLineText } from './cyoaDialogueText';
 
 const DEFAULT_DIALOGUE_LAYOUT_COLUMNS = 3;
 const DEFAULT_DIALOGUE_OPTION_ROW_ID = 'default-options';
+
+export type CyoaDialogueSelections = Record<string, string[]>;
 
 export function mapCyoaDialogueOptionConfig(
     option: CyoaDialogueOptionConfig,
@@ -85,4 +88,40 @@ export function mapCyoaDialogueScripts(
     resolveImagePath: (imagePath?: string) => string | undefined
 ): CyoaDialogueScriptData[] {
     return scripts.map(script => mapCyoaDialogueScriptConfig(script, resolveImagePath));
+}
+
+export function resolveSelectedCyoaDialogueOption(
+    script: CyoaDialogueScriptData,
+    selectedIds: CyoaDialogueSelections,
+    visibleRowIds: Record<string, boolean>
+): CyoaDialogueOptionData | undefined {
+    for (let rowIndex = script.optionRows.length - 1; rowIndex >= 0; rowIndex -= 1) {
+        const row = script.optionRows[rowIndex];
+        if (!visibleRowIds[row.id]) continue;
+
+        const selectedId = selectedIds[row.id]?.[0];
+        const selectedOption = script.options.find(option => option.id === selectedId);
+        if (selectedOption && getCyoaDialogueLineText(selectedOption.npcLine).trim()) {
+            return selectedOption;
+        }
+    }
+
+    return undefined;
+}
+
+export function clearCyoaDialogueSelectionsAfterRow(
+    optionRows: CyoaDialogueOptionRowData[],
+    selectedIds: CyoaDialogueSelections,
+    rowId: string
+): CyoaDialogueSelections {
+    const rowIndex = optionRows.findIndex(row => row.id === rowId);
+    if (rowIndex < 0) return selectedIds;
+
+    const laterRowIds = new Set(
+        optionRows.slice(rowIndex + 1).map(row => row.id)
+    );
+
+    return Object.fromEntries(
+        Object.entries(selectedIds).filter(([selectedRowId]) => !laterRowIds.has(selectedRowId))
+    );
 }

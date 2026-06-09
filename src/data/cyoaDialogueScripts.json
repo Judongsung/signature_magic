@@ -58,7 +58,7 @@
                     {
                         "id": "guild-process-otherman",
                         "playerLine": "담당자는?",
-                        "npcLine": ".."
+                        "npcLine": "루아른 오라이어양이에요. 어리다고 함부로 대하지는 말아주세요."
                     }
                 ]
             },
@@ -84,27 +84,89 @@
     },
     {
         "id": "node-composition-intro",
-        "title": "비술 조합 안내",
-        "npcName": "루안 오라이어",
-        "npcTitle": "비술 조합실 담당자",
+        "title": "시그니처 마법 시연",
+        "npcName": "루아른 오라이어",
+        "npcTitle": "시그니처 마법 평가원",
         "imagePath": "../assets/images/luarn.webp",
-        "imageAlt": "비술 조합실 담당자",
-        "defaultNpcLine": "등록 신청은 접수되었습니다. 이제 비술 조합실로 이동해 마법 노드를 배치하고 연결을 구성해 주세요.",
-        "options": [
+        "imageAlt": "루아른 오라이어",
+        "defaultNpcLine": "시연을 시작하기 전에 궁금한 점이 있으면 물어보세요.",
+        "optionRows": [
             {
-                "id": "node-intro-placement",
-                "playerLine": "노드는 어떻게 배치하나요?",
-                "npcLine": "상단 목록에서 원하는 비술 노드를 선택하거나 끌어다 놓으면 됩니다. 처음에는 기본 계열부터 살펴보는 편이 좋습니다."
+                "id": "node-intro-main",
+                "options": [
+                    {
+                        "id": "node-intro-explain",
+                        "playerLine": "시그니처 마법이란?",
+                        "npcLine": "당신도 마법사라면 모르실 리가 없을텐데요.\n...마법사가 자신임을 증명하는 마법이에요. 다른 누구도 재현할 수 없는, 자신을 증명하는, 자신만의 오리지널 마법. 과거 항마대전에서 외형을 모방하여 잠입하는 마족에게 대항하기 위한 수단이었죠. 그게 전쟁이 끝난 이후에도 마법사 사회의 전통으로 자리 잡은거고요."
+                    },
+                    {
+                        "id": "node-intro-connection",
+                        "playerLine": "연결은 어떤 의미인가요?",
+                        "npcLine": "연결은 마력이 흐르는 순서를 뜻합니다. 마나 공급원에서 시작해 필요한 노드를 거친 뒤 최종 출력으로 이어져야 실제 계산에 반영됩니다."
+                    },
+                    {
+                        "id": "node-intro-luarn",
+                        "playerLine": "이름이?",
+                        "npcLine": "루아른 오라이어인데요."
+                    }
+                ]
             },
             {
-                "id": "node-intro-connection",
-                "playerLine": "연결은 어떤 의미인가요?",
-                "npcLine": "연결은 마력이 흐르는 순서를 뜻합니다. 마나 공급원에서 시작해 필요한 노드를 거친 뒤 최종 출력으로 이어져야 실제 계산에 반영됩니다."
+                "id": "node-intro-explain-followups",
+                "visibleWhen": { "choiceSelected": "node-intro-explain" },
+                "options": [
+                    {
+                        "id": "node-intro-explain-not-exist",
+                        "playerLine": "시그니처가 없다.",
+                        "npcLine": [
+                            {
+                                "text": "...진심이신가요. 그러고도 참 잘 마법사 길드에 등록하러 오셨네요. "
+                            },
+                            {
+                                "text": "하여간, 요즘 마법사들은 이래서 안된다니까요.",
+                                "variant": "mumble"
+                            },
+                            {
+                                "text": " 없으시면 그냥 가장 자신 있는 마법을 선보이시면 돼요. 신분 증명이야 다 옛날 얘기고요, 지금은 개인의 실력을 평가하는 것에 의미가 있죠. 지금 시대에는 신분을 증명할 수단이 얼마나 많은데요."
+                            }
+                        ],
+                        "npcImagePath": "../assets/images/luarn_disgust.webp",
+                        "npcImageAlt": "불쾌한 표정"
+                    },
+                    {
+                        "id": "node-intro-explain-connection",
+                        "playerLine": "연결은 어떤 의미인가요?",
+                        "npcLine": "연결은 마력이 흐르는 순서를 뜻합니다. 마나 공급원에서 시작해 필요한 노드를 거친 뒤 최종 출력으로 이어져야 실제 계산에 반영됩니다."
+                    },
+                    {
+                        "id": "node-intro-explain-luarn",
+                        "playerLine": "이름이?",
+                        "npcLine": "루아른 오라이어인데요."
+                    }
+                ]
             },
             {
-                "id": "node-intro-completion",
-                "playerLine": "완성 여부는 어디서 확인하나요?",
-                "npcLine": "오른쪽 미리보기에서 생성된 마법진과 총합 능력치를 확인할 수 있습니다. 연결되지 않은 노드는 미리보기 계산에서 제외됩니다."
+                "id": "node-intro-luarn-followups",
+                "visibleWhen": { "anyChoiceSelected": ["node-intro-luarn", "node-intro-explain-luarn"] },
+                "options": [
+                    {
+                        "id": "node-intro-luarn-young",
+                        "playerLine": "어려보이는데.",
+                        "npcLine": "이래뵈도 5서클 마법사인데요. 무시하지 말아주세요."
+                    },
+                    {
+                        "id": "node-intro-luarn-signature",
+                        "playerLine": "네 시그니처 마법은?",
+                        "npcLine": "주문 모방. 4서클 이하의 마법은 즉석에서 해석해서 따라할 수 있어요.\n...좀 더 치켜세워주셔도 괜찮은데요. 당신도 마법사니까 이게 얼마나 대단한 기예인지 아시잖아요."
+                    },
+                    {
+                        "id": "node-intro-luarn-recruit",
+                        "playerLine": "영입 제안",
+                        "npcLine": "...그건 싫은데요. 저 지금 하는 일이 편하고 좋은데요. 그리고 낯선 사람 함부로 따라갈만큼 순진하지는 않거든요? 게다가 당신, 제 스승님만큼 대단해보이지도 않고요.",
+                        "npcImagePath": "../assets/images/luarn_disgust.webp",
+                        "npcImageAlt": "불쾌한 표정"
+                    }
+                ]
             }
         ]
     }

@@ -1,6 +1,7 @@
 import type {
     CyoaChoiceImagePlacement,
     CyoaChoiceImageSize,
+    CyoaDialogueTextVariant,
     CyoaSelectionMode,
 } from '../constants/gameConfigs';
 import type { MagicStatEffectConfig } from './magic';
@@ -77,10 +78,17 @@ export interface CyoaChoiceRowData {
 export interface CyoaDialogueOptionConfig {
     id: string;
     playerLine: string;
-    npcLine: string;
+    npcLine: CyoaDialogueLine;
     npcImagePath?: string;
     npcImageAlt?: string;
 }
+
+export interface CyoaDialogueTextSegment {
+    text: string;
+    variant?: CyoaDialogueTextVariant;
+}
+
+export type CyoaDialogueLine = string | CyoaDialogueTextSegment[];
 
 export interface CyoaDialogueOptionRowConfig extends Pick<
     CyoaChoiceRowConfig,
@@ -96,7 +104,7 @@ export interface CyoaDialogueScriptConfig {
     npcTitle: string;
     imagePath?: string;
     imageAlt: string;
-    defaultNpcLine: string;
+    defaultNpcLine: CyoaDialogueLine;
     options?: CyoaDialogueOptionConfig[];
     optionRows?: CyoaDialogueOptionRowConfig[];
 }

@@ -3,13 +3,16 @@ import type {
     CyoaDialogueOptionConfig,
     CyoaDialogueOptionRowConfig,
     CyoaDialogueScriptConfig,
+    CyoaDialogueTextSegment,
     CyoaRowVisibilityCondition,
 } from '../../types/cyoa';
 import {
     CYOA_CHOICE_IMAGE_PLACEMENTS,
     CYOA_CHOICE_IMAGE_SIZES,
+    CYOA_DIALOGUE_TEXT_VARIANTS,
     CYOA_SELECTION_MODES,
 } from '../../constants/gameConfigs';
+import { getCyoaDialogueLineText } from '../cyoa/cyoaDialogueText';
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
@@ -21,6 +24,7 @@ const MAX_INPUT_REQUIRED_COUNT = 1;
 const CYOA_SELECTION_MODE_VALUES = new Set<string>(Object.values(CYOA_SELECTION_MODES));
 const CYOA_CHOICE_IMAGE_SIZE_VALUES = new Set<string>(Object.values(CYOA_CHOICE_IMAGE_SIZES));
 const CYOA_CHOICE_IMAGE_PLACEMENT_VALUES = new Set<string>(Object.values(CYOA_CHOICE_IMAGE_PLACEMENTS));
+const CYOA_DIALOGUE_TEXT_VARIANT_VALUES = new Set<string>(Object.values(CYOA_DIALOGUE_TEXT_VARIANTS));
 
 function isValidChoiceWidth(width: string): boolean {
     const match = width.match(/^(\d+)\/(\d+)$/);
@@ -99,6 +103,62 @@ function getVisibilityConditionChoiceIds(condition?: CyoaRowVisibilityCondition)
         ...(condition.anyChoiceSelected ?? []),
         ...(condition.allChoicesSelected ?? []),
     ];
+}
+
+function isCyoaDialogueTextSegment(segment: unknown): segment is CyoaDialogueTextSegment {
+    return Boolean(segment) && typeof segment === 'object' && !Array.isArray(segment);
+}
+
+function validateCyoaDialogueLine(
+    line: unknown,
+    label: string,
+    required: boolean
+): string[] {
+    const errors: string[] = [];
+
+    if (typeof line === 'string') {
+        if (required && !line.trim()) {
+            errors.push(`Missing CYOA dialogue ${label}`);
+        }
+
+        return errors;
+    }
+
+    if (!Array.isArray(line)) {
+        return [`Invalid CYOA dialogue line: ${label}`];
+    }
+
+    if (line.length === 0) {
+        errors.push(`Invalid CYOA dialogue line segments: ${label}`);
+    }
+
+    line.forEach((segment, index) => {
+        if (!isCyoaDialogueTextSegment(segment)) {
+            errors.push(`Invalid CYOA dialogue line segment: ${label} -> ${index}`);
+            return;
+        }
+
+        if (typeof segment.text !== 'string' || !segment.text.trim()) {
+            errors.push(`Invalid CYOA dialogue line segment text: ${label} -> ${index}`);
+        }
+
+        if (
+            segment.variant !== undefined
+            && (typeof segment.variant !== 'string' || !CYOA_DIALOGUE_TEXT_VARIANT_VALUES.has(segment.variant))
+        ) {
+            errors.push(`Invalid CYOA dialogue line segment variant: ${label} -> ${index} -> ${String(segment.variant)}`);
+        }
+    });
+
+    if (
+        required
+        && errors.length === 0
+        && !getCyoaDialogueLineText(line).trim()
+    ) {
+        errors.push(`Missing CYOA dialogue ${label}`);
+    }
+
+    return errors;
 }
 
 export function validateCyoaRows(
@@ -219,9 +279,11 @@ export function validateCyoaDialogueScripts(
             errors.push(`Duplicate CYOA dialogue option id: ${script.id} -> ${id}`);
         });
 
-        if (!script.defaultNpcLine.trim()) {
-            errors.push(`Missing CYOA dialogue default NPC line: ${script.id}`);
-        }
+        errors.push(...validateCyoaDialogueLine(
+            script.defaultNpcLine,
+            `default NPC line: ${script.id}`,
+            true
+        ));
 
         optionRows.forEach(row => {
             if (row.selectionMode !== undefined && !isValidCyoaSelectionMode(row.selectionMode)) {
@@ -239,9 +301,11 @@ export function validateCyoaDialogueScripts(
             if (!option.playerLine.trim()) {
                 errors.push(`Missing CYOA dialogue player line: ${script.id} -> ${option.id}`);
             }
-            if (!parentOptionIds.has(option.id) && !option.npcLine.trim()) {
-                errors.push(`Missing CYOA dialogue NPC line: ${script.id} -> ${option.id}`);
-            }
+            errors.push(...validateCyoaDialogueLine(
+                option.npcLine,
+                `NPC line: ${script.id} -> ${option.id}`,
+                !parentOptionIds.has(option.id)
+            ));
             if (option.npcImagePath && !isKnownImagePath(option.npcImagePath)) {
                 errors.push(`Unknown CYOA dialogue option image path: ${script.id} -> ${option.id} -> ${option.npcImagePath}`);
             }

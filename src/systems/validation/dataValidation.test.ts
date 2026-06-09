@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    CYOA_DIALOGUE_TEXT_VARIANTS,
     MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_CATEGORIES,
 } from '../../constants/gameConfigs';
@@ -312,6 +313,56 @@ describe('dataValidation', () => {
                 'Missing CYOA dialogue NPC line: script -> option-child',
                 'Unknown CYOA dialogue option image path: script -> option-child -> ../assets/images/missing-option.webp',
                 'Invalid CYOA dialogue option image alt: script -> option-child',
+            ],
+        });
+    });
+
+    it('reports invalid CYOA dialogue line segments', () => {
+        expect(validateCyoaDialogueScripts(
+            [
+                {
+                    id: 'script',
+                    title: 'Script',
+                    npcName: 'NPC',
+                    npcTitle: 'Desk',
+                    imageAlt: '',
+                    defaultNpcLine: [
+                        {
+                            text: 'line',
+                            variant: 'unknown',
+                        },
+                    ],
+                    optionRows: [
+                        {
+                            id: 'row',
+                            options: [
+                                {
+                                    id: 'empty-array',
+                                    playerLine: 'line',
+                                    npcLine: [],
+                                },
+                                {
+                                    id: 'empty-text',
+                                    playerLine: 'line',
+                                    npcLine: [
+                                        {
+                                            text: '',
+                                            variant: CYOA_DIALOGUE_TEXT_VARIANTS.MUMBLE,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ] as unknown as CyoaDialogueScriptConfig[],
+            isKnownCyoaImagePath
+        )).toEqual({
+            valid: false,
+            errors: [
+                'Invalid CYOA dialogue line segment variant: default NPC line: script -> 0 -> unknown',
+                'Invalid CYOA dialogue line segments: NPC line: script -> empty-array',
+                'Invalid CYOA dialogue line segment text: NPC line: script -> empty-text -> 0',
             ],
         });
     });

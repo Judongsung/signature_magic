@@ -22,6 +22,13 @@ export const CYOA_DIALOGUE_SCRIPT_IDS = {
 export type CyoaDialogueScriptId =
     (typeof CYOA_DIALOGUE_SCRIPT_IDS)[keyof typeof CYOA_DIALOGUE_SCRIPT_IDS];
 
+export const CYOA_DIALOGUE_TEXT_VARIANTS = {
+    MUMBLE: 'mumble',
+} as const;
+
+export type CyoaDialogueTextVariant =
+    (typeof CYOA_DIALOGUE_TEXT_VARIANTS)[keyof typeof CYOA_DIALOGUE_TEXT_VARIANTS];
+
 export const EDITOR_MOUSE_BUTTONS = {
     LEFT: 0,
     MIDDLE: 1,

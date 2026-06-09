@@ -21,11 +21,11 @@ describe('CyoaDialogueScreen', () => {
             },
         });
 
-        expect(html).toContain('비술 조합 안내');
-        expect(html).toContain('노드는 어떻게 배치하나요?');
+        expect(html).toContain('시그니처 마법 시연');
+        expect(html).toContain('시그니처 마법이란?');
         expect(html).toContain('연결은 어떤 의미인가요?');
-        expect(html).toContain('완성 여부는 어디서 확인하나요?');
-        expect(html).toContain('1.webp');
+        expect(html).toContain('이름이?');
+        expect(html).toContain('luarn.webp');
         expect(html).toContain('비술 조합실로 이동');
     });
 });

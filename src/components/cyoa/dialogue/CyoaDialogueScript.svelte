@@ -3,14 +3,27 @@
         resolveCyoaRowVisibility,
         toggleCyoaChoiceSelection,
     } from '../../../systems/cyoa/cyoaActions';
+    import {
+        clearCyoaDialogueSelectionsAfterRow,
+        resolveSelectedCyoaDialogueOption,
+        type CyoaDialogueSelections,
+    } from '../../../systems/cyoa/cyoaDialogueScripts';
+    import { normalizeCyoaDialogueLine } from '../../../systems/cyoa/cyoaDialogueText';
+    import {
+        CYOA_DIALOGUE_TEXT_VARIANTS,
+        type CyoaDialogueTextVariant,
+    } from '../../../constants/gameConfigs';
     import type {
         CyoaChoiceRowData,
-        CyoaDialogueOptionData,
         CyoaDialogueScriptData,
+        CyoaDialogueTextSegment,
     } from '../../../types/cyoa';
     import CyoaChoiceRow from '../choices/CyoaChoiceRow.svelte';
 
-    type DialogueSelections = Record<string, string[]>;
+    const NPC_LINE_SEGMENT_CLASS = 'npc-line-segment';
+    const NPC_LINE_SEGMENT_VARIANT_CLASSES = {
+        [CYOA_DIALOGUE_TEXT_VARIANTS.MUMBLE]: 'npc-line-segment--mumble',
+    } satisfies Partial<Record<CyoaDialogueTextVariant, string>>;
 
     let {
         script,
@@ -18,38 +31,7 @@
         script: CyoaDialogueScriptData;
     } = $props();
 
-    let selectedChoiceIds = $state<DialogueSelections>({});
-
-    function resolveSelectedDialogueOption(
-        rows: CyoaChoiceRowData[],
-        selectedIds: DialogueSelections,
-        visibleRowIds: Record<string, boolean>
-    ): CyoaDialogueOptionData | undefined {
-        for (let rowIndex = rows.length - 1; rowIndex >= 0; rowIndex -= 1) {
-            const row = rows[rowIndex];
-            if (!visibleRowIds[row.id]) continue;
-
-            const selectedId = selectedIds[row.id]?.[0];
-            const selectedOption = script.options.find(option => option.id === selectedId);
-            if (selectedOption?.npcLine.trim()) return selectedOption;
-        }
-
-        return undefined;
-    }
-
-    function clearSelectionsAfterRow(
-        selectedIds: DialogueSelections,
-        row: CyoaChoiceRowData
-    ): DialogueSelections {
-        const rowIndex = script.optionRows.findIndex(item => item.id === row.id);
-        const laterRowIds = new Set(
-            script.optionRows.slice(rowIndex + 1).map(item => item.id)
-        );
-
-        return Object.fromEntries(
-            Object.entries(selectedIds).filter(([rowId]) => !laterRowIds.has(rowId))
-        );
-    }
+    let selectedChoiceIds = $state<CyoaDialogueSelections>({});
 
     const visibleRowIds = $derived(
         resolveCyoaRowVisibility(script.optionRows, selectedChoiceIds)
@@ -58,11 +40,12 @@
         script.optionRows.filter(row => visibleRowIds[row.id])
     );
     const selectedDialogueOption = $derived(
-        resolveSelectedDialogueOption(script.optionRows, selectedChoiceIds, visibleRowIds)
+        resolveSelectedCyoaDialogueOption(script, selectedChoiceIds, visibleRowIds)
     );
     const npcLine = $derived(
         selectedDialogueOption?.npcLine ?? script.defaultNpcLine
     );
+    const npcLineSegments = $derived(normalizeCyoaDialogueLine(npcLine));
     const portraitImageSrc = $derived(
         selectedDialogueOption?.npcImageSrc ?? script.imageSrc
     );
@@ -72,7 +55,19 @@
 
     function selectDialogueOption(row: CyoaChoiceRowData, choiceId: string) {
         const nextSelectedIds = toggleCyoaChoiceSelection(row, selectedChoiceIds, choiceId);
-        selectedChoiceIds = clearSelectionsAfterRow(nextSelectedIds, row);
+        selectedChoiceIds = clearCyoaDialogueSelectionsAfterRow(
+            script.optionRows,
+            nextSelectedIds,
+            row.id
+        );
+    }
+
+    function getNpcLineSegmentClass(segment: CyoaDialogueTextSegment): string {
+        const variantClass = segment.variant
+            ? NPC_LINE_SEGMENT_VARIANT_CLASSES[segment.variant]
+            : undefined;
+
+        return [NPC_LINE_SEGMENT_CLASS, variantClass].filter(Boolean).join(' ');
     }
 </script>
 
@@ -90,7 +85,7 @@
                 <p class="speaker-title">{script.npcTitle}</p>
             </div>
             <h2 id="dialogue-script-title">{script.title}</h2>
-            <p class="npc-line">{npcLine}</p>
+            <p class="npc-line">{#each npcLineSegments as segment}<span class={getNpcLineSegmentClass(segment)}>{segment.text}</span>{/each}</p>
         </div>
     </div>
 
@@ -207,6 +202,13 @@
         line-height: 1.75;
         white-space: pre-line;
         word-break: keep-all;
+    }
+
+    .npc-line-segment--mumble {
+        color: #756751;
+        font-size: 0.78em;
+        font-style: italic;
+        font-weight: 560;
     }
 
     @media (max-width: 720px) {
