@@ -1,6 +1,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import { CYOA_SCREEN_TEXT } from '../../constants/uiText';
+import { CYOA_SCREEN_TEXT, UI_BUTTON_TEXT } from '../../constants/uiText';
 import CyoaRegistrationScreen from './CyoaRegistrationScreen.svelte';
 
 describe('CyoaRegistrationScreen', () => {
@@ -11,5 +11,6 @@ describe('CyoaRegistrationScreen', () => {
         expect(html).toContain('character-speech-bubble');
         expect(html).toContain('vera_chibi');
         expect(html).not.toContain('dialogue-script-title');
+        expect(html).not.toContain(`>${UI_BUTTON_TEXT.SUBMIT_REGISTRATION}</button>`);
     });
 });

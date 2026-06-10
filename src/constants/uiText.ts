@@ -2,7 +2,7 @@ import { APP_PHASES, type AppPhase, type MagicNodeCategory } from './gameConfigs
 import type { MagicStatKey } from '../types/magic';
 
 export const DIALOGUE_SCREEN_TEXT = {
-    CONTINUE_TO_CYOA: 'CYOA로 진행',
+    CONTINUE_TO_CYOA: '서류를 작성한다.',
 } as const;
 
 export const NODE_INTRO_DIALOGUE_SCREEN_TEXT = {
@@ -74,8 +74,20 @@ export const UI_BUTTON_TEXT = {
     COMPLETE_REQUIRED_FIELDS_TOOLTIP: '필수 사항을 전부 기재해 주세요.',
 } as const;
 
+export const APP_PHASE_NAVIGATION_TEXT = {
+    ARIA_LABEL: '화면 이동',
+    PREVIOUS_LABEL: '이전',
+    PREVIOUS_ARIA_LABEL: '이전 화면으로 이동',
+    NEXT_ARIA_LABEL: '다음 화면으로 이동',
+    NEXT_LABELS: {
+        [APP_PHASES.INTRO_DIALOGUE]: DIALOGUE_SCREEN_TEXT.CONTINUE_TO_CYOA,
+        [APP_PHASES.CYOA]: UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
+        [APP_PHASES.NODE_INTRO_DIALOGUE]: NODE_INTRO_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_COMPOSITION,
+    } satisfies Partial<Record<AppPhase, string>>,
+} as const;
+
 export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
-    castingTime: '캐스팅 시간',
+    castingTime: '시전 시간',
     instability: '불안정성',
     power: '출력',
     range: '범위',

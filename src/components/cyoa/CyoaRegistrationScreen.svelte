@@ -1,14 +1,9 @@
 <script lang="ts">
     import veraChibiImageSrc from '../../assets/images/vera_chibi.png';
     import {
-        APP_PHASES,
-    } from '../../constants/gameConfigs';
-    import {
         CYOA_GUIDE_SPEECH_TEXT,
         CYOA_SCREEN_TEXT,
-        UI_BUTTON_TEXT,
     } from '../../constants/uiText';
-    import { appStore } from '../../stores/appStore.svelte';
     import { choiceStore } from '../../stores/choiceStore.svelte';
     import type { CyoaChoiceRowData } from '../../types/cyoa';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
@@ -24,10 +19,6 @@
         choiceStore.updateInputValue(inputId, value);
     }
 
-    function continueToNodeIntroDialogue() {
-        if (!choiceStore.canContinue) return;
-        appStore.setPhase(APP_PHASES.NODE_INTRO_DIALOGUE);
-    }
 </script>
 
 <main class="cyoa-screen">
@@ -58,11 +49,7 @@
         {/each}
     </section>
 
-    <CyoaRegistrationSummary
-        onSubmit={continueToNodeIntroDialogue}
-        submitLabel={UI_BUTTON_TEXT.SUBMIT_REGISTRATION}
-        submitDisabled={!choiceStore.canContinue}
-    />
+    <CyoaRegistrationSummary />
 </main>
 
 <style>
@@ -74,7 +61,7 @@
         align-items: center;
         justify-content: flex-start;
         gap: 32px;
-        padding: 48px 24px;
+        padding: 48px 24px 112px;
         box-sizing: border-box;
         background:
             linear-gradient(180deg, rgba(255, 248, 232, 0.82), rgba(232, 218, 190, 0.88)),
@@ -132,7 +119,7 @@
 
     @media (max-width: 720px) {
         .cyoa-screen {
-            padding: 16px 12px;
+            padding: 16px 12px 96px;
             gap: 20px;
         }
 

@@ -27,8 +27,10 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        padding-bottom: 68px;
         overflow: hidden;
         background-color: #000;
+        box-sizing: border-box;
     }
 
     .node-composition-screen :global(.dev-phase-navigation) {
