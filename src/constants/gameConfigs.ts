@@ -7,13 +7,6 @@ export const APP_PHASES = {
 
 export type AppPhase = (typeof APP_PHASES)[keyof typeof APP_PHASES];
 
-export const APP_PHASE_ORDER: AppPhase[] = [
-    APP_PHASES.INTRO_DIALOGUE,
-    APP_PHASES.CYOA,
-    APP_PHASES.NODE_INTRO_DIALOGUE,
-    APP_PHASES.NODE_COMPOSITION,
-];
-
 export const CYOA_DIALOGUE_SCRIPT_IDS = {
     GUILD_RECEPTION: 'guild-reception',
     NODE_COMPOSITION_INTRO: 'node-composition-intro',

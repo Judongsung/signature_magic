@@ -1,4 +1,4 @@
-﻿import type { CirclePath, MagicNode, MagicStats, MagicType } from '../../../types/magic';
+﻿import type { CirclePath, MagicStats, MagicType } from '../../../types/magic';
 import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/gameConfigs';
 import { magicGlyphMap, type MagicGlyphConfig } from './magicGlyphRegistry';
 import type { GlyphKind } from './magicGlyphShapes';
@@ -14,7 +14,7 @@ export interface MagicCircleRenderOptions {
 
 export interface NodeRingLayout {
     id: string;
-    node: MagicNode;
+    node: CirclePath['nodes'][number];
     radius: number;
 }
 
@@ -29,7 +29,7 @@ export interface GlyphMarkLayout {
 
 export interface GlyphBandLayout {
     id: string;
-    node: MagicNode;
+    node: CirclePath['nodes'][number];
     kind: GlyphKind;
     spinDuration: number;
     spinDirection: SpinDirection;
@@ -163,7 +163,7 @@ function roundPoint(value: number): number {
 
 function buildGlyphBand(
     circleId: string,
-    node: MagicNode,
+    node: CirclePath['nodes'][number],
     total: number,
     index: number,
     options: MagicCircleRenderOptions,

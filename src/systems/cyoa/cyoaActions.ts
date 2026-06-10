@@ -4,48 +4,25 @@ import {
     CYOA_CHOICE_IMAGE_SIZES,
     CYOA_SELECTION_MODES,
 } from '../../constants/gameConfigs';
+import {
+    DEFAULT_CYOA_CHOICE_WIDTH,
+    parseCyoaChoiceWidth,
+    resolveCyoaLayoutColumns,
+} from './cyoaChoiceLayout';
 
 type RowVisibility = Record<string, boolean>;
 type RowSelections = Record<string, string[]>;
 type InputValues = Record<string, string>;
-type ChoiceWidth = { numerator: number; denominator: number };
 
-const DEFAULT_CHOICE_WIDTH = '1/3';
 const DEFAULT_REQUIRED_COUNT = 1;
 const INPUT_REQUIRED_COUNT = 1;
-
-function greatestCommonDivisor(a: number, b: number): number {
-    return b === 0 ? a : greatestCommonDivisor(b, a % b);
-}
-
-function leastCommonMultiple(a: number, b: number): number {
-    return Math.abs(a * b) / greatestCommonDivisor(a, b);
-}
-
-export function parseChoiceWidth(width = DEFAULT_CHOICE_WIDTH): ChoiceWidth {
-    const match = width.match(/^(\d+)\/(\d+)$/);
-    if (!match) return { numerator: 1, denominator: 3 };
-
-    const numerator = Number(match[1]);
-    const denominator = Number(match[2]);
-    if (numerator <= 0 || denominator <= 0 || numerator > denominator) {
-        return { numerator: 1, denominator: 3 };
-    }
-
-    return { numerator, denominator };
-}
-
-function resolveLayoutColumns(widths: ChoiceWidth[]): number {
-    if (widths.length === 0) return 1;
-    return widths.map(width => width.denominator).reduce(leastCommonMultiple, 1);
-}
 
 export function mapCyoaChoiceConfig(
     choice: CyoaChoiceConfig,
     resolveImagePath: (imagePath?: string) => string | undefined,
     layoutColumns = 1
 ): CyoaChoice {
-    const width = parseChoiceWidth(choice.width);
+    const width = parseCyoaChoiceWidth(choice.width);
 
     return {
         id: choice.id,
@@ -56,7 +33,7 @@ export function mapCyoaChoiceConfig(
         title: choice.title,
         description: choice.description,
         tooltip: choice.tooltip,
-        width: choice.width ?? DEFAULT_CHOICE_WIDTH,
+        width: choice.width ?? DEFAULT_CYOA_CHOICE_WIDTH,
         // JSON의 width 비율은 CSS grid가 바로 쓸 수 있는 열 수와 span으로 정규화한다.
         layoutSpan: Math.max(1, (layoutColumns / width.denominator) * width.numerator),
         disabled: choice.disabled,
@@ -69,8 +46,8 @@ export function mapCyoaRowConfig(
     resolveImagePath: (imagePath?: string) => string | undefined
 ): CyoaChoiceRowData {
     const choiceConfigs = row.choices ?? [];
-    const widths = choiceConfigs.map(choice => parseChoiceWidth(choice.width));
-    const layoutColumns = resolveLayoutColumns(widths);
+    const widths = choiceConfigs.map(choice => parseCyoaChoiceWidth(choice.width));
+    const layoutColumns = resolveCyoaLayoutColumns(widths);
 
     return {
         id: row.id,

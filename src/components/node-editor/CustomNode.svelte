@@ -2,7 +2,10 @@
     import { tick } from 'svelte';
     import { Handle, Position, useUpdateNodeInternals } from '@xyflow/svelte';
     import type { MagicNodeData } from '../../types/magic';
-    import { MAGIC_NODE_HANDLE_CONFIG } from '../../constants/graphConfigs';
+    import {
+        MAGIC_NODE_HANDLE_CONFIG,
+        MAGIC_NODE_RENDERING_CONFIG,
+    } from '../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
     import { getMagicTypeConfig } from '../../systems/graph/registry/magicTypeRegistry';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
@@ -19,11 +22,8 @@
 
     const nodeConfig = $derived(getMagicTypeConfig(data.magicType));
 
-    const FALLBACK_NODE_COLOR = '#888';
-    const FALLBACK_NODE_ICON = '?';
-
-    const color  = $derived(nodeConfig?.color || FALLBACK_NODE_COLOR);
-    const icon   = $derived(nodeConfig?.icon  || FALLBACK_NODE_ICON);
+    const color = $derived(nodeConfig?.color || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_COLOR);
+    const icon = $derived(nodeConfig?.icon || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_ICON);
     const label  = $derived(nodeConfig?.label || data.magicType);
     const description = $derived(nodeConfig?.description || '');
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
@@ -46,8 +46,12 @@
     }
 
     function handleLeft(index: number, count: number): string {
-        if (count <= 1) return '50%';
-        return `${25 + index * (50 / (count - 1))}%`;
+        if (count <= 1) return MAGIC_NODE_RENDERING_CONFIG.SINGLE_HANDLE_LEFT;
+        const offset = index * (
+            MAGIC_NODE_RENDERING_CONFIG.HANDLE_SPREAD_PERCENT / (count - 1)
+        );
+
+        return `${MAGIC_NODE_RENDERING_CONFIG.HANDLE_SPREAD_START_PERCENT + offset}%`;
     }
 </script>
 

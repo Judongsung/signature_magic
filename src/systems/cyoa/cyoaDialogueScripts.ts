@@ -30,7 +30,7 @@ export function mapCyoaDialogueOptionConfig(
     };
 }
 
-function getDialogueOptionRowConfigs(
+export function getCyoaDialogueOptionRowConfigs(
     script: CyoaDialogueScriptConfig
 ): CyoaDialogueOptionRowConfig[] {
     if (script.optionRows?.length) return script.optionRows;
@@ -67,7 +67,7 @@ export function mapCyoaDialogueScriptConfig(
     script: CyoaDialogueScriptConfig,
     resolveImagePath: (imagePath?: string) => string | undefined
 ): CyoaDialogueScriptData {
-    const optionRows = getDialogueOptionRowConfigs(script)
+    const optionRows = getCyoaDialogueOptionRowConfigs(script)
         .map(row => mapCyoaDialogueOptionRowConfig(row, resolveImagePath));
 
     return {

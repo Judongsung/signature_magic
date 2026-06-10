@@ -118,11 +118,19 @@ export interface MagicNodeData extends Record<string, unknown> {
     outputHandleCount?: number;
 }
 
-export type MagicNode = Node<MagicNodeData>;
+export interface MagicGraphNode {
+    id: string;
+    type?: string;
+    position: { x: number; y: number };
+    data: MagicNodeData;
+    deletable?: boolean;
+}
+
+export type MagicNode = Node<MagicNodeData> & MagicGraphNode;
 
 export interface CirclePath {
     id: string;
-    nodes: MagicNode[];
+    nodes: MagicGraphNode[];
     stats: MagicStats;
 }
 

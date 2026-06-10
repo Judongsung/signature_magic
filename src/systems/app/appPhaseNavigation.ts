@@ -1,4 +1,5 @@
-import { APP_PHASE_ORDER, type AppPhase } from '../../constants/gameConfigs';
+import { type AppPhase } from '../../constants/gameConfigs';
+import { APP_PHASE_ORDER } from '../../constants/appPhaseConfigs';
 
 function getAppPhaseOffset(currentPhase: AppPhase, offset: number): AppPhase | undefined {
     const currentIndex = APP_PHASE_ORDER.indexOf(currentPhase);

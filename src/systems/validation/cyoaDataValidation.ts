@@ -1,7 +1,5 @@
 import type {
     CyoaChoiceRowConfig,
-    CyoaDialogueOptionConfig,
-    CyoaDialogueOptionRowConfig,
     CyoaDialogueScriptConfig,
     CyoaDialogueTextSegment,
     CyoaRowVisibilityCondition,
@@ -18,6 +16,8 @@ import {
     MAGIC_STAT_EFFECT_PHASES,
     MAGIC_STAT_KEYS,
 } from '../../types/magic';
+import { isValidCyoaChoiceWidth } from '../cyoa/cyoaChoiceLayout';
+import { getCyoaDialogueOptionRowConfigs } from '../cyoa/cyoaDialogueScripts';
 import { findDuplicates, result, success, type DataValidationResult } from './commonValidation';
 
 const MAX_INPUT_REQUIRED_COUNT = 1;
@@ -25,15 +25,6 @@ const CYOA_SELECTION_MODE_VALUES = new Set<string>(Object.values(CYOA_SELECTION_
 const CYOA_CHOICE_IMAGE_SIZE_VALUES = new Set<string>(Object.values(CYOA_CHOICE_IMAGE_SIZES));
 const CYOA_CHOICE_IMAGE_PLACEMENT_VALUES = new Set<string>(Object.values(CYOA_CHOICE_IMAGE_PLACEMENTS));
 const CYOA_DIALOGUE_TEXT_VARIANT_VALUES = new Set<string>(Object.values(CYOA_DIALOGUE_TEXT_VARIANTS));
-
-function isValidChoiceWidth(width: string): boolean {
-    const match = width.match(/^(\d+)\/(\d+)$/);
-    if (!match) return false;
-
-    const numerator = Number(match[1]);
-    const denominator = Number(match[2]);
-    return numerator > 0 && denominator > 0 && numerator <= denominator;
-}
 
 function isValidCyoaSelectionMode(selectionMode: unknown): boolean {
     return typeof selectionMode === 'string' && CYOA_SELECTION_MODE_VALUES.has(selectionMode);
@@ -82,17 +73,6 @@ function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string
     });
 
     return errors;
-}
-
-function getDialogueOptionRowConfigs(script: CyoaDialogueScriptConfig): CyoaDialogueOptionRowConfig[] {
-    if (script.optionRows?.length) return script.optionRows;
-
-    return [
-        {
-            id: script.id,
-            options: script.options ?? [],
-        },
-    ];
 }
 
 function getVisibilityConditionChoiceIds(condition?: CyoaRowVisibilityCondition): string[] {
@@ -234,7 +214,7 @@ export function validateCyoaRows(
             if (choice.tooltip !== undefined && typeof choice.tooltip !== 'string') {
                 errors.push(`Invalid CYOA choice tooltip: ${choice.id}`);
             }
-            if (choice.width && !isValidChoiceWidth(choice.width)) {
+            if (choice.width && !isValidCyoaChoiceWidth(choice.width)) {
                 errors.push(`Invalid CYOA choice width: ${choice.id} -> ${choice.width}`);
             }
             errors.push(...validateCyoaStatEffects(choice.id, choice.statEffects));
@@ -262,7 +242,7 @@ export function validateCyoaDialogueScripts(
             errors.push(`Unknown CYOA dialogue image path: ${script.id} -> ${script.imagePath}`);
         }
 
-        const optionRows = getDialogueOptionRowConfigs(script);
+        const optionRows = getCyoaDialogueOptionRowConfigs(script);
         const rowIds = optionRows.map(row => row.id);
         const options = optionRows.flatMap(row => row.options);
         const optionIds = options.map(option => option.id);

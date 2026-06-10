@@ -1,5 +1,8 @@
 <script lang="ts">
-    import { APP_PHASES, CYOA_DIALOGUE_SCRIPT_IDS } from './constants/gameConfigs';
+    import {
+        APP_PHASE_SCREEN_KINDS,
+        getAppPhaseConfig,
+    } from './constants/appPhaseConfigs';
     import { appStore } from './stores/appStore.svelte';
     import { choiceStore } from './stores/choiceStore.svelte';
     import { graphStore } from './stores/graphStore.svelte';
@@ -11,17 +14,15 @@
     $effect(() => {
         graphStore.setExternalStatEffects(choiceStore.statEffects);
     });
+
+    const activePhaseConfig = $derived(getAppPhaseConfig(appStore.phase));
 </script>
 
-{#if appStore.phase === APP_PHASES.INTRO_DIALOGUE}
-    <CyoaDialogueScreen />
-{:else if appStore.phase === APP_PHASES.CYOA}
+{#if activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.DIALOGUE}
+    <CyoaDialogueScreen scriptId={activePhaseConfig.dialogueScriptId} />
+{:else if activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.CYOA}
     <CyoaRegistrationScreen />
-{:else if appStore.phase === APP_PHASES.NODE_INTRO_DIALOGUE}
-    <CyoaDialogueScreen
-        scriptId={CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_INTRO}
-    />
-{:else if appStore.phase === APP_PHASES.NODE_COMPOSITION}
+{:else if activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.NODE_COMPOSITION}
     <NodeCompositionScreen />
 {/if}
 

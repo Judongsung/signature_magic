@@ -1,6 +1,7 @@
 ﻿import type { Edge } from '@xyflow/svelte';
 import {
     type MagicNode,
+    type MagicGraphNode,
     type MagicStatEffectBundle,
     type MagicStatEffectConfig,
     type MagicStats,
@@ -8,13 +9,15 @@ import {
     type CirclePath,
     type MagicCalculationResult,
 } from '../../../types/magic';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
 import { MAGIC_CIRCLE_ID_PREFIX } from '../../../constants/graphConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
 import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
-import { reachableNodeIds } from '../topology/graphTraversal';
 import { filterCalculableMagicGraph } from '../model/systemMagicNodes';
+import {
+    buildMagicGraphAnalysis,
+    type MagicGraphAnalysis,
+} from './magicGraphAnalysis';
 
 const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
     nodeEffects: [],
@@ -29,9 +32,13 @@ export function calculateMagic(
 ): MagicCalculationResult {
     const magicTypeMap = buildMagicTypeMap(magicTypes);
     const calculableGraph = filterCalculableMagicGraph(nodes, edges);
-    const circles = calculateCirclesWithMagicTypes(
+    const analysis = buildMagicGraphAnalysis(
         calculableGraph.nodes,
         calculableGraph.edges,
+        magicTypeMap
+    );
+    const circles = calculateCirclesWithMagicTypes(
+        analysis,
         magicTypeMap,
         statEffects.nodeEffects
     );
@@ -40,7 +47,8 @@ export function calculateMagic(
         calculableGraph.edges,
         magicTypeMap,
         'total',
-        statEffects.nodeEffects
+        statEffects.nodeEffects,
+        analysis
     );
 
     return {
@@ -70,42 +78,23 @@ export function calculateCircles(
 ): CirclePath[] {
     if (nodes.length === 0) return [];
 
-    return calculateCirclesWithMagicTypes(nodes, edges, buildMagicTypeMap(magicTypes), nodeStatEffects);
+    const magicTypeMap = buildMagicTypeMap(magicTypes);
+    return calculateCirclesWithMagicTypes(
+        buildMagicGraphAnalysis(nodes, edges, magicTypeMap),
+        magicTypeMap,
+        nodeStatEffects
+    );
 }
 
 function calculateCirclesWithMagicTypes(
-    nodes: MagicNode[],
-    edges: Edge[],
+    analysis: MagicGraphAnalysis,
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
     nodeStatEffects: readonly MagicStatEffectConfig[] = []
 ): CirclePath[] {
-    const topology = buildGraphTopology(nodes, edges);
-    const rootStartNodes = topology.rootIds
-        .map(nodeId => topology.nodeMap.get(nodeId))
-        .filter((node): node is MagicNode => Boolean(node));
-    const branchStartNodes = topology.edges
-        .filter(edge => (topology.outEdges.get(edge.source)?.length ?? 0) > 1)
-        .map(edge => topology.nodeMap.get(edge.target))
-        .filter((node): node is MagicNode => Boolean(node));
-    const mergeStartNodes = topology.nodes.filter(node => {
-        const degree = topology.inDegree.get(node.id) ?? 0;
-        return degree > 1;
-    });
-    const rootReachableNodeIds = reachableNodeIds(topology, topology.rootIds);
-    const cycleStartNodes = topology.nodes.filter(node =>
-        magicTypeMap.get(node.data.magicType)
-            ?.connectionRules?.[MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT] &&
-        !rootReachableNodeIds.has(node.id)
-    );
-    const uniqueStartNodes = dedupeNodes([
-        ...rootStartNodes,
-        ...branchStartNodes,
-        ...mergeStartNodes,
-        ...cycleStartNodes,
-    ]);
+    const { topology, circleStartNodes } = analysis;
 
     // 분기와 병합은 기존 원을 끊고 새 원의 시작점이 되도록 별도 start node로 취급한다.
-    return uniqueStartNodes
+    return circleStartNodes
         .flatMap(startNode => collectCircleChains(startNode, topology))
         .map((chain, index) => ({
             id: `${MAGIC_CIRCLE_ID_PREFIX}-${index}`,
@@ -114,20 +103,15 @@ function calculateCirclesWithMagicTypes(
         }));
 }
 
-function dedupeNodes(nodes: MagicNode[]): MagicNode[] {
-    const seen = new Set<string>();
-    return nodes.filter(node => {
-        if (seen.has(node.id)) return false;
-        seen.add(node.id);
-        return true;
-    });
-}
-
 function collectCircleChains(
-    startNode: MagicNode,
+    startNode: MagicGraphNode,
     topology: GraphTopology
-): MagicNode[][] {
-    const walk = (currentNode: MagicNode, chain: MagicNode[], visited: Set<string>): MagicNode[][] => {
+): MagicGraphNode[][] {
+    const walk = (
+        currentNode: MagicGraphNode,
+        chain: MagicGraphNode[],
+        visited: Set<string>
+    ): MagicGraphNode[][] => {
         const nextIds = topology.outEdges.get(currentNode.id) ?? [];
         if (nextIds.length === 0) return [chain];
         // 출력이 여러 개인 노드는 현재 원을 끝내고, 각 출력 대상에서 별도 원을 시작한다.

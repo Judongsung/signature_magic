@@ -2,7 +2,7 @@
 import {
     EMPTY_MAGIC_STATS,
     MAGIC_STAT_KEYS,
-    type MagicNode,
+    type MagicGraphNode,
     type MagicStatBranchAggregation,
     type MagicStatEffectConfig,
     type MagicStatKey,
@@ -11,11 +11,12 @@ import {
 } from '../../../types/magic';
 import { MAGIC_STAT_RULES, type MagicStatScope } from './magicStatRules';
 import { applyMagicStatEffects } from './magicStatEffects';
-import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
+import type { GraphTopology } from '../topology/graphTopology';
 import {
-    findNearestCommonReachableNode,
-    reachableNodeIds,
-} from '../topology/graphTraversal';
+    buildMagicGraphAnalysis,
+    type MagicGraphAnalysis,
+} from './magicGraphAnalysis';
+import { findNearestCommonReachableNode } from '../topology/graphTraversal';
 
 export function buildMagicTypeMap(
     magicTypes: readonly MagicTypeConfig[]
@@ -24,15 +25,16 @@ export function buildMagicTypeMap(
 }
 
 export function calculateMagicStats(
-    nodes: readonly MagicNode[],
+    nodes: readonly MagicGraphNode[],
     edges: readonly Edge[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     scope: MagicStatScope,
-    nodeStatEffects: readonly MagicStatEffectConfig[] = []
+    nodeStatEffects: readonly MagicStatEffectConfig[] = [],
+    analysis?: MagicGraphAnalysis
 ): MagicStats {
     const result = { ...EMPTY_MAGIC_STATS };
     const graphAnalysis = scope === 'total'
-        ? buildStatGraphAnalysis(nodes, edges)
+        ? analysis ?? buildMagicGraphAnalysis(nodes, edges, magicTypes)
         : undefined;
 
     MAGIC_STAT_KEYS.forEach(statKey => {
@@ -54,7 +56,7 @@ export function calculateMagicStats(
 
 function calculateFlatStat(
     statKey: MagicStatKey,
-    nodes: readonly MagicNode[],
+    nodes: readonly MagicGraphNode[],
     edges: readonly Edge[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     scope: MagicStatScope,
@@ -72,11 +74,11 @@ function calculateFlatStat(
 
 function calculateGraphStat(
     statKey: MagicStatKey,
-    analysis: StatGraphAnalysis,
+    analysis: MagicGraphAnalysis,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     nodeStatEffects: readonly MagicStatEffectConfig[]
 ): number {
-    const { graph, rootIds, unrootedNodes, mergeNodeId } = analysis;
+    const { topology: graph, rootIds, unrootedNodes, mergeNodeId } = analysis;
 
     if (graph.nodes.length === 0) return 0;
     if (rootIds.length === 0) {
@@ -136,30 +138,6 @@ function calculateGraphStat(
         graph,
         magicTypes
     );
-}
-
-interface StatGraphAnalysis {
-    graph: GraphTopology;
-    rootIds: readonly string[];
-    unrootedNodes: readonly MagicNode[];
-    mergeNodeId?: string;
-}
-
-function buildStatGraphAnalysis(nodes: readonly MagicNode[], edges: readonly Edge[]): StatGraphAnalysis {
-    const graph = buildGraphTopology(nodes, edges);
-    const rootIds = graph.rootIds;
-    const rootReachableIds = reachableNodeIds(graph, rootIds);
-    const unrootedNodes = nodes.filter(node => !rootReachableIds.has(node.id));
-    const mergeNodeId = rootIds.length > 1
-        ? findNearestCommonReachableNode(graph, rootIds)
-        : undefined;
-
-    return {
-        graph,
-        rootIds,
-        unrootedNodes,
-        mergeNodeId,
-    };
 }
 
 function evaluateFrom(
@@ -273,7 +251,7 @@ function combineComponentValues(
 }
 
 function readNodeStat(
-    node: MagicNode,
+    node: MagicGraphNode,
     statKey: MagicStatKey,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     nodeStatEffects: readonly MagicStatEffectConfig[]
@@ -283,7 +261,7 @@ function readNodeStat(
 }
 
 function readBranchAggregation(
-    node: MagicNode,
+    node: MagicGraphNode,
     statKey: MagicStatKey,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>
 ): MagicStatBranchAggregation | undefined {

@@ -5,9 +5,10 @@
      * - getStraightPath로 직선 경로를 그립니다.
      * - 화살표(polygon)를 target 끝에 배치합니다.
      * - selected prop을 받아 색상·두께·선택 강조를 변경합니다.
-     */
+    */
     import { getStraightPath, type EdgeProps } from '@xyflow/svelte';
     import { EDITOR_CANVAS } from '../../constants/gameConfigs';
+    import { MAGIC_EDGE_RENDERING_CONFIG } from '../../constants/graphConfigs';
 
     let {
         id,
@@ -31,15 +32,24 @@
     );
 
     // ── 화살표 끝 위치: target 핸들에서 화살촉 크기만큼 안쪽으로 오프셋 ─────
-    const ARROW_LEN = 9;
-    const arrowX = $derived(targetX - Math.cos(angle * Math.PI / 180) * ARROW_LEN);
-    const arrowY = $derived(targetY - Math.sin(angle * Math.PI / 180) * ARROW_LEN);
+    const arrowX = $derived(
+        targetX - Math.cos(angle * Math.PI / 180) * MAGIC_EDGE_RENDERING_CONFIG.ARROW_LENGTH
+    );
+    const arrowY = $derived(
+        targetY - Math.sin(angle * Math.PI / 180) * MAGIC_EDGE_RENDERING_CONFIG.ARROW_LENGTH
+    );
 
     // ── 선택 여부에 따른 색상 / 굵기 ─────────────────────────────────────────
-    const BASE_COLOR     = '#bf7fff';
-    const SELECTED_COLOR = '#f0d0ff';
-    const color       = $derived(selected ? SELECTED_COLOR : BASE_COLOR);
-    const strokeWidth = $derived(selected ? 3.5 : 2);
+    const color = $derived(
+        selected
+            ? MAGIC_EDGE_RENDERING_CONFIG.SELECTED_COLOR
+            : MAGIC_EDGE_RENDERING_CONFIG.BASE_COLOR
+    );
+    const strokeWidth = $derived(
+        selected
+            ? MAGIC_EDGE_RENDERING_CONFIG.SELECTED_STROKE_WIDTH
+            : MAGIC_EDGE_RENDERING_CONFIG.DEFAULT_STROKE_WIDTH
+    );
     const interactionStrokeWidth = EDITOR_CANVAS.EDGE_INTERACTION_STROKE_WIDTH;
     const selectedGlowStrokeWidth = EDITOR_CANVAS.EDGE_SELECTED_GLOW_STROKE_WIDTH;
 </script>
@@ -58,7 +68,7 @@
     class="edge-selected-glow"
     d={edgePath}
     fill="none"
-    stroke={SELECTED_COLOR}
+    stroke={MAGIC_EDGE_RENDERING_CONFIG.SELECTED_COLOR}
     stroke-width={selectedGlowStrokeWidth}
 />
 {/if}

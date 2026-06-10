@@ -1,12 +1,12 @@
 import type { Edge } from '@xyflow/svelte';
-import type { MagicNode } from '../../../types/magic';
+import type { MagicGraphNode } from '../../../types/magic';
 
 export interface GraphTopology {
-    nodeMap: ReadonlyMap<string, MagicNode>;
+    nodeMap: ReadonlyMap<string, MagicGraphNode>;
     outEdges: ReadonlyMap<string, readonly string[]>;
     inDegree: ReadonlyMap<string, number>;
     edges: readonly Edge[];
-    nodes: readonly MagicNode[];
+    nodes: readonly MagicGraphNode[];
     rootIds: readonly string[];
 }
 
@@ -22,10 +22,10 @@ export function buildOutEdgeMap(edges: readonly Edge[]): Map<string, string[]> {
 }
 
 export function buildGraphTopology(
-    nodes: readonly MagicNode[],
+    nodes: readonly MagicGraphNode[],
     edges: readonly Edge[]
 ): GraphTopology {
-    const nodeMap = new Map<string, MagicNode>();
+    const nodeMap = new Map<string, MagicGraphNode>();
     const outEdges = new Map<string, string[]>();
     const inDegree = new Map<string, number>();
     const validEdges: Edge[] = [];
