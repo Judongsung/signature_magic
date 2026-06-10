@@ -1,5 +1,5 @@
 ﻿import type { CirclePath, MagicStats, MagicType } from '../../../types/magic';
-import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/gameConfigs';
+import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/magicCircleConfigs';
 import { magicGlyphMap, type MagicGlyphConfig } from './magicGlyphRegistry';
 import type { GlyphKind } from './magicGlyphShapes';
 

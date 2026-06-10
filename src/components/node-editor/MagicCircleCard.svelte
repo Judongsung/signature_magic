@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../constants/gameConfigs';
+    import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../constants/magicCircleConfigs';
     import { MAGIC_CIRCLE_TEXT } from '../../constants/uiText';
     import {
         DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS,

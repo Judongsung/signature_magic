@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from 'vitest';
-import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/gameConfigs';
+import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/magicCircleConfigs';
 import { buildMagicCircleRenderModels } from './magicCircleRenderer';
 import { EMPTY_MAGIC_STATS, type CirclePath, type MagicNode, type MagicType } from '../../../types/magic';
 
