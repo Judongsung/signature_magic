@@ -5,6 +5,7 @@ import { buildGraphTopology, buildOutEdgeMap } from './graphTopology';
 import {
     canReach,
     findNearestCommonReachableNode,
+    reachableDistances,
     reachableNodeIds,
 } from './graphTraversal';
 
@@ -60,6 +61,29 @@ describe('graphTraversal', () => {
         );
 
         expect(reachableNodeIds(topology, ['a', 'c'])).toEqual(new Set(['a', 'b', 'c', 'd']));
+    });
+
+    it('finds reachable node ids without looping forever on cycles', () => {
+        const topology = buildGraphTopology(
+            [node('a'), node('b'), node('c'), node('d')],
+            [edge('a', 'b'), edge('b', 'c'), edge('c', 'a'), edge('b', 'd')]
+        );
+
+        expect(reachableNodeIds(topology, ['a'])).toEqual(new Set(['a', 'b', 'c', 'd']));
+    });
+
+    it('finds shortest reachable distances from the start node', () => {
+        const topology = buildGraphTopology(
+            [node('a'), node('b'), node('c'), node('d')],
+            [edge('a', 'b'), edge('a', 'c'), edge('b', 'd'), edge('c', 'd'), edge('d', 'b')]
+        );
+
+        expect(reachableDistances(topology, 'a')).toEqual(new Map([
+            ['a', 0],
+            ['b', 1],
+            ['c', 1],
+            ['d', 2],
+        ]));
     });
 
     it('finds the nearest common reachable node', () => {

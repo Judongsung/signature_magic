@@ -6,13 +6,11 @@ import {
     UI_BUTTON_TEXT,
 } from '../../constants/uiText';
 import { appStore } from '../../stores/appStore.svelte';
-import { choiceStore } from '../../stores/choiceStore.svelte';
 import AppPhaseNavigationTabs from './AppPhaseNavigationTabs.svelte';
 
 describe('AppPhaseNavigationTabs', () => {
     afterEach(() => {
         appStore.setPhase(APP_PHASES.INTRO_DIALOGUE);
-        choiceStore.reset();
     });
 
     it('renders only the next tab on the first phase', () => {
@@ -22,20 +20,41 @@ describe('AppPhaseNavigationTabs', () => {
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.ARIA_LABEL);
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.INTRO_DIALOGUE]);
+        expect(html).not.toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
         expect(html).not.toContain(`>${APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL}</button>`);
     });
 
     it('renders previous and disabled next tabs on the incomplete CYOA phase', () => {
-        choiceStore.reset();
         appStore.setPhase(APP_PHASES.CYOA);
 
-        const { html } = render(AppPhaseNavigationTabs);
+        const { html } = render(AppPhaseNavigationTabs, {
+            props: {
+                canSubmitRegistration: false,
+            },
+        });
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
+        expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.CYOA]);
         expect(html).toContain('disabled');
         expect(html).toContain('app-phase-next-disabled-tooltip');
         expect(html).toContain(UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP);
+    });
+
+    it('renders an enabled next tab on the complete CYOA phase', () => {
+        appStore.setPhase(APP_PHASES.CYOA);
+
+        const { html } = render(AppPhaseNavigationTabs, {
+            props: {
+                canSubmitRegistration: true,
+            },
+        });
+
+        expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
+        expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
+        expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.CYOA]);
+        expect(html).not.toContain('disabled');
+        expect(html).not.toContain('app-phase-next-disabled-tooltip');
     });
 
     it('renders the result dialogue next tab on the node composition phase', () => {
@@ -44,6 +63,7 @@ describe('AppPhaseNavigationTabs', () => {
         const { html } = render(AppPhaseNavigationTabs);
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
+        expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]);
     });
 
@@ -53,6 +73,7 @@ describe('AppPhaseNavigationTabs', () => {
         const { html } = render(AppPhaseNavigationTabs);
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
+        expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
         expect(html).not.toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_ARIA_LABEL);
     });
 });

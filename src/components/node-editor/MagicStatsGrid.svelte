@@ -41,18 +41,18 @@
     .stat-item {
         min-width: 0;
         padding: 7px 8px;
-        border: 1px solid #182033;
+        border: 1px solid var(--node-editor-stats-border);
         border-radius: 6px;
-        background: rgba(13, 16, 27, 0.72);
+        background: var(--node-editor-stats-bg);
     }
 
     .total-stat-item {
-        background: rgba(18, 24, 39, 0.92);
-        border-color: #26314a;
+        background: var(--node-editor-stats-total-bg);
+        border-color: var(--node-editor-stats-total-border);
     }
 
     .stat-item dt {
-        color: #737c91;
+        color: var(--node-editor-stats-label);
         font-size: 10px;
         line-height: 1.2;
         white-space: nowrap;
@@ -60,7 +60,7 @@
 
     .stat-item dd {
         margin: 2px 0 0;
-        color: #e6edf7;
+        color: var(--node-editor-text-strong);
         font-size: 15px;
         font-weight: 700;
         line-height: 1.15;

@@ -36,14 +36,13 @@
         align-items: center;
         min-height: 64px;
         padding: 14px 16px;
-        border: 1px solid rgba(115, 88, 53, 0.22);
+        border: 1px solid var(--guild-surface-border-subtle);
         border-radius: 6px;
-        background:
-            linear-gradient(180deg, rgba(255, 253, 247, 0.94), rgba(245, 237, 221, 0.96));
+        background: var(--guild-surface-row-bg);
     }
 
     label {
-        color: #3b2c1d;
+        color: var(--guild-text-label);
         font-family: var(--font-title);
         font-size: 15px;
         font-weight: 800;
@@ -54,10 +53,10 @@
         width: 100%;
         min-height: 38px;
         box-sizing: border-box;
-        border: 1px solid rgba(103, 77, 48, 0.28);
+        border: 1px solid var(--guild-surface-border-control);
         border-radius: 6px;
-        background: rgba(255, 255, 251, 0.96);
-        color: #332619;
+        background: var(--guild-field-bg);
+        color: var(--guild-text-primary);
         padding: 8px 10px;
         font-family: var(--font-body);
         font-size: 16px;
@@ -69,7 +68,7 @@
     }
 
     input::placeholder {
-        color: rgba(106, 89, 68, 0.52);
+        color: var(--guild-field-placeholder);
         font-family: var(--font-body);
         font-style: italic;
         font-size: 14px;
@@ -78,9 +77,9 @@
 
     input:focus {
         outline: none;
-        border-color: rgba(62, 111, 103, 0.72);
-        background: #fffefa;
-        box-shadow: 0 0 0 3px rgba(62, 111, 103, 0.12);
+        border-color: var(--guild-selection-border);
+        background: var(--guild-field-focus-bg);
+        box-shadow: var(--guild-selection-focus-shadow);
     }
 
     @media (max-width: 560px) {

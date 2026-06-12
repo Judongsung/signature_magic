@@ -43,7 +43,7 @@
     .generator-container {
         height: 100%;
         width: 100%;
-        background: #05060a;
+        background: var(--node-editor-preview-bg);
         display: flex;
         flex-direction: column;
         overflow-y: auto;
@@ -51,7 +51,7 @@
 
     .header {
         padding: 16px 20px 10px;
-        border-bottom: 1px solid #14141e;
+        border-bottom: 1px solid var(--node-editor-preview-border);
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
@@ -62,13 +62,13 @@
         display: flex;
         align-items: baseline;
         gap: 8px;
-        color: #e0e0ff;
+        color: var(--node-editor-text);
     }
 
     .count-number {
         font-size: 32px;
         font-weight: 800;
-        background: linear-gradient(135deg, #b8f4ff, #f0d77e);
+        background: var(--node-editor-preview-count-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -76,14 +76,14 @@
 
     .count-label {
         font-size: 14px;
-        color: #8b92a4;
+        color: var(--node-editor-preview-label);
         letter-spacing: 1px;
         text-transform: uppercase;
     }
 
     .hint {
         font-size: 13px;
-        color: #52586b;
+        color: var(--node-editor-preview-empty);
     }
 
     .total-stats {
@@ -93,7 +93,7 @@
     }
 
     .total-stats-label {
-        color: #7f879b;
+        color: var(--node-editor-preview-section-label);
         font-size: 10px;
         font-weight: 700;
         letter-spacing: 1.4px;

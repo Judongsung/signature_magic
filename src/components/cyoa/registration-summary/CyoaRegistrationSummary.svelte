@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { Snippet } from 'svelte';
     import { choiceStore } from '../../../stores/choiceStore.svelte';
     import {
         CYOA_REGISTRATION_SUMMARY_TEXT,
@@ -16,6 +17,9 @@
     import CyoaRegistrationSummaryFooter from './CyoaRegistrationSummaryFooter.svelte';
     import CyoaRegistrationSummaryHeader from './CyoaRegistrationSummaryHeader.svelte';
 
+    const defaultSummaryId = $props.id();
+    const defaultTitleId = `${defaultSummaryId}-registration-summary-title`;
+
     let {
         rows = choiceStore.rows,
         visibleRowIds = choiceStore.visibleRowIds,
@@ -23,9 +27,11 @@
         inputValues = choiceStore.inputValues,
         onSubmit,
         onBack,
+        actionLeadIn,
         submitLabel = UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
         backLabel = CYOA_REGISTRATION_SUMMARY_TEXT.DEFAULT_BACK_LABEL,
         submitDisabled = false,
+        titleId = defaultTitleId,
     }: {
         rows?: CyoaChoiceRowData[];
         visibleRowIds?: RowVisibility;
@@ -33,9 +39,11 @@
         inputValues?: InputValues;
         onSubmit?: () => void;
         onBack?: () => void;
+        actionLeadIn?: Snippet;
         submitLabel?: string;
         backLabel?: string;
         submitDisabled?: boolean;
+        titleId?: string;
     } = $props();
 
     const summary = $derived(buildCyoaRegistrationSummary({
@@ -48,8 +56,8 @@
 </script>
 
 <div class="registration-summary-layout">
-    <section class="registration-summary" aria-labelledby="registration-summary-title">
-        <CyoaRegistrationSummaryHeader />
+    <section class="registration-summary" aria-labelledby={titleId}>
+        <CyoaRegistrationSummaryHeader {titleId} />
         <CyoaRegistrationSummaryBody
             inputItems={summary.inputItems}
             choiceItems={summary.choiceItems}
@@ -58,6 +66,10 @@
     </section>
 
     {#if onBack || onSubmit}
+        {#if actionLeadIn}
+            {@render actionLeadIn()}
+        {/if}
+
         <div class="summary-actions">
             {#if onBack}
                 <button type="button" class="secondary-action" onclick={onBack}>
@@ -106,11 +118,9 @@
         gap: 28px;
         box-sizing: border-box;
         padding: 56px 46px 44px;
-        border: 1px solid #d6c6a2;
+        border: 1px solid var(--guild-paper-border);
         border-radius: 3px;
-        background:
-            radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 42%),
-            linear-gradient(150deg, #fcf8ee 0%, #f5ecd8 60%, #eae0c6 100%);
+        background: var(--guild-paper-bg);
         box-shadow: var(--paper-shadow);
         color: var(--guild-ink-black);
         position: relative;
@@ -165,15 +175,15 @@
 
     .primary-action {
         border: 1px solid var(--guild-leather);
-        background: linear-gradient(180deg, #882222, #661616);
-        color: #fcf8ee;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+        background: var(--guild-action-primary-bg);
+        color: var(--guild-action-text);
+        box-shadow: var(--guild-action-primary-shadow);
     }
 
     .secondary-action {
-        border: 1px solid rgba(141, 115, 74, 0.55);
-        background: rgba(141, 115, 74, 0.08);
-        color: #fcf8ee;
+        border: 1px solid var(--guild-action-secondary-border);
+        background: var(--guild-action-secondary-bg);
+        color: var(--guild-action-text);
     }
 
     button:hover {
@@ -181,13 +191,13 @@
     }
 
     .primary-action:hover {
-        background: linear-gradient(180deg, #992c2c, #771c1c);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+        background: var(--guild-action-primary-hover-bg);
+        box-shadow: var(--guild-action-primary-hover-shadow);
     }
 
     .secondary-action:hover {
-        background: rgba(141, 115, 74, 0.16);
-        box-shadow: 0 4px 10px rgba(44, 34, 23, 0.18);
+        background: var(--guild-action-secondary-hover-bg);
+        box-shadow: var(--guild-action-secondary-hover-shadow);
     }
 
     button:focus-visible {

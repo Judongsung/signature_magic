@@ -29,7 +29,7 @@
         align-items: center;
         padding-bottom: 68px;
         overflow: hidden;
-        background-color: #000;
+        background-color: var(--node-editor-screen-bg);
         box-sizing: border-box;
     }
 
@@ -37,8 +37,8 @@
         width: 100%;
         max-width: none;
         padding: 8px 12px;
-        background: #050508;
-        border-bottom: 1px solid #222;
+        background: var(--node-editor-panel-bg);
+        border-bottom: 1px solid var(--node-editor-border);
     }
     
     .app-container {
@@ -52,14 +52,14 @@
     .editor-pane {
         flex: 1;
         min-width: 50%;
-        border-right: 2px solid #222;
-        box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        border-right: 2px solid var(--node-editor-border);
+        box-shadow: var(--node-editor-panel-shadow);
         z-index: 2;
     }
 
     .preview-pane {
         flex: 1;
         min-width: 50%;
-        background-color: #050508;
+        background-color: var(--node-editor-panel-bg);
     }
 </style>

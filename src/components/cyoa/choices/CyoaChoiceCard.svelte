@@ -73,12 +73,10 @@
         gap: 16px;
         align-items: center;
         padding: 14px;
-        border: 1px solid rgba(115, 88, 53, 0.22);
+        border: 1px solid var(--guild-surface-border-subtle);
         border-radius: 6px;
-        background:
-            linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(244, 236, 219, 0.98)),
-            repeating-linear-gradient(0deg, rgba(130, 95, 55, 0.035) 0 1px, transparent 1px 12px);
-        color: #332619;
+        background: var(--guild-surface-card-bg);
+        color: var(--guild-text-primary);
         text-align: left;
         cursor: pointer;
         box-sizing: border-box;
@@ -131,42 +129,30 @@
 
     .choice-card:hover:not(:disabled) {
         transform: translateY(-1px);
-        border-color: rgba(103, 77, 48, 0.44);
-        background:
-            linear-gradient(180deg, rgba(255, 255, 252, 0.98), rgba(248, 240, 223, 0.98)),
-            repeating-linear-gradient(0deg, rgba(130, 95, 55, 0.045) 0 1px, transparent 1px 12px);
-        box-shadow: 0 10px 22px rgba(88, 65, 38, 0.14);
+        border-color: var(--guild-surface-border-hover);
+        background: var(--guild-surface-card-hover-bg);
+        box-shadow: var(--guild-surface-hover-shadow);
     }
 
     .choice-card:focus-visible {
-        outline: 2px solid #3e6f67;
+        outline: 2px solid var(--guild-selection-color);
         outline-offset: 2px;
     }
 
     .choice-card.selected {
-        border: 1px solid rgba(62, 111, 103, 0.72);
-        background:
-            linear-gradient(180deg, rgba(246, 252, 247, 0.98), rgba(225, 239, 226, 0.98)),
-            repeating-linear-gradient(0deg, rgba(62, 111, 103, 0.05) 0 1px, transparent 1px 10px);
-        box-shadow:
-            inset 0 0 0 1px rgba(255, 255, 255, 0.42),
-            0 0 0 1px rgba(62, 111, 103, 0.18),
-            0 12px 28px rgba(42, 93, 84, 0.16);
+        border: 1px solid var(--guild-selection-border);
+        background: var(--guild-selection-bg);
+        box-shadow: var(--guild-selection-shadow);
     }
 
     .choice-card.selected .choice-title {
-        color: #1f4f47;
+        color: var(--guild-selection-text);
     }
 
     .choice-card.selected:hover:not(:disabled) {
-        border-color: rgba(62, 111, 103, 0.82);
-        background:
-            linear-gradient(180deg, rgba(248, 253, 249, 0.99), rgba(219, 237, 221, 0.99)),
-            repeating-linear-gradient(0deg, rgba(62, 111, 103, 0.06) 0 1px, transparent 1px 10px);
-        box-shadow:
-            inset 0 0 0 1px rgba(255, 255, 255, 0.48),
-            0 0 0 1px rgba(62, 111, 103, 0.24),
-            0 14px 30px rgba(42, 93, 84, 0.2);
+        border-color: var(--guild-selection-border-hover);
+        background: var(--guild-selection-hover-bg);
+        box-shadow: var(--guild-selection-hover-shadow);
     }
 
     .choice-card:disabled {
@@ -180,15 +166,15 @@
         display: block;
         overflow: hidden;
         border-radius: 6px;
-        background: rgba(230, 219, 198, 0.8);
-        border: 1px solid rgba(103, 77, 48, 0.22);
+        background: var(--guild-surface-image-bg);
+        border: 1px solid var(--guild-surface-image-border);
         aspect-ratio: var(--choice-image-aspect-ratio);
-        box-shadow: inset 0 0 12px rgba(93, 68, 38, 0.12);
+        box-shadow: var(--guild-surface-image-shadow);
         transition: border-color 0.18s ease;
     }
 
     .choice-card.selected .image-frame {
-        border-color: rgba(62, 111, 103, 0.62);
+        border-color: var(--guild-selection-image-border);
     }
 
     .image-frame img {
@@ -216,7 +202,7 @@
     }
 
     .choice-title {
-        color: #382819;
+        color: var(--guild-text-title);
         font-family: var(--font-title);
         font-size: 17px;
         font-weight: 800;
@@ -225,7 +211,7 @@
     }
 
     .choice-description {
-        color: #6b5a45;
+        color: var(--guild-text-muted);
         font-family: var(--font-body);
         font-size: 13.5px;
         line-height: 1.5;

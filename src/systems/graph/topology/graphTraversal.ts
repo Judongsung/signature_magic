@@ -22,8 +22,8 @@ export function reachableNodeIds(
     const reachable = new Set<string>();
     const queue = [...startNodeIds];
 
-    while (queue.length > 0) {
-        const nodeId = queue.shift()!;
+    for (let queueIndex = 0; queueIndex < queue.length; queueIndex += 1) {
+        const nodeId = queue[queueIndex];
         if (reachable.has(nodeId)) continue;
 
         reachable.add(nodeId);
@@ -42,8 +42,8 @@ export function reachableDistances(
     const distances = new Map<string, number>();
     const queue = [{ nodeId: startNodeId, distance: 0 }];
 
-    while (queue.length > 0) {
-        const current = queue.shift()!;
+    for (let queueIndex = 0; queueIndex < queue.length; queueIndex += 1) {
+        const current = queue[queueIndex];
         if (distances.has(current.nodeId)) continue;
 
         distances.set(current.nodeId, current.distance);

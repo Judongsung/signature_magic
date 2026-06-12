@@ -21,7 +21,7 @@
     } = $props();
 
     function colorFor(magicType: keyof typeof magicTypeColorMap): string {
-        return magicTypeColorMap[magicType] ?? '#9aa0a6';
+        return magicTypeColorMap[magicType] ?? 'var(--node-editor-circle-fallback-color)';
     }
 </script>
 
@@ -50,9 +50,9 @@
                 </feMerge>
             </filter>
             <radialGradient id="circle-core-{index}" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#f7fbff" stop-opacity="0.9" />
-                <stop offset="48%" stop-color="#7fc7ff" stop-opacity="0.12" />
-                <stop offset="100%" stop-color="#06060c" stop-opacity="0" />
+                <stop offset="0%" stop-color="var(--node-editor-circle-core-start)" stop-opacity="0.9" />
+                <stop offset="48%" stop-color="var(--node-editor-circle-core-mid)" stop-opacity="0.12" />
+                <stop offset="100%" stop-color="var(--node-editor-circle-core-end)" stop-opacity="0" />
             </radialGradient>
         </defs>
 
@@ -133,20 +133,16 @@
 
     .circle-label {
         font-size: 11px;
-        color: #687083;
+        color: var(--node-editor-circle-label);
         text-transform: uppercase;
         letter-spacing: 1.5px;
     }
 
     .magic-svg {
-        background:
-            radial-gradient(circle at center, rgba(75, 98, 126, 0.18) 0%, rgba(12, 13, 20, 0.94) 54%, #05060a 100%),
-            #05060a;
+        background: var(--node-editor-circle-bg);
         border-radius: 50%;
-        border: 1px solid #20283a;
-        box-shadow:
-            inset 0 0 34px rgba(97, 158, 197, 0.08),
-            0 0 28px rgba(0, 0, 0, 0.35);
+        border: 1px solid var(--node-editor-circle-border);
+        box-shadow: var(--node-editor-circle-shadow);
     }
 
     .outer-ring,
@@ -154,7 +150,7 @@
     .inner-guide,
     .node-star {
         fill: none;
-        stroke: #d9eeff;
+        stroke: var(--node-editor-circle-stroke);
     }
 
     .outer-ring {
@@ -223,12 +219,12 @@
     }
 
     .core-glow {
-        fill: #dff7ff;
+        fill: var(--node-editor-circle-core-glow);
         opacity: 0.8;
     }
 
     .core-dot {
-        fill: #fffaf0;
+        fill: var(--node-editor-circle-core-dot);
     }
 
     @keyframes spin {

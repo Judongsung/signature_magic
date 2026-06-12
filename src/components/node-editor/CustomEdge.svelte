@@ -52,6 +52,11 @@
     );
     const interactionStrokeWidth = EDITOR_CANVAS.EDGE_INTERACTION_STROKE_WIDTH;
     const selectedGlowStrokeWidth = EDITOR_CANVAS.EDGE_SELECTED_GLOW_STROKE_WIDTH;
+    const arrowPoints = [
+        `${MAGIC_EDGE_RENDERING_CONFIG.ARROW_TAIL_X},-${MAGIC_EDGE_RENDERING_CONFIG.ARROW_HALF_WIDTH}`,
+        `${MAGIC_EDGE_RENDERING_CONFIG.ARROW_TIP_X},0`,
+        `${MAGIC_EDGE_RENDERING_CONFIG.ARROW_TAIL_X},${MAGIC_EDGE_RENDERING_CONFIG.ARROW_HALF_WIDTH}`,
+    ].join(' ');
 </script>
 
 <!-- 선택/클릭 히트 영역 -->
@@ -86,7 +91,7 @@
 
 <!-- target 끝 화살표 -->
 <polygon
-    points="-9,-5  9,0  -9,5"
+    points={arrowPoints}
     fill={color}
     transform={`translate(${arrowX}, ${arrowY}) rotate(${angle})`}
     style="pointer-events: none;"

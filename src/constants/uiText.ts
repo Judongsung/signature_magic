@@ -45,6 +45,10 @@ export const CYOA_REGISTRATION_SUMMARY_TEXT = {
     REQUIRED_NOTICE_LABEL: '필수 사항',
     SIGNATURE_LABEL: '신청자 서명',
     DEFAULT_BACK_LABEL: '선택 수정',
+    DIALOG_CLOSE_LABEL: '닫기',
+    DIALOG_CLOSE_ARIA_LABEL: '신청서 확인 닫기',
+    DIALOG_TOP_MESSAGE: '작성하신 신청서 확인해 주세요. 틀린 내용 있으면 선택 수정 누르시면 돼요.',
+    DIALOG_BOTTOM_MESSAGE: '내용 문제 없으면 제출해 주세요. 접수 끝나면 다음 안내로 넘어갈게요.',
     SEAL_TOP: 'GUILD',
     SEAL_BOTTOM: 'APPROVAL',
 } as const;
@@ -75,6 +79,7 @@ export const MAGIC_CIRCLE_TEXT = {
 
 export const UI_BUTTON_TEXT = {
     DEV_SKIP_TO_NODE_COMPOSITION: 'DEV: 비술 조합실',
+    REVIEW_REGISTRATION: '신청서 확인',
     SUBMIT_REGISTRATION: '등록 신청서 제출',
     COMPLETE_REQUIRED_FIELDS_TOOLTIP: '필수 사항을 전부 기재해 주세요.',
 } as const;

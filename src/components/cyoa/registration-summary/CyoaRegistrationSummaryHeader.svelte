@@ -1,10 +1,16 @@
 <script lang="ts">
     import { CYOA_REGISTRATION_SUMMARY_TEXT } from '../../../constants/uiText';
+
+    let {
+        titleId,
+    }: {
+        titleId: string;
+    } = $props();
 </script>
 
 <div class="summary-header">
     <p class="eyebrow">{CYOA_REGISTRATION_SUMMARY_TEXT.EYEBROW}</p>
-    <h2 id="registration-summary-title">{CYOA_REGISTRATION_SUMMARY_TEXT.TITLE}</h2>
+    <h2 id={titleId}>{CYOA_REGISTRATION_SUMMARY_TEXT.TITLE}</h2>
     <p class="summary-copy">{CYOA_REGISTRATION_SUMMARY_TEXT.DESCRIPTION}</p>
 </div>
 

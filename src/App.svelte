@@ -38,7 +38,7 @@
     <NodeCompositionScreen />
 {/if}
 
-<AppPhaseNavigationTabs />
+<AppPhaseNavigationTabs canSubmitRegistration={choiceStore.canContinue} />
 
 <style>
     :global(body) {

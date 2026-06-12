@@ -37,6 +37,9 @@ export const MAGIC_NODE_RENDERING_CONFIG = {
 
 export const MAGIC_EDGE_RENDERING_CONFIG = {
     ARROW_LENGTH: 9,
+    ARROW_TAIL_X: -9,
+    ARROW_TIP_X: 9,
+    ARROW_HALF_WIDTH: 5,
     BASE_COLOR: '#bf7fff',
     SELECTED_COLOR: '#f0d0ff',
     DEFAULT_STROKE_WIDTH: 2,

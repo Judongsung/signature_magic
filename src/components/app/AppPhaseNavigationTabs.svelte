@@ -1,43 +1,93 @@
 <script lang="ts">
-    import { APP_PHASES, type AppPhase } from '../../constants/gameConfigs';
+    import type { AppPhase } from '../../constants/gameConfigs';
     import {
         APP_PHASE_NAVIGATION_TEXT,
         UI_BUTTON_TEXT,
     } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
-    import { choiceStore } from '../../stores/choiceStore.svelte';
-    import { getNextAppPhase, getPreviousAppPhase } from '../../systems/app/appPhaseNavigation';
+    import {
+        APP_PHASE_NAVIGATION_NEXT_ACTIONS,
+        resolveAppPhaseNavigationPolicy,
+        resolveRegistrationReviewAccess,
+    } from '../../systems/app/appPhaseNavigationPolicy';
+    import CyoaRegistrationSummaryDialog from '../cyoa/registration-summary/CyoaRegistrationSummaryDialog.svelte';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
 
     const nextDisabledTooltipId = 'app-phase-next-disabled-tooltip';
     const nextPhaseLabels: Partial<Record<AppPhase, string>> = APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS;
+    const REGISTRATION_DIALOG_MODES = {
+        REVIEW: 'review',
+        SUBMIT: 'submit',
+    } as const;
+    type RegistrationDialogMode =
+        (typeof REGISTRATION_DIALOG_MODES)[keyof typeof REGISTRATION_DIALOG_MODES];
 
-    const previousPhase = $derived(getPreviousAppPhase(appStore.phase));
-    const nextPhase = $derived(getNextAppPhase(appStore.phase));
-    const isCyoaNextDisabled = $derived(
-        appStore.phase === APP_PHASES.CYOA && !choiceStore.canContinue
+    let {
+        canSubmitRegistration = false,
+    }: {
+        canSubmitRegistration?: boolean;
+    } = $props();
+
+    let registrationDialogMode = $state<RegistrationDialogMode | undefined>();
+    let hasEnteredRegistrationReviewPhase = $state(
+        resolveRegistrationReviewAccess(appStore.phase, false)
     );
+
+    const navigationPolicy = $derived(resolveAppPhaseNavigationPolicy({
+        phase: appStore.phase,
+        canSubmitRegistration,
+        hasEnteredRegistrationReviewPhase,
+        nodeCompositionOnlyBuild: __NODE_COMPOSITION_ONLY_BUILD__,
+    }));
     const nextLabel = $derived(
-        nextPhaseLabels[appStore.phase]
+        navigationPolicy.nextPhase ? nextPhaseLabels[appStore.phase] : undefined
     );
+
+    $effect(() => {
+        if (resolveRegistrationReviewAccess(appStore.phase, false)) {
+            hasEnteredRegistrationReviewPhase = true;
+        }
+    });
 
     function moveToPreviousPhase() {
         appStore.moveToPreviousPhase();
     }
 
-    function moveToNextPhase() {
-        if (isCyoaNextDisabled) return;
+    function openRegistrationReviewDialog() {
+        registrationDialogMode = REGISTRATION_DIALOG_MODES.REVIEW;
+    }
 
+    function openRegistrationSubmitDialog() {
+        registrationDialogMode = REGISTRATION_DIALOG_MODES.SUBMIT;
+    }
+
+    function moveToNextPhase() {
+        if (navigationPolicy.nextAction === APP_PHASE_NAVIGATION_NEXT_ACTIONS.OPEN_REGISTRATION_SUBMIT_DIALOG) {
+            openRegistrationSubmitDialog();
+            return;
+        }
+
+        if (navigationPolicy.nextAction === APP_PHASE_NAVIGATION_NEXT_ACTIONS.MOVE_TO_NEXT_PHASE) {
+            appStore.moveToNextPhase();
+        }
+    }
+
+    function closeRegistrationDialog() {
+        registrationDialogMode = undefined;
+    }
+
+    function submitRegistrationDialog() {
+        registrationDialogMode = undefined;
         appStore.moveToNextPhase();
     }
 </script>
 
-{#if !__NODE_COMPOSITION_ONLY_BUILD__ && (previousPhase || nextPhase)}
+{#if navigationPolicy.shouldRenderNavigation}
     <nav
         class="app-phase-navigation-tabs"
         aria-label={APP_PHASE_NAVIGATION_TEXT.ARIA_LABEL}
     >
-        {#if previousPhase}
+        {#if navigationPolicy.previousPhase}
             <button
                 type="button"
                 class="phase-tab previous-tab"
@@ -48,30 +98,54 @@
             </button>
         {/if}
 
-        {#if nextPhase && nextLabel}
-            <span
-                class="next-tab-host"
-                class:tooltip-host={isCyoaNextDisabled}
-            >
-                <button
-                    type="button"
-                    class="phase-tab next-tab"
-                    disabled={isCyoaNextDisabled}
-                    aria-label={APP_PHASE_NAVIGATION_TEXT.NEXT_ARIA_LABEL}
-                    aria-describedby={isCyoaNextDisabled ? nextDisabledTooltipId : undefined}
-                    onclick={moveToNextPhase}
-                >
-                    {nextLabel}
-                </button>
-                {#if isCyoaNextDisabled}
-                    <DescriptionTooltip
-                        id={nextDisabledTooltipId}
-                        description={UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP}
-                    />
+        {#if navigationPolicy.canReviewRegistration || (navigationPolicy.nextPhase && nextLabel)}
+            <div class="phase-actions">
+                {#if navigationPolicy.canReviewRegistration}
+                    <button
+                        type="button"
+                        class="phase-tab review-tab"
+                        onclick={openRegistrationReviewDialog}
+                    >
+                        {UI_BUTTON_TEXT.REVIEW_REGISTRATION}
+                    </button>
                 {/if}
-            </span>
+
+                {#if navigationPolicy.nextPhase && nextLabel}
+                    <span
+                        class="next-tab-host"
+                        class:tooltip-host={navigationPolicy.isNextDisabled}
+                    >
+                        <button
+                            type="button"
+                            class="phase-tab next-tab"
+                            disabled={navigationPolicy.isNextDisabled}
+                            aria-label={APP_PHASE_NAVIGATION_TEXT.NEXT_ARIA_LABEL}
+                            aria-describedby={navigationPolicy.isNextDisabled ? nextDisabledTooltipId : undefined}
+                            onclick={moveToNextPhase}
+                        >
+                            {nextLabel}
+                        </button>
+                        {#if navigationPolicy.isNextDisabled}
+                            <DescriptionTooltip
+                                id={nextDisabledTooltipId}
+                                description={UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP}
+                            />
+                        {/if}
+                    </span>
+                {/if}
+            </div>
         {/if}
     </nav>
+{/if}
+
+{#if registrationDialogMode}
+    <CyoaRegistrationSummaryDialog
+        onClose={closeRegistrationDialog}
+        onSubmit={registrationDialogMode === REGISTRATION_DIALOG_MODES.SUBMIT
+            ? submitRegistrationDialog
+            : undefined}
+        showSubmitGuidance={registrationDialogMode === REGISTRATION_DIALOG_MODES.SUBMIT}
+    />
 {/if}
 
 <style>
@@ -96,10 +170,18 @@
         backdrop-filter: blur(8px);
     }
 
+    .phase-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        pointer-events: auto;
+    }
+
     .next-tab-host {
         position: relative;
         display: inline-flex;
-        margin-left: auto;
         pointer-events: auto;
     }
 
@@ -158,7 +240,13 @@
 
     @media (max-width: 720px) {
         .app-phase-navigation-tabs {
+            gap: 8px;
             padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        }
+
+        .phase-actions {
+            flex: 1;
+            gap: 8px;
         }
 
         .next-tab-host,
@@ -167,9 +255,25 @@
         }
 
         .phase-tab {
-            min-width: 104px;
-            padding: 0 12px;
+            min-width: 0;
+            padding: 0 10px;
             font-size: 12px;
+        }
+
+        .previous-tab {
+            flex: 0 0 72px;
+        }
+
+        .phase-actions .phase-tab {
+            width: 100%;
+        }
+
+        .next-tab-host {
+            flex: 1;
+        }
+
+        .review-tab {
+            flex: 1;
         }
     }
 </style>

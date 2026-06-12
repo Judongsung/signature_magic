@@ -68,6 +68,22 @@ describe('CyoaRegistrationSummary', () => {
         expect(html.lastIndexOf('</section>')).toBeLessThan(html.indexOf('>Submit</button>'));
     });
 
+    it('uses a provided title id for the summary document label', () => {
+        const titleId = 'custom-registration-summary-title';
+        const { html } = render(CyoaRegistrationSummary, {
+            props: {
+                rows,
+                visibleRowIds: { name: false, region: false },
+                selectedChoiceIds: {},
+                inputValues: {},
+                titleId,
+            },
+        });
+
+        expect(html).toContain(`aria-labelledby="${titleId}"`);
+        expect(html).toContain(`id="${titleId}"`);
+    });
+
     it('shows a required-fields tooltip for the disabled submit action', () => {
         const { html } = render(CyoaRegistrationSummary, {
             props: {

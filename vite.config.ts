@@ -11,6 +11,7 @@ const BUILD_CYOA_DATA_ALIASES = {
 
 const NODE_COMPOSITION_ONLY_BUILD_ENV = 'NODE_COMPOSITION_ONLY'
 const ENABLED_ENV_VALUES = new Set(['1', 'true', 'yes'])
+const BROWSER_EXPORT_RESOLVE_CONDITIONS = ['browser']
 
 function isNodeCompositionOnlyBuild(command: string, env: NodeJS.ProcessEnv): boolean {
   // NODE_COMPOSITION_ONLY=1 빌드는 CYOA 데이터와 화면을 placeholder로 바꿔 노드 조합 흐름만 번들링한다.
@@ -52,8 +53,16 @@ export default defineConfig(({ command }) => {
   return {
     base: './',
     plugins: [buildCyoaDataExclusionPlugin(excludeCyoaData), svelte()],
+    resolve: {
+      conditions: BROWSER_EXPORT_RESOLVE_CONDITIONS,
+    },
     define: {
       __NODE_COMPOSITION_ONLY_BUILD__: JSON.stringify(excludeCyoaData),
+    },
+    ssr: {
+      resolve: {
+        conditions: BROWSER_EXPORT_RESOLVE_CONDITIONS,
+      },
     },
     build: {
       sourcemap: true,

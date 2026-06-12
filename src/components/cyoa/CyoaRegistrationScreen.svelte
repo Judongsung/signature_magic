@@ -9,7 +9,6 @@
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
     import CyoaChoiceSection from './choices/CyoaChoiceSection.svelte';
-    import CyoaRegistrationSummary from './registration-summary/CyoaRegistrationSummary.svelte';
 
     function handleChoiceSelect(row: CyoaChoiceRowData, choiceId: string) {
         choiceStore.selectChoice(row, choiceId);
@@ -48,8 +47,6 @@
             {/if}
         {/each}
     </section>
-
-    <CyoaRegistrationSummary />
 </main>
 
 <style>

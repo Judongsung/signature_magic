@@ -1,4 +1,4 @@
-﻿import type { Connection } from '@xyflow/svelte';
+﻿import type { Connection, Edge } from '@xyflow/svelte';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { graphStore } from './graphStore.svelte';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
@@ -21,6 +21,32 @@ function connection(source: string, target: string): Connection {
         sourceHandle: 'output-0',
         targetHandle: 'input-0',
     };
+}
+
+function edge(id: string, source: string, target: string, targetHandle = 'input-0'): Edge {
+    return {
+        id,
+        source,
+        target,
+        sourceHandle: 'output-0',
+        targetHandle,
+    };
+}
+
+function appendPreparedEdge(conn: Connection): Edge {
+    const preparedEdge = graphStore.prepareEdge(conn);
+
+    expect(preparedEdge).not.toBe(false);
+    graphStore.edges = [...graphStore.edges, preparedEdge as Edge];
+    graphStore.onEdgeConnected(conn);
+
+    return preparedEdge as Edge;
+}
+
+async function flushTopologySync(): Promise<void> {
+    await new Promise<void>(resolve => {
+        setTimeout(resolve, 0);
+    });
 }
 
 function userNodes() {
@@ -131,5 +157,42 @@ describe('graphStore', () => {
 
         expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
         expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
+    });
+
+    it('handles add, connect, delete, and handle normalization through store events', async () => {
+        graphStore.addNode('ignition', { x: 0, y: 0 });
+        graphStore.addNode('stream', { x: 80, y: 0 });
+        graphStore.addNode('merge', { x: 160, y: 0 });
+
+        const [firstNode, remainingInputNode, mergeNode] = userNodes();
+        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
+        const output = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)!;
+        const sourceEdge = appendPreparedEdge(connection(source.id, firstNode.id));
+        const firstToMergeEdge = appendPreparedEdge(connection(firstNode.id, mergeNode.id));
+        appendPreparedEdge(connection(mergeNode.id, output.id));
+
+        const remainingInputEdge = edge(
+            'remaining-input-to-merge',
+            remainingInputNode.id,
+            mergeNode.id,
+            'input-2'
+        );
+        graphStore.edges = [...graphStore.edges, remainingInputEdge];
+
+        graphStore.onDelete([firstNode], [sourceEdge, firstToMergeEdge]);
+        await flushTopologySync();
+
+        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
+        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
+        expect(userNodes().map(node => node.id)).toEqual([remainingInputNode.id, mergeNode.id]);
+        expect(graphStore.edges).toHaveLength(2);
+        expect(
+            graphStore.edges.find(item => item.id === remainingInputEdge.id)
+        ).toMatchObject({
+            source: remainingInputNode.id,
+            target: mergeNode.id,
+            sourceHandle: 'output-0',
+            targetHandle: 'input-0',
+        });
     });
 });

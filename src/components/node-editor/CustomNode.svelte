@@ -115,12 +115,12 @@
 
 <style>
     .custom-node {
-        --c: #888;
-        background: rgba(12, 12, 22, 0.92);
+        --c: var(--node-editor-node-fallback-color);
+        background: var(--node-editor-node-bg);
         border: 1.5px solid var(--c);
         border-radius: 12px;
         padding: 14px 22px;
-        color: #eee;
+        color: var(--node-editor-node-text);
         text-align: center;
         width: 110px;
         box-sizing: border-box;
@@ -135,7 +135,7 @@
         width: 10px;
         height: 10px;
         border: 1px solid var(--handle-color);
-        background: #0a0a0f;
+        background: var(--node-editor-handle-bg);
         box-shadow: 0 0 8px color-mix(in srgb, var(--handle-color) 58%, transparent);
     }
 
@@ -176,6 +176,15 @@
         border-radius: 4px;
         white-space: nowrap;
     }
-    .root-badge { background: rgba(0,200,100,0.15); color: #0c8; border: 1px solid #0c8; }
-    .leaf-badge { background: rgba(255,100,100,0.15); color: #f66; border: 1px solid #f66; }
+    .root-badge {
+        background: var(--node-editor-root-badge-bg);
+        color: var(--node-editor-root-badge-color);
+        border: 1px solid var(--node-editor-root-badge-color);
+    }
+
+    .leaf-badge {
+        background: var(--node-editor-leaf-badge-bg);
+        color: var(--node-editor-leaf-badge-color);
+        border: 1px solid var(--node-editor-leaf-badge-color);
+    }
 </style>
