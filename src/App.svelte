@@ -16,10 +16,22 @@
     });
 
     const activePhaseConfig = $derived(getAppPhaseConfig(appStore.phase));
+    const dialogueResultContext = $derived(
+        activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.DIALOGUE
+        && activePhaseConfig.usesGraphResultContext
+            ? {
+                circleCount: graphStore.circles.length,
+                totalStats: graphStore.totalStats,
+            }
+            : undefined
+    );
 </script>
 
 {#if activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.DIALOGUE}
-    <CyoaDialogueScreen scriptId={activePhaseConfig.dialogueScriptId} />
+    <CyoaDialogueScreen
+        scriptId={activePhaseConfig.dialogueScriptId}
+        resultContext={dialogueResultContext}
+    />
 {:else if activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.CYOA}
     <CyoaRegistrationScreen />
 {:else if activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.NODE_COMPOSITION}

@@ -23,7 +23,7 @@
                     },
                     {
                         "id": "guild-vera",
-                        "playerLine": "이름이 어떻게 되시나요?",
+                        "playerLine": "이름?",
                         "npcLine": "제국 중앙 마법사 길드의 접수원, 베라 클로비스입니다."
                     }
                 ]
@@ -94,20 +94,22 @@
         "npcTitle": "시그니처 마법 평가원",
         "imagePath": "../assets/images/luarn.webp",
         "imageAlt": "루아른 오라이어",
-        "defaultNpcLine": "시연을 시작하기 전에 궁금한 점이 있으면 물어보세요.",
+        "defaultNpcLine": "제가 담당자인데요. 궁금한 거 있으면 지금 물어보세요. 없으면 바로 시연 시작하고요.",
         "optionRows": [
             {
                 "id": "node-intro-main",
                 "options": [
                     {
                         "id": "node-intro-explain",
-                        "playerLine": "시그니처 마법이란?",
-                        "npcLine": "당신도 마법사라면 모르실 리가 없을텐데요.\n...마법사가 자신임을 증명하는 마법이에요. 다른 누구도 재현할 수 없는, 자신을 증명하는, 자신만의 오리지널 마법. 과거 항마대전에서 외형을 모방하여 잠입하는 마족에게 대항하기 위한 수단이었죠. 그게 전쟁이 끝난 이후에도 마법사 사회의 전통으로 자리 잡은거고요."
+                        "playerLine": "시그니처 마법?",
+                        "npcLine": "당신도 마법사라면 모르실 리가 없을텐데요.\n...마법사가 자신임을 증명하는 마법이에요. 다른 누구도 재현할 수 없는, 스스로를 증명하는, 자신만의 오리지널 마법. 과거 항마대전쟁에서 외형을 모방하여 잠입해서 공작을 벌이는 마족에게 대항하기 위한 수단이었죠. 그게 전쟁이 끝난 이후에도 마법사 사회의 문화로 자리 잡은거고요."
                     },
                     {
-                        "id": "node-intro-connection",
-                        "playerLine": "연결은 어떤 의미인가요?",
-                        "npcLine": "연결은 마력이 흐르는 순서를 뜻합니다. 마나 공급원에서 시작해 필요한 노드를 거친 뒤 최종 출력으로 이어져야 실제 계산에 반영됩니다."
+                        "id": "node-intro-magic",
+                        "playerLine": "마법에 대해",
+                        "npcLine": "저에게 가르침을 청하고 싶다고요? 뭐, 그런거라면 마음껏 물어보세요. 마법 지식이라면 누구보다 자신 있거든요. 그리고 이거 딱히 제 자랑은 아닌데요, 스승님이 저 정도면 아타라의 교수들보다 뛰어나다고 하셨거든요.",
+                        "npcImagePath": "../assets/images/luarn_explain.webp",
+                        "npcImageAlt": "신난 표정"
                     },
                     {
                         "id": "node-intro-luarn",
@@ -125,34 +127,52 @@
                         "playerLine": "시그니처가 없다.",
                         "npcLine": [
                             {
-                                "text": "...진심이신가요. 그러고도 참 잘 마법사 길드에 등록하러 오셨네요. "
+                                "text": "...진심이신가요. 그러고 참 잘도 마법사 길드에 등록하러 오셨네요. "
                             },
                             {
-                                "text": "하여간, 요즘 마법사들은 이래서 안된다니까요.",
+                                "text": "하여간, 남들 따라하는거에만 급급한 요즘 마법사들은 이래서 안된다니까요.",
                                 "variant": "mumble"
                             },
                             {
-                                "text": " 없으시면 그냥 가장 자신 있는 마법을 선보이시면 돼요. 신분 증명이야 다 옛날 얘기고요, 현재에 이르러선 마법사 길드에서 시그니처를 선보이는 건 개인의 실력을 평가하는 것에 의미가 있죠. 지금 시대에 신분을 증명할 수단은 차고 넘치는걸요."
+                                "text": " 없으시면 그냥 가장 자신 있는 마법을 선보이시면 돼요. 신분 증명이야 다 옛날 얘기고요, 현재에 이르러선 마법사 길드에서 시그니처를 선보이는 건 개인의 실력을 평가하는 것에 의미가 있으니까요. 지금 시대에 신분을 증명할 수단은 차고 넘치는걸요."
                             }
                         ],
                         "npcImagePath": "../assets/images/luarn_disgust.webp",
                         "npcImageAlt": "불쾌한 표정"
                     },
                     {
-                        "id": "node-intro-explain-connection",
-                        "playerLine": "연결은 어떤 의미인가요?",
-                        "npcLine": "연결은 마력이 흐르는 순서를 뜻합니다. 마나 공급원에서 시작해 필요한 노드를 거친 뒤 최종 출력으로 이어져야 실제 계산에 반영됩니다."
+                        "id": "node-intro-explain-not-show",
+                        "playerLine": "공개할 수 없다.",
+                        "npcLine": "아 네, 그러셔요~. 뭐든간에 마법을 보여주지 않으면 등록이 안되니까 알아서 하세요~.",
+                        "npcImagePath": "../assets/images/luarn_disgust.webp",
+                        "npcImageAlt": "불쾌한 표정"
+                    }
+                ]
+            },
+            {
+                "id": "node-intro-magic-followups",
+                "visibleWhen": { "choiceSelected": "node-intro-magic" },
+                "options": [
+                    {
+                        "id": "node-intro-magic-mana",
+                        "playerLine": "마나?",
+                        "npcLine": "마나는 마법의 재료이자 연료인데요, 더 근본적으로는, 우주가 순환하는 힘이죠.\n천체가 하늘을 돌고, 계절이 뒤바뀌고, 아이가 자라 다시 새 생명을 잉태하는 것. 그 모든 순환 속에서 마나는 흘러나와요.\n사람의 몸에서도 마나는 생겨나요. 심장이 뛰고, 피가 돌고, 숨이 오가고, 감정이 흔들리는 것 또한 작은 순환이니까요. 다만 그 양이 너무나 미약하고, 붙잡지 않으면 금세 흩어져버리지만요.\n그래서 마법사는 세상에 떠도는 마나를 붙잡아 자신의 몸속에 들여요. 그리고 그것을 몸 안에서 순환시켜, 잠시 자신의 흐름에 편입시키는 거예요.\n인체 또한 하나의 작은 우주이기 때문에 가능한거에요.\n마법이란, 그렇게 받아들인 마나를 정렬시켜 인위적으로 세상에 새로운 순환을 일으키는 행위이죠."
                     },
                     {
-                        "id": "node-intro-explain-luarn",
-                        "playerLine": "이름이?",
-                        "npcLine": "루아른 오라이어인데요."
+                        "id": "node-intro-magic-unit",
+                        "playerLine": "단위 마법?",
+                        "npcLine": "안정성과 작용 효과가 규명된 가장 작은 단위의 마법이에요. 오랜 시간에 걸쳐 학자들은 수많은 정렬 방식을 실험해왔어요. "
+                    },
+                    {
+                        "id": "node-intro-magic-circle",
+                        "playerLine": "서클?",
+                        "npcLine": "여러 단위 마법을 연쇄해서 하나의 술식을 이루는 단위에요. 마나는 흩어지는 성질을 지니고 있기에, 서클이 방대해질수록 불안정성이 지수적으로 증가한다는 특성이 있어요. 그래서 복잡한 마법을 사용하려면 시전자는 꽤나 큰 부담을 짊어져야 해요. 하지만 숙련된 마법사라면 여러 개의 서클을 동시에 운용함으로써 이를 보완할 수 있어요.  참고로 저는 벌써 5서클까지 동시에 운용할 수 있거든요. 제 나이 또래에서는 3서클만 되어도 천재 소리를 듣는데 말이에요. 어때요, 대단하죠?"
                     }
                 ]
             },
             {
                 "id": "node-intro-luarn-followups",
-                "visibleWhen": { "anyChoiceSelected": ["node-intro-luarn", "node-intro-explain-luarn"] },
+                "visibleWhen": { "choiceSelected": "node-intro-luarn" },
                 "options": [
                     {
                         "id": "node-intro-luarn-young",
@@ -170,6 +190,68 @@
                         "npcLine": "...그건 싫은데요. 저 지금 하는 일이 편하고 좋은데요. 그리고 낯선 사람 함부로 따라갈만큼 순진하지는 않거든요? 게다가 당신, 제 스승님만큼 대단해보이지도 않고요.",
                         "npcImagePath": "../assets/images/luarn_disgust.webp",
                         "npcImageAlt": "불쾌한 표정"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "node-composition-result",
+        "title": "시그니처 마법 평가",
+        "npcName": "루아른 오라이어",
+        "npcTitle": "시그니처 마법 평가원",
+        "imagePath": "../assets/images/luarn.webp",
+        "imageAlt": "루아른 오라이어",
+        "defaultNpcLine": "시연 결과를 확인해볼게요. 마법진이 제대로 형성됐는지부터 보죠.",
+        "resultLines": [
+            {
+                "when": { "totalStats": { "instability": { "min": 12 } } },
+                "npcLine": "으음, 출력 이전에 안정성이 문제네요. 이 정도 불안정성이면 실전에서 매번 같은 결과를 기대하긴 어려워요."
+            },
+            {
+                "when": { "circleCount": { "max": 0 } },
+                "npcLine": "아직 완성된 서클이 없네요. 단위 마법을 연결해서 하나의 흐름을 먼저 만들어야 평가할 수 있어요."
+            },
+            {
+                "when": { "circleCount": { "min": 1 } },
+                "npcLine": "좋아요. 최소한 서클은 형성됐네요. 이제 이 구조가 어떤 성향의 마법인지 살펴볼 수 있겠어요."
+            }
+        ],
+        "optionRows": [
+            {
+                "id": "node-result-main",
+                "options": [
+                    {
+                        "id": "node-result-criteria",
+                        "playerLine": "평가 기준은?",
+                        "npcLine": "서클이 성립했는지, 출력과 비용이 균형을 이루는지, 그리고 불안정성이 감당 가능한 수준인지 봐요. 보기 좋은 마법진보다 재현 가능한 구조가 더 중요하고요."
+                    },
+                    {
+                        "id": "node-result-next",
+                        "playerLine": "다음엔 뭘 하면 되지?",
+                        "npcLine": "지금 구조에서 가장 약한 부분을 하나만 고쳐보세요. 한 번에 전부 바꾸면 어떤 변화가 효과를 냈는지 알기 어려우니까요."
+                    }
+                ]
+            },
+            {
+                "id": "node-result-no-circle",
+                "resultWhen": { "circleCount": { "max": 0 } },
+                "options": [
+                    {
+                        "id": "node-result-no-circle-help",
+                        "playerLine": "서클을 만들려면?",
+                        "npcLine": "시작점에서 출력점까지 끊기지 않게 단위 마법을 연결하세요. 연결이 중간에서 멈추면 마법진이 아니라 부품 목록에 가까워요."
+                    }
+                ]
+            },
+            {
+                "id": "node-result-unstable",
+                "resultWhen": { "totalStats": { "instability": { "min": 12 } } },
+                "options": [
+                    {
+                        "id": "node-result-stabilize",
+                        "playerLine": "불안정성을 낮추려면?",
+                        "npcLine": "분기와 합류가 많을수록 계산이 까다로워져요. 서클을 나누거나, 불필요한 연결을 줄이거나, 안정성이 높은 단위 마법을 중간에 끼워보세요."
                     }
                 ]
             }

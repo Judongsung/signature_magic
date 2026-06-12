@@ -1,5 +1,6 @@
 import type {
     CyoaChoiceRowConfig,
+    CyoaDialogueResultCondition,
     CyoaDialogueScriptConfig,
     CyoaDialogueTextSegment,
     CyoaRowVisibilityCondition,
@@ -83,6 +84,97 @@ function getVisibilityConditionChoiceIds(condition?: CyoaRowVisibilityCondition)
         ...(condition.anyChoiceSelected ?? []),
         ...(condition.allChoicesSelected ?? []),
     ];
+}
+
+function validateCyoaDialogueNumericRange(
+    range: unknown,
+    label: string
+): string[] {
+    if (!range || typeof range !== 'object' || Array.isArray(range)) {
+        return [`Invalid CYOA dialogue result condition range: ${label}`];
+    }
+
+    const { min, max } = range as Record<string, unknown>;
+    const errors: string[] = [];
+    const hasMin = min !== undefined;
+    const hasMax = max !== undefined;
+
+    if (!hasMin && !hasMax) {
+        errors.push(`Empty CYOA dialogue result condition range: ${label}`);
+    }
+
+    if (hasMin && !Number.isFinite(min)) {
+        errors.push(`Invalid CYOA dialogue result condition min: ${label} -> ${String(min)}`);
+    }
+    if (hasMax && !Number.isFinite(max)) {
+        errors.push(`Invalid CYOA dialogue result condition max: ${label} -> ${String(max)}`);
+    }
+    if (
+        Number.isFinite(min)
+        && Number.isFinite(max)
+        && (max as number) < (min as number)
+    ) {
+        errors.push(`Invalid CYOA dialogue result condition range order: ${label}`);
+    }
+
+    return errors;
+}
+
+function validateCyoaDialogueResultCondition(
+    condition: unknown,
+    label: string
+): string[] {
+    if (!condition || typeof condition !== 'object' || Array.isArray(condition)) {
+        return [`Invalid CYOA dialogue result condition: ${label}`];
+    }
+
+    const resultCondition = condition as CyoaDialogueResultCondition;
+    const conditionRecord = condition as Record<string, unknown>;
+    const errors: string[] = [];
+    let hasCondition = false;
+
+    Object.keys(conditionRecord).forEach(key => {
+        if (key !== 'circleCount' && key !== 'totalStats') {
+            errors.push(`Unknown CYOA dialogue result condition key: ${label} -> ${key}`);
+        }
+    });
+
+    if (resultCondition.circleCount !== undefined) {
+        hasCondition = true;
+        errors.push(...validateCyoaDialogueNumericRange(
+            resultCondition.circleCount,
+            `${label} -> circleCount`
+        ));
+    }
+
+    if (resultCondition.totalStats !== undefined) {
+        if (
+            !resultCondition.totalStats
+            || typeof resultCondition.totalStats !== 'object'
+            || Array.isArray(resultCondition.totalStats)
+        ) {
+            errors.push(`Invalid CYOA dialogue result condition totalStats: ${label}`);
+        } else {
+            Object.entries(resultCondition.totalStats).forEach(([statKey, range]) => {
+                hasCondition = true;
+                if (!MAGIC_STAT_KEYS.includes(statKey as typeof MAGIC_STAT_KEYS[number])) {
+                    errors.push(`Unknown CYOA dialogue result condition stat: ${label} -> ${statKey}`);
+                    return;
+                }
+
+                errors.push(...validateCyoaDialogueNumericRange(
+                    range,
+                    `${label} -> totalStats.${statKey}`
+                ));
+            });
+        }
+    }
+
+    if (!hasCondition) {
+        errors.push(`Empty CYOA dialogue result condition: ${label}`);
+    }
+
+    return errors;
 }
 
 function isCyoaDialogueTextSegment(segment: unknown): segment is CyoaDialogueTextSegment {
@@ -265,9 +357,28 @@ export function validateCyoaDialogueScripts(
             true
         ));
 
+        script.resultLines?.forEach((resultLine, index) => {
+            errors.push(...validateCyoaDialogueResultCondition(
+                resultLine?.when,
+                `${script.id} -> resultLines[${index}]`
+            ));
+            errors.push(...validateCyoaDialogueLine(
+                resultLine?.npcLine,
+                `result NPC line: ${script.id} -> ${index}`,
+                true
+            ));
+        });
+
         optionRows.forEach(row => {
             if (row.selectionMode !== undefined && !isValidCyoaSelectionMode(row.selectionMode)) {
                 errors.push(`Invalid CYOA dialogue selection mode: ${script.id} -> ${row.id} -> ${String(row.selectionMode)}`);
+            }
+
+            if (row.resultWhen !== undefined) {
+                errors.push(...validateCyoaDialogueResultCondition(
+                    row.resultWhen,
+                    `${script.id} -> ${row.id}`
+                ));
             }
 
             getVisibilityConditionChoiceIds(row.visibleWhen).forEach(choiceId => {

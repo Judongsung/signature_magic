@@ -6,14 +6,16 @@
     } from '../../../constants/gameConfigs';
     import { mapCyoaDialogueScripts } from '../../../systems/cyoa/cyoaDialogueScripts';
     import { resolveCyoaImagePath } from '../../../systems/cyoa/cyoaImageRegistry';
-    import type { CyoaDialogueScriptConfig } from '../../../types/cyoa';
+    import type { CyoaDialogueResultContext, CyoaDialogueScriptConfig } from '../../../types/cyoa';
     import DevPhaseNavigation from '../../dev/DevPhaseNavigation.svelte';
     import CyoaDialogueScript from './CyoaDialogueScript.svelte';
 
     let {
         scriptId = CYOA_DIALOGUE_SCRIPT_IDS.GUILD_RECEPTION,
+        resultContext,
     }: {
         scriptId?: CyoaDialogueScriptId;
+        resultContext?: CyoaDialogueResultContext;
     } = $props();
 
     const dialogueScripts = mapCyoaDialogueScripts(
@@ -30,7 +32,7 @@
     <DevPhaseNavigation />
 
     {#if dialogueScript}
-        <CyoaDialogueScript script={dialogueScript} />
+        <CyoaDialogueScript script={dialogueScript} {resultContext} />
     {/if}
 
 </main>

@@ -3,6 +3,7 @@ export const APP_PHASES = {
     CYOA: 2,
     NODE_INTRO_DIALOGUE: 3,
     NODE_COMPOSITION: 4,
+    NODE_RESULT_DIALOGUE: 5,
 } as const;
 
 export type AppPhase = (typeof APP_PHASES)[keyof typeof APP_PHASES];
@@ -10,6 +11,7 @@ export type AppPhase = (typeof APP_PHASES)[keyof typeof APP_PHASES];
 export const CYOA_DIALOGUE_SCRIPT_IDS = {
     GUILD_RECEPTION: 'guild-reception',
     NODE_COMPOSITION_INTRO: 'node-composition-intro',
+    NODE_COMPOSITION_RESULT: 'node-composition-result',
 } as const;
 
 export type CyoaDialogueScriptId =

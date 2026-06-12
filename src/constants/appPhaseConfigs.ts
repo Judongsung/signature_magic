@@ -22,6 +22,7 @@ interface BaseAppPhaseConfig {
 interface DialogueAppPhaseConfig extends BaseAppPhaseConfig {
     screen: typeof APP_PHASE_SCREEN_KINDS.DIALOGUE;
     dialogueScriptId: CyoaDialogueScriptId;
+    usesGraphResultContext?: boolean;
 }
 
 interface StandardAppPhaseConfig extends BaseAppPhaseConfig {
@@ -48,6 +49,12 @@ export const APP_PHASE_CONFIGS: AppPhaseConfig[] = [
     {
         phase: APP_PHASES.NODE_COMPOSITION,
         screen: APP_PHASE_SCREEN_KINDS.NODE_COMPOSITION,
+    },
+    {
+        phase: APP_PHASES.NODE_RESULT_DIALOGUE,
+        screen: APP_PHASE_SCREEN_KINDS.DIALOGUE,
+        dialogueScriptId: CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_RESULT,
+        usesGraphResultContext: true,
     },
 ];
 

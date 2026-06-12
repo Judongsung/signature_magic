@@ -32,10 +32,10 @@ describe('appStore', () => {
     });
 
     it('keeps the last app phase when moving forward without a target', () => {
-        appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
+        appStore.setPhase(APP_PHASES.NODE_RESULT_DIALOGUE);
 
         appStore.moveToNextPhase();
 
-        expect(appStore.phase).toBe(APP_PHASES.NODE_COMPOSITION);
+        expect(appStore.phase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
     });
 });

@@ -10,7 +10,7 @@ export const SYSTEM_MAGIC_NODE_CONFIGS = {
     MANA_SOURCE: {
         id: 'system-mana-source',
         label: '마나 공급원',
-        icon: '🔮',
+        icon: '⊕',
         color: '#41d6a4',
         category: 'basic',
         description: '서클에 마나를 공급합니다.',
@@ -22,7 +22,7 @@ export const SYSTEM_MAGIC_NODE_CONFIGS = {
     FINAL_OUTPUT: {
         id: 'system-final-output',
         label: '최종 출력',
-        icon: '✨',
+        icon: '⟡',
         color: '#ff8b6f',
         category: 'basic',
         description: '마법의 최종 출력입니다.',

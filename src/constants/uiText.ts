@@ -9,6 +9,10 @@ export const NODE_INTRO_DIALOGUE_SCREEN_TEXT = {
     CONTINUE_TO_NODE_COMPOSITION: '비술 조합실로 이동',
 } as const;
 
+export const NODE_RESULT_DIALOGUE_SCREEN_TEXT = {
+    CONTINUE_TO_NODE_RESULT: '시연 결과 확인',
+} as const;
+
 export const DEV_PHASE_NAVIGATION_TEXT = {
     ARIA_LABEL: 'Development phase navigation',
     PHASE_LABELS: {
@@ -16,6 +20,7 @@ export const DEV_PHASE_NAVIGATION_TEXT = {
         [APP_PHASES.CYOA]: 'CYOA',
         [APP_PHASES.NODE_INTRO_DIALOGUE]: '조합 안내',
         [APP_PHASES.NODE_COMPOSITION]: '노드 조합',
+        [APP_PHASES.NODE_RESULT_DIALOGUE]: '평가 결과',
     } satisfies Record<AppPhase, string>,
 } as const;
 
@@ -83,6 +88,7 @@ export const APP_PHASE_NAVIGATION_TEXT = {
         [APP_PHASES.INTRO_DIALOGUE]: DIALOGUE_SCREEN_TEXT.CONTINUE_TO_CYOA,
         [APP_PHASES.CYOA]: UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
         [APP_PHASES.NODE_INTRO_DIALOGUE]: NODE_INTRO_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_COMPOSITION,
+        [APP_PHASES.NODE_COMPOSITION]: NODE_RESULT_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_RESULT,
     } satisfies Partial<Record<AppPhase, string>>,
 } as const;
 

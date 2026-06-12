@@ -8,6 +8,10 @@
         resolveSelectedCyoaDialogueOption,
         type CyoaDialogueSelections,
     } from '../../../systems/cyoa/cyoaDialogueScripts';
+    import {
+        matchesCyoaDialogueResultCondition,
+        resolveCyoaDialogueResultLine,
+    } from '../../../systems/cyoa/cyoaDialogueResultConditions';
     import { normalizeCyoaDialogueLine } from '../../../systems/cyoa/cyoaDialogueText';
     import {
         CYOA_DIALOGUE_TEXT_VARIANTS,
@@ -15,6 +19,7 @@
     } from '../../../constants/gameConfigs';
     import type {
         CyoaChoiceRowData,
+        CyoaDialogueResultContext,
         CyoaDialogueScriptData,
         CyoaDialogueTextSegment,
     } from '../../../types/cyoa';
@@ -27,14 +32,25 @@
 
     let {
         script,
+        resultContext,
     }: {
         script: CyoaDialogueScriptData;
+        resultContext?: CyoaDialogueResultContext;
     } = $props();
 
     let selectedChoiceIds = $state<CyoaDialogueSelections>({});
 
-    const visibleRowIds = $derived(
+    const visibleChoiceRowIds = $derived(
         resolveCyoaRowVisibility(script.optionRows, selectedChoiceIds)
+    );
+    const visibleRowIds = $derived(
+        Object.fromEntries(
+            script.optionRows.map(row => [
+                row.id,
+                visibleChoiceRowIds[row.id]
+                && matchesCyoaDialogueResultCondition(row.resultWhen, resultContext),
+            ])
+        )
     );
     const visibleOptionRows = $derived(
         script.optionRows.filter(row => visibleRowIds[row.id])
@@ -43,7 +59,9 @@
         resolveSelectedCyoaDialogueOption(script, selectedChoiceIds, visibleRowIds)
     );
     const npcLine = $derived(
-        selectedDialogueOption?.npcLine ?? script.defaultNpcLine
+        selectedDialogueOption?.npcLine
+        ?? resolveCyoaDialogueResultLine(script.resultLines, resultContext)?.npcLine
+        ?? script.defaultNpcLine
     );
     const npcLineSegments = $derived(normalizeCyoaDialogueLine(npcLine));
     const portraitImageSrc = $derived(
@@ -114,6 +132,7 @@
         min-height: 300px;
         display: grid;
         grid-template-columns: minmax(220px, 340px) minmax(0, 1fr);
+        align-items: start;
         gap: 28px;
         padding: 20px;
         border: 1px solid rgba(111, 86, 50, 0.26);
@@ -132,7 +151,7 @@
     }
 
     .portrait-frame {
-        min-height: 320px;
+        align-self: start;
         margin: 0;
         overflow: hidden;
         border: 1px solid rgba(103, 77, 48, 0.28);
@@ -143,9 +162,8 @@
 
     .portrait-frame img {
         width: 100%;
-        height: 100%;
+        height: auto;
         display: block;
-        object-fit: cover;
         filter: saturate(0.88) contrast(1.02) brightness(1.02);
     }
 
@@ -217,10 +235,6 @@
             gap: 18px;
             min-height: 0;
             padding: 16px;
-        }
-
-        .portrait-frame {
-            min-height: 260px;
         }
 
         .script-copy {

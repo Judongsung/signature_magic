@@ -38,8 +38,17 @@ describe('AppPhaseNavigationTabs', () => {
         expect(html).toContain(UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP);
     });
 
-    it('renders only the previous tab on the final phase', () => {
+    it('renders the result dialogue next tab on the node composition phase', () => {
         appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
+
+        const { html } = render(AppPhaseNavigationTabs);
+
+        expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
+        expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]);
+    });
+
+    it('renders only the previous tab on the final phase', () => {
+        appStore.setPhase(APP_PHASES.NODE_RESULT_DIALOGUE);
 
         const { html } = render(AppPhaseNavigationTabs);
 

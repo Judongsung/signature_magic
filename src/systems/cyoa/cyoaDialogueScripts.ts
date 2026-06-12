@@ -56,6 +56,7 @@ function mapCyoaDialogueOptionRowConfig(
         selectable: true,
         requiredCount: 0,
         visibleWhen: row.visibleWhen,
+        resultWhen: row.resultWhen,
         selectionMode: row.selectionMode ?? CYOA_SELECTION_MODES.SINGLE,
         layoutColumns: DEFAULT_DIALOGUE_LAYOUT_COLUMNS,
         choices: options.map(option => option.choice),
@@ -78,6 +79,7 @@ export function mapCyoaDialogueScriptConfig(
         imageAlt: script.imageAlt,
         imageSrc: resolveImagePath(script.imagePath),
         defaultNpcLine: script.defaultNpcLine,
+        resultLines: script.resultLines,
         options: optionRows.flatMap(row => row.options),
         optionRows,
     };

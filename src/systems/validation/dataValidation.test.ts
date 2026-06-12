@@ -366,4 +366,59 @@ describe('dataValidation', () => {
             ],
         });
     });
+
+    it('reports invalid CYOA dialogue result conditions', () => {
+        expect(validateCyoaDialogueScripts(
+            [
+                {
+                    id: 'script',
+                    title: 'Script',
+                    npcName: 'NPC',
+                    npcTitle: 'Desk',
+                    imageAlt: '',
+                    defaultNpcLine: 'line',
+                    resultLines: [
+                        {
+                            when: {},
+                            npcLine: '',
+                        },
+                        {
+                            when: {
+                                circleCount: { min: 2, max: 1 },
+                                totalStats: {
+                                    unknown: { min: 1 },
+                                    power: {},
+                                },
+                            },
+                            npcLine: 'line',
+                        },
+                    ],
+                    optionRows: [
+                        {
+                            id: 'row',
+                            resultWhen: {
+                                totalStats: {
+                                    instability: { min: 'high' },
+                                },
+                            },
+                            options: [
+                                { id: 'option', playerLine: 'line', npcLine: 'line' },
+                            ],
+                        },
+                    ],
+                },
+            ] as unknown as CyoaDialogueScriptConfig[],
+            isKnownCyoaImagePath
+        )).toEqual({
+            valid: false,
+            errors: [
+                'Empty CYOA dialogue result condition: script -> resultLines[0]',
+                'Missing CYOA dialogue result NPC line: script -> 0',
+                'Invalid CYOA dialogue result condition range order: script -> resultLines[1] -> circleCount',
+                'Unknown CYOA dialogue result condition stat: script -> resultLines[1] -> unknown',
+                'Empty CYOA dialogue result condition range: script -> resultLines[1] -> totalStats.power',
+                'Invalid CYOA dialogue result condition min: script -> row -> totalStats.instability -> high',
+            ],
+        });
+    });
 });

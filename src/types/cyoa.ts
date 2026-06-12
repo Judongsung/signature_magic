@@ -4,7 +4,7 @@ import type {
     CyoaDialogueTextVariant,
     CyoaSelectionMode,
 } from '../constants/gameConfigs';
-import type { MagicStatEffectConfig } from './magic';
+import type { MagicStatEffectConfig, MagicStatKey, MagicStats } from './magic';
 
 export interface CyoaRowVisibilityCondition {
     choiceSelected?: string;
@@ -90,10 +90,31 @@ export interface CyoaDialogueTextSegment {
 
 export type CyoaDialogueLine = string | CyoaDialogueTextSegment[];
 
+export interface CyoaDialogueResultContext {
+    circleCount: number;
+    totalStats: MagicStats;
+}
+
+export interface CyoaDialogueNumericRangeCondition {
+    min?: number;
+    max?: number;
+}
+
+export interface CyoaDialogueResultCondition {
+    circleCount?: CyoaDialogueNumericRangeCondition;
+    totalStats?: Partial<Record<MagicStatKey, CyoaDialogueNumericRangeCondition>>;
+}
+
+export interface CyoaDialogueResultLineConfig {
+    when: CyoaDialogueResultCondition;
+    npcLine: CyoaDialogueLine;
+}
+
 export interface CyoaDialogueOptionRowConfig extends Pick<
     CyoaChoiceRowConfig,
     'id' | 'visible' | 'visibleWhen' | 'selectionMode'
 > {
+    resultWhen?: CyoaDialogueResultCondition;
     options: CyoaDialogueOptionConfig[];
 }
 
@@ -105,6 +126,7 @@ export interface CyoaDialogueScriptConfig {
     imagePath?: string;
     imageAlt: string;
     defaultNpcLine: CyoaDialogueLine;
+    resultLines?: CyoaDialogueResultLineConfig[];
     options?: CyoaDialogueOptionConfig[];
     optionRows?: CyoaDialogueOptionRowConfig[];
 }
@@ -115,6 +137,7 @@ export interface CyoaDialogueOptionData extends CyoaDialogueOptionConfig {
 }
 
 export interface CyoaDialogueOptionRowData extends CyoaChoiceRowData {
+    resultWhen?: CyoaDialogueResultCondition;
     options: CyoaDialogueOptionData[];
 }
 
