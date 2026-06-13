@@ -66,6 +66,8 @@ export const NODE_EDITOR_TEXT = {
     CANVAS_ARIA_LABEL: 'magic node canvas',
     ROOT_BADGE: 'START',
     LEAF_BADGE: 'END',
+    NODE_STATS_ARIA_LABEL: '노드 스탯',
+    PANE_RESIZER_ARIA_LABEL: '노드 편집창과 마법진 미리보기 크기 조절',
 } as const;
 
 export const MAGIC_CIRCLE_TEXT = {

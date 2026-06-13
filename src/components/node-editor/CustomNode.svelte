@@ -1,13 +1,18 @@
 <script lang="ts">
     import { tick } from 'svelte';
     import { Handle, Position, useUpdateNodeInternals } from '@xyflow/svelte';
-    import type { MagicNodeData } from '../../types/magic';
+    import {
+        EMPTY_MAGIC_STATS,
+        MAGIC_STAT_KEYS,
+        type MagicNodeData,
+    } from '../../types/magic';
     import {
         MAGIC_NODE_HANDLE_CONFIG,
         MAGIC_NODE_RENDERING_CONFIG,
     } from '../../constants/graphConfigs';
-    import { NODE_EDITOR_TEXT } from '../../constants/uiText';
+    import { MAGIC_STAT_LABELS, NODE_EDITOR_TEXT } from '../../constants/uiText';
     import { getMagicTypeConfig } from '../../systems/graph/registry/magicTypeRegistry';
+    import { formatMagicStat } from '../../systems/graph/presentation/magicStatFormatting';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
 
     let {
@@ -26,6 +31,14 @@
     const icon = $derived(nodeConfig?.icon || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_ICON);
     const label  = $derived(nodeConfig?.label || data.magicType);
     const description = $derived(nodeConfig?.description || '');
+    const tooltipStats = $derived(nodeConfig
+        ? MAGIC_STAT_KEYS.map((statKey) => ({
+            key: statKey,
+            label: MAGIC_STAT_LABELS[statKey],
+            value: formatMagicStat(nodeConfig.stats?.[statKey] ?? EMPTY_MAGIC_STATS[statKey]),
+        }))
+        : []
+    );
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
@@ -105,11 +118,22 @@
         {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
     </div>
 
-    {#if description}
+    {#if description || tooltipStats.length > 0}
         <DescriptionTooltip
             id={tooltipId}
             {description}
-        />
+        >
+            {#if tooltipStats.length > 0}
+                <span class="node-tooltip-stats" aria-label={NODE_EDITOR_TEXT.NODE_STATS_ARIA_LABEL}>
+                    {#each tooltipStats as stat}
+                        <span class="node-tooltip-stat">
+                            <span class="node-tooltip-stat-label">{stat.label}</span>
+                            <span class="node-tooltip-stat-value">{stat.value}</span>
+                        </span>
+                    {/each}
+                </span>
+            {/if}
+        </DescriptionTooltip>
     {/if}
 </div>
 
@@ -246,5 +270,41 @@
         background: var(--node-editor-leaf-badge-bg);
         color: var(--node-editor-leaf-badge-color);
         border: 1px solid var(--node-editor-leaf-badge-color);
+    }
+
+    .node-tooltip-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 5px;
+        min-width: 218px;
+    }
+
+    .node-tooltip-stat {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-width: 0;
+        padding: 5px 6px;
+        border: 1px solid var(--node-editor-stats-border);
+        border-radius: var(--node-editor-radius-sm);
+        background: var(--node-editor-stats-bg);
+        box-shadow: var(--node-editor-stat-inset-highlight);
+    }
+
+    .node-tooltip-stat-label {
+        min-width: 0;
+        color: var(--node-editor-stats-label);
+        font-size: 9px;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    .node-tooltip-stat-value {
+        color: var(--node-editor-text-strong);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
     }
 </style>

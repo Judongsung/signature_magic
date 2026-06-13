@@ -41,10 +41,10 @@
         MAX_POSITION_PERCENT: 98,
         MIN_RADIUS_PX: 0.38,
         MAX_RADIUS_PX: 1.05,
-        MIN_ALPHA: 0.12,
-        MAX_ALPHA: 0.38,
-        MIN_GLOW_PX: 2,
-        MAX_GLOW_PX: 4.8,
+        MIN_ALPHA: 0.2,
+        MAX_ALPHA: 0.58,
+        MIN_GLOW_PX: 3.2,
+        MAX_GLOW_PX: 7.2,
         COLORS: [
             '233, 199, 111',
             '205, 234, 255',
@@ -210,6 +210,7 @@
         oncontextmenu={preventCanvasContextMenu}
         role="region"
         aria-label={NODE_EDITOR_TEXT.CANVAS_ARIA_LABEL}
+        data-tooltip-boundary
         style:--node-editor-canvas-layer-left={canvasLayerLeft}
         style:--node-editor-canvas-layer-top={canvasLayerTop}
         style:--node-editor-canvas-layer-width={canvasLayerWidth}

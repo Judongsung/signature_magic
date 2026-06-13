@@ -1,18 +1,123 @@
 <script lang="ts">
+    import { onDestroy, onMount } from 'svelte';
     import { SvelteFlowProvider } from '@xyflow/svelte';
+    import { NODE_EDITOR_TEXT } from '../../constants/uiText';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
     import MagicCircleGenerator from './MagicCircleGenerator.svelte';
     import MagicNodeEditor from './MagicNodeEditor.svelte';
+
+    const DEFAULT_EDITOR_PANE_PERCENT = 50;
+    const MIN_EDITOR_PANE_PERCENT = 30;
+    const MAX_EDITOR_PANE_PERCENT = 75;
+    const PANE_RESIZER_KEY_STEP_PERCENT = 5;
+    const COMPACT_LAYOUT_MEDIA_QUERY = '(max-width: 900px)';
+    const PRIMARY_POINTER_BUTTON = 0;
+
+    let appContainerElement: HTMLDivElement | undefined;
+    let editorPanePercent = $state(DEFAULT_EDITOR_PANE_PERCENT);
+    let isResizing = $state(false);
+    let isCompactLayout = $state(false);
+
+    const editorPaneSize = $derived(`${editorPanePercent}%`);
+    const resizerOrientation = $derived(isCompactLayout ? 'horizontal' : 'vertical');
+
+    function clampPanePercent(value: number): number {
+        return Math.min(MAX_EDITOR_PANE_PERCENT, Math.max(MIN_EDITOR_PANE_PERCENT, value));
+    }
+
+    function updatePanePercentFromPointer(event: PointerEvent) {
+        const containerRect = appContainerElement?.getBoundingClientRect();
+        if (!containerRect) return;
+
+        const pointerOffset = isCompactLayout
+            ? event.clientY - containerRect.top
+            : event.clientX - containerRect.left;
+        const containerSize = isCompactLayout ? containerRect.height : containerRect.width;
+        if (containerSize <= 0) return;
+
+        editorPanePercent = clampPanePercent((pointerOffset / containerSize) * 100);
+    }
+
+    function stopPaneResize() {
+        if (!isResizing) return;
+
+        isResizing = false;
+        window.removeEventListener('pointermove', updatePanePercentFromPointer);
+        window.removeEventListener('pointerup', stopPaneResize);
+        window.removeEventListener('pointercancel', stopPaneResize);
+    }
+
+    function startPaneResize(event: PointerEvent) {
+        if (event.button !== PRIMARY_POINTER_BUTTON) return;
+
+        event.preventDefault();
+        isResizing = true;
+        updatePanePercentFromPointer(event);
+        window.addEventListener('pointermove', updatePanePercentFromPointer);
+        window.addEventListener('pointerup', stopPaneResize);
+        window.addEventListener('pointercancel', stopPaneResize);
+    }
+
+    function handlePaneResizeKeydown(event: KeyboardEvent) {
+        const keyActions: Record<string, () => void> = {
+            ArrowLeft: () => editorPanePercent = clampPanePercent(editorPanePercent - PANE_RESIZER_KEY_STEP_PERCENT),
+            ArrowUp: () => editorPanePercent = clampPanePercent(editorPanePercent - PANE_RESIZER_KEY_STEP_PERCENT),
+            ArrowRight: () => editorPanePercent = clampPanePercent(editorPanePercent + PANE_RESIZER_KEY_STEP_PERCENT),
+            ArrowDown: () => editorPanePercent = clampPanePercent(editorPanePercent + PANE_RESIZER_KEY_STEP_PERCENT),
+            Home: () => editorPanePercent = MIN_EDITOR_PANE_PERCENT,
+            End: () => editorPanePercent = MAX_EDITOR_PANE_PERCENT,
+            Enter: () => editorPanePercent = DEFAULT_EDITOR_PANE_PERCENT,
+        };
+        const action = keyActions[event.key];
+        if (!action) return;
+
+        event.preventDefault();
+        action();
+    }
+
+    onMount(() => {
+        const mediaQuery = window.matchMedia(COMPACT_LAYOUT_MEDIA_QUERY);
+
+        function syncCompactLayout(event: MediaQueryList | MediaQueryListEvent) {
+            isCompactLayout = event.matches;
+        }
+
+        syncCompactLayout(mediaQuery);
+        mediaQuery.addEventListener('change', syncCompactLayout);
+
+        return () => mediaQuery.removeEventListener('change', syncCompactLayout);
+    });
+
+    onDestroy(stopPaneResize);
 </script>
 
 <main class="node-composition-screen">
     <DevPhaseNavigation />
 
-    <div class="app-container">
+    <div
+        bind:this={appContainerElement}
+        class="app-container"
+        class:is-resizing={isResizing}
+        style:--editor-pane-size={editorPaneSize}
+    >
         <div class="editor-pane">
             <SvelteFlowProvider>
                 <MagicNodeEditor />
             </SvelteFlowProvider>
+        </div>
+        <div
+            class="pane-resizer"
+            role="slider"
+            aria-label={NODE_EDITOR_TEXT.PANE_RESIZER_ARIA_LABEL}
+            aria-orientation={resizerOrientation}
+            aria-valuemin={MIN_EDITOR_PANE_PERCENT}
+            aria-valuemax={MAX_EDITOR_PANE_PERCENT}
+            aria-valuenow={Math.round(editorPanePercent)}
+            tabindex="0"
+            onpointerdown={startPaneResize}
+            onkeydown={handlePaneResizeKeydown}
+        >
+            <span class="resizer-line"></span>
         </div>
         <div class="preview-pane">
             <MagicCircleGenerator />
@@ -43,6 +148,7 @@
     }
     
     .app-container {
+        --editor-pane-size: 50%;
         display: flex;
         width: 100%;
         flex: 1;
@@ -51,16 +157,68 @@
     }
 
     .editor-pane {
-        flex: 1;
-        min-width: 50%;
-        border-right: 1px solid var(--node-editor-divider);
+        flex: 0 0 var(--editor-pane-size);
+        min-width: 0;
         box-shadow: var(--node-editor-panel-shadow);
         z-index: 2;
     }
 
+    .pane-resizer {
+        position: relative;
+        flex: 0 0 var(--node-editor-pane-resizer-size);
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: col-resize;
+        touch-action: none;
+        z-index: 4;
+    }
+
+    .pane-resizer::before {
+        content: '';
+        position: absolute;
+        inset: 0 -4px;
+    }
+
+    .resizer-line {
+        position: absolute;
+        inset: 0 auto;
+        left: 50%;
+        width: 1px;
+        transform: translateX(-50%);
+        background:
+            linear-gradient(
+                180deg,
+                transparent,
+                var(--node-editor-pane-resizer-line),
+                var(--node-editor-divider-glow),
+                var(--node-editor-pane-resizer-line),
+                transparent
+            );
+        box-shadow: 0 0 14px rgba(110, 214, 209, 0.12);
+        transition:
+            background var(--node-editor-transition-fast),
+            box-shadow var(--node-editor-transition-fast),
+            width var(--node-editor-transition-fast);
+    }
+
+    .pane-resizer:hover .resizer-line,
+    .pane-resizer:focus-visible .resizer-line,
+    .app-container.is-resizing .resizer-line {
+        width: 2px;
+        background: var(--node-editor-pane-resizer-line-active);
+        box-shadow: 0 0 18px rgba(110, 214, 209, 0.34);
+    }
+
+    .pane-resizer:focus-visible {
+        outline: none;
+        box-shadow: var(--node-editor-pane-resizer-focus-shadow);
+        background: var(--node-editor-pane-resizer-bg-active);
+    }
+
     .preview-pane {
-        flex: 1;
-        min-width: 50%;
+        flex: 1 1 0;
+        min-width: 0;
         background: var(--node-editor-panel-bg);
         min-height: 0;
     }
@@ -70,16 +228,43 @@
             flex-direction: column;
         }
 
-        .editor-pane,
-        .preview-pane {
+        .editor-pane {
             min-width: 100%;
-            min-height: 50%;
+            min-height: 0;
+            flex-basis: var(--editor-pane-size);
         }
 
-        .editor-pane {
-            border-right: 0;
-            border-bottom: 1px solid var(--node-editor-divider);
-            box-shadow: 0 1px 0 var(--node-editor-divider-glow);
+        .pane-resizer {
+            flex-basis: var(--node-editor-pane-resizer-size);
+            cursor: row-resize;
+        }
+
+        .pane-resizer::before {
+            inset: -4px 0;
+        }
+
+        .resizer-line {
+            inset: auto 0;
+            top: 50%;
+            width: auto;
+            height: 1px;
+            transform: translateY(-50%);
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    var(--node-editor-pane-resizer-line),
+                    var(--node-editor-divider-glow),
+                    var(--node-editor-pane-resizer-line),
+                    transparent
+                );
+        }
+
+        .pane-resizer:hover .resizer-line,
+        .pane-resizer:focus-visible .resizer-line,
+        .app-container.is-resizing .resizer-line {
+            width: auto;
+            height: 2px;
         }
     }
 </style>
