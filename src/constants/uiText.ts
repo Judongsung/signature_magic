@@ -6,7 +6,7 @@ export const DIALOGUE_SCREEN_TEXT = {
 } as const;
 
 export const NODE_INTRO_DIALOGUE_SCREEN_TEXT = {
-    CONTINUE_TO_NODE_COMPOSITION: '비술 조합실로 이동',
+    CONTINUE_TO_NODE_COMPOSITION: '시연 시작',
 } as const;
 
 export const NODE_RESULT_DIALOGUE_SCREEN_TEXT = {
@@ -47,8 +47,8 @@ export const CYOA_REGISTRATION_SUMMARY_TEXT = {
     DEFAULT_BACK_LABEL: '선택 수정',
     DIALOG_CLOSE_LABEL: '닫기',
     DIALOG_CLOSE_ARIA_LABEL: '신청서 확인 닫기',
-    DIALOG_TOP_MESSAGE: '작성하신 신청서 확인해 주세요. 틀린 내용 있으면 선택 수정 누르시면 돼요.',
-    DIALOG_BOTTOM_MESSAGE: '내용 문제 없으면 제출해 주세요. 접수 끝나면 다음 안내로 넘어갈게요.',
+    DIALOG_TOP_MESSAGE: '제출하시기 전에 한 번만 더 검토해주세요. 틀린 내용이 있으면 정정하시고요.',
+    DIALOG_BOTTOM_MESSAGE: '제출하시면 담당자분께 안내해드릴게요.',
     SEAL_TOP: 'GUILD',
     SEAL_BOTTOM: 'APPROVAL',
 } as const;

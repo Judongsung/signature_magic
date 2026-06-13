@@ -39,6 +39,8 @@ describe('AppPhaseNavigationTabs', () => {
         expect(html).toContain('disabled');
         expect(html).toContain('app-phase-next-disabled-tooltip');
         expect(html).toContain(UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP);
+        expect(html).toContain('character-speech-bubble');
+        expect(html).toContain('vera_chibi');
     });
 
     it('renders an enabled next tab on the complete CYOA phase', () => {

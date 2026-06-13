@@ -42,8 +42,8 @@
     // ── 선택 여부에 따른 색상 / 굵기 ─────────────────────────────────────────
     const color = $derived(
         selected
-            ? MAGIC_EDGE_RENDERING_CONFIG.SELECTED_COLOR
-            : MAGIC_EDGE_RENDERING_CONFIG.BASE_COLOR
+            ? 'var(--node-editor-edge-selected-color)'
+            : 'var(--node-editor-edge-color)'
     );
     const strokeWidth = $derived(
         selected
@@ -73,7 +73,7 @@
     class="edge-selected-glow"
     d={edgePath}
     fill="none"
-    stroke={MAGIC_EDGE_RENDERING_CONFIG.SELECTED_COLOR}
+    stroke="var(--node-editor-edge-glow-color)"
     stroke-width={selectedGlowStrokeWidth}
 />
 {/if}
@@ -86,11 +86,13 @@
     fill="none"
     stroke={color}
     stroke-width={strokeWidth}
+    stroke-linecap="round"
     style={style}
 />
 
 <!-- target 끝 화살표 -->
 <polygon
+    class="edge-arrow"
     points={arrowPoints}
     fill={color}
     transform={`translate(${arrowX}, ${arrowY}) rotate(${angle})`}
@@ -99,7 +101,21 @@
 
 <style>
     .edge-selected-glow {
-        opacity: 0.28;
+        opacity: 0.72;
         pointer-events: none;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 7px var(--node-editor-edge-glow-color));
+    }
+
+    .react-flow__edge-path {
+        filter: drop-shadow(0 0 5px var(--node-editor-edge-glow-color));
+        transition:
+            stroke var(--node-editor-transition-fast),
+            stroke-width var(--node-editor-transition-fast),
+            filter var(--node-editor-transition-fast);
+    }
+
+    .edge-arrow {
+        filter: drop-shadow(0 0 5px var(--node-editor-edge-glow-color));
     }
 </style>

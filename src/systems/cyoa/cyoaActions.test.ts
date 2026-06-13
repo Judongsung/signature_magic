@@ -65,7 +65,7 @@ describe('cyoaActions', () => {
         )).toMatchObject({
             imageSrc: undefined,
             imageSize: 'default',
-            imagePlacement: 'left',
+            imagePlacement: 'top',
             tooltip: 'More detail',
             width: '1/3',
             layoutSpan: 1,

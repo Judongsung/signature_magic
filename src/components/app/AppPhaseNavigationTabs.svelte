@@ -1,7 +1,9 @@
 <script lang="ts">
+    import veraChibiImageSrc from '../../assets/images/vera_chibi.png';
     import type { AppPhase } from '../../constants/gameConfigs';
     import {
         APP_PHASE_NAVIGATION_TEXT,
+        CYOA_GUIDE_SPEECH_TEXT,
         UI_BUTTON_TEXT,
     } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
@@ -11,7 +13,7 @@
         resolveRegistrationReviewAccess,
     } from '../../systems/app/appPhaseNavigationPolicy';
     import CyoaRegistrationSummaryDialog from '../cyoa/registration-summary/CyoaRegistrationSummaryDialog.svelte';
-    import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
+    import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
 
     const nextDisabledTooltipId = 'app-phase-next-disabled-tooltip';
     const nextPhaseLabels: Partial<Record<AppPhase, string>> = APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS;
@@ -126,10 +128,17 @@
                             {nextLabel}
                         </button>
                         {#if navigationPolicy.isNextDisabled}
-                            <DescriptionTooltip
+                            <span
                                 id={nextDisabledTooltipId}
-                                description={UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP}
-                            />
+                                class="next-disabled-speech-tooltip"
+                                role="tooltip"
+                            >
+                                <CharacterSpeechBubble
+                                    imageSrc={veraChibiImageSrc}
+                                    imageAlt={CYOA_GUIDE_SPEECH_TEXT.IMAGE_ALT}
+                                    message={UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP}
+                                />
+                            </span>
                         {/if}
                     </span>
                 {/if}
@@ -185,6 +194,21 @@
         pointer-events: auto;
     }
 
+    .next-disabled-speech-tooltip {
+        position: absolute;
+        right: 0;
+        bottom: calc(100% + 14px);
+        width: max-content;
+        max-width: min(430px, calc(100vw - 32px));
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(6px);
+        transition:
+            opacity 0.14s ease,
+            transform 0.14s ease;
+        z-index: 100;
+    }
+
     .phase-tab {
         min-width: 116px;
         min-height: 42px;
@@ -238,6 +262,12 @@
         pointer-events: none;
     }
 
+    .next-tab-host.tooltip-host:hover .next-disabled-speech-tooltip,
+    .next-tab-host.tooltip-host:focus-within .next-disabled-speech-tooltip {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     @media (max-width: 720px) {
         .app-phase-navigation-tabs {
             gap: 8px;
@@ -270,6 +300,17 @@
 
         .next-tab-host {
             flex: 1;
+        }
+
+        .next-disabled-speech-tooltip {
+            right: 50%;
+            max-width: calc(100vw - 24px);
+            transform: translate(50%, 6px);
+        }
+
+        .next-tab-host.tooltip-host:hover .next-disabled-speech-tooltip,
+        .next-tab-host.tooltip-host:focus-within .next-disabled-speech-tooltip {
+            transform: translate(50%, 0);
         }
 
         .review-tab {

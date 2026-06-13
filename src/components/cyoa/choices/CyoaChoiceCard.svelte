@@ -27,7 +27,7 @@
 
     const tooltipId = $derived(`${choice.id}-${TOOLTIP_ID_SUFFIX}`);
     const imageSize = $derived(choice.imageSize ?? CYOA_CHOICE_IMAGE_SIZES.DEFAULT);
-    const imagePlacement = $derived(choice.imagePlacement ?? CYOA_CHOICE_IMAGE_PLACEMENTS.LEFT);
+    const imagePlacement = $derived(choice.imagePlacement ?? CYOA_CHOICE_IMAGE_PLACEMENTS.TOP);
 </script>
 
 <button

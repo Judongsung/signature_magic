@@ -29,7 +29,7 @@ export function mapCyoaChoiceConfig(
         imageSrc: resolveImagePath(choice.imagePath),
         imageAlt: choice.imageAlt,
         imageSize: choice.imageSize ?? CYOA_CHOICE_IMAGE_SIZES.DEFAULT,
-        imagePlacement: choice.imagePlacement ?? CYOA_CHOICE_IMAGE_PLACEMENTS.LEFT,
+        imagePlacement: choice.imagePlacement ?? CYOA_CHOICE_IMAGE_PLACEMENTS.TOP,
         title: choice.title,
         description: choice.description,
         tooltip: choice.tooltip,

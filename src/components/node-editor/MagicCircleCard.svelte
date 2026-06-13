@@ -127,15 +127,30 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         width: min-content;
+        padding: 12px;
+        border: 1px solid var(--node-editor-circle-card-border);
+        border-radius: var(--node-editor-radius-md);
+        background: var(--node-editor-circle-card-bg);
+        box-shadow: var(--node-editor-circle-card-shadow);
+        transition:
+            border-color var(--node-editor-transition-medium),
+            box-shadow var(--node-editor-transition-medium),
+            transform var(--node-editor-transition-medium);
+    }
+
+    .circle-card:hover {
+        border-color: var(--node-editor-circle-border);
+        box-shadow: var(--node-editor-circle-shadow);
+        transform: translateY(-1px);
     }
 
     .circle-label {
         font-size: 11px;
         color: var(--node-editor-circle-label);
         text-transform: uppercase;
-        letter-spacing: 1.5px;
+        letter-spacing: 0.12em;
     }
 
     .magic-svg {
@@ -143,6 +158,7 @@
         border-radius: 50%;
         border: 1px solid var(--node-editor-circle-border);
         box-shadow: var(--node-editor-circle-shadow);
+        animation: circle-breathe 9s ease-in-out infinite;
     }
 
     .outer-ring,
@@ -234,6 +250,24 @@
 
         to {
             transform: rotate(360deg);
+        }
+    }
+
+    @keyframes circle-breathe {
+        0%,
+        100% {
+            filter: brightness(1);
+        }
+
+        50% {
+            filter: brightness(1.08);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .glyph-band,
+        .magic-svg {
+            animation: none;
         }
     }
 </style>

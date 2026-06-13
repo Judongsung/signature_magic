@@ -25,7 +25,7 @@
 
 <style>
     .stats-grid {
-        width: 260px;
+        width: var(--node-editor-stats-grid-width);
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
@@ -42,8 +42,9 @@
         min-width: 0;
         padding: 7px 8px;
         border: 1px solid var(--node-editor-stats-border);
-        border-radius: 6px;
+        border-radius: var(--node-editor-radius-sm);
         background: var(--node-editor-stats-bg);
+        box-shadow: var(--node-editor-stat-inset-highlight);
     }
 
     .total-stat-item {
@@ -56,6 +57,7 @@
         font-size: 10px;
         line-height: 1.2;
         white-space: nowrap;
+        letter-spacing: 0.03em;
     }
 
     .stat-item dd {
@@ -64,6 +66,7 @@
         font-size: 15px;
         font-weight: 700;
         line-height: 1.15;
+        font-variant-numeric: tabular-nums;
     }
 
     @media (max-width: 520px) {

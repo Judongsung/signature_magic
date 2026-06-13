@@ -69,7 +69,7 @@
 
     <div class="toolbar-divider"></div>
 
-    <button class="action-btn clear-btn" onclick={onClear}>
+    <button class="action-btn clear-btn" type="button" onclick={onClear}>
         {NODE_EDITOR_TEXT.CLEAR_ALL}
     </button>
 
@@ -80,7 +80,8 @@
 
 <style>
     .toolbar {
-        padding: 10px 16px;
+        position: relative;
+        padding: 11px 16px;
         background: var(--node-editor-toolbar-bg);
         border-bottom: 1px solid var(--node-editor-divider);
         display: flex;
@@ -91,11 +92,22 @@
         z-index: 10;
     }
 
+    .toolbar::after {
+        content: '';
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--node-editor-divider-glow), transparent);
+        pointer-events: none;
+    }
+
     .toolbar-label {
         font-size: 10px;
         color: var(--node-editor-muted);
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.08em;
         white-space: nowrap;
     }
 
@@ -110,17 +122,22 @@
         background: var(--node-editor-button-bg);
         color: var(--node-editor-button-text);
         border: 1px solid var(--node-editor-button-border);
-        border-radius: 8px;
+        border-radius: var(--node-editor-radius-md);
         padding: 6px 12px;
         cursor: pointer;
         font-size: 12px;
         font-weight: 700;
-        transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+        transition:
+            background var(--node-editor-transition-fast),
+            color var(--node-editor-transition-fast),
+            border-color var(--node-editor-transition-fast),
+            box-shadow var(--node-editor-transition-fast);
     }
 
     .category-tab:hover {
         color: var(--node-editor-button-hover-text);
         border-color: var(--node-editor-button-hover-border);
+        box-shadow: var(--node-editor-button-hover-shadow);
     }
 
     .category-tab.active {
@@ -137,11 +154,16 @@
         color: var(--node-editor-action-text);
         border: 1px solid var(--node-editor-action-border);
         padding: 6px 13px;
-        border-radius: 8px;
+        border-radius: var(--node-editor-radius-md);
         cursor: grab;
         font-size: 13px;
         font-weight: 600;
-        transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+        box-shadow: var(--node-editor-surface-inset-highlight);
+        transition:
+            background var(--node-editor-transition-fast),
+            transform var(--node-editor-transition-fast),
+            box-shadow var(--node-editor-transition-fast),
+            border-color var(--node-editor-transition-fast);
         user-select: none;
     }
 
@@ -151,6 +173,13 @@
         transform: translateY(-2px);
         box-shadow: var(--node-editor-accent-shadow);
         border-color: var(--node-editor-accent);
+    }
+
+    .drag-btn:focus-visible,
+    .category-tab:focus-visible,
+    .action-btn:focus-visible {
+        outline: 2px solid var(--node-editor-starlight);
+        outline-offset: 2px;
     }
 
     .drag-btn:focus-visible {
@@ -173,18 +202,22 @@
     .toolbar-divider {
         width: 1px;
         height: 24px;
-        background: var(--node-editor-divider);
+        background: linear-gradient(180deg, transparent, var(--node-editor-divider), transparent);
         margin: 0 4px;
     }
 
     .action-btn {
         padding: 6px 13px;
-        border-radius: 8px;
+        border-radius: var(--node-editor-radius-md);
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
         border: 1px solid;
-        transition: all 0.15s;
+        transition:
+            background var(--node-editor-transition-fast),
+            border-color var(--node-editor-transition-fast),
+            box-shadow var(--node-editor-transition-fast),
+            color var(--node-editor-transition-fast);
     }
 
     .clear-btn {
@@ -204,5 +237,14 @@
         color: var(--node-editor-muted-soft);
         font-size: 11px;
         white-space: nowrap;
+    }
+
+    @media (max-width: 720px) {
+        .toolbar-hint {
+            width: 100%;
+            margin-left: 0;
+            white-space: normal;
+            line-height: 1.35;
+        }
     }
 </style>

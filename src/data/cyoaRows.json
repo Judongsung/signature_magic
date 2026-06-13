@@ -15,35 +15,35 @@
         "choices": [
             {
                 "id": "age-teen",
-                "imagePath": "../assets/images/temp.webp",
+                "imagePath": "../assets/images/age/teenage.webp",
                 "imageAlt": "청소년",
                 "title": "청소년",
                 "description": "아직 성장과 배움의 시기에 있는 인물입니다.",
-                "width": "1/1"
+                "width": "1/2"
             },
             {
                 "id": "age-young-adult",
-                "imagePath": "../assets/images/temp.webp",
+                "imagePath": "../assets/images/age/youngage.jpg",
                 "imageAlt": "청년",
                 "title": "청년",
                 "description": "가장 활발하게 경험을 쌓는 시기의 인물입니다.",
-                "width": "1/1"
+                "width": "1/2"
             },
             {
                 "id": "age-middle-aged",
-                "imagePath": "../assets/images/temp.webp",
+                "imagePath": "../assets/images/age/middleage.webp",
                 "imageAlt": "중년",
                 "title": "중년",
                 "description": "경험과 책임이 쌓인 시기의 인물입니다.",
-                "width": "1/1"
+                "width": "1/2"
             },
             {
                 "id": "age-elder",
-                "imagePath": "../assets/images/temp.webp",
+                "imagePath": "../assets/images/age/oldage.webp",
                 "imageAlt": "노년",
                 "title": "노년",
                 "description": "오랜 세월의 지식과 흔적을 지닌 인물입니다.",
-                "width": "1/1"
+                "width": "1/2"
             }
         ],
         "requiredCount": 1
@@ -58,7 +58,7 @@
                 "imageAlt": "인간",
                 "title": "인간",
                 "description": "가장 넓은 지역과 조직에 적응한 종족입니다.",
-                "width": "1/1"
+                "width": "1/2"
             },
             {
                 "id": "race-beastkin",
@@ -66,7 +66,7 @@
                 "imageAlt": "수인",
                 "title": "수인",
                 "description": "예민한 감각과 신체적 특징을 지닌 종족입니다.",
-                "width": "1/1"
+                "width": "1/2"
             },
             {
                 "id": "race-elf",
@@ -74,7 +74,7 @@
                 "imageAlt": "엘프",
                 "title": "엘프",
                 "description": "긴 수명과 정교한 마력 감각으로 알려진 종족입니다.",
-                "width": "1/1"
+                "width": "1/2"
             },
             {
                 "id": "race-dwarf",
@@ -82,7 +82,7 @@
                 "imageAlt": "드워프",
                 "title": "드워프",
                 "description": "금속과 도구, 견고한 제작술에 익숙한 종족입니다.",
-                "width": "1/1"
+                "width": "1/2"
             }
         ],
         "requiredCount": 1
@@ -117,10 +117,8 @@
         "choices": [
             {
                 "id": "affiliation-blank",
-                "imagePath": "../assets/images/temp.webp",
-                "imageAlt": "공란",
-                "title": "공란",
-                "description": "소속이 없거나 사정이 있어 밝힐 수 없다.",
+                "title": "없음",
+                "description": "소속이 없거나 밝힐 수 없다.",
                 "width": "1/3"
             },
             {
@@ -169,6 +167,14 @@
                 "imageAlt": "자유 길드",
                 "title": "자유 길드",
                 "description": "길드에서 의뢰와 계약을 수주받아 임무를 수행한다.",
+                "width": "1/3"
+            },
+            {
+                "id": "affiliation-tribe",
+                "imagePath": "../assets/images/temp.webp",
+                "imageAlt": "부족",
+                "title": "부족",
+                "description": "부족체의 이익을 위해 활동한다.",
                 "width": "1/3"
             },
             {

@@ -47,15 +47,18 @@
         display: flex;
         flex-direction: column;
         overflow-y: auto;
+        position: relative;
     }
 
     .header {
-        padding: 16px 20px 10px;
+        padding: 18px 20px 12px;
         border-bottom: 1px solid var(--node-editor-preview-border);
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
         gap: 12px;
+        background: var(--node-editor-panel-bg);
+        box-shadow: var(--node-editor-toolbar-shadow);
     }
 
     .circle-count {
@@ -77,13 +80,14 @@
     .count-label {
         font-size: 14px;
         color: var(--node-editor-preview-label);
-        letter-spacing: 1px;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
     }
 
     .hint {
         font-size: 13px;
         color: var(--node-editor-preview-empty);
+        line-height: 1.45;
     }
 
     .total-stats {
@@ -96,17 +100,25 @@
         color: var(--node-editor-preview-section-label);
         font-size: 10px;
         font-weight: 700;
-        letter-spacing: 1.4px;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
     }
 
     .circles-grid {
-        padding: 16px;
+        padding: 18px;
         display: flex;
         flex-wrap: wrap;
         gap: 16px;
         justify-content: center;
         align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+        .circles-grid {
+            justify-content: flex-start;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+        }
     }
 
 </style>

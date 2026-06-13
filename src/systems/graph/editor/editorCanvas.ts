@@ -1,5 +1,6 @@
 ﻿export type Point = { x: number; y: number };
 export type Size = { width: number; height: number };
+export type ViewportTransform = Point & { zoom: number };
 export type GridSize = readonly [number, number];
 export type CanvasExtent = readonly [
     readonly [number, number],
@@ -21,6 +22,25 @@ export function clampPointToExtent(point: Point, extent: CanvasExtent): Point {
     return {
         x: clamp(point.x, extent[0][0], extent[1][0]),
         y: clamp(point.y, extent[0][1], extent[1][1]),
+    };
+}
+
+export function getExtentCenter(extent: CanvasExtent): Point {
+    return {
+        x: (extent[0][0] + extent[1][0]) / 2,
+        y: (extent[0][1] + extent[1][1]) / 2,
+    };
+}
+
+export function resolveCenteredViewport(
+    flowCenterPosition: Point,
+    viewportSize: Size,
+    zoom: number
+): ViewportTransform {
+    return {
+        x: viewportSize.width / 2 - flowCenterPosition.x * zoom,
+        y: viewportSize.height / 2 - flowCenterPosition.y * zoom,
+        zoom,
     };
 }
 

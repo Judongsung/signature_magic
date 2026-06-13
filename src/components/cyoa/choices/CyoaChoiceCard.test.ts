@@ -19,6 +19,7 @@ describe('CyoaChoiceCard', () => {
 
         expect(html).toContain('src="/images/choice.webp"');
         expect(html).toContain('alt="선택지 이미지"');
+        expect(html).toContain('image-placement-top');
         expect(html).toContain('선택지 제목');
         expect(html).toContain('선택지 상세 설명');
     });

@@ -1,3 +1,7 @@
+import ageMiddleImageSrc from '../../assets/images/age/middleage.webp?url';
+import ageOldImageSrc from '../../assets/images/age/oldage.webp?url';
+import ageTeenImageSrc from '../../assets/images/age/teenage.webp?url';
+import ageYoungImageSrc from '../../assets/images/age/youngage.jpg?url';
 import catalystBladeImageSrc from '../../assets/images/catalyst/blade.webp?url';
 import catalystBookImageSrc from '../../assets/images/catalyst/book.webp?url';
 import catalystGemImageSrc from '../../assets/images/catalyst/gem.webp?url';
@@ -13,6 +17,10 @@ import veraImageSrc from '../../assets/images/vera.webp?url';
 import veraDisgustImageSrc from '../../assets/images/vera_disgust.webp?url';
 
 const imageModules: Record<string, string> = {
+    '../../assets/images/age/middleage.webp': ageMiddleImageSrc,
+    '../../assets/images/age/oldage.webp': ageOldImageSrc,
+    '../../assets/images/age/teenage.webp': ageTeenImageSrc,
+    '../../assets/images/age/youngage.jpg': ageYoungImageSrc,
     '../../assets/images/catalyst/blade.webp': catalystBladeImageSrc,
     '../../assets/images/catalyst/book.webp': catalystBookImageSrc,
     '../../assets/images/catalyst/gem.webp': catalystGemImageSrc,

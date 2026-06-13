@@ -1,7 +1,9 @@
 ﻿import { describe, expect, it } from 'vitest';
 import {
     clampPointToExtent,
+    getExtentCenter,
     resolveCenteredDropPosition,
+    resolveCenteredViewport,
     resolveDropPosition,
     snapPointToGrid,
 } from './editorCanvas';
@@ -20,6 +22,25 @@ describe('editorCanvas', () => {
             x: 1200,
             y: -800,
         });
+    });
+
+    it('calculates the center of a canvas extent', () => {
+        expect(getExtentCenter(extent)).toEqual({ x: 0, y: 0 });
+        expect(getExtentCenter([[40, 80], [120, 240]])).toEqual({ x: 80, y: 160 });
+    });
+
+    it('calculates a viewport transform that centers a flow point', () => {
+        expect(resolveCenteredViewport(
+            { x: 0, y: 0 },
+            { width: 1000, height: 600 },
+            1
+        )).toEqual({ x: 500, y: 300, zoom: 1 });
+
+        expect(resolveCenteredViewport(
+            { x: 80, y: 160 },
+            { width: 1000, height: 600 },
+            0.5
+        )).toEqual({ x: 460, y: 220, zoom: 0.5 });
     });
 
     it('snaps then clamps drop positions', () => {

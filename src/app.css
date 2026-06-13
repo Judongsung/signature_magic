@@ -74,78 +74,159 @@
     --guild-action-secondary-hover-shadow: 0 4px 10px rgba(44, 34, 23, 0.18);
 
     /* Node editor 테마 토큰 */
-    --node-editor-screen-bg: #000;
-    --node-editor-panel-bg: #050508;
-    --node-editor-preview-bg: #05060a;
-    --node-editor-toolbar-bg: #111118;
-    --node-editor-border: #222;
-    --node-editor-divider: #2a2a3a;
-    --node-editor-panel-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
-    --node-editor-toolbar-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-    --node-editor-muted: #555;
-    --node-editor-muted-strong: #66667a;
-    --node-editor-muted-soft: #444;
-    --node-editor-text: #e0e0ff;
-    --node-editor-text-strong: #e6edf7;
-    --node-editor-button-bg: #16161f;
-    --node-editor-button-text: #8e8ea8;
-    --node-editor-button-border: #2f2f44;
-    --node-editor-button-hover-text: #e8e2ff;
-    --node-editor-button-hover-border: #6f5e9c;
-    --node-editor-button-active-bg: #2a2140;
-    --node-editor-button-active-text: #f1ecff;
-    --node-editor-button-active-border: #9b7ad6;
-    --node-editor-button-active-shadow: 0 0 0 1px rgba(155, 122, 214, 0.18);
-    --node-editor-action-bg: #1e1e2e;
-    --node-editor-action-text: #ddd;
-    --node-editor-action-border: #3a3a5a;
-    --node-editor-action-hover-bg: #2a2a40;
-    --node-editor-accent: #9b59b6;
-    --node-editor-accent-shadow: 0 4px 12px rgba(155, 89, 182, 0.35);
-    --node-editor-danger-bg: #1e1010;
-    --node-editor-danger-hover-bg: #2e1515;
-    --node-editor-danger-text: #f87;
-    --node-editor-danger-border: #5a2a2a;
-    --node-editor-danger-shadow: 0 2px 10px rgba(255, 100, 100, 0.25);
-    --node-editor-node-fallback-color: #888;
-    --node-editor-node-bg: rgba(12, 12, 22, 0.92);
-    --node-editor-node-text: #eee;
-    --node-editor-handle-bg: #0a0a0f;
-    --node-editor-root-badge-bg: rgba(0, 200, 100, 0.15);
-    --node-editor-root-badge-color: #0c8;
-    --node-editor-leaf-badge-bg: rgba(255, 100, 100, 0.15);
-    --node-editor-leaf-badge-color: #f66;
-    --node-editor-preview-border: #14141e;
-    --node-editor-preview-count-gradient: linear-gradient(135deg, #b8f4ff, #f0d77e);
-    --node-editor-preview-label: #8b92a4;
-    --node-editor-preview-empty: #52586b;
-    --node-editor-preview-section-label: #7f879b;
-    --node-editor-stats-border: #182033;
-    --node-editor-stats-bg: rgba(13, 16, 27, 0.72);
-    --node-editor-stats-total-bg: rgba(18, 24, 39, 0.92);
-    --node-editor-stats-total-border: #26314a;
-    --node-editor-stats-label: #737c91;
-    --node-editor-circle-label: #687083;
-    --node-editor-circle-fallback-color: #9aa0a6;
-    --node-editor-circle-core-start: #f7fbff;
-    --node-editor-circle-core-mid: #7fc7ff;
-    --node-editor-circle-core-end: #06060c;
+    --node-editor-transition-fast: 0.16s ease;
+    --node-editor-transition-medium: 0.24s ease;
+    --node-editor-radius-sm: 6px;
+    --node-editor-radius-md: 8px;
+    --node-editor-void: #02030a;
+    --node-editor-obsidian: #070914;
+    --node-editor-ink: #0d1020;
+    --node-editor-gold: #e9c76f;
+    --node-editor-starlight: #cdeaff;
+    --node-editor-aurora: #6ed6d1;
+    --node-editor-lilac: #b996ff;
+    --node-editor-screen-bg:
+        linear-gradient(180deg, rgba(8, 10, 22, 0.98), rgba(2, 3, 10, 1));
+    --node-editor-panel-bg:
+        linear-gradient(180deg, rgba(10, 12, 25, 0.96), rgba(5, 7, 15, 0.98));
+    --node-editor-preview-bg:
+        linear-gradient(180deg, rgba(7, 10, 20, 0.98), rgba(3, 5, 12, 1));
+    --node-editor-toolbar-bg:
+        linear-gradient(180deg, rgba(17, 18, 33, 0.96), rgba(7, 9, 19, 0.98));
+    --node-editor-canvas-base-bg:
+        linear-gradient(180deg, rgba(7, 9, 18, 0.98), rgba(3, 4, 10, 1));
+    --node-editor-canvas-bg:
+        radial-gradient(circle at center, transparent 0 23%, rgba(205, 234, 255, 0.08) 23.1% 23.22%, transparent 23.34% 35%, rgba(233, 199, 111, 0.06) 35.1% 35.22%, transparent 35.34%),
+        radial-gradient(circle at center, transparent 0 50%, rgba(110, 214, 209, 0.05) 50.1% 50.2%, transparent 50.32%),
+        repeating-linear-gradient(0deg, rgba(205, 234, 255, 0.035) 0 1px, transparent 1px 40px),
+        repeating-linear-gradient(90deg, rgba(205, 234, 255, 0.035) 0 1px, transparent 1px 40px);
+    --node-editor-canvas-vignette:
+        linear-gradient(90deg, rgba(2, 3, 10, 0.55), transparent 20%, transparent 80%, rgba(2, 3, 10, 0.55)),
+        linear-gradient(180deg, rgba(2, 3, 10, 0.72), transparent 22%, transparent 76%, rgba(2, 3, 10, 0.72));
+    --node-editor-border: rgba(205, 234, 255, 0.14);
+    --node-editor-divider: rgba(233, 199, 111, 0.18);
+    --node-editor-divider-glow: rgba(110, 214, 209, 0.24);
+    --node-editor-panel-shadow:
+        1px 0 0 rgba(233, 199, 111, 0.16),
+        14px 0 34px rgba(0, 0, 0, 0.42);
+    --node-editor-toolbar-shadow:
+        0 1px 0 rgba(233, 199, 111, 0.16),
+        0 10px 28px rgba(0, 0, 0, 0.36);
+    --node-editor-surface-inset-highlight: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+    --node-editor-stat-inset-highlight: inset 0 0 0 1px rgba(255, 255, 255, 0.018);
+    --node-editor-button-hover-shadow: 0 0 14px rgba(233, 199, 111, 0.08);
+    --node-editor-badge-shadow: 0 0 12px rgba(0, 0, 0, 0.22);
+    --node-editor-muted: #7f8398;
+    --node-editor-muted-strong: #9aa3ba;
+    --node-editor-muted-soft: #6d738a;
+    --node-editor-text: #e9f4ff;
+    --node-editor-text-strong: #fff7d6;
+    --node-editor-button-bg:
+        linear-gradient(180deg, rgba(20, 24, 43, 0.94), rgba(10, 13, 27, 0.96));
+    --node-editor-button-text: #aab5ce;
+    --node-editor-button-border: rgba(205, 234, 255, 0.16);
+    --node-editor-button-hover-text: #eef8ff;
+    --node-editor-button-hover-border: rgba(233, 199, 111, 0.42);
+    --node-editor-button-active-bg:
+        linear-gradient(180deg, rgba(35, 31, 52, 0.96), rgba(16, 20, 36, 0.98));
+    --node-editor-button-active-text: #fff0b8;
+    --node-editor-button-active-border: rgba(233, 199, 111, 0.7);
+    --node-editor-button-active-shadow:
+        inset 0 0 14px rgba(233, 199, 111, 0.08),
+        0 0 0 1px rgba(233, 199, 111, 0.14),
+        0 0 16px rgba(110, 214, 209, 0.14);
+    --node-editor-action-bg:
+        linear-gradient(180deg, rgba(18, 24, 43, 0.94), rgba(8, 11, 23, 0.96));
+    --node-editor-action-text: #e6edf7;
+    --node-editor-action-border: rgba(110, 214, 209, 0.24);
+    --node-editor-action-hover-bg:
+        linear-gradient(180deg, rgba(30, 37, 63, 0.98), rgba(12, 17, 35, 0.98));
+    --node-editor-accent: var(--node-editor-gold);
+    --node-editor-accent-shadow:
+        0 0 0 1px rgba(233, 199, 111, 0.18),
+        0 8px 24px rgba(110, 214, 209, 0.18),
+        0 0 22px rgba(233, 199, 111, 0.16);
+    --node-editor-danger-bg:
+        linear-gradient(180deg, rgba(45, 20, 24, 0.9), rgba(23, 9, 14, 0.96));
+    --node-editor-danger-hover-bg:
+        linear-gradient(180deg, rgba(65, 26, 31, 0.96), rgba(35, 12, 18, 0.98));
+    --node-editor-danger-text: #ffaaa0;
+    --node-editor-danger-border: rgba(255, 138, 124, 0.38);
+    --node-editor-danger-shadow: 0 0 18px rgba(255, 125, 104, 0.18);
+    --node-editor-node-width: 80px;
+    --node-editor-node-height: 80px;
+    --node-editor-node-padding: 10px 11px;
+    --node-editor-node-body-gap: 4px;
+    --node-editor-node-icon-size: 24px;
+    --node-editor-node-label-size: 10.5px;
+    --node-editor-node-label-line-height: 1.18;
+    --node-editor-node-fallback-color: #a9b0bd;
+    --node-editor-node-bg:
+        linear-gradient(180deg, rgba(14, 17, 31, 0.96), rgba(7, 10, 20, 0.98));
+    --node-editor-node-border: rgba(205, 234, 255, 0.18);
+    --node-editor-node-text: #eef7ff;
+    --node-editor-node-rune-bg:
+        linear-gradient(90deg, transparent, rgba(233, 199, 111, 0.3), transparent);
+    --node-editor-node-depth-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+    --node-editor-node-hover-shadow:
+        0 0 0 1px color-mix(in srgb, var(--c) 44%, transparent),
+        0 0 26px color-mix(in srgb, var(--c) 34%, transparent),
+        0 14px 28px rgba(0, 0, 0, 0.32);
+    --node-editor-handle-bg: #050813;
+    --node-editor-handle-size: 11px;
+    --node-editor-handle-anchor-shadow: 0 0 0 2px rgba(5, 8, 19, 0.92);
+    --node-editor-root-badge-bg: rgba(110, 214, 209, 0.13);
+    --node-editor-root-badge-color: #8cf2e6;
+    --node-editor-leaf-badge-bg: rgba(233, 199, 111, 0.13);
+    --node-editor-leaf-badge-color: #f1d98b;
+    --node-editor-edge-color: rgba(190, 220, 255, 0.72);
+    --node-editor-edge-selected-color: #fff1b8;
+    --node-editor-edge-glow-color: rgba(233, 199, 111, 0.36);
+    --node-editor-preview-border: rgba(205, 234, 255, 0.12);
+    --node-editor-preview-count-gradient: linear-gradient(135deg, #d8f4ff, #f3d37a 62%, #c5a3ff);
+    --node-editor-preview-label: #a2aec7;
+    --node-editor-preview-empty: #7e879d;
+    --node-editor-preview-section-label: #d7c489;
+    --node-editor-stats-grid-width: 264px;
+    --node-editor-stats-border: rgba(205, 234, 255, 0.13);
+    --node-editor-stats-bg:
+        linear-gradient(180deg, rgba(14, 19, 34, 0.86), rgba(7, 10, 20, 0.92));
+    --node-editor-stats-total-bg:
+        linear-gradient(180deg, rgba(23, 28, 45, 0.92), rgba(9, 13, 25, 0.96));
+    --node-editor-stats-total-border: rgba(233, 199, 111, 0.25);
+    --node-editor-stats-label: #8e9ab4;
+    --node-editor-circle-card-bg:
+        linear-gradient(180deg, rgba(11, 14, 27, 0.7), rgba(5, 7, 16, 0.86));
+    --node-editor-circle-card-border: rgba(205, 234, 255, 0.12);
+    --node-editor-circle-card-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+        0 14px 34px rgba(0, 0, 0, 0.26);
+    --node-editor-circle-label: #cbb978;
+    --node-editor-circle-fallback-color: #a9b0bd;
+    --node-editor-circle-core-start: #fff8d4;
+    --node-editor-circle-core-mid: #79e2ff;
+    --node-editor-circle-core-end: #050713;
     --node-editor-circle-bg:
-        radial-gradient(circle at center, rgba(75, 98, 126, 0.18) 0%, rgba(12, 13, 20, 0.94) 54%, #05060a 100%),
+        radial-gradient(circle at center, rgba(233, 199, 111, 0.13) 0%, rgba(92, 185, 204, 0.08) 26%, rgba(8, 11, 22, 0.94) 58%, #03050d 100%),
+        repeating-radial-gradient(circle at center, rgba(205, 234, 255, 0.08) 0 1px, transparent 1px 18px),
         #05060a;
-    --node-editor-circle-border: #20283a;
+    --node-editor-circle-border: rgba(233, 199, 111, 0.22);
     --node-editor-circle-shadow:
-        inset 0 0 34px rgba(97, 158, 197, 0.08),
-        0 0 28px rgba(0, 0, 0, 0.35);
-    --node-editor-circle-stroke: #d9eeff;
-    --node-editor-circle-core-glow: #dff7ff;
-    --node-editor-circle-core-dot: #fffaf0;
-    --node-editor-selected-node-border: #e2b4ff;
-    --node-editor-selected-node-bg: rgba(30, 18, 50, 0.97);
+        inset 0 0 44px rgba(110, 214, 209, 0.09),
+        inset 0 0 0 1px rgba(205, 234, 255, 0.05),
+        0 0 24px rgba(110, 214, 209, 0.12),
+        0 18px 42px rgba(0, 0, 0, 0.36);
+    --node-editor-circle-stroke: #eff8ff;
+    --node-editor-circle-core-glow: #e2fbff;
+    --node-editor-circle-core-dot: #fff4c4;
+    --node-editor-selected-node-border: #fff1b8;
+    --node-editor-selected-node-bg:
+        linear-gradient(180deg, rgba(32, 28, 48, 0.98), rgba(10, 15, 30, 0.99));
     --node-editor-selected-node-shadow:
-        0 0 0 2px #9b59b6,
-        0 0 0 4px rgba(155, 89, 182, 0.3),
-        0 0 28px rgba(191, 127, 255, 0.6);
+        0 0 0 1px rgba(255, 241, 184, 0.92),
+        0 0 0 4px rgba(233, 199, 111, 0.16),
+        0 0 30px rgba(110, 214, 209, 0.36),
+        0 18px 34px rgba(0, 0, 0, 0.34);
     
     /* Custom Paper Shadows */
     --paper-shadow: 
