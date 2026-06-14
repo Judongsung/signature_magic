@@ -24,6 +24,8 @@ const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
     finalEffects: [],
 };
 
+const SINGLE_PREDECESSOR_COUNT = 1;
+
 export function calculateMagic(
     nodes: MagicNode[],
     edges: Edge[],
@@ -92,21 +94,46 @@ function calculateCirclesWithMagicTypes(
     nodeStatEffects: readonly MagicStatEffectConfig[] = []
 ): CirclePath[] {
     const { topology, circleStartNodes, cycleCirclePaths } = analysis;
-    const cyclePathNodeIds = new Set(cycleCirclePaths.flatMap(path =>
-        path.nodes.map(node => node.id)
+    const cycleChains = cycleCirclePaths.map(path => expandCycleCircleChain(path, topology));
+    const cycleChainNodeIds = new Set(cycleChains.flatMap(chain =>
+        chain.map(node => node.id)
     ));
-    const cycleChains = cycleCirclePaths.map(path => path.nodes);
     const regularChains = circleStartNodes
         .flatMap(startNode => collectCircleChains(startNode, topology))
-        .filter(chain => !chain.some(node => cyclePathNodeIds.has(node.id)));
+        .filter(chain => !chain.some(node => cycleChainNodeIds.has(node.id)));
 
-    // cycle-closing edge가 만든 경로는 일반 분기/병합 start보다 먼저 하나의 서클로 확정한다.
+    // cycle-closing edge가 속한 단일 선행 흐름까지 같은 반복 포함 서클로 확정한다.
     return [...cycleChains, ...regularChains]
         .map((chain, index) => ({
             id: `${MAGIC_CIRCLE_ID_PREFIX}-${index}`,
             nodes: chain,
             stats: calculateMagicStats(chain, topology.edges, magicTypeMap, 'circle', nodeStatEffects),
         }));
+}
+
+function expandCycleCircleChain(
+    cyclePath: MagicGraphAnalysis['cycleCirclePaths'][number],
+    topology: GraphTopology
+): MagicGraphNode[] {
+    const chain = [...cyclePath.nodes];
+    const chainNodeIds = new Set(chain.map(node => node.id));
+
+    while (chain.length > 0) {
+        const firstNode = chain[0];
+        const predecessorEdges = topology.edges.filter(edge =>
+            edge.target === firstNode.id &&
+            edge.id !== cyclePath.closingEdge.id
+        );
+        if (predecessorEdges.length !== SINGLE_PREDECESSOR_COUNT) break;
+
+        const predecessor = topology.nodeMap.get(predecessorEdges[0].source);
+        if (!predecessor || chainNodeIds.has(predecessor.id)) break;
+
+        chain.unshift(predecessor);
+        chainNodeIds.add(predecessor.id);
+    }
+
+    return chain;
 }
 
 function collectCircleChains(

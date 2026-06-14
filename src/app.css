@@ -232,6 +232,8 @@
         0 0 0 4px rgba(233, 199, 111, 0.16),
         0 0 30px rgba(110, 214, 209, 0.36),
         0 18px 34px rgba(0, 0, 0, 0.34);
+    --node-editor-node-default-opacity: 0.82;
+    --node-editor-node-selected-opacity: 1;
     --node-editor-hovered-node-z-index: 1000;
     
     /* Custom Paper Shadows */
@@ -276,6 +278,7 @@ body {
     border-color: var(--node-editor-selected-node-border) !important;
     box-shadow: var(--node-editor-selected-node-shadow) !important;
     background: var(--node-editor-selected-node-bg) !important;
+    opacity: var(--node-editor-node-selected-opacity);
 }
 
 .svelte-flow__node:hover,
@@ -285,8 +288,10 @@ body {
 
 /* 선택 해제 시 부드럽게 복귀 */
 .svelte-flow__node .custom-node {
+    opacity: var(--node-editor-node-default-opacity);
     transition:
         border-color 0.18s ease,
         box-shadow 0.18s ease,
-        background 0.18s ease;
+        background 0.18s ease,
+        opacity 0.18s ease;
 }

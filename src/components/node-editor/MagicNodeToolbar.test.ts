@@ -14,6 +14,10 @@ const visibleMagicTypes: MagicTypeConfig[] = [
         color: '#e74c3c',
         category: 'basic',
         description: 'Starts a fire effect.',
+        stats: {
+            castingTime: 1,
+            instability: 2.5,
+        },
     },
 ];
 
@@ -36,6 +40,11 @@ describe('MagicNodeToolbar', () => {
         expect(html).toContain('* Ignition</span>');
         expect(html).toContain('magic-node-tooltip-ignition');
         expect(html).toContain('Starts a fire effect.');
+        expect(html).toContain('노드 스탯');
+        expect(html).toContain('시전 시간');
+        expect(html).toContain('1');
+        expect(html).toContain('불안정성');
+        expect(html).toContain('2.5');
     });
 
     it('renders a single preset dialog action without inline preset controls', () => {

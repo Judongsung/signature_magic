@@ -9,6 +9,7 @@
     } from '../../constants/uiText';
     import type { MagicType, MagicTypeConfig } from '../../types/magic';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
+    import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
 
     let {
         activeCategoryIds,
@@ -48,7 +49,7 @@
 
     <div class="toolbar-divider"></div>
 
-    {#each visibleMagicTypes as { type, label, icon, description }}
+    {#each visibleMagicTypes as { type, label, icon, description, stats }}
         <button
             class="drag-btn tooltip-host"
             type="button"
@@ -62,7 +63,9 @@
                 id={`magic-node-tooltip-${type}`}
                 {description}
                 placement="bottom"
-            />
+            >
+                <MagicNodeTooltipStats {stats} />
+            </DescriptionTooltip>
         </button>
     {/each}
     {#if visibleMagicTypes.length === 0}
