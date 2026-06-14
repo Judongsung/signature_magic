@@ -13,11 +13,12 @@ import cyoaDialogueScriptsData from '../../data/cyoaDialogueScripts.json';
 import cyoaRowsData from '../../data/cyoaRows.json';
 import magicGlyphsData from '../../data/magicGlyphs.json';
 import magicGlyphShapesData from '../../data/magicGlyphShapes.json';
+import magicGraphPresetsData from '../../data/magicGraphPresets.json';
 import magicStatRulesData from '../../data/magicStatRules.json';
 import magicTypesData from '../../data/magicTypes.json';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import type { CyoaDialogueScriptConfig } from '../../types/cyoa';
-import type { MagicStatRulesConfig, MagicTypeConfig } from '../../types/magic';
+import type { MagicGraphPresetConfig, MagicStatRulesConfig, MagicTypeConfig } from '../../types/magic';
 import type { MagicGlyphConfig } from '../graph/presentation/magicGlyphRegistry';
 import type { GlyphShape } from '../graph/presentation/magicGlyphShapes';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
@@ -27,6 +28,7 @@ import {
     validateCyoaRows,
     validateMagicGlyphShapes,
     validateMagicGlyphs,
+    validateMagicGraphPresets,
     validateMagicStatRuleConfigs,
     validateSystemMagicTypes,
     validateMagicTypes,
@@ -52,6 +54,13 @@ describe('dataValidation', () => {
     it('validates configured magic stat rule operations', () => {
         expect(validateMagicStatRuleConfigs(
             magicStatRulesData as MagicStatRulesConfig
+        )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('validates configured magic graph presets against magic type data', () => {
+        expect(validateMagicGraphPresets(
+            magicGraphPresetsData as MagicGraphPresetConfig[],
+            magicTypesData as MagicTypeConfig[]
         )).toEqual({ valid: true, errors: [] });
     });
 
@@ -132,6 +141,58 @@ describe('dataValidation', () => {
                 'Unknown magic connection rule key: ignition -> unknownRule',
                 'Invalid magic type stat: ignition -> power',
                 'Invalid magic stat branch aggregation: ignition -> castingTime -> fastest',
+            ],
+        });
+    });
+
+    it('reports invalid magic graph preset data', () => {
+        expect(validateMagicGraphPresets(
+            [
+                {
+                    id: 'bad-preset',
+                    label: '',
+                    systemNodePositions: [
+                        { id: 'system-mana-source', position: { x: 0, y: 0 } },
+                        { id: 'system-mana-source', position: { x: 1, y: 1 } },
+                        { id: 'missing-system-node', position: { x: Number.NaN, y: Number.NaN } },
+                    ],
+                    nodes: [
+                        { id: 'node-a', magicType: 'missing', position: { x: 0, y: 0 } },
+                        { id: 'node-a', magicType: '', position: { x: Number.NaN, y: 0 } },
+                        { id: 'system-mana-source', magicType: 'ignition', position: { x: 0, y: Number.NaN } },
+                    ],
+                    edges: [
+                        {
+                            id: 'edge-a',
+                            source: 'missing-source',
+                            target: 'node-a',
+                            sourceHandle: 'input-0',
+                            targetHandle: 'output-0',
+                        },
+                        { id: 'edge-a', source: 'node-a', target: 'missing-target' },
+                    ],
+                },
+            ] as MagicGraphPresetConfig[],
+            magicTypesData as MagicTypeConfig[]
+        )).toEqual({
+            valid: false,
+            errors: [
+                'Missing magic graph preset label: bad-preset',
+                'Duplicate magic graph preset system node id: bad-preset: system-mana-source',
+                'Unknown magic graph preset system node id: bad-preset -> missing-system-node',
+                'Invalid magic graph preset system node x: bad-preset -> missing-system-node',
+                'Invalid magic graph preset system node y: bad-preset -> missing-system-node',
+                'Duplicate magic graph preset node id: bad-preset: node-a',
+                'Invalid magic graph preset node type: bad-preset -> node-a',
+                'Invalid magic graph preset node x: bad-preset -> node-a',
+                'Reserved magic graph preset node id: bad-preset -> system-mana-source',
+                'Invalid magic graph preset node y: bad-preset -> system-mana-source',
+                'Duplicate magic graph preset edge id: bad-preset: edge-a',
+                'Invalid magic graph preset source handle: bad-preset -> edge-a -> input-0',
+                'Invalid magic graph preset target handle: bad-preset -> edge-a -> output-0',
+                'Unknown magic graph preset node type: bad-preset -> node-a -> missing',
+                'Unknown magic graph preset edge source: bad-preset -> edge-a -> missing-source',
+                'Unknown magic graph preset edge target: bad-preset -> edge-a -> missing-target',
             ],
         });
     });

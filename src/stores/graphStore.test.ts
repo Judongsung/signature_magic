@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { graphStore } from './graphStore.svelte';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
 import { isSystemMagicNode } from '../systems/graph/model/systemMagicNodes';
+import type { MagicGraphPresetConfig } from '../types/magic';
 
 const EMPTY_EFFECTS = {
     nodeEffects: [],
@@ -57,6 +58,30 @@ function systemNode(id: string) {
     return graphStore.nodes.find(node => node.id === id);
 }
 
+const preset = {
+    id: 'store-preset',
+    label: 'Store Preset',
+    nodes: [
+        { id: 'preset-ignition', magicType: 'ignition', position: { x: -40, y: -160 } },
+    ],
+    edges: [
+        {
+            id: 'preset-source-ignition',
+            source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
+            target: 'preset-ignition',
+            sourceHandle: 'output-0',
+            targetHandle: 'input-0',
+        },
+        {
+            id: 'preset-ignition-output',
+            source: 'preset-ignition',
+            target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
+            sourceHandle: 'output-0',
+            targetHandle: 'input-0',
+        },
+    ],
+} satisfies MagicGraphPresetConfig;
+
 describe('graphStore', () => {
     beforeEach(() => {
         resetGraphStore();
@@ -76,6 +101,30 @@ describe('graphStore', () => {
         expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
         expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
         expect(graphStore.edges).toHaveLength(0);
+    });
+
+    it('loads a preset by replacing the current graph and refreshing topology roles', () => {
+        graphStore.addNode('stream', { x: 0, y: 0 });
+
+        graphStore.loadPreset(preset);
+
+        expect(userNodes()).toHaveLength(1);
+        expect(userNodes()[0]).toMatchObject({
+            id: 'preset-ignition',
+            position: { x: -40, y: -160 },
+            data: {
+                magicType: 'ignition',
+                isRoot: false,
+                isLeaf: false,
+                inputHandleCount: 1,
+                outputHandleCount: 1,
+            },
+        });
+        expect(graphStore.edges.map(item => item.id)).toEqual([
+            'preset-source-ignition',
+            'preset-ignition-output',
+        ]);
+        expect(graphStore.totalStats.power).toBe(4);
     });
 
     it('adds nodes without calculating them until they are between source and output', () => {

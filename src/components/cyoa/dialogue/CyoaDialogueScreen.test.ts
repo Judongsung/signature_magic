@@ -4,6 +4,12 @@ import { CYOA_DIALOGUE_SCRIPT_IDS } from '../../../constants/gameConfigs';
 import { DIALOGUE_SCREEN_TEXT, NODE_INTRO_DIALOGUE_SCREEN_TEXT } from '../../../constants/uiText';
 import CyoaDialogueScreen from './CyoaDialogueScreen.svelte';
 
+function buttonTextPattern(label: string): RegExp {
+    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    return new RegExp(`<button[^>]*>\\s*${escapedLabel}\\s*<\\/button>`);
+}
+
 describe('CyoaDialogueScreen', () => {
     it('renders the NPC dialogue part without an internal continue action', () => {
         const { html } = render(CyoaDialogueScreen);
@@ -24,7 +30,7 @@ describe('CyoaDialogueScreen', () => {
         expect(html).toContain('마법에 대해');
         expect(html).toContain('이름이?');
         expect(html).toContain('luarn.webp');
-        expect(html).not.toContain(NODE_INTRO_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_COMPOSITION);
+        expect(html).not.toMatch(buttonTextPattern(NODE_INTRO_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_COMPOSITION));
     });
 
     it('renders the node composition result dialogue with graph result context', () => {

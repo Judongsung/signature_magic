@@ -91,11 +91,17 @@ function calculateCirclesWithMagicTypes(
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
     nodeStatEffects: readonly MagicStatEffectConfig[] = []
 ): CirclePath[] {
-    const { topology, circleStartNodes } = analysis;
-
-    // 분기와 병합은 기존 원을 끊고 새 원의 시작점이 되도록 별도 start node로 취급한다.
-    return circleStartNodes
+    const { topology, circleStartNodes, cycleCirclePaths } = analysis;
+    const cyclePathNodeIds = new Set(cycleCirclePaths.flatMap(path =>
+        path.nodes.map(node => node.id)
+    ));
+    const cycleChains = cycleCirclePaths.map(path => path.nodes);
+    const regularChains = circleStartNodes
         .flatMap(startNode => collectCircleChains(startNode, topology))
+        .filter(chain => !chain.some(node => cyclePathNodeIds.has(node.id)));
+
+    // cycle-closing edge가 만든 경로는 일반 분기/병합 start보다 먼저 하나의 서클로 확정한다.
+    return [...cycleChains, ...regularChains]
         .map((chain, index) => ({
             id: `${MAGIC_CIRCLE_ID_PREFIX}-${index}`,
             nodes: chain,

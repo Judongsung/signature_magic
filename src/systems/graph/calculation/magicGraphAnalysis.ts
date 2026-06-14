@@ -6,6 +6,10 @@ import {
     findNearestCommonReachableNode,
     reachableNodeIds,
 } from '../topology/graphTraversal';
+import {
+    resolveCycleCirclePaths,
+    type CycleCirclePath,
+} from '../model/graphCyclePolicy';
 
 export interface MagicGraphAnalysis {
     topology: GraphTopology;
@@ -14,6 +18,8 @@ export interface MagicGraphAnalysis {
     unrootedNodes: readonly MagicGraphNode[];
     mergeNodeId?: string;
     circleStartNodes: readonly MagicGraphNode[];
+    cycleClosingEdges: readonly Edge[];
+    cycleCirclePaths: readonly CycleCirclePath[];
 }
 
 export function buildMagicGraphAnalysis(
@@ -28,7 +34,13 @@ export function buildMagicGraphAnalysis(
     const mergeNodeId = rootIds.length > 1
         ? findNearestCommonReachableNode(topology, rootIds)
         : undefined;
-    const circleStartNodes = resolveCircleStartNodes(topology, rootReachableNodeIds, magicTypeMap);
+    const cycleCirclePaths = resolveCycleCirclePaths(topology.edges, topology.nodes, magicTypeMap);
+    const circleStartNodes = resolveCircleStartNodes(
+        topology,
+        rootReachableNodeIds,
+        magicTypeMap,
+        cycleCirclePaths
+    );
 
     return {
         topology,
@@ -37,29 +49,38 @@ export function buildMagicGraphAnalysis(
         unrootedNodes,
         mergeNodeId,
         circleStartNodes,
+        cycleClosingEdges: cycleCirclePaths.map(path => path.closingEdge),
+        cycleCirclePaths,
     };
 }
 
 function resolveCircleStartNodes(
     topology: GraphTopology,
     rootReachableNodeIds: ReadonlySet<string>,
-    magicTypeMap: ReadonlyMap<string, MagicTypeConfig>
+    magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
+    cycleCirclePaths: readonly CycleCirclePath[]
 ): MagicGraphNode[] {
+    const cyclePathNodeIds = new Set(cycleCirclePaths.flatMap(path =>
+        path.nodes.map(node => node.id)
+    ));
     const rootStartNodes = topology.rootIds
         .map(nodeId => topology.nodeMap.get(nodeId))
-        .filter((node): node is MagicGraphNode => Boolean(node));
+        .filter((node): node is MagicGraphNode => Boolean(node))
+        .filter(node => !cyclePathNodeIds.has(node.id));
     const branchStartNodes = topology.edges
         .filter(edge => (topology.outEdges.get(edge.source)?.length ?? 0) > 1)
         .map(edge => topology.nodeMap.get(edge.target))
-        .filter((node): node is MagicGraphNode => Boolean(node));
+        .filter((node): node is MagicGraphNode => Boolean(node))
+        .filter(node => !cyclePathNodeIds.has(node.id));
     const mergeStartNodes = topology.nodes.filter(node => {
         const degree = topology.inDegree.get(node.id) ?? 0;
-        return degree > 1;
+        return degree > 1 && !cyclePathNodeIds.has(node.id);
     });
     const cycleStartNodes = topology.nodes.filter(node =>
         magicTypeMap.get(node.data.magicType)
             ?.connectionRules?.[MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT] &&
-        !rootReachableNodeIds.has(node.id)
+        !rootReachableNodeIds.has(node.id) &&
+        !cyclePathNodeIds.has(node.id)
     );
 
     return dedupeNodes([

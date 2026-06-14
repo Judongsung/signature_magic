@@ -16,11 +16,22 @@ import {
     resolveNodeConnectionLimit,
     type MagicTypeLookup,
 } from './graphRules';
+import {
+    canNodeReceiveCycleInput,
+    isCycleClosingEdge,
+} from './graphCyclePolicy';
 import { computeNodeRoles } from '../calculation/magicCalculator';
 import type { MagicNode, MagicType } from '../../../types/magic';
 import { isSystemMagicNode } from './systemMagicNodes';
 
 export type IdFactory = () => string;
+
+interface NodeHandleState {
+    inputHandleCount: number;
+    outputHandleCount: number;
+    cycleInputHandleIndex?: number;
+    cycleInputHandleConnected?: boolean;
+}
 
 export function createUniqueId(): string {
     return crypto.randomUUID();
@@ -88,7 +99,7 @@ export function refreshNodeRoles(
     const updated = nodes.map(n => {
         const role = roles.get(n.id);
         if (!role) return n;
-        const handleCounts = resolveNodeHandleCounts(n, edges, magicTypes);
+        const handleCounts = resolveNodeHandleCounts(n, edges, magicTypes, nodes);
         const nodeRole = isSystemMagicNode(n)
             ? {
                 isRoot: n.id === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
@@ -99,7 +110,9 @@ export function refreshNodeRoles(
             n.data.isRoot === nodeRole.isRoot &&
             n.data.isLeaf === nodeRole.isLeaf &&
             n.data.inputHandleCount === handleCounts.inputHandleCount &&
-            n.data.outputHandleCount === handleCounts.outputHandleCount
+            n.data.outputHandleCount === handleCounts.outputHandleCount &&
+            n.data.cycleInputHandleIndex === handleCounts.cycleInputHandleIndex &&
+            n.data.cycleInputHandleConnected === handleCounts.cycleInputHandleConnected
         ) return n;
         changed = true;
         return { ...n, data: { ...n.data, ...nodeRole, ...handleCounts } };
@@ -108,18 +121,73 @@ export function refreshNodeRoles(
     return { nodes: updated, changed };
 }
 
-function nextVisibleHandleCount(usedCount: number, limit: number | null): number {
+function nextVisibleHandleCount(
+    usedCount: number,
+    limit: number | null,
+    hasExtraVisibleHandle = false
+): number {
     // 사용된 핸들 뒤에 빈 핸들 하나를 더 보여 주되, 명시된 연결 제한은 넘지 않는다.
     if (limit === 0) return 0;
-    if (limit === null) return usedCount + 1;
-    return Math.max(1, Math.min(limit, usedCount + 1));
+    const limitedCount = limit === null
+        ? usedCount + 1
+        : Math.min(limit + (hasExtraVisibleHandle ? 1 : 0), usedCount + 1);
+
+    return Math.max(MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT, usedCount, limitedCount);
+}
+
+function findCycleInputEdge(
+    nodeId: string,
+    edges: Edge[],
+    nodes: MagicNode[],
+    magicTypes: MagicTypeLookup
+): Edge | undefined {
+    return edges.find(edge =>
+        edge.target === nodeId &&
+        isCycleClosingEdge(edge, edges, nodes, magicTypes)
+    );
+}
+
+function resolveCycleInputHandleState(
+    node: MagicNode,
+    edges: Edge[],
+    nodes: MagicNode[],
+    magicTypes: MagicTypeLookup,
+    maxInputs: number | null,
+    usedInputCount: number
+): Pick<NodeHandleState, 'cycleInputHandleIndex' | 'cycleInputHandleConnected'> {
+    const cycleInputEdge = findCycleInputEdge(node.id, edges, nodes, magicTypes);
+    if (cycleInputEdge) {
+        return {
+            cycleInputHandleIndex: readHandleIndex(cycleInputEdge.targetHandle, DEFAULT_INPUT_HANDLE_ID),
+            cycleInputHandleConnected: true,
+        };
+    }
+
+    if (maxInputs === null || maxInputs === 0 || usedInputCount !== maxInputs) {
+        return {
+            cycleInputHandleIndex: undefined,
+            cycleInputHandleConnected: undefined,
+        };
+    }
+    if (canNodeReceiveCycleInput(node.id, edges, nodes, magicTypes)) {
+        return {
+            cycleInputHandleIndex: maxInputs,
+            cycleInputHandleConnected: false,
+        };
+    }
+
+    return {
+        cycleInputHandleIndex: undefined,
+        cycleInputHandleConnected: undefined,
+    };
 }
 
 export function resolveNodeHandleCounts(
     node: MagicNode,
     edges: Edge[],
-    magicTypes: MagicTypeLookup
-): { inputHandleCount: number; outputHandleCount: number } {
+    magicTypes: MagicTypeLookup,
+    nodes: MagicNode[] = [node]
+): NodeHandleState {
     const maxInputs = resolveNodeConnectionLimit(node, magicTypes, 'inputs');
     const maxOutputs = resolveNodeConnectionLimit(node, magicTypes, 'outputs');
     const usedInputs = new Set(edges
@@ -128,10 +196,20 @@ export function resolveNodeHandleCounts(
     const usedOutputs = new Set(edges
         .filter(edge => edge.source === node.id)
         .map(edge => edge.sourceHandle ?? DEFAULT_OUTPUT_HANDLE_ID));
+    const cycleInputHandleState = resolveCycleInputHandleState(
+        node,
+        edges,
+        nodes,
+        magicTypes,
+        maxInputs,
+        usedInputs.size
+    );
+    const hasExtraCycleInputHandle = cycleInputHandleState.cycleInputHandleIndex !== undefined;
 
     return {
-        inputHandleCount: nextVisibleHandleCount(usedInputs.size, maxInputs),
+        inputHandleCount: nextVisibleHandleCount(usedInputs.size, maxInputs, hasExtraCycleInputHandle),
         outputHandleCount: nextVisibleHandleCount(usedOutputs.size, maxOutputs),
+        ...cycleInputHandleState,
     };
 }
 

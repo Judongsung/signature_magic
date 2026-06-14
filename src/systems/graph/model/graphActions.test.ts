@@ -6,6 +6,7 @@ import {
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
 import {
     createEdge,
     createEdgeUpdate,
@@ -27,6 +28,15 @@ const magicTypes = [
         category: 'extension',
         description: 'split',
         connectionLimits: { maxInputs: 1, maxOutputs: null },
+    },
+    {
+        type: 'repeat',
+        label: 'Repeat',
+        icon: '',
+        color: '#fff',
+        category: 'control',
+        description: 'repeat',
+        connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
     },
 ] as MagicTypeConfig[];
 
@@ -159,5 +169,97 @@ describe('graphActions', () => {
             ],
             magicTypes
         )).toMatchObject({ outputHandleCount: 3 });
+    });
+
+    it('adds one visible input handle for full nodes that can receive a cycle input', () => {
+        const source = node('source');
+        const target = node('target');
+        const middle = node('middle');
+        const repeat = node('repeat', 'repeat');
+        const nodes = [source, target, middle, repeat];
+
+        expect(resolveNodeHandleCounts(
+            target,
+            [
+                edge('source', 'target'),
+                edge('target', 'middle'),
+                edge('middle', 'repeat'),
+            ],
+            magicTypes,
+            nodes
+        )).toMatchObject({
+            inputHandleCount: 2,
+            cycleInputHandleIndex: 1,
+            cycleInputHandleConnected: false,
+        });
+    });
+
+    it('does not add a cycle input handle when no downstream repeat output can close a cycle', () => {
+        const source = node('source');
+        const target = node('target');
+        const middle = node('middle');
+        const nodes = [source, target, middle];
+
+        expect(resolveNodeHandleCounts(
+            target,
+            [
+                edge('source', 'target'),
+                edge('target', 'middle'),
+            ],
+            magicTypes,
+            nodes
+        )).toMatchObject({ inputHandleCount: 1 });
+    });
+
+    it('keeps the connected cycle input handle visible and disabled after a cycle edge is added', () => {
+        const source = node('source');
+        const target = node('target');
+        const middle = node('middle');
+        const repeat = node('repeat', 'repeat');
+        const nodes = [source, target, middle, repeat];
+
+        expect(resolveNodeHandleCounts(
+            target,
+            [
+                edge('source', 'target'),
+                edge('target', 'middle'),
+                edge('middle', 'repeat'),
+                { ...edge('repeat', 'target'), targetHandle: 'input-1' },
+            ],
+            magicTypes,
+            nodes
+        )).toMatchObject({
+            inputHandleCount: 2,
+            cycleInputHandleIndex: 1,
+            cycleInputHandleConnected: true,
+        });
+    });
+
+    it('hides other cycle input handles after a cycle edge is added', () => {
+        const sourceA = node('source-a');
+        const sourceB = node('source-b');
+        const targetA = node('target-a');
+        const targetB = node('target-b');
+        const middle = node('middle');
+        const repeat = node('repeat', 'repeat');
+        const nodes = [sourceA, sourceB, targetA, targetB, middle, repeat];
+
+        expect(resolveNodeHandleCounts(
+            targetB,
+            [
+                edge('source-a', 'target-a'),
+                edge('source-b', 'target-b'),
+                edge('target-a', 'middle'),
+                { ...edge('target-b', 'middle'), targetHandle: 'input-1' },
+                edge('middle', 'repeat'),
+                { ...edge('repeat', 'target-a'), targetHandle: 'input-1' },
+            ],
+            magicTypes,
+            nodes
+        )).toMatchObject({
+            inputHandleCount: 1,
+            cycleInputHandleIndex: undefined,
+            cycleInputHandleConnected: undefined,
+        });
     });
 });

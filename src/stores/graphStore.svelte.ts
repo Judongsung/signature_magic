@@ -10,9 +10,15 @@ import { calculateMagic } from '../systems/graph/calculation/magicCalculator';
 import { isConnectionValid } from '../systems/graph/model/graphRules';
 import { magicTypeMap, magicTypes } from '../systems/graph/registry/magicTypeRegistry';
 import { createInitialSystemNodes } from '../systems/graph/model/systemMagicNodes';
+import {
+    createMagicGraphFromPreset,
+    createMagicGraphPresetSnapshot,
+    hasUserMagicGraphContent,
+} from '../systems/graph/presets/magicGraphPresets';
 import type {
     CirclePath,
     MagicCalculationResult,
+    MagicGraphPresetConfig,
     MagicNode,
     MagicStatEffectBundle,
     MagicStats,
@@ -35,6 +41,7 @@ class GraphStore {
     );
     readonly circles: CirclePath[] = $derived(this.calculation.circles);
     readonly totalStats: MagicStats = $derived(this.calculation.totalStats);
+    readonly hasUserContent: boolean = $derived(hasUserMagicGraphContent(this.nodes));
 
     setExternalStatEffects(statEffects: MagicStatEffectBundle): void {
         this.externalStatEffects = statEffects;
@@ -78,6 +85,18 @@ class GraphStore {
     clear(): void {
         this.nodes = createInitialSystemNodes();
         this.edges = [];
+    }
+
+    loadPreset(preset: MagicGraphPresetConfig): void {
+        const next = createMagicGraphFromPreset(preset);
+
+        this.nodes = next.nodes;
+        this.edges = next.edges;
+        this.syncTopology();
+    }
+
+    createPresetSnapshot(label: string): MagicGraphPresetConfig | false {
+        return createMagicGraphPresetSnapshot(label, this.snapshot());
     }
 
     private syncTopology(): void {

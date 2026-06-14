@@ -1,16 +1,22 @@
-﻿import type { Connection, Edge } from '@xyflow/svelte';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
+import type { Connection, Edge } from '@xyflow/svelte';
 import { MAGIC_NODE_HANDLE_CONFIG } from '../../../constants/graphConfigs';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 import { buildOutEdgeMap } from '../topology/graphTopology';
 import { canReach } from '../topology/graphTraversal';
+import {
+    canNodeReceiveCycleInput,
+    hasCycleClosingEdgeFromSource,
+    hasOtherCycleClosingEdgeFromSource,
+    isCycleClosingEdge,
+    type MagicTypeLookup,
+} from './graphCyclePolicy';
 import { isProtectedSystemConnection } from './systemMagicNodes';
 
 export const DEFAULT_INPUT_HANDLE_ID = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID;
 export const DEFAULT_OUTPUT_HANDLE_ID = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID;
 
 type Direction = 'inputs' | 'outputs';
-export type MagicTypeLookup = readonly MagicTypeConfig[] | ReadonlyMap<string, MagicTypeConfig>;
+export type { MagicTypeLookup } from './graphCyclePolicy';
 
 function findNode(nodes: MagicNode[], nodeId: string): MagicNode | undefined {
     return nodes.find(node => node.id === nodeId);
@@ -131,20 +137,37 @@ export function isDuplicateConnection(connection: Connection, edges: Edge[]): bo
     return edges.some(e => e.source === source && e.target === target);
 }
 
-function allowsCycleFromOutput(
-    sourceId: string,
-    nodes: MagicNode[],
-    magicTypes: MagicTypeLookup
-): boolean {
-    // allowCycleFromOutput은 출력에서 닫히는 순환만 허용하는 데이터 기반 예외 규칙이다.
-    return findMagicTypeConfig(sourceId, nodes, magicTypes)
-        ?.connectionRules?.[MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT] === true;
-}
-
 export function hasCycleDFS(connection: Connection, edges: Edge[]): boolean {
     const { source, target } = connection;
     if (!source || !target) return true;
     return canReach({ outEdges: buildOutEdgeMap(edges) }, target, source);
+}
+
+export function isAllowedCycleConnection(
+    connection: Connection,
+    edges: Edge[],
+    nodes: MagicNode[],
+    magicTypes: MagicTypeLookup
+): boolean {
+    return isCycleClosingEdge(connection, edges, nodes, magicTypes);
+}
+
+export function hasAllowedCycleConnectionFromSource(
+    sourceId: string,
+    edges: Edge[],
+    nodes: MagicNode[],
+    magicTypes: MagicTypeLookup
+): boolean {
+    return hasCycleClosingEdgeFromSource(sourceId, edges, nodes, magicTypes);
+}
+
+export function hasOtherAllowedCycleConnectionFromSource(
+    connection: Connection,
+    edges: Edge[],
+    nodes: MagicNode[],
+    magicTypes: MagicTypeLookup
+): boolean {
+    return hasOtherCycleClosingEdgeFromSource(connection, edges, nodes, magicTypes);
 }
 
 export function isConnectionValid(
@@ -160,10 +183,14 @@ export function isConnectionValid(
     if (isProtectedSystemConnection(connection)) return false;
 
     const validationEdges = filterEdgesReplacedByConnection(connection, edges);
+    const allowedCycleConnection = isAllowedCycleConnection(connection, validationEdges, nodes, magicTypes);
     if (isDuplicateConnection(connection, validationEdges)) return false;
     if (isOutputLimitReached(source, validationEdges, nodes, magicTypes)) return false;
-    if (isInputLimitReached(target, validationEdges, nodes, magicTypes)) return false;
-    if (!allowsCycleFromOutput(source, nodes, magicTypes) && hasCycleDFS(connection, validationEdges)) return false;
+    if (allowedCycleConnection && hasOtherCycleClosingEdgeFromSource(connection, edges, nodes, magicTypes)) return false;
+    if (!allowedCycleConnection && isInputLimitReached(target, validationEdges, nodes, magicTypes)) return false;
+    if (!allowedCycleConnection && hasCycleDFS(connection, validationEdges)) return false;
 
     return true;
 }
+
+export { canNodeReceiveCycleInput };

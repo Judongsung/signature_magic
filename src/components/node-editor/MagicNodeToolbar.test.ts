@@ -24,6 +24,7 @@ const props = {
     onAddNode: () => {},
     onDragStart: () => {},
     onClear: () => {},
+    onOpenPresetDialog: () => {},
 };
 
 describe('MagicNodeToolbar', () => {
@@ -37,6 +38,16 @@ describe('MagicNodeToolbar', () => {
         expect(html).toContain('Starts a fire effect.');
     });
 
+    it('renders a single preset dialog action without inline preset controls', () => {
+        const { html } = render(MagicNodeToolbar, { props });
+
+        expect(html).toContain(`>${'프리셋'}</button>`);
+        expect(html).not.toContain('<select');
+        expect(html).not.toContain('기본 프리셋');
+        expect(html).not.toContain('내 프리셋');
+        expect(html).not.toContain('현재 조합 저장');
+    });
+
     it('renders an empty category state when no magic types are visible', () => {
         const { html } = render(MagicNodeToolbar, {
             props: {
@@ -47,6 +58,7 @@ describe('MagicNodeToolbar', () => {
 
         expect(html).toContain('toolbar-empty');
         expect(html).not.toContain('drag-btn tooltip-host');
+        expect(html).toContain(`>${'프리셋'}</button>`);
     });
 
     it('does not expose fixed system node types in category palettes', () => {

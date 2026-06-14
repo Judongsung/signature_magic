@@ -116,6 +116,8 @@ export interface MagicNodeData extends Record<string, unknown> {
     isLeaf?: boolean;
     inputHandleCount?: number;
     outputHandleCount?: number;
+    cycleInputHandleIndex?: number;
+    cycleInputHandleConnected?: boolean;
 }
 
 export interface MagicGraphNode {
@@ -127,6 +129,33 @@ export interface MagicGraphNode {
 }
 
 export type MagicNode = Node<MagicNodeData> & MagicGraphNode;
+
+export interface MagicGraphPresetNodeConfig {
+    id: string;
+    magicType: MagicType;
+    position: { x: number; y: number };
+}
+
+export interface MagicGraphPresetSystemNodePositionConfig {
+    id: string;
+    position: { x: number; y: number };
+}
+
+export interface MagicGraphPresetEdgeConfig {
+    id: string;
+    source: string;
+    target: string;
+    sourceHandle?: string;
+    targetHandle?: string;
+}
+
+export interface MagicGraphPresetConfig {
+    id: string;
+    label: string;
+    systemNodePositions?: MagicGraphPresetSystemNodePositionConfig[];
+    nodes: MagicGraphPresetNodeConfig[];
+    edges: MagicGraphPresetEdgeConfig[];
+}
 
 export interface CirclePath {
     id: string;

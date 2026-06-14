@@ -101,6 +101,90 @@ describe('graphRules', () => {
         expect(isConnectionValid(connection('repeat', 'a'), edges, nodes, magicTypes)).toBe(true);
     });
 
+    it('allows an output-cycle source to add a cycle input to a full target', () => {
+        const edges = [
+            edge('source', 'target', 'output-0', 'input-0'),
+            edge('target', 'middle'),
+            edge('middle', 'repeat'),
+        ];
+        const nodes = [
+            node('source'),
+            node('target'),
+            node('middle'),
+            node('repeat', 'repeat'),
+        ];
+        const cycleConnection = connection('repeat', 'target', 'output-0', 'input-1');
+
+        expect(isInputLimitReached('target', edges, nodes, magicTypes)).toBe(true);
+        expect(hasCycleDFS(cycleConnection, edges)).toBe(true);
+        expect(isConnectionValid(cycleConnection, edges, nodes, magicTypes)).toBe(true);
+    });
+
+    it('rejects a cycle input from a source without the output-cycle rule', () => {
+        const edges = [
+            edge('source', 'target', 'output-0', 'input-0'),
+            edge('target', 'middle'),
+            edge('middle', 'ordinary'),
+        ];
+        const nodes = [
+            node('source'),
+            node('target'),
+            node('middle'),
+            node('ordinary'),
+        ];
+        const cycleConnection = connection('ordinary', 'target', 'output-0', 'input-1');
+
+        expect(hasCycleDFS(cycleConnection, edges)).toBe(true);
+        expect(isConnectionValid(cycleConnection, edges, nodes, magicTypes)).toBe(false);
+    });
+
+    it('rejects a non-cyclic repeat connection when the target input is full', () => {
+        const edges = [edge('source', 'target', 'output-0', 'input-0')];
+        const nodes = [node('source'), node('target'), node('repeat', 'repeat')];
+        const nonCycleConnection = connection('repeat', 'target', 'output-0', 'input-1');
+
+        expect(hasCycleDFS(nonCycleConnection, edges)).toBe(false);
+        expect(isConnectionValid(nonCycleConnection, edges, nodes, magicTypes)).toBe(false);
+    });
+
+    it('rejects moving an already formed output cycle to another cycle input target', () => {
+        const edges = [
+            edge('source-a', 'target-a', 'output-0', 'input-0'),
+            edge('source-b', 'target-b', 'output-0', 'input-0'),
+            edge('target-a', 'middle'),
+            edge('target-b', 'middle', 'output-0', 'input-1'),
+            edge('middle', 'repeat'),
+            edge('repeat', 'target-a', 'output-0', 'input-1'),
+        ];
+        const nodes = [
+            node('source-a'),
+            node('source-b'),
+            node('target-a'),
+            node('target-b'),
+            node('middle', 'merge'),
+            node('repeat', 'repeat'),
+        ];
+        const otherCycleConnection = connection('repeat', 'target-b', 'output-0', 'input-1');
+
+        expect(hasCycleDFS(otherCycleConnection, edges)).toBe(true);
+        expect(isConnectionValid(otherCycleConnection, edges, nodes, magicTypes)).toBe(false);
+    });
+
+    it('still rejects duplicate cycle pairs when the source allows output cycles', () => {
+        const edges = [
+            edge('target', 'repeat'),
+            edge('repeat', 'target', 'output-0', 'input-1'),
+        ];
+        const nodes = [node('target'), node('repeat', 'repeat')];
+
+        expect(isConnectionValid(
+            connection('repeat', 'target', 'output-1', 'input-2'),
+            edges,
+            nodes,
+            magicTypes
+        )).toBe(false);
+    });
+
     it('still rejects self-connections when the source node allows output cycles', () => {
         const nodes = [node('repeat', 'repeat')];
 

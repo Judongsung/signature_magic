@@ -13,6 +13,7 @@ export {
 export {
     validateMagicGlyphShapes,
     validateMagicGlyphs,
+    validateMagicGraphPresets,
     validateMagicStatRuleConfigs,
     validateSystemMagicTypes,
     validateMagicTypes,

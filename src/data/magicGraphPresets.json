@@ -1,0 +1,485 @@
+[
+    {
+        "id": "fire-bolt",
+        "label": "화염 화살",
+        "systemNodePositions": [
+            { "id": "system-mana-source", "position": { "x": -40, "y": -40 } },
+            { "id": "system-final-output", "position": { "x": -40, "y": -390 } }
+        ],
+        "nodes": [
+            { "id": "fire-bolt-ignition", "magicType": "ignition", "position": { "x": -40, "y": -160 } },
+            { "id": "fire-bolt-emit", "magicType": "emit", "position": { "x": -40, "y": -280 } }
+        ],
+        "edges": [
+            {
+                "id": "fire-bolt-source-ignition",
+                "source": "system-mana-source",
+                "target": "fire-bolt-ignition",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "fire-bolt-ignition-emit",
+                "source": "fire-bolt-ignition",
+                "target": "fire-bolt-emit",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "fire-bolt-emit-output",
+                "source": "fire-bolt-emit",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            }
+        ]
+    },
+    {
+        "id": "cooling-field",
+        "label": "냉각 장막",
+        "systemNodePositions": [
+            { "id": "system-mana-source", "position": { "x": -40, "y": -40 } },
+            { "id": "system-final-output", "position": { "x": -40, "y": -430 } }
+        ],
+        "nodes": [
+            { "id": "cooling-field-cooling", "magicType": "cooling", "position": { "x": -40, "y": -130 } },
+            { "id": "cooling-field-diffuse", "magicType": "diffuse", "position": { "x": -40, "y": -230 } },
+            { "id": "cooling-field-sustain", "magicType": "sustain", "position": { "x": -40, "y": -320 } }
+        ],
+        "edges": [
+            {
+                "id": "cooling-field-source-cooling",
+                "source": "system-mana-source",
+                "target": "cooling-field-cooling",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "cooling-field-cooling-diffuse",
+                "source": "cooling-field-cooling",
+                "target": "cooling-field-diffuse",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "cooling-field-diffuse-sustain",
+                "source": "cooling-field-diffuse",
+                "target": "cooling-field-sustain",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "cooling-field-sustain-output",
+                "source": "cooling-field-sustain",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            }
+        ]
+    },
+    {
+        "id": "branch-detection",
+        "label": "분기 감지",
+        "systemNodePositions": [
+            { "id": "system-mana-source", "position": { "x": -40, "y": -40 } },
+            { "id": "system-final-output", "position": { "x": -40, "y": -440 } }
+        ],
+        "nodes": [
+            { "id": "branch-detection-detect", "magicType": "detect", "position": { "x": -40, "y": -120 } },
+            { "id": "branch-detection-branch", "magicType": "branch", "position": { "x": -40, "y": -220 } },
+            { "id": "branch-detection-air", "magicType": "air", "position": { "x": -170, "y": -320 } },
+            { "id": "branch-detection-stream", "magicType": "stream", "position": { "x": 90, "y": -320 } }
+        ],
+        "edges": [
+            {
+                "id": "branch-detection-source-detect",
+                "source": "system-mana-source",
+                "target": "branch-detection-detect",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "branch-detection-detect-branch",
+                "source": "branch-detection-detect",
+                "target": "branch-detection-branch",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "branch-detection-branch-air",
+                "source": "branch-detection-branch",
+                "target": "branch-detection-air",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "branch-detection-branch-stream",
+                "source": "branch-detection-branch",
+                "target": "branch-detection-stream",
+                "sourceHandle": "output-1",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "branch-detection-air-output",
+                "source": "branch-detection-air",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "branch-detection-stream-output",
+                "source": "branch-detection-stream",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-1"
+            }
+        ]
+    },
+    {
+        "id": "tri-element-barrage",
+        "label": "삼원 포격",
+        "systemNodePositions": [
+            { "id": "system-mana-source", "position": { "x": -40, "y": -20 } },
+            { "id": "system-final-output", "position": { "x": -40, "y": -650 } }
+        ],
+        "nodes": [
+            { "id": "tri-element-barrage-coordinate", "magicType": "coordinate", "position": { "x": -40, "y": -110 } },
+            { "id": "tri-element-barrage-split", "magicType": "split", "position": { "x": -40, "y": -210 } },
+            { "id": "tri-element-barrage-ignition", "magicType": "ignition", "position": { "x": -280, "y": -320 } },
+            { "id": "tri-element-barrage-amplify", "magicType": "amplify", "position": { "x": -280, "y": -420 } },
+            { "id": "tri-element-barrage-fire-emit", "magicType": "emit", "position": { "x": -280, "y": -520 } },
+            { "id": "tri-element-barrage-cooling", "magicType": "cooling", "position": { "x": -40, "y": -320 } },
+            { "id": "tri-element-barrage-diffuse", "magicType": "diffuse", "position": { "x": -40, "y": -420 } },
+            { "id": "tri-element-barrage-force", "magicType": "force", "position": { "x": 200, "y": -320 } },
+            { "id": "tri-element-barrage-compress", "magicType": "compress", "position": { "x": 200, "y": -420 } },
+            { "id": "tri-element-barrage-force-emit", "magicType": "emit", "position": { "x": 200, "y": -520 } }
+        ],
+        "edges": [
+            {
+                "id": "tri-element-barrage-source-coordinate",
+                "source": "system-mana-source",
+                "target": "tri-element-barrage-coordinate",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-coordinate-split",
+                "source": "tri-element-barrage-coordinate",
+                "target": "tri-element-barrage-split",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-split-ignition",
+                "source": "tri-element-barrage-split",
+                "target": "tri-element-barrage-ignition",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-ignition-amplify",
+                "source": "tri-element-barrage-ignition",
+                "target": "tri-element-barrage-amplify",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-amplify-fire-emit",
+                "source": "tri-element-barrage-amplify",
+                "target": "tri-element-barrage-fire-emit",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-fire-emit-output",
+                "source": "tri-element-barrage-fire-emit",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-split-cooling",
+                "source": "tri-element-barrage-split",
+                "target": "tri-element-barrage-cooling",
+                "sourceHandle": "output-1",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-cooling-diffuse",
+                "source": "tri-element-barrage-cooling",
+                "target": "tri-element-barrage-diffuse",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-diffuse-output",
+                "source": "tri-element-barrage-diffuse",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-1"
+            },
+            {
+                "id": "tri-element-barrage-split-force",
+                "source": "tri-element-barrage-split",
+                "target": "tri-element-barrage-force",
+                "sourceHandle": "output-2",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-force-compress",
+                "source": "tri-element-barrage-force",
+                "target": "tri-element-barrage-compress",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-compress-force-emit",
+                "source": "tri-element-barrage-compress",
+                "target": "tri-element-barrage-force-emit",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "tri-element-barrage-force-emit-output",
+                "source": "tri-element-barrage-force-emit",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-2"
+            }
+        ]
+    },
+    {
+        "id": "warded-pulse-array",
+        "label": "보호 맥동진",
+        "systemNodePositions": [
+            { "id": "system-mana-source", "position": { "x": -40, "y": -20 } },
+            { "id": "system-final-output", "position": { "x": -40, "y": -760 } }
+        ],
+        "nodes": [
+            { "id": "warded-pulse-array-stabilize", "magicType": "stabilize", "position": { "x": -40, "y": -110 } },
+            { "id": "warded-pulse-array-split", "magicType": "split", "position": { "x": -40, "y": -210 } },
+            { "id": "warded-pulse-array-cooling", "magicType": "cooling", "position": { "x": -260, "y": -320 } },
+            { "id": "warded-pulse-array-sustain-a", "magicType": "sustain", "position": { "x": -260, "y": -420 } },
+            { "id": "warded-pulse-array-metal", "magicType": "metal", "position": { "x": -40, "y": -320 } },
+            { "id": "warded-pulse-array-shape", "magicType": "shape", "position": { "x": -40, "y": -420 } },
+            { "id": "warded-pulse-array-air", "magicType": "air", "position": { "x": 180, "y": -320 } },
+            { "id": "warded-pulse-array-disperse", "magicType": "disperse", "position": { "x": 180, "y": -420 } },
+            { "id": "warded-pulse-array-merge", "magicType": "merge", "position": { "x": -40, "y": -540 } },
+            { "id": "warded-pulse-array-sustain-b", "magicType": "sustain", "position": { "x": -40, "y": -640 } }
+        ],
+        "edges": [
+            {
+                "id": "warded-pulse-array-source-stabilize",
+                "source": "system-mana-source",
+                "target": "warded-pulse-array-stabilize",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-stabilize-split",
+                "source": "warded-pulse-array-stabilize",
+                "target": "warded-pulse-array-split",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-split-cooling",
+                "source": "warded-pulse-array-split",
+                "target": "warded-pulse-array-cooling",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-cooling-sustain-a",
+                "source": "warded-pulse-array-cooling",
+                "target": "warded-pulse-array-sustain-a",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-sustain-a-merge",
+                "source": "warded-pulse-array-sustain-a",
+                "target": "warded-pulse-array-merge",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-split-metal",
+                "source": "warded-pulse-array-split",
+                "target": "warded-pulse-array-metal",
+                "sourceHandle": "output-1",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-metal-shape",
+                "source": "warded-pulse-array-metal",
+                "target": "warded-pulse-array-shape",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-shape-merge",
+                "source": "warded-pulse-array-shape",
+                "target": "warded-pulse-array-merge",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-1"
+            },
+            {
+                "id": "warded-pulse-array-split-air",
+                "source": "warded-pulse-array-split",
+                "target": "warded-pulse-array-air",
+                "sourceHandle": "output-2",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-air-disperse",
+                "source": "warded-pulse-array-air",
+                "target": "warded-pulse-array-disperse",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-disperse-merge",
+                "source": "warded-pulse-array-disperse",
+                "target": "warded-pulse-array-merge",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-2"
+            },
+            {
+                "id": "warded-pulse-array-merge-sustain-b",
+                "source": "warded-pulse-array-merge",
+                "target": "warded-pulse-array-sustain-b",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "warded-pulse-array-sustain-b-output",
+                "source": "warded-pulse-array-sustain-b",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            }
+        ]
+    },
+    {
+        "id": "seeking-storm-net",
+        "label": "추적 폭풍망",
+        "systemNodePositions": [
+            { "id": "system-mana-source", "position": { "x": -40, "y": -20 } },
+            { "id": "system-final-output", "position": { "x": -40, "y": -650 } }
+        ],
+        "nodes": [
+            { "id": "seeking-storm-net-detect", "magicType": "detect", "position": { "x": -40, "y": -110 } },
+            { "id": "seeking-storm-net-branch", "magicType": "branch", "position": { "x": -40, "y": -210 } },
+            { "id": "seeking-storm-net-coordinate", "magicType": "coordinate", "position": { "x": -280, "y": -320 } },
+            { "id": "seeking-storm-net-air", "magicType": "air", "position": { "x": -280, "y": -420 } },
+            { "id": "seeking-storm-net-air-emit", "magicType": "emit", "position": { "x": -280, "y": -520 } },
+            { "id": "seeking-storm-net-stream", "magicType": "stream", "position": { "x": -40, "y": -320 } },
+            { "id": "seeking-storm-net-diffuse", "magicType": "diffuse", "position": { "x": -40, "y": -420 } },
+            { "id": "seeking-storm-net-sustain", "magicType": "sustain", "position": { "x": -40, "y": -520 } },
+            { "id": "seeking-storm-net-metal", "magicType": "metal", "position": { "x": 200, "y": -320 } },
+            { "id": "seeking-storm-net-force", "magicType": "force", "position": { "x": 200, "y": -420 } },
+            { "id": "seeking-storm-net-metal-emit", "magicType": "emit", "position": { "x": 200, "y": -520 } }
+        ],
+        "edges": [
+            {
+                "id": "seeking-storm-net-source-detect",
+                "source": "system-mana-source",
+                "target": "seeking-storm-net-detect",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-detect-branch",
+                "source": "seeking-storm-net-detect",
+                "target": "seeking-storm-net-branch",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-branch-coordinate",
+                "source": "seeking-storm-net-branch",
+                "target": "seeking-storm-net-coordinate",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-coordinate-air",
+                "source": "seeking-storm-net-coordinate",
+                "target": "seeking-storm-net-air",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-air-air-emit",
+                "source": "seeking-storm-net-air",
+                "target": "seeking-storm-net-air-emit",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-air-emit-output",
+                "source": "seeking-storm-net-air-emit",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-branch-stream",
+                "source": "seeking-storm-net-branch",
+                "target": "seeking-storm-net-stream",
+                "sourceHandle": "output-1",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-stream-diffuse",
+                "source": "seeking-storm-net-stream",
+                "target": "seeking-storm-net-diffuse",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-diffuse-sustain",
+                "source": "seeking-storm-net-diffuse",
+                "target": "seeking-storm-net-sustain",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-sustain-output",
+                "source": "seeking-storm-net-sustain",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-1"
+            },
+            {
+                "id": "seeking-storm-net-branch-metal",
+                "source": "seeking-storm-net-branch",
+                "target": "seeking-storm-net-metal",
+                "sourceHandle": "output-2",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-metal-force",
+                "source": "seeking-storm-net-metal",
+                "target": "seeking-storm-net-force",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-force-metal-emit",
+                "source": "seeking-storm-net-force",
+                "target": "seeking-storm-net-metal-emit",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-0"
+            },
+            {
+                "id": "seeking-storm-net-metal-emit-output",
+                "source": "seeking-storm-net-metal-emit",
+                "target": "system-final-output",
+                "sourceHandle": "output-0",
+                "targetHandle": "input-2"
+            }
+        ]
+    }
+]

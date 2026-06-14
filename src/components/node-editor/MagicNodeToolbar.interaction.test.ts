@@ -31,6 +31,7 @@ type ToolbarProps = {
     onAddNode: Mock<AddNodeHandler>;
     onDragStart: Mock<DragStartHandler>;
     onClear: Mock<ClearHandler>;
+    onOpenPresetDialog: Mock<ClearHandler>;
 };
 
 let mountedToolbar: Record<string, unknown> | undefined;
@@ -43,6 +44,7 @@ function createToolbarProps(overrides: Partial<ToolbarProps> = {}): ToolbarProps
         onAddNode: vi.fn<AddNodeHandler>(),
         onDragStart: vi.fn<DragStartHandler>(),
         onClear: vi.fn<ClearHandler>(),
+        onOpenPresetDialog: vi.fn<ClearHandler>(),
         ...overrides,
     };
 }
@@ -125,5 +127,13 @@ describe('MagicNodeToolbar interaction', () => {
         getButtonByText(target, NODE_EDITOR_TEXT.CLEAR_ALL).click();
 
         expect(props.onClear).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the preset dialog from the preset button', () => {
+        const { target, props } = mountToolbar();
+
+        getButtonByText(target, NODE_EDITOR_TEXT.PRESET_OPEN).click();
+
+        expect(props.onOpenPresetDialog).toHaveBeenCalledTimes(1);
     });
 });

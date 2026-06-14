@@ -34,6 +34,12 @@
     import MagicNodeToolbar from './MagicNodeToolbar.svelte';
     import type { MagicNode, MagicType } from '../../types/magic';
 
+    let {
+        onOpenPresetDialog,
+    }: {
+        onOpenPresetDialog: () => void;
+    } = $props();
+
     const STAR_FIELD_CONFIG = {
         COUNT: 700,
         SEED: 731,
@@ -200,6 +206,7 @@
         onAddNode={addNodeAtCanvasCenter}
         {onDragStart}
         onClear={() => graphStore.clear()}
+        {onOpenPresetDialog}
     />
 
     <div

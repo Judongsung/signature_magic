@@ -1,10 +1,24 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { SvelteFlowProvider } from '@xyflow/svelte';
+    import magicGraphPresetsData from '../../data/magicGraphPresets.json';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
+    import { graphStore } from '../../stores/graphStore.svelte';
+    import {
+        createMagicGraphPresetOption,
+        createMagicGraphPresetOptionValue,
+        MAGIC_GRAPH_PRESET_SOURCES,
+    } from '../../systems/graph/presets/magicGraphPresets';
+    import {
+        deleteStoredMagicGraphPreset,
+        loadStoredMagicGraphPresets,
+        saveStoredMagicGraphPreset,
+    } from '../../systems/graph/presets/magicGraphPresetStorage';
+    import type { MagicGraphPresetConfig } from '../../types/magic';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
     import MagicCircleGenerator from './MagicCircleGenerator.svelte';
     import MagicNodeEditor from './MagicNodeEditor.svelte';
+    import MagicNodePresetDialog from './MagicNodePresetDialog.svelte';
 
     const DEFAULT_EDITOR_PANE_PERCENT = 50;
     const MIN_EDITOR_PANE_PERCENT = 30;
@@ -12,14 +26,36 @@
     const PANE_RESIZER_KEY_STEP_PERCENT = 5;
     const COMPACT_LAYOUT_MEDIA_QUERY = '(max-width: 900px)';
     const PRIMARY_POINTER_BUTTON = 0;
+    const builtInPresets = magicGraphPresetsData as MagicGraphPresetConfig[];
+    const initialPresetValue = builtInPresets[0]
+        ? createMagicGraphPresetOptionValue(MAGIC_GRAPH_PRESET_SOURCES.BUILT_IN, builtInPresets[0].id)
+        : '';
 
     let appContainerElement: HTMLDivElement | undefined;
     let editorPanePercent = $state(DEFAULT_EDITOR_PANE_PERCENT);
     let isResizing = $state(false);
     let isCompactLayout = $state(false);
+    let userPresets = $state<MagicGraphPresetConfig[]>(loadStoredMagicGraphPresets());
+    let selectedPresetValue = $state(initialPresetValue);
+    let isPresetDialogOpen = $state(false);
 
     const editorPaneSize = $derived(`${editorPanePercent}%`);
     const resizerOrientation = $derived(isCompactLayout ? 'horizontal' : 'vertical');
+    const presetOptions = $derived([
+        ...builtInPresets.map(preset =>
+            createMagicGraphPresetOption(preset, MAGIC_GRAPH_PRESET_SOURCES.BUILT_IN)
+        ),
+        ...userPresets.map(preset =>
+            createMagicGraphPresetOption(preset, MAGIC_GRAPH_PRESET_SOURCES.USER)
+        ),
+    ]);
+    const selectedPresetOption = $derived(
+        presetOptions.find(option => option.value === selectedPresetValue)
+    );
+    const selectedPresetIsUser = $derived(
+        selectedPresetOption?.source === MAGIC_GRAPH_PRESET_SOURCES.USER
+    );
+    const resizerTabIndex = $derived(isPresetDialogOpen ? -1 : 0);
 
     function clampPanePercent(value: number): number {
         return Math.min(MAX_EDITOR_PANE_PERCENT, Math.max(MIN_EDITOR_PANE_PERCENT, value));
@@ -48,6 +84,7 @@
     }
 
     function startPaneResize(event: PointerEvent) {
+        if (isPresetDialogOpen) return;
         if (event.button !== PRIMARY_POINTER_BUTTON) return;
 
         event.preventDefault();
@@ -59,6 +96,8 @@
     }
 
     function handlePaneResizeKeydown(event: KeyboardEvent) {
+        if (isPresetDialogOpen) return;
+
         const keyActions: Record<string, () => void> = {
             ArrowLeft: () => editorPanePercent = clampPanePercent(editorPanePercent - PANE_RESIZER_KEY_STEP_PERCENT),
             ArrowUp: () => editorPanePercent = clampPanePercent(editorPanePercent - PANE_RESIZER_KEY_STEP_PERCENT),
@@ -73,6 +112,40 @@
 
         event.preventDefault();
         action();
+    }
+
+    function openPresetDialog() {
+        stopPaneResize();
+        isPresetDialogOpen = true;
+    }
+
+    function selectPreset(value: string) {
+        selectedPresetValue = value;
+    }
+
+    function loadSelectedPreset(): boolean {
+        if (!selectedPresetOption) return false;
+
+        graphStore.loadPreset(selectedPresetOption.preset);
+        return true;
+    }
+
+    function saveCurrentPreset(label: string) {
+        if (!graphStore.hasUserContent) return;
+        if (!label?.trim()) return;
+
+        const preset = graphStore.createPresetSnapshot(label);
+        if (!preset) return;
+
+        userPresets = saveStoredMagicGraphPreset(preset);
+        selectedPresetValue = createMagicGraphPresetOptionValue(MAGIC_GRAPH_PRESET_SOURCES.USER, preset.id);
+    }
+
+    function deleteSelectedPreset() {
+        if (!selectedPresetOption || !selectedPresetIsUser) return;
+
+        userPresets = deleteStoredMagicGraphPreset(selectedPresetOption.preset.id);
+        selectedPresetValue = initialPresetValue;
     }
 
     onMount(() => {
@@ -98,22 +171,24 @@
         bind:this={appContainerElement}
         class="app-container"
         class:is-resizing={isResizing}
+        class:preset-dialog-open={isPresetDialogOpen}
         style:--editor-pane-size={editorPaneSize}
     >
         <div class="editor-pane">
             <SvelteFlowProvider>
-                <MagicNodeEditor />
+                <MagicNodeEditor onOpenPresetDialog={openPresetDialog} />
             </SvelteFlowProvider>
         </div>
         <div
             class="pane-resizer"
             role="slider"
+            aria-disabled={isPresetDialogOpen}
             aria-label={NODE_EDITOR_TEXT.PANE_RESIZER_ARIA_LABEL}
             aria-orientation={resizerOrientation}
             aria-valuemin={MIN_EDITOR_PANE_PERCENT}
             aria-valuemax={MAX_EDITOR_PANE_PERCENT}
             aria-valuenow={Math.round(editorPanePercent)}
-            tabindex="0"
+            tabindex={resizerTabIndex}
             onpointerdown={startPaneResize}
             onkeydown={handlePaneResizeKeydown}
         >
@@ -123,6 +198,21 @@
             <MagicCircleGenerator />
         </div>
     </div>
+
+    {#if isPresetDialogOpen}
+        <MagicNodePresetDialog
+            {presetOptions}
+            {selectedPresetValue}
+            canLoadPreset={Boolean(selectedPresetOption)}
+            canSavePreset={graphStore.hasUserContent}
+            canDeletePreset={selectedPresetIsUser}
+            onSelectPreset={selectPreset}
+            onLoadPreset={loadSelectedPreset}
+            onSavePreset={saveCurrentPreset}
+            onDeletePreset={deleteSelectedPreset}
+            onClose={() => isPresetDialogOpen = false}
+        />
+    {/if}
 </main>
 
 <style>
@@ -172,6 +262,10 @@
         cursor: col-resize;
         touch-action: none;
         z-index: 4;
+    }
+
+    .app-container.preset-dialog-open .pane-resizer {
+        pointer-events: none;
     }
 
     .pane-resizer::before {

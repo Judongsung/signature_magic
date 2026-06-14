@@ -44,6 +44,10 @@
     const isLeaf = $derived(data.isLeaf ?? true);
     const inputHandleCount = $derived(data.inputHandleCount ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT);
     const outputHandleCount = $derived(data.outputHandleCount ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT);
+    const cycleInputHandleIndex = $derived(
+        typeof data.cycleInputHandleIndex === 'number' ? data.cycleInputHandleIndex : null
+    );
+    const cycleInputHandleConnected = $derived(data.cycleInputHandleConnected === true);
     const inputHandles = $derived(createHandleIndexes(inputHandleCount));
     const outputHandles = $derived(createHandleIndexes(outputHandleCount));
     const updateNodeInternals = useUpdateNodeInternals();
@@ -51,6 +55,8 @@
     $effect(() => {
         inputHandleCount;
         outputHandleCount;
+        cycleInputHandleIndex;
+        cycleInputHandleConnected;
         void tick().then(() => updateNodeInternals(id));
     });
 
@@ -65,6 +71,16 @@
         );
 
         return `${MAGIC_NODE_RENDERING_CONFIG.HANDLE_SPREAD_START_PERCENT + offset}%`;
+    }
+
+    function isCycleInputHandle(index: number): boolean {
+        return cycleInputHandleIndex === index;
+    }
+
+    function isInputHandleConnectable(index: number): boolean | undefined {
+        return isCycleInputHandle(index) && cycleInputHandleConnected
+            ? false
+            : isConnectable;
     }
 </script>
 
@@ -109,10 +125,18 @@
             type="target"
             position={Position.Bottom}
             id={`${MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX}-${index}`}
-            isConnectable={isConnectable}
-            class="node-handle target-handle"
+            isConnectable={isInputHandleConnectable(index)}
+            class={`node-handle target-handle ${isCycleInputHandle(index) ? 'cycle-input-handle' : ''}`}
             style={`left: ${handleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
         />
+        {#if isCycleInputHandle(index)}
+            <span
+                class="badge cycle-badge"
+                style={`left: ${handleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
+            >
+                {NODE_EDITOR_TEXT.CYCLE_BADGE}
+            </span>
+        {/if}
     {/each}
     <div class="badge-wrap bottom-badge-wrap">
         {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
@@ -214,6 +238,11 @@
         bottom: -6px;
     }
 
+    :global(.cycle-input-handle) {
+        border-color: color-mix(in srgb, var(--handle-color) 80%, var(--node-editor-root-badge-color));
+        background: color-mix(in srgb, var(--handle-color) 32%, var(--node-editor-handle-bg));
+    }
+
     .node-body {
         display: flex;
         flex-direction: column;
@@ -270,6 +299,17 @@
         background: var(--node-editor-leaf-badge-bg);
         color: var(--node-editor-leaf-badge-color);
         border: 1px solid var(--node-editor-leaf-badge-color);
+    }
+
+    .cycle-badge {
+        position: absolute;
+        bottom: -28px;
+        transform: translateX(-50%);
+        z-index: 2;
+        background: color-mix(in srgb, var(--handle-color) 18%, var(--node-editor-root-badge-bg));
+        color: color-mix(in srgb, var(--handle-color) 72%, var(--node-editor-text-strong));
+        border: 1px solid color-mix(in srgb, var(--handle-color) 74%, var(--node-editor-root-badge-color));
+        pointer-events: none;
     }
 
     .node-tooltip-stats {

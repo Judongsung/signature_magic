@@ -17,6 +17,7 @@
         onAddNode,
         onDragStart,
         onClear,
+        onOpenPresetDialog,
     }: {
         activeCategoryIds: MagicNodeCategory[];
         visibleMagicTypes: MagicTypeConfig[];
@@ -24,6 +25,7 @@
         onAddNode: (magicType: MagicType) => void;
         onDragStart: (event: DragEvent, magicType: MagicType) => void;
         onClear: () => void;
+        onOpenPresetDialog: () => void;
     } = $props();
 </script>
 
@@ -66,6 +68,12 @@
     {#if visibleMagicTypes.length === 0}
         <span class="toolbar-empty">{NODE_EDITOR_TEXT.EMPTY_CATEGORY}</span>
     {/if}
+
+    <div class="toolbar-divider"></div>
+
+    <button class="action-btn preset-btn" type="button" onclick={onOpenPresetDialog}>
+        {NODE_EDITOR_TEXT.PRESET_OPEN}
+    </button>
 
     <div class="toolbar-divider"></div>
 
@@ -220,13 +228,34 @@
             color var(--node-editor-transition-fast);
     }
 
+    .action-btn:disabled,
+    .preset-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.52;
+        box-shadow: none;
+    }
+
+    .preset-btn {
+        background: var(--node-editor-button-bg);
+        color: var(--node-editor-text-strong);
+        border-color: var(--node-editor-button-hover-border);
+        box-shadow: var(--node-editor-button-hover-shadow);
+    }
+
+    .preset-btn:not(:disabled):hover {
+        color: var(--node-editor-button-active-text);
+        border-color: var(--node-editor-button-active-border);
+        background: var(--node-editor-button-active-bg);
+        box-shadow: var(--node-editor-button-active-shadow);
+    }
+
     .clear-btn {
         background: var(--node-editor-danger-bg);
         color: var(--node-editor-danger-text);
         border-color: var(--node-editor-danger-border);
     }
 
-    .clear-btn:hover {
+    .clear-btn:not(:disabled):hover {
         background: var(--node-editor-danger-hover-bg);
         border-color: var(--node-editor-danger-text);
         box-shadow: var(--node-editor-danger-shadow);

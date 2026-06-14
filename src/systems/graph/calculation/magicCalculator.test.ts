@@ -136,7 +136,7 @@ describe('calculateCircles', () => {
         ]);
     });
 
-    it('starts a circular chain at a node that allows output cycles', () => {
+    it('builds a cycle circle from the cycle target to the output-cycle source', () => {
         const a = node('a');
         const repeat = node('repeat', 'repeat');
         const b = node('b', 'stream');
@@ -157,7 +157,39 @@ describe('calculateCircles', () => {
         const circles = calculateCircles(nodes, edges, magicTypes);
 
         expect(circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
-            ['repeat', 'b', 'a'],
+            ['b', 'a', 'repeat'],
+        ]);
+    });
+
+    it('folds a cycle-closing repeat node into the cycle path and keeps other branches separate', () => {
+        const target = node('target', 'ignition');
+        const split = node('split', 'split');
+        const repeat = node('repeat', 'repeat');
+        const other = node('other', 'stream');
+        const nodes = [target, split, repeat, other];
+        const edges = [
+            edge('target', 'split'),
+            edge('split', 'repeat'),
+            edge('split', 'other'),
+            edge('repeat', 'target'),
+        ];
+        const magicTypes = [
+            {
+                type: 'repeat',
+                label: 'Repeat',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Repeat magic.',
+                connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+            },
+        ] as MagicTypeConfig[];
+
+        const circles = calculateCircles(nodes, edges, magicTypes);
+
+        expect(circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
+            ['target', 'split', 'repeat'],
+            ['other'],
         ]);
     });
 });
@@ -318,7 +350,7 @@ describe('calculateMagic', () => {
         const result = calculateMagic(nodes, edges, magicTypes);
 
         expect(result.circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
-            ['repeat', 'b', 'a'],
+            ['b', 'a', 'repeat'],
         ]);
         expectStatsClose(result.totalStats, {
             castingTime: 6,
@@ -328,6 +360,70 @@ describe('calculateMagic', () => {
             manaCost: 6,
             duration: 6,
         });
+    });
+
+    it('calculates cycle-closing repeat stats as part of the cycle circle', () => {
+        const target = node('target', 'ignition');
+        const split = node('split', 'split');
+        const repeat = node('repeat', 'repeat');
+        const other = node('other', 'stream');
+        const nodes = [target, split, repeat, other];
+        const edges = [
+            edge('target', 'split'),
+            edge('split', 'repeat'),
+            edge('split', 'other'),
+            edge('repeat', 'target'),
+        ];
+        const magicTypes = [
+            {
+                type: 'ignition',
+                label: 'Ignition',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Ignition magic.',
+                stats: { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 },
+            },
+            {
+                type: 'split',
+                label: 'Split',
+                icon: '',
+                color: '',
+                category: 'extension',
+                description: 'Split magic.',
+                stats: { castingTime: 2, instability: 2, power: 2, range: 2, manaCost: 2, duration: 2 },
+            },
+            {
+                type: 'repeat',
+                label: 'Repeat',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Repeat magic.',
+                stats: { castingTime: 3, instability: 3, power: 3, range: 3, manaCost: 3, duration: 3 },
+                connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+            },
+            {
+                type: 'stream',
+                label: 'Stream',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Stream magic.',
+                stats: { castingTime: 4, instability: 4, power: 4, range: 4, manaCost: 4, duration: 4 },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, edges, magicTypes);
+
+        expect(result.circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
+            ['target', 'split', 'repeat'],
+            ['other'],
+        ]);
+        expect(result.circles.map(circle => circle.stats.castingTime)).toEqual([6, 4]);
+        expect(result.totalStats.instability).toBeCloseTo(
+            result.circles.reduce((total, circle) => total + circle.stats.instability, 0)
+        );
     });
 
     it('applies node stat effects before circle and total stat calculation', () => {
