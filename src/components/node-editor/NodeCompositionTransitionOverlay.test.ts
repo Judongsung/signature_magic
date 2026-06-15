@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     NODE_COMPOSITION_TRANSITION_CONFIG,
 } from '../../constants/magicCircleConfigs';
+import { MAGIC_STAR_FIELD_CONFIG } from '../../constants/graphConfigs';
+import { buildNodeCompositionTransitionLayout } from '../../systems/graph/presentation/nodeCompositionTransitionLayout';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
@@ -15,6 +17,7 @@ const TOTAL_TRANSITION_DURATION_MS =
     NODE_COMPOSITION_TRANSITION_CONFIG.FILL_DURATION_MS
     + NODE_COMPOSITION_TRANSITION_CONFIG.SPIN_DURATION_MS
     + NODE_COMPOSITION_TRANSITION_CONFIG.FLASH_DURATION_MS;
+const TWO_VERTEX_TRANSITION_LAYOUT = buildNodeCompositionTransitionLayout(2);
 
 let mountedOverlay: Record<string, unknown> | undefined;
 
@@ -99,20 +102,41 @@ describe('NodeCompositionTransitionOverlay', () => {
         await tick();
 
         expect(target.querySelector('.node-composition-transition-overlay')).not.toBeNull();
+        expect(target.querySelector('.transition-star-field')).not.toBeNull();
+        expect(target.querySelectorAll('.transition-star')).toHaveLength(MAGIC_STAR_FIELD_CONFIG.COUNT);
         expect(target.querySelectorAll('.central-circle')).toHaveLength(1);
-        expect(target.querySelectorAll('.orbiting-circle')).toHaveLength(0);
+        expect(target.querySelectorAll('.polygon-circle')).toHaveLength(0);
         expect(target.innerHTML).toContain('data-animation-mode="burst"');
         expect(onComplete).not.toHaveBeenCalled();
     });
 
-    it('keeps one central circle and orbits each additional circle once', async () => {
+    it('keeps one central circle and places each additional circle on a regular polygon vertex', async () => {
         const { target } = mountOverlay(createCircleSet(3));
         await tick();
 
         expect(target.querySelectorAll('.central-circle')).toHaveLength(1);
-        expect(target.querySelectorAll('.orbit-path')).toHaveLength(2);
-        expect(target.querySelectorAll('.orbiting-circle')).toHaveLength(2);
-        expect(target.querySelectorAll('[data-animation-mode="burst"]')).toHaveLength(3);
+        expect(target.querySelectorAll('.polygon-system')).toHaveLength(1);
+        expect(target.querySelectorAll('.polygon-vertex')).toHaveLength(2);
+        expect(target.querySelectorAll('.polygon-circle')).toHaveLength(2);
+        expect(target.querySelectorAll('.central-circle [data-animation-mode="burst"]')).toHaveLength(1);
+        expect(target.querySelectorAll('.polygon-circle [data-animation-mode="loop"]')).toHaveLength(2);
+
+        const vertexOffsets = [...target.querySelectorAll<HTMLElement>('.polygon-vertex')]
+            .map(vertex => ({
+                x: vertex.style.getPropertyValue('--vertex-x'),
+                y: vertex.style.getPropertyValue('--vertex-y'),
+            }));
+
+        expect(vertexOffsets).toEqual([
+            {
+                x: TWO_VERTEX_TRANSITION_LAYOUT.vertices[0].offsetX,
+                y: TWO_VERTEX_TRANSITION_LAYOUT.vertices[0].offsetY,
+            },
+            {
+                x: TWO_VERTEX_TRANSITION_LAYOUT.vertices[1].offsetX,
+                y: TWO_VERTEX_TRANSITION_LAYOUT.vertices[1].offsetY,
+            },
+        ]);
     });
 
     it('calls onComplete once after the full transition duration', async () => {

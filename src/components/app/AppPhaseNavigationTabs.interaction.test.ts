@@ -1,9 +1,10 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { APP_PHASES, type AppPhase } from '../../constants/gameConfigs';
 import {
     APP_PHASE_NAVIGATION_TEXT,
+    CYOA_REGISTRATION_RESULT_TEXT,
     CYOA_REGISTRATION_SUMMARY_TEXT,
     UI_BUTTON_TEXT,
 } from '../../constants/uiText';
@@ -13,6 +14,7 @@ import {
     getButtonByText,
     queryDialogElement,
 } from '../../test-utils/componentQueries';
+import { resetGraphStoreFixture } from '../../test-utils/graphFixtures';
 import AppPhaseNavigationTabs from './AppPhaseNavigationTabs.svelte';
 
 type NavigationProps = {
@@ -24,6 +26,16 @@ type NavigationProps = {
 };
 
 let mountedTabs: Record<string, unknown> | undefined;
+
+function installResizeObserver(): void {
+    if ('ResizeObserver' in window) return;
+
+    window.ResizeObserver = class ResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    };
+}
 
 function completeCyoaRegistration(): void {
     choiceStore.updateInputValue('personal-name-input', 'Arin');
@@ -62,9 +74,15 @@ afterEach(async () => {
     document.body.replaceChildren();
     appStore.setPhase(APP_PHASES.INTRO_DIALOGUE);
     choiceStore.reset();
+    resetGraphStoreFixture();
 });
 
 describe('AppPhaseNavigationTabs interaction', () => {
+    beforeEach(() => {
+        installResizeObserver();
+        resetGraphStoreFixture();
+    });
+
     it('keeps incomplete CYOA submit navigation disabled and closed', async () => {
         appStore.setPhase(APP_PHASES.CYOA);
         const target = mountTabs({ canSubmitRegistration: false });
@@ -95,6 +113,7 @@ describe('AppPhaseNavigationTabs interaction', () => {
 
         const dialog = queryDialogElement(target);
         expect(dialog).not.toBeNull();
+        expect(dialog?.textContent).not.toContain(CYOA_REGISTRATION_RESULT_TEXT.GRAPH_TITLE);
 
         getButtonByText(dialog as HTMLElement, UI_BUTTON_TEXT.SUBMIT_REGISTRATION).click();
         await tick();
@@ -113,6 +132,9 @@ describe('AppPhaseNavigationTabs interaction', () => {
 
         const dialog = queryDialogElement(target);
         expect(dialog).not.toBeNull();
+        expect(dialog?.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.GRAPH_TITLE);
+        expect(dialog?.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.CIRCLES_TITLE);
+        expect(dialog?.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.TOTAL_STATS_TITLE);
 
         getButtonByText(dialog as HTMLElement, CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_LABEL).click();
         await tick();

@@ -25,6 +25,7 @@
     "vitest": "^4.1.7"
   },
   "dependencies": {
-    "@xyflow/svelte": "^1.5.2"
+    "@xyflow/svelte": "^1.5.2",
+    "modern-screenshot": "^4.7.0"
   }
 }

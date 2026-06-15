@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { Snippet } from 'svelte';
     import veraChibiImageSrc from '../../../assets/images/vera_chibi.png';
     import {
         CYOA_GUIDE_SPEECH_TEXT,
@@ -20,10 +21,12 @@
         onClose,
         onSubmit,
         showSubmitGuidance = false,
+        supplementalContent,
     }: {
         onClose: () => void;
         onSubmit?: () => void;
         showSubmitGuidance?: boolean;
+        supplementalContent?: Snippet;
     } = $props();
 
     let dialogElement: HTMLElement;
@@ -79,6 +82,7 @@
                 ? CYOA_REGISTRATION_SUMMARY_TEXT.DEFAULT_BACK_LABEL
                 : CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_LABEL}
             submitDisabled={!choiceStore.canContinue}
+            {supplementalContent}
         >
             {#snippet actionLeadIn()}
                 {#if showSubmitGuidance}

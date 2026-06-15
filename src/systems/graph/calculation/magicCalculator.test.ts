@@ -359,16 +359,16 @@ describe('calculateMagic', () => {
 
         expect(result.circles.map(circle => circle.stats.castingTime)).toEqual([3, 3, 4]);
         expectStatsClose(result.totalStats, {
-            castingTime: 10,
-            instability: 10.45,
+            castingTime: 7,
+            instability: 4,
             power: 10,
             range: 8,
             manaCost: 10,
-            duration: 10,
+            duration: 7,
         });
     });
 
-    it('sums circle instability so parallel branches avoid one combined node-count exponent', () => {
+    it('uses the largest circle instability for total instability', () => {
         const a = node('a', 'ignition');
         const split = node('split', 'split');
         const b = node('b', 'stream');
@@ -421,7 +421,7 @@ describe('calculateMagic', () => {
             expect.closeTo(3),
             expect.closeTo(4),
         ]);
-        expect(result.totalStats.instability).toBeCloseTo(10.45);
+        expect(result.totalStats.instability).toBeCloseTo(4);
     });
 
     it('counts each node once when the graph is circular', () => {
@@ -536,7 +536,7 @@ describe('calculateMagic', () => {
         ]);
         expect(result.circles.map(circle => circle.stats.castingTime)).toEqual([6, 4]);
         expect(result.totalStats.instability).toBeCloseTo(
-            result.circles.reduce((total, circle) => total + circle.stats.instability, 0)
+            Math.max(...result.circles.map(circle => circle.stats.instability))
         );
     });
 

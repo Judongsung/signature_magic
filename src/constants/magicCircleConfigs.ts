@@ -32,8 +32,8 @@ export const MAGIC_CIRCLE_RENDERING_CONFIG = {
     LIGHTWEIGHT_NODE_THRESHOLD: 100,
     LIGHTWEIGHT_GLYPH_MARK_LIMIT: 8,
     LOOP_BREATHE_SECONDS: 9,
-    BURST_SPIN_SECONDS: 0.8,
-    BURST_BREATHE_SECONDS: 0.8,
+    BURST_SPIN_SECONDS: 1.6,
+    BURST_BREATHE_SECONDS: 1.6,
 } as const;
 
 export const MAGIC_CIRCLE_ANIMATION_MODES = {
@@ -45,15 +45,33 @@ export const MAGIC_CIRCLE_ANIMATION_MODES = {
 export type MagicCircleAnimationMode =
     (typeof MAGIC_CIRCLE_ANIMATION_MODES)[keyof typeof MAGIC_CIRCLE_ANIMATION_MODES];
 
+interface CssClampSize {
+    minPx: number;
+    preferredVmin: number;
+    maxPx: number;
+}
+
 export const NODE_COMPOSITION_TRANSITION_CONFIG = {
-    FILL_DURATION_MS: 520,
+    FILL_DURATION_MS: 1040,
     SPIN_DURATION_MS: MAGIC_CIRCLE_RENDERING_CONFIG.BURST_SPIN_SECONDS * 1000,
-    FLASH_DURATION_MS: 420,
-    REDUCED_MOTION_DURATION_MS: 180,
+    FLASH_DURATION_MS: 840,
+    REDUCED_MOTION_DURATION_MS: 240,
     MAX_CIRCLE_INSTANCES: 12,
-    CIRCLE_STAGGER_MS: 36,
-    ORBIT_DURATION_MS: 1600,
-    CENTRAL_CIRCLE_SIZE: 'clamp(220px, 34vmin, 420px)',
-    ORBITING_CIRCLE_SIZE: 'clamp(104px, 15vmin, 190px)',
-    ORBIT_RADIUS: 'clamp(142px, 31vmin, 360px)',
+    CIRCLE_STAGGER_MS: 72,
+    ORBIT_DURATION_MS: 3200,
+    ORBIT_TURNS: 2.75,
+    ORBIT_ACCELERATION_EASING: 'cubic-bezier(0.36, 0, 1, 1)',
+    CENTRAL_CIRCLE_SIZE: {
+        minPx: 190,
+        preferredVmin: 30,
+        maxPx: 360,
+    } satisfies CssClampSize,
+    VERTEX_CIRCLE_SIZE: {
+        minPx: 132,
+        preferredVmin: 19,
+        maxPx: 228,
+    } satisfies CssClampSize,
+    VERTEX_CIRCLE_OPACITY: 0.82,
+    CENTER_VERTEX_GAP_RATIO: 0.55,
+    POLYGON_START_ANGLE_DEGREES: -90,
 } as const;

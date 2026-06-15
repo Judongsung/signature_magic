@@ -53,6 +53,21 @@ export const CYOA_REGISTRATION_SUMMARY_TEXT = {
     SEAL_BOTTOM: 'APPROVAL',
 } as const;
 
+export const CYOA_REGISTRATION_RESULT_TEXT = {
+    ARIA_LABEL: '등록 결과 상세',
+    GRAPH_TITLE: '편집한 그래프',
+    GRAPH_ARIA_LABEL: '편집한 마법 그래프',
+    CIRCLES_TITLE: '서클 조합',
+    CIRCLES_ARIA_LABEL: '생성된 서클 조합',
+    TOTAL_STATS_TITLE: '최종 스탯',
+    TOTAL_STATS_ARIA_LABEL: '최종 마법 스탯',
+    EMPTY_GRAPH: '표시할 그래프가 없습니다.',
+    GRAPH_CAPTURE_LOADING: '그래프 이미지를 생성하고 있습니다.',
+    GRAPH_CAPTURE_FAILED: '그래프 이미지를 생성하지 못했습니다.',
+    EMPTY_CIRCLES: '노드를 연결하면 서클 조합이 표시됩니다.',
+    EMPTY_STATS: '서클이 생성되면 최종 스탯이 표시됩니다.',
+} as const;
+
 export const CYOA_BUILD_PLACEHOLDER_TEXT = {
     NODE_COMPOSITION_ONLY: 'node composition only build',
 } as const;
@@ -99,7 +114,7 @@ export const MAGIC_CIRCLE_TEXT = {
 
 export const UI_BUTTON_TEXT = {
     DEV_SKIP_TO_NODE_COMPOSITION: 'DEV: 비술 조합실',
-    REVIEW_REGISTRATION: '신청서 확인',
+    REVIEW_REGISTRATION: '등록 결과',
     SUBMIT_REGISTRATION: '등록 신청서 제출',
     COMPLETE_REQUIRED_FIELDS_TOOLTIP: '필수 사항을 전부 기재해 주세요.',
 } as const;

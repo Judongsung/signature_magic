@@ -30,6 +30,7 @@
     const label  = $derived(nodeConfig?.label || data.magicType);
     const description = $derived(nodeConfig?.description || '');
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
+    const shouldShowTooltip = $derived(data.showTooltip !== false);
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
     const inputHandleCount = $derived(data.inputHandleCount ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT);
@@ -75,10 +76,11 @@
 </script>
 
 <div
-    class="custom-node tooltip-host"
+    class="custom-node"
+    class:tooltip-host={shouldShowTooltip}
     class:is-root={isRoot}
     class:is-leaf={isLeaf}
-    aria-describedby={tooltipId}
+    aria-describedby={shouldShowTooltip ? tooltipId : undefined}
     style="--c: {color};"
 >
     <!--
@@ -132,7 +134,7 @@
         {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
     </div>
 
-    {#if nodeConfig}
+    {#if nodeConfig && shouldShowTooltip}
         <DescriptionTooltip
             id={tooltipId}
             {description}

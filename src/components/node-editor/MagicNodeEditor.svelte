@@ -20,7 +20,11 @@
         EDITOR_CANVAS,
         type MagicNodeCategory,
     } from '../../constants/gameConfigs';
-    import { GRAPH_EDGE_TYPES, GRAPH_NODE_TYPES } from '../../constants/graphConfigs';
+    import {
+        GRAPH_EDGE_TYPES,
+        GRAPH_NODE_TYPES,
+        MAGIC_STAR_FIELD_CONFIG,
+    } from '../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
     import {
         getExtentCenter,
@@ -28,6 +32,7 @@
         resolveCenteredViewport,
         resolveDropPosition,
     } from '../../systems/graph/editor/editorCanvas';
+    import { createStarField } from '../../systems/graph/presentation/starField';
     import { getMagicTypesByCategory } from '../../systems/graph/registry/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
@@ -40,25 +45,6 @@
         onOpenPresetDialog: () => void;
     } = $props();
 
-    const STAR_FIELD_CONFIG = {
-        COUNT: 700,
-        SEED: 731,
-        MIN_POSITION_PERCENT: 2,
-        MAX_POSITION_PERCENT: 98,
-        MIN_RADIUS_PX: 0.38,
-        MAX_RADIUS_PX: 1.05,
-        MIN_ALPHA: 0.2,
-        MAX_ALPHA: 0.58,
-        MIN_GLOW_PX: 3.2,
-        MAX_GLOW_PX: 7.2,
-        COLORS: [
-            '233, 199, 111',
-            '205, 234, 255',
-            '110, 214, 209',
-            '185, 150, 255',
-        ],
-    } as const;
-
     const nodeTypes = { [GRAPH_NODE_TYPES.MAGIC_NODE]: CustomNode };
     const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: CustomEdge };
     const snapGrid = EDITOR_CANVAS.SNAP_GRID as SnapGrid;
@@ -68,7 +54,11 @@
     const canvasLayerWidth = `${EDITOR_CANVAS.EXTENT[1][0] - EDITOR_CANVAS.EXTENT[0][0]}px`;
     const canvasLayerHeight = `${EDITOR_CANVAS.EXTENT[1][1] - EDITOR_CANVAS.EXTENT[0][1]}px`;
     const panOnDragButtons = [...EDITOR_CANVAS.PAN_ON_DRAG_BUTTONS];
-    const canvasStars = createStarField(STAR_FIELD_CONFIG, EDITOR_CANVAS.EXTENT);
+    const canvasStars = createStarField(MAGIC_STAR_FIELD_CONFIG, {
+        width: EDITOR_CANVAS.EXTENT[1][0] - EDITOR_CANVAS.EXTENT[0][0],
+        height: EDITOR_CANVAS.EXTENT[1][1] - EDITOR_CANVAS.EXTENT[0][1],
+        unit: 'px',
+    });
     const canvasCenter = getExtentCenter(EDITOR_CANVAS.EXTENT);
     const { screenToFlowPosition, setViewport } = useSvelteFlow();
 
@@ -155,47 +145,6 @@
         graphStore.onDelete(nodes, edges);
     };
 
-    function createSeededRandom(seed: number): () => number {
-        let value = seed;
-
-        return () => {
-            value = (value * 9301 + 49297) % 233280;
-
-            return value / 233280;
-        };
-    }
-
-    function rangedValue(randomValue: number, min: number, max: number): number {
-        return min + randomValue * (max - min);
-    }
-
-    function formatNumber(value: number): string {
-        return value.toFixed(2).replace(/\.?0+$/, '');
-    }
-
-    function createStarField(config: typeof STAR_FIELD_CONFIG, extent: typeof EDITOR_CANVAS.EXTENT) {
-        const random = createSeededRandom(config.SEED);
-        const [minPosition, maxPosition] = extent;
-        const width = maxPosition[0] - minPosition[0];
-        const height = maxPosition[1] - minPosition[1];
-
-        return Array.from({ length: config.COUNT }, (_, index) => {
-            const xPercent = rangedValue(random(), config.MIN_POSITION_PERCENT, config.MAX_POSITION_PERCENT);
-            const yPercent = rangedValue(random(), config.MIN_POSITION_PERCENT, config.MAX_POSITION_PERCENT);
-            const radius = rangedValue(random(), config.MIN_RADIUS_PX, config.MAX_RADIUS_PX);
-            const alpha = rangedValue(random(), config.MIN_ALPHA, config.MAX_ALPHA);
-            const color = config.COLORS[index % config.COLORS.length];
-            const glow = rangedValue(random(), config.MIN_GLOW_PX, config.MAX_GLOW_PX);
-
-            return {
-                x: `${formatNumber(width * (xPercent / 100))}px`,
-                y: `${formatNumber(height * (yPercent / 100))}px`,
-                size: `${formatNumber(radius * 2)}px`,
-                color: `rgba(${color}, ${formatNumber(alpha)})`,
-                glow: `0 0 ${formatNumber(glow)}px rgba(${color}, ${formatNumber(alpha * 0.8)})`,
-            };
-        });
-    }
 </script>
 
 <div class="editor-container">

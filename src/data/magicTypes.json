@@ -188,7 +188,6 @@
         "category": "extension",
         "description": "이전 서클의 결과를 다수의 서클에 분배한다. 여러 출력을 가질 수 있다.",
         "stats": { "castingTime": 2, "instability": 2, "power": 0, "range": 1, "manaCost": 3, "duration": 1 },
-        "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
     },
     {
@@ -199,7 +198,6 @@
         "category": "extension",
         "description": "조건에 따라 새로운 서클을 만들어 이어나간다. 여러 출력을 가질 수 있다.",
         "stats": { "castingTime": 2, "instability": 2, "power": 0, "range": 1, "manaCost": 3, "duration": 1 },
-        "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
     },
     {
@@ -210,7 +208,6 @@
         "category": "extension",
         "description": "여러 서클을 하나의 서클에 편입한다. 여러 입력을 가질 수 있다.",
         "stats": { "castingTime": 3, "instability": 2, "power": 0, "range": 1, "manaCost": 3, "duration": 1 },
-        "statRules": { "castingTime": { "branchAggregation": "max" } },
         "connectionLimits": { "maxInputs": null, "maxOutputs": 1 }
     }
 ]

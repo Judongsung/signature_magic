@@ -58,12 +58,12 @@ describe('calculateMagicStats', () => {
         ]);
 
         expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
-            castingTime: 5,
+            castingTime: 3,
             instability: 5.75,
             power: 5,
             range: 3,
             manaCost: 5,
-            duration: 5,
+            duration: 3,
         });
     });
 
@@ -103,7 +103,7 @@ describe('calculateMagicStats', () => {
         });
     });
 
-    it('uses node configured branch aggregation for total casting time', () => {
+    it('uses global max branch aggregation for total casting time', () => {
         const nodes = [
             node('ignition', 'ignition'),
             node('split', 'split'),
@@ -122,10 +122,7 @@ describe('calculateMagicStats', () => {
         ];
         const magicTypes = buildMagicTypeMap([
             magicType('ignition', 1),
-            magicType('split', 2, {
-                category: 'extension',
-                statRules: { castingTime: { branchAggregation: 'max' } },
-            }),
+            magicType('split', 2, { category: 'extension' }),
             magicType('stream', 3),
             magicType('soil', 4),
             magicType('merge', 5, { category: 'extension' }),
@@ -138,11 +135,11 @@ describe('calculateMagicStats', () => {
             power: 21,
             range: 240,
             manaCost: 21,
-            duration: 21,
+            duration: 18,
         });
     });
 
-    it('uses merge node branch aggregation when parallel roots join', () => {
+    it('uses global max branch aggregation when parallel roots join', () => {
         const nodes = [
             node('ignition', 'ignition'),
             node('stream', 'stream'),
@@ -157,10 +154,7 @@ describe('calculateMagicStats', () => {
         const magicTypes = buildMagicTypeMap([
             magicType('ignition', 1),
             magicType('stream', 3),
-            magicType('merge', 5, {
-                category: 'extension',
-                statRules: { castingTime: { branchAggregation: 'max' } },
-            }),
+            magicType('merge', 5, { category: 'extension' }),
             magicType('air', 6),
         ]);
 
@@ -170,7 +164,7 @@ describe('calculateMagicStats', () => {
             power: 15,
             range: 90,
             manaCost: 15,
-            duration: 15,
+            duration: 14,
         });
     });
 

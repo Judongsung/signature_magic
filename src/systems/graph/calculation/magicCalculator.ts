@@ -90,7 +90,9 @@ function applyCircleInstabilityToTotalStats(
 ): MagicStats {
     return {
         ...totalStats,
-        instability: circles.reduce((total, circle) => total + circle.stats.instability, 0),
+        instability: circles.length === 0
+            ? 0
+            : Math.max(...circles.map(circle => circle.stats.instability)),
     };
 }
 

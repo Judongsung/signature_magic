@@ -101,4 +101,5 @@ describe('CyoaRegistrationSummary', () => {
         expect(html).toContain('registration-submit-disabled-tooltip');
         expect(html).toContain('필수 사항을 전부 기재해 주세요.');
     });
+
 });

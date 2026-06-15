@@ -4,19 +4,26 @@
         MAGIC_CIRCLE_ANIMATION_MODES,
         NODE_COMPOSITION_TRANSITION_CONFIG,
     } from '../../constants/magicCircleConfigs';
+    import { MAGIC_STAR_FIELD_CONFIG } from '../../constants/graphConfigs';
     import type { CirclePath } from '../../types/magic';
     import {
         buildMagicCircleRenderModels,
         type MagicCircleRenderModel,
     } from '../../systems/graph/presentation/magicCircleRenderer';
+    import {
+        buildNodeCompositionTransitionLayout,
+        type NodeCompositionTransitionLayout,
+    } from '../../systems/graph/presentation/nodeCompositionTransitionLayout';
+    import { createStarField } from '../../systems/graph/presentation/starField';
     import MagicCircleSvg from './MagicCircleSvg.svelte';
 
     const REDUCED_MOTION_MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
     const CIRCLE_START_INDEX = 1;
-    const FULL_ORBIT_DEGREES = 360;
-    const ORBIT_DIRECTION_PATTERN = ['normal', 'reverse'] as const;
-    const ORBIT_SCALE_PATTERN = [1, 0.84, 0.92, 0.76] as const;
-    const ORBIT_OPACITY_PATTERN = [0.9, 0.72, 0.82, 0.66] as const;
+    const transitionStars = createStarField(MAGIC_STAR_FIELD_CONFIG, {
+        width: 100,
+        height: 100,
+        unit: '%',
+    });
     const totalDurationMs = NODE_COMPOSITION_TRANSITION_CONFIG.FILL_DURATION_MS
         + NODE_COMPOSITION_TRANSITION_CONFIG.SPIN_DURATION_MS
         + NODE_COMPOSITION_TRANSITION_CONFIG.FLASH_DURATION_MS;
@@ -26,12 +33,16 @@
     interface TransitionCircleInstance {
         circle: MagicCircleRenderModel;
         index: number;
-        orbitIndex: number;
-        angle: number;
-        direction: string;
+        vertexIndex: number;
         staggerMs: number;
-        scale: number;
         opacity: number;
+        vertexX: string;
+        vertexY: string;
+    }
+
+    interface TransitionScene {
+        circles: TransitionCircleInstance[];
+        layout: NodeCompositionTransitionLayout;
     }
 
     let {
@@ -46,38 +57,50 @@
     let completionTimer: ReturnType<typeof setTimeout> | undefined;
     let didComplete = false;
 
-    const transitionCircles = $derived(buildTransitionCircleInstances(circles));
+    const transitionScene = $derived(buildTransitionScene(circles));
+    const transitionCircles = $derived(transitionScene.circles);
+    const transitionLayout = $derived(transitionScene.layout);
     const centralCircle = $derived(transitionCircles[0]);
-    const orbitingCircles = $derived(transitionCircles.slice(CIRCLE_START_INDEX));
-    const animationMode = $derived(
+    const polygonCircles = $derived(transitionCircles.slice(CIRCLE_START_INDEX));
+    const centralAnimationMode = $derived(
         isReducedMotion
             ? MAGIC_CIRCLE_ANIMATION_MODES.STATIC
             : MAGIC_CIRCLE_ANIMATION_MODES.BURST
     );
+    const vertexAnimationMode = $derived(
+        isReducedMotion
+            ? MAGIC_CIRCLE_ANIMATION_MODES.STATIC
+            : MAGIC_CIRCLE_ANIMATION_MODES.LOOP
+    );
 
-    function buildTransitionCircleInstances(sourceCircles: CirclePath[]): TransitionCircleInstance[] {
+    function buildTransitionScene(sourceCircles: CirclePath[]): TransitionScene {
         const renderModels = buildMagicCircleRenderModels(sourceCircles);
-        if (renderModels.length === 0) return [];
+        if (renderModels.length === 0) {
+            return {
+                circles: [],
+                layout: buildNodeCompositionTransitionLayout(0),
+            };
+        }
 
         const cappedModels = renderModels.slice(0, NODE_COMPOSITION_TRANSITION_CONFIG.MAX_CIRCLE_INSTANCES);
-        const orbitingCount = Math.max(cappedModels.length - CIRCLE_START_INDEX, CIRCLE_START_INDEX);
+        const vertexCount = Math.max(cappedModels.length - CIRCLE_START_INDEX, 0);
+        const layout = buildNodeCompositionTransitionLayout(vertexCount);
+        const circles = cappedModels.map((circle, index) => {
+            const vertexIndex = index - CIRCLE_START_INDEX;
+            const vertex = vertexIndex >= 0 ? layout.vertices[vertexIndex] : undefined;
 
-        return renderModels
-            .slice(0, NODE_COMPOSITION_TRANSITION_CONFIG.MAX_CIRCLE_INSTANCES)
-            .map((circle, index) => ({
+            return {
                 circle,
                 index,
-                orbitIndex: Math.max(index - CIRCLE_START_INDEX, 0),
-                angle: ((index - CIRCLE_START_INDEX) * FULL_ORBIT_DEGREES) / orbitingCount,
-                direction: ORBIT_DIRECTION_PATTERN[index % ORBIT_DIRECTION_PATTERN.length],
+                vertexIndex,
                 staggerMs: index * NODE_COMPOSITION_TRANSITION_CONFIG.CIRCLE_STAGGER_MS,
-                scale: index === 0
-                    ? 1
-                    : ORBIT_SCALE_PATTERN[index % ORBIT_SCALE_PATTERN.length],
-                opacity: index === 0
-                    ? 1
-                    : ORBIT_OPACITY_PATTERN[index % ORBIT_OPACITY_PATTERN.length],
-            }));
+                opacity: vertex?.opacity ?? 1,
+                vertexX: vertex?.offsetX ?? '0px',
+                vertexY: vertex?.offsetY ?? '0px',
+            };
+        });
+
+        return { circles, layout };
     }
 
     function prefersReducedMotion(): boolean {
@@ -118,46 +141,62 @@
     style:--transition-flash-delay={`${flashDelayMs}ms`}
     style:--transition-reduced-duration={`${NODE_COMPOSITION_TRANSITION_CONFIG.REDUCED_MOTION_DURATION_MS}ms`}
     style:--orbit-duration={`${NODE_COMPOSITION_TRANSITION_CONFIG.ORBIT_DURATION_MS}ms`}
-    style:--central-circle-size={NODE_COMPOSITION_TRANSITION_CONFIG.CENTRAL_CIRCLE_SIZE}
-    style:--orbiting-circle-size={NODE_COMPOSITION_TRANSITION_CONFIG.ORBITING_CIRCLE_SIZE}
-    style:--orbit-radius={NODE_COMPOSITION_TRANSITION_CONFIG.ORBIT_RADIUS}
+    style:--orbit-turns={`${NODE_COMPOSITION_TRANSITION_CONFIG.ORBIT_TURNS}`}
+    style:--orbit-easing={NODE_COMPOSITION_TRANSITION_CONFIG.ORBIT_ACCELERATION_EASING}
+    style:--central-circle-size={transitionLayout.centralCircleSize}
+    style:--vertex-circle-size={transitionLayout.vertexCircleSize}
 >
-    <div class="orbit-system">
+    <div class="transition-star-field" aria-hidden="true">
+        {#each transitionStars as star}
+            <span
+                class="transition-star"
+                style:left={star.x}
+                style:top={star.y}
+                style:--star-size={star.size}
+                style:--star-color={star.color}
+                style:--star-glow={star.glow}
+            ></span>
+        {/each}
+    </div>
+
+    <div class="circle-system">
         {#if centralCircle}
             <div
                 class="central-circle"
                 style:--circle-stagger={`${centralCircle.staggerMs}ms`}
-                style:--circle-scale={`${centralCircle.scale}`}
                 style:--circle-opacity={`${centralCircle.opacity}`}
             >
                 <MagicCircleSvg
                     circle={centralCircle.circle}
                     index={centralCircle.index}
-                    {animationMode}
+                    animationMode={centralAnimationMode}
                 />
             </div>
         {/if}
 
-        {#each orbitingCircles as item (item.index)}
-            <div
-                class="orbit-path"
-                style:--orbit-angle={`${item.angle}deg`}
-                style:--orbit-direction={item.direction}
-                style:--circle-stagger={`${item.staggerMs}ms`}
-            >
+        <div class="polygon-system">
+            {#each polygonCircles as item (item.index)}
                 <div
-                    class="orbiting-circle"
-                    style:--circle-scale={`${item.scale}`}
-                    style:--circle-opacity={`${item.opacity}`}
+                    class="polygon-vertex"
+                    style:--vertex-x={item.vertexX}
+                    style:--vertex-y={item.vertexY}
+                    style:--circle-stagger={`${item.staggerMs}ms`}
                 >
-                    <MagicCircleSvg
-                        circle={item.circle}
-                        index={item.index}
-                        {animationMode}
-                    />
+                    <div class="polygon-counter-rotation">
+                        <div
+                            class="polygon-circle"
+                            style:--circle-opacity={`${item.opacity}`}
+                        >
+                            <MagicCircleSvg
+                                circle={item.circle}
+                                index={item.index}
+                                animationMode={vertexAnimationMode}
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
-        {/each}
+            {/each}
+        </div>
     </div>
 </div>
 
@@ -172,6 +211,7 @@
             radial-gradient(circle at center, rgba(128, 243, 236, 0.16), transparent 42%),
             linear-gradient(180deg, rgba(4, 8, 11, 0.92), rgba(0, 0, 0, 0.98));
         animation: transition-fill var(--transition-fill-duration) ease-out both;
+        isolation: isolate;
     }
 
     .node-composition-transition-overlay::after {
@@ -180,20 +220,40 @@
         inset: 0;
         pointer-events: none;
         background:
-            radial-gradient(circle at center, rgba(255, 255, 255, 0.98), rgba(142, 255, 245, 0.56) 28%, transparent 62%);
+            radial-gradient(circle at center, rgb(255, 255, 255), rgba(245, 255, 254, 0.98) 34%, rgba(255, 255, 255, 0.96) 100%);
         opacity: 0;
+        z-index: 4;
         animation: transition-flash var(--transition-flash-duration) ease-in var(--transition-flash-delay) forwards;
     }
 
-    .orbit-system {
+    .transition-star-field {
         position: absolute;
         inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.86;
+    }
+
+    .transition-star {
+        position: absolute;
+        width: var(--star-size);
+        height: var(--star-size);
+        border-radius: 50%;
+        background: var(--star-color);
+        box-shadow: var(--star-glow);
+        transform: translate(-50%, -50%);
+    }
+
+    .circle-system {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
         display: grid;
         place-items: center;
     }
 
     .central-circle,
-    .orbiting-circle {
+    .polygon-circle {
         opacity: 0;
         filter: saturate(1.28);
         animation: transition-circle-arrive var(--transition-fill-duration) ease-out var(--circle-stagger) both;
@@ -202,7 +262,6 @@
     .central-circle {
         position: relative;
         z-index: 2;
-        transform: scale(var(--circle-scale));
     }
 
     .central-circle :global(.magic-svg) {
@@ -210,27 +269,40 @@
         height: auto;
     }
 
-    .orbit-path {
+    .polygon-system {
         position: absolute;
         left: 50%;
         top: 50%;
         width: 0;
         height: 0;
-        transform: rotate(var(--orbit-angle));
-        animation: orbit-system-spin var(--orbit-duration) linear var(--transition-fill-duration) both;
-        animation-direction: var(--orbit-direction);
+        animation: polygon-system-orbit var(--orbit-duration) var(--orbit-easing) var(--transition-fill-duration) both;
     }
 
-    .orbiting-circle {
-        transform:
-            translateX(var(--orbit-radius))
-            translate(-50%, -50%)
-            scale(var(--circle-scale));
+    .polygon-vertex {
+        position: absolute;
+        left: var(--vertex-x);
+        top: var(--vertex-y);
+        width: var(--vertex-circle-size);
+        height: var(--vertex-circle-size);
+        display: grid;
+        place-items: center;
+        transform: translate(-50%, -50%);
     }
 
-    .orbiting-circle :global(.magic-svg) {
-        width: var(--orbiting-circle-size);
-        height: auto;
+    .polygon-counter-rotation {
+        width: 100%;
+        height: 100%;
+        animation: polygon-counter-rotation var(--orbit-duration) var(--orbit-easing) var(--transition-fill-duration) both;
+    }
+
+    .polygon-circle {
+        width: 100%;
+        height: 100%;
+    }
+
+    .polygon-circle :global(.magic-svg) {
+        width: 100%;
+        height: 100%;
     }
 
     .reduced-motion {
@@ -242,24 +314,14 @@
     }
 
     .reduced-motion .central-circle,
-    .reduced-motion .orbiting-circle {
+    .reduced-motion .polygon-circle {
         opacity: var(--circle-opacity);
         animation: none;
     }
 
-    .reduced-motion .central-circle {
-        transform: scale(var(--circle-scale));
-    }
-
-    .reduced-motion .orbit-path {
+    .reduced-motion .polygon-system,
+    .reduced-motion .polygon-counter-rotation {
         animation: none;
-    }
-
-    .reduced-motion .orbiting-circle {
-        transform:
-            translateX(var(--orbit-radius))
-            translate(-50%, -50%)
-            scale(var(--circle-scale));
     }
 
     @keyframes transition-fill {
@@ -284,13 +346,23 @@
         }
     }
 
-    @keyframes orbit-system-spin {
+    @keyframes polygon-system-orbit {
         from {
-            transform: rotate(var(--orbit-angle));
+            transform: rotate(0deg);
         }
 
         to {
-            transform: rotate(calc(var(--orbit-angle) + 360deg));
+            transform: rotate(calc(360deg * var(--orbit-turns)));
+        }
+    }
+
+    @keyframes polygon-counter-rotation {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(calc(-360deg * var(--orbit-turns)));
         }
     }
 
@@ -299,12 +371,12 @@
             opacity: 0;
         }
 
-        46% {
-            opacity: 1;
+        44% {
+            opacity: 0.18;
         }
 
         100% {
-            opacity: 0.92;
+            opacity: 1;
         }
     }
 
@@ -330,7 +402,7 @@
     }
 
     @media (max-width: 760px) {
-        .orbit-system {
+        .circle-system {
             transform: scale(0.86);
         }
     }
@@ -339,8 +411,9 @@
         .node-composition-transition-overlay,
         .node-composition-transition-overlay::after,
         .central-circle,
-        .orbit-path,
-        .orbiting-circle {
+        .polygon-system,
+        .polygon-counter-rotation,
+        .polygon-circle {
             animation: none;
         }
     }

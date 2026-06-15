@@ -30,6 +30,7 @@
         onSubmit,
         onBack,
         actionLeadIn,
+        supplementalContent,
         submitLabel = UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
         backLabel = CYOA_REGISTRATION_SUMMARY_TEXT.DEFAULT_BACK_LABEL,
         submitDisabled = false,
@@ -42,6 +43,7 @@
         onSubmit?: () => void;
         onBack?: () => void;
         actionLeadIn?: Snippet;
+        supplementalContent?: Snippet;
         submitLabel?: string;
         backLabel?: string;
         submitDisabled?: boolean;
@@ -66,6 +68,12 @@
         />
         <CyoaRegistrationSummaryFooter signatureName={summary.signatureName} />
     </section>
+
+    {#if supplementalContent}
+        <div class="summary-supplemental">
+            {@render supplementalContent()}
+        </div>
+    {/if}
 
     {#if onBack || onSubmit}
         {#if actionLeadIn}
@@ -144,6 +152,10 @@
         justify-content: flex-end;
         gap: 12px;
         flex-wrap: wrap;
+    }
+
+    .summary-supplemental {
+        width: 100%;
     }
 
     .disabled-submit-tooltip-host {

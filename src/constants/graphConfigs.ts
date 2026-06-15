@@ -45,3 +45,42 @@ export const MAGIC_EDGE_RENDERING_CONFIG = {
     DEFAULT_STROKE_WIDTH: 2,
     SELECTED_STROKE_WIDTH: 3.5,
 } as const;
+
+export const MAGIC_STAR_FIELD_CONFIG = {
+    COUNT: 700,
+    SEED: 731,
+    MIN_POSITION_PERCENT: 2,
+    MAX_POSITION_PERCENT: 98,
+    MIN_RADIUS_PX: 0.38,
+    MAX_RADIUS_PX: 1.05,
+    MIN_ALPHA: 0.2,
+    MAX_ALPHA: 0.58,
+    MIN_GLOW_PX: 3.2,
+    MAX_GLOW_PX: 7.2,
+    COLORS: [
+        '233, 199, 111',
+        '205, 234, 255',
+        '110, 214, 209',
+        '185, 150, 255',
+    ],
+} as const;
+
+export const MAGIC_GRAPH_RESULT_PREVIEW_CONFIG = {
+    NODE_SIZE: { width: 80, height: 80 },
+    BOUNDS_PADDING_PX: 96,
+    MIN_ASPECT_RATIO: 1.25,
+    MAX_ASPECT_RATIO: 2.4,
+    DEFAULT_ASPECT_RATIO: 1.7,
+    FIT_VIEW_PADDING: 0.2,
+    FIT_VIEW_MIN_ZOOM: 0.12,
+    FIT_VIEW_MAX_ZOOM: 1,
+} as const;
+
+export const MAGIC_GRAPH_RESULT_CAPTURE_CONFIG = {
+    WIDTH_PX: 900,
+    MIN_HEIGHT_PX: 260,
+    MOBILE_MIN_HEIGHT_PX: 220,
+    PIXEL_RATIO: 2,
+    BACKGROUND_COLOR: '#02030a',
+    CAPTURE_FRAME_DELAY_MS: 0,
+} as const;

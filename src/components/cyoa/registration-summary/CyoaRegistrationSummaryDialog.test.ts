@@ -58,4 +58,5 @@ describe('CyoaRegistrationSummaryDialog', () => {
         expect(html.indexOf(CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_BOTTOM_MESSAGE))
             .toBeLessThan(html.indexOf(`>${UI_BUTTON_TEXT.SUBMIT_REGISTRATION}</button>`));
     });
+
 });

@@ -13,6 +13,7 @@
         resolveRegistrationReviewAccess,
     } from '../../systems/app/appPhaseNavigationPolicy';
     import type { DirectAppPhaseTransitionRequest } from '../../systems/app/appPhaseTransition';
+    import CyoaRegistrationResultDetails from '../cyoa/registration-summary/CyoaRegistrationResultDetails.svelte';
     import CyoaRegistrationSummaryDialog from '../cyoa/registration-summary/CyoaRegistrationSummaryDialog.svelte';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
 
@@ -95,6 +96,10 @@
     }
 </script>
 
+{#snippet registrationResultDetails()}
+    <CyoaRegistrationResultDetails />
+{/snippet}
+
 {#if navigationPolicy.shouldRenderNavigation}
     <nav
         class="app-phase-navigation-tabs"
@@ -165,6 +170,9 @@
             ? submitRegistrationDialog
             : undefined}
         showSubmitGuidance={registrationDialogMode === REGISTRATION_DIALOG_MODES.SUBMIT}
+        supplementalContent={registrationDialogMode === REGISTRATION_DIALOG_MODES.REVIEW
+            ? registrationResultDetails
+            : undefined}
     />
 {/if}
 

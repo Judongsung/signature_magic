@@ -118,6 +118,7 @@ export interface MagicNodeData extends Record<string, unknown> {
     outputHandleCount?: number;
     cycleInputHandleIndex?: number;
     cycleInputHandleConnected?: boolean;
+    showTooltip?: boolean;
 }
 
 export interface MagicGraphNode {

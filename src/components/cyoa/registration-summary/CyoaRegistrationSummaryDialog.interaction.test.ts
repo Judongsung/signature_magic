@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { createRawSnippet, type Snippet } from 'svelte';
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -16,6 +17,7 @@ type DialogProps = {
     onClose?: () => void;
     onSubmit?: () => void;
     showSubmitGuidance?: boolean;
+    supplementalContent?: Snippet;
 };
 
 let mountedDialog: Record<string, unknown> | undefined;
@@ -142,6 +144,16 @@ describe('CyoaRegistrationSummaryDialog interaction', () => {
         getButtonByText(target, UI_BUTTON_TEXT.SUBMIT_REGISTRATION).click();
 
         expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes supplemental content into the registration summary', async () => {
+        const supplementalContent = createRawSnippet(() => ({
+            render: () => '<div class="dialog-result-marker">Result details</div>',
+        }));
+        const { target } = mountDialog({ supplementalContent });
+        await tick();
+
+        expect(target.querySelector('.summary-supplemental .dialog-result-marker')).not.toBeNull();
     });
 
     it('restores focus to the original trigger after unmount', async () => {
