@@ -4,15 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     NODE_COMPOSITION_TRANSITION_CONFIG,
 } from '../../constants/magicCircleConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
-import { graphStore } from '../../stores/graphStore.svelte';
+import {
+    createSingleNodeCircleFixture,
+    resetGraphStoreFixture,
+} from '../../test-utils/graphFixtures';
 import type { CirclePath } from '../../types/magic';
 import NodeCompositionTransitionOverlay from './NodeCompositionTransitionOverlay.svelte';
 
-const EMPTY_EFFECTS = {
-    nodeEffects: [],
-    finalEffects: [],
-};
 const TOTAL_TRANSITION_DURATION_MS =
     NODE_COMPOSITION_TRANSITION_CONFIG.FILL_DURATION_MS
     + NODE_COMPOSITION_TRANSITION_CONFIG.SPIN_DURATION_MS
@@ -21,39 +19,11 @@ const TOTAL_TRANSITION_DURATION_MS =
 let mountedOverlay: Record<string, unknown> | undefined;
 
 function resetGraphStore(): void {
-    graphStore.clear();
-    graphStore.setExternalStatEffects(EMPTY_EFFECTS);
+    resetGraphStoreFixture();
 }
 
 function createSingleNodeCircle(): CirclePath[] {
-    graphStore.addNode('ignition', { x: 0, y: 0 });
-    const userNode = graphStore.nodes.find(node => node.data.magicType === 'ignition')!;
-    const sourceEdge = graphStore.prepareEdge({
-        source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-        target: userNode.id,
-        sourceHandle: 'output-0',
-        targetHandle: 'input-0',
-    });
-    const outputEdge = graphStore.prepareEdge({
-        source: userNode.id,
-        target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-        sourceHandle: 'output-0',
-        targetHandle: 'input-0',
-    });
-    graphStore.edges = [
-        ...(sourceEdge ? [sourceEdge] : []),
-        ...(outputEdge ? [outputEdge] : []),
-    ];
-
-    return graphStore.circles.map(circle => ({
-        ...circle,
-        stats: { ...circle.stats },
-        nodes: circle.nodes.map(node => ({
-            ...node,
-            position: { ...node.position },
-            data: { ...node.data },
-        })),
-    }));
+    return createSingleNodeCircleFixture();
 }
 
 function createCircleSet(total: number): CirclePath[] {

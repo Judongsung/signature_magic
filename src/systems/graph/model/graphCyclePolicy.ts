@@ -1,10 +1,10 @@
 import type { Edge } from '@xyflow/svelte';
 import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
-import type { MagicGraphNode, MagicTypeConfig } from '../../../types/magic';
+import type { MagicGraphNode } from '../../../types/magic';
 import { buildOutEdgeMap } from '../topology/graphTopology';
 import { canReach, type ReachabilityCache } from '../topology/graphTraversal';
-
-export type MagicTypeLookup = readonly MagicTypeConfig[] | ReadonlyMap<string, MagicTypeConfig>;
+import { readMagicTypeConfig, type MagicTypeLookup } from './magicTypeLookup';
+export type { MagicTypeLookup } from './magicTypeLookup';
 
 export interface CycleCirclePath {
     closingEdge: Edge;
@@ -29,14 +29,6 @@ function findNode(
     context?: CyclePolicyContext
 ): MagicGraphNode | undefined {
     return context?.nodeMap?.get(nodeId) ?? nodes.find(node => node.id === nodeId);
-}
-
-function readMagicTypeConfig(
-    node: MagicGraphNode,
-    magicTypes: MagicTypeLookup
-): MagicTypeConfig | undefined {
-    if ('get' in magicTypes) return magicTypes.get(node.data.magicType);
-    return magicTypes.find(magicType => magicType.type === node.data.magicType);
 }
 
 export function allowsCycleFromOutput(

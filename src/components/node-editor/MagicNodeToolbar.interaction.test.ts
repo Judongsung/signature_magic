@@ -7,6 +7,7 @@ import {
     MAGIC_NODE_CATEGORY_LABELS,
     NODE_EDITOR_TEXT,
 } from '../../constants/uiText';
+import { getButtonContainingText } from '../../test-utils/componentQueries';
 import type { MagicType, MagicTypeConfig } from '../../types/magic';
 import MagicNodeToolbar from './MagicNodeToolbar.svelte';
 
@@ -68,14 +69,6 @@ async function unmountToolbar(): Promise<void> {
     mountedToolbar = undefined;
 }
 
-function getButtonByText(target: ParentNode, text: string): HTMLButtonElement {
-    const button = Array.from(target.querySelectorAll<HTMLButtonElement>('button'))
-        .find(candidate => candidate.textContent?.trim().includes(text));
-    expect(button).toBeDefined();
-
-    return button as HTMLButtonElement;
-}
-
 afterEach(async () => {
     await unmountToolbar();
     document.body.replaceChildren();
@@ -85,7 +78,7 @@ describe('MagicNodeToolbar interaction', () => {
     it('calls onToggleCategory when a category tab is clicked', () => {
         const { target, props } = mountToolbar();
 
-        getButtonByText(target, MAGIC_NODE_CATEGORY_LABELS.basic).click();
+        getButtonContainingText(target, MAGIC_NODE_CATEGORY_LABELS.basic).click();
 
         expect(props.onToggleCategory).toHaveBeenCalledTimes(1);
         expect(props.onToggleCategory).toHaveBeenCalledWith('basic');
@@ -94,7 +87,7 @@ describe('MagicNodeToolbar interaction', () => {
     it('calls onAddNode when a magic type action is clicked', () => {
         const { target, props } = mountToolbar();
 
-        getButtonByText(target, TEST_MAGIC_TYPE.label).click();
+        getButtonContainingText(target, TEST_MAGIC_TYPE.label).click();
 
         expect(props.onAddNode).toHaveBeenCalledTimes(1);
         expect(props.onAddNode).toHaveBeenCalledWith(TEST_MAGIC_TYPE.type);
@@ -114,7 +107,7 @@ describe('MagicNodeToolbar interaction', () => {
             value: dataTransfer,
         });
 
-        getButtonByText(target, TEST_MAGIC_TYPE.label).dispatchEvent(dragEvent);
+        getButtonContainingText(target, TEST_MAGIC_TYPE.label).dispatchEvent(dragEvent);
 
         expect(props.onDragStart).toHaveBeenCalledTimes(1);
         expect(props.onDragStart).toHaveBeenCalledWith(dragEvent, TEST_MAGIC_TYPE.type);
@@ -124,7 +117,7 @@ describe('MagicNodeToolbar interaction', () => {
     it('calls onClear when the clear button is clicked', () => {
         const { target, props } = mountToolbar();
 
-        getButtonByText(target, NODE_EDITOR_TEXT.CLEAR_ALL).click();
+        getButtonContainingText(target, NODE_EDITOR_TEXT.CLEAR_ALL).click();
 
         expect(props.onClear).toHaveBeenCalledTimes(1);
     });
@@ -132,7 +125,7 @@ describe('MagicNodeToolbar interaction', () => {
     it('opens the preset dialog from the preset button', () => {
         const { target, props } = mountToolbar();
 
-        getButtonByText(target, NODE_EDITOR_TEXT.PRESET_OPEN).click();
+        getButtonContainingText(target, NODE_EDITOR_TEXT.PRESET_OPEN).click();
 
         expect(props.onOpenPresetDialog).toHaveBeenCalledTimes(1);
     });

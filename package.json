@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "validate:data": "vitest run src/systems/validation/dataValidation.test.ts",
+    "validate:data:release": "vitest run src/systems/validation/dataReleaseValidation.release.test.ts",
     "test": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },

@@ -74,13 +74,21 @@
 
     <div class="toolbar-divider"></div>
 
-    <button class="action-btn preset-btn" type="button" onclick={onOpenPresetDialog}>
+    <button
+        class="node-editor-action-btn node-editor-action-btn--primary action-btn"
+        type="button"
+        onclick={onOpenPresetDialog}
+    >
         {NODE_EDITOR_TEXT.PRESET_OPEN}
     </button>
 
     <div class="toolbar-divider"></div>
 
-    <button class="action-btn clear-btn" type="button" onclick={onClear}>
+    <button
+        class="node-editor-action-btn node-editor-action-btn--danger action-btn"
+        type="button"
+        onclick={onClear}
+    >
         {NODE_EDITOR_TEXT.CLEAR_ALL}
     </button>
 
@@ -187,8 +195,7 @@
     }
 
     .drag-btn:focus-visible,
-    .category-tab:focus-visible,
-    .action-btn:focus-visible {
+    .category-tab:focus-visible {
         outline: 2px solid var(--node-editor-starlight);
         outline-offset: 2px;
     }
@@ -219,49 +226,7 @@
 
     .action-btn {
         padding: 6px 13px;
-        border-radius: var(--node-editor-radius-md);
-        font-size: 13px;
         font-weight: 600;
-        cursor: pointer;
-        border: 1px solid;
-        transition:
-            background var(--node-editor-transition-fast),
-            border-color var(--node-editor-transition-fast),
-            box-shadow var(--node-editor-transition-fast),
-            color var(--node-editor-transition-fast);
-    }
-
-    .action-btn:disabled,
-    .preset-btn:disabled {
-        cursor: not-allowed;
-        opacity: 0.52;
-        box-shadow: none;
-    }
-
-    .preset-btn {
-        background: var(--node-editor-button-bg);
-        color: var(--node-editor-text-strong);
-        border-color: var(--node-editor-button-hover-border);
-        box-shadow: var(--node-editor-button-hover-shadow);
-    }
-
-    .preset-btn:not(:disabled):hover {
-        color: var(--node-editor-button-active-text);
-        border-color: var(--node-editor-button-active-border);
-        background: var(--node-editor-button-active-bg);
-        box-shadow: var(--node-editor-button-active-shadow);
-    }
-
-    .clear-btn {
-        background: var(--node-editor-danger-bg);
-        color: var(--node-editor-danger-text);
-        border-color: var(--node-editor-danger-border);
-    }
-
-    .clear-btn:not(:disabled):hover {
-        background: var(--node-editor-danger-hover-bg);
-        border-color: var(--node-editor-danger-text);
-        box-shadow: var(--node-editor-danger-shadow);
     }
 
     .toolbar-hint {

@@ -77,14 +77,3 @@
     canSubmitRegistration={choiceStore.canContinue}
     onDirectNextPhaseRequest={handleDirectNextPhaseRequest}
 />
-
-<style>
-    :global(body) {
-        margin: 0;
-        padding: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #000;
-        color: #fff;
-        overflow: auto;
-    }
-</style>

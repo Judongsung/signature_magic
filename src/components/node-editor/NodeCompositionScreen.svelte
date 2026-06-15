@@ -6,10 +6,18 @@
     import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../constants/magicCircleConfigs';
     import { graphStore } from '../../stores/graphStore.svelte';
     import {
-        createMagicGraphPresetOption,
         createMagicGraphPresetOptionValue,
         MAGIC_GRAPH_PRESET_SOURCES,
     } from '../../systems/graph/presets/magicGraphPresets';
+    import {
+        createMagicGraphPresetOptions,
+        resolveMagicGraphPresetSelection,
+    } from '../../systems/graph/presets/magicGraphPresetOptions';
+    import {
+        NODE_COMPOSITION_PANE_RESIZE_CONFIG,
+        resolvePanePercentFromKey,
+        resolvePanePercentFromPointer,
+    } from '../../systems/graph/editor/paneResize';
     import {
         deleteStoredMagicGraphPreset,
         loadStoredMagicGraphPresets,
@@ -21,19 +29,13 @@
     import MagicNodeEditor from './MagicNodeEditor.svelte';
     import MagicNodePresetDialog from './MagicNodePresetDialog.svelte';
 
-    const DEFAULT_EDITOR_PANE_PERCENT = 50;
-    const MIN_EDITOR_PANE_PERCENT = 30;
-    const MAX_EDITOR_PANE_PERCENT = 75;
-    const PANE_RESIZER_KEY_STEP_PERCENT = 5;
-    const COMPACT_LAYOUT_MEDIA_QUERY = '(max-width: 900px)';
-    const PRIMARY_POINTER_BUTTON = 0;
     const builtInPresets = magicGraphPresetsData as MagicGraphPresetConfig[];
     const initialPresetValue = builtInPresets[0]
         ? createMagicGraphPresetOptionValue(MAGIC_GRAPH_PRESET_SOURCES.BUILT_IN, builtInPresets[0].id)
         : '';
 
     let appContainerElement: HTMLDivElement | undefined;
-    let editorPanePercent = $state(DEFAULT_EDITOR_PANE_PERCENT);
+    let editorPanePercent = $state<number>(NODE_COMPOSITION_PANE_RESIZE_CONFIG.DEFAULT_PERCENT);
     let isResizing = $state(false);
     let isCompactLayout = $state(false);
     let userPresets = $state<MagicGraphPresetConfig[]>(loadStoredMagicGraphPresets());
@@ -42,37 +44,20 @@
 
     const editorPaneSize = $derived(`${editorPanePercent}%`);
     const resizerOrientation = $derived(isCompactLayout ? 'horizontal' : 'vertical');
-    const presetOptions = $derived([
-        ...builtInPresets.map(preset =>
-            createMagicGraphPresetOption(preset, MAGIC_GRAPH_PRESET_SOURCES.BUILT_IN)
-        ),
-        ...userPresets.map(preset =>
-            createMagicGraphPresetOption(preset, MAGIC_GRAPH_PRESET_SOURCES.USER)
-        ),
-    ]);
-    const selectedPresetOption = $derived(
-        presetOptions.find(option => option.value === selectedPresetValue)
-    );
-    const selectedPresetIsUser = $derived(
-        selectedPresetOption?.source === MAGIC_GRAPH_PRESET_SOURCES.USER
-    );
+    const presetOptions = $derived(createMagicGraphPresetOptions(builtInPresets, userPresets));
+    const presetSelection = $derived(resolveMagicGraphPresetSelection(presetOptions, selectedPresetValue));
+    const selectedPresetOption = $derived(presetSelection.selectedPresetOption);
+    const selectedPresetIsUser = $derived(presetSelection.selectedPresetIsUser);
     const resizerTabIndex = $derived(isPresetDialogOpen ? -1 : 0);
-
-    function clampPanePercent(value: number): number {
-        return Math.min(MAX_EDITOR_PANE_PERCENT, Math.max(MIN_EDITOR_PANE_PERCENT, value));
-    }
 
     function updatePanePercentFromPointer(event: PointerEvent) {
         const containerRect = appContainerElement?.getBoundingClientRect();
         if (!containerRect) return;
 
-        const pointerOffset = isCompactLayout
-            ? event.clientY - containerRect.top
-            : event.clientX - containerRect.left;
-        const containerSize = isCompactLayout ? containerRect.height : containerRect.width;
-        if (containerSize <= 0) return;
+        const nextPanePercent = resolvePanePercentFromPointer(event, containerRect, isCompactLayout);
+        if (nextPanePercent === undefined) return;
 
-        editorPanePercent = clampPanePercent((pointerOffset / containerSize) * 100);
+        editorPanePercent = nextPanePercent;
     }
 
     function stopPaneResize() {
@@ -86,7 +71,7 @@
 
     function startPaneResize(event: PointerEvent) {
         if (isPresetDialogOpen) return;
-        if (event.button !== PRIMARY_POINTER_BUTTON) return;
+        if (event.button !== NODE_COMPOSITION_PANE_RESIZE_CONFIG.PRIMARY_POINTER_BUTTON) return;
 
         event.preventDefault();
         isResizing = true;
@@ -99,20 +84,11 @@
     function handlePaneResizeKeydown(event: KeyboardEvent) {
         if (isPresetDialogOpen) return;
 
-        const keyActions: Record<string, () => void> = {
-            ArrowLeft: () => editorPanePercent = clampPanePercent(editorPanePercent - PANE_RESIZER_KEY_STEP_PERCENT),
-            ArrowUp: () => editorPanePercent = clampPanePercent(editorPanePercent - PANE_RESIZER_KEY_STEP_PERCENT),
-            ArrowRight: () => editorPanePercent = clampPanePercent(editorPanePercent + PANE_RESIZER_KEY_STEP_PERCENT),
-            ArrowDown: () => editorPanePercent = clampPanePercent(editorPanePercent + PANE_RESIZER_KEY_STEP_PERCENT),
-            Home: () => editorPanePercent = MIN_EDITOR_PANE_PERCENT,
-            End: () => editorPanePercent = MAX_EDITOR_PANE_PERCENT,
-            Enter: () => editorPanePercent = DEFAULT_EDITOR_PANE_PERCENT,
-        };
-        const action = keyActions[event.key];
-        if (!action) return;
+        const nextPanePercent = resolvePanePercentFromKey(editorPanePercent, event.key);
+        if (nextPanePercent === undefined) return;
 
         event.preventDefault();
-        action();
+        editorPanePercent = nextPanePercent;
     }
 
     function openPresetDialog() {
@@ -150,7 +126,7 @@
     }
 
     onMount(() => {
-        const mediaQuery = window.matchMedia(COMPACT_LAYOUT_MEDIA_QUERY);
+        const mediaQuery = window.matchMedia(NODE_COMPOSITION_PANE_RESIZE_CONFIG.COMPACT_LAYOUT_MEDIA_QUERY);
 
         function syncCompactLayout(event: MediaQueryList | MediaQueryListEvent) {
             isCompactLayout = event.matches;
@@ -186,8 +162,8 @@
             aria-disabled={isPresetDialogOpen}
             aria-label={NODE_EDITOR_TEXT.PANE_RESIZER_ARIA_LABEL}
             aria-orientation={resizerOrientation}
-            aria-valuemin={MIN_EDITOR_PANE_PERCENT}
-            aria-valuemax={MAX_EDITOR_PANE_PERCENT}
+            aria-valuemin={NODE_COMPOSITION_PANE_RESIZE_CONFIG.MIN_PERCENT}
+            aria-valuemax={NODE_COMPOSITION_PANE_RESIZE_CONFIG.MAX_PERCENT}
             aria-valuenow={Math.round(editorPanePercent)}
             tabindex={resizerTabIndex}
             onpointerdown={startPaneResize}

@@ -254,6 +254,68 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+.node-editor-action-btn {
+    border: 1px solid;
+    border-radius: var(--node-editor-radius-md);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition:
+        background var(--node-editor-transition-fast),
+        border-color var(--node-editor-transition-fast),
+        box-shadow var(--node-editor-transition-fast),
+        color var(--node-editor-transition-fast);
+}
+
+.node-editor-action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.52;
+    box-shadow: none;
+}
+
+.node-editor-action-btn:focus-visible {
+    outline: 2px solid var(--node-editor-starlight);
+    outline-offset: 2px;
+}
+
+.node-editor-action-btn--primary,
+.node-editor-action-btn--secondary {
+    background: var(--node-editor-button-bg);
+    color: var(--node-editor-button-text);
+    border-color: var(--node-editor-button-border);
+}
+
+.node-editor-action-btn--primary {
+    color: var(--node-editor-text-strong);
+    border-color: var(--node-editor-button-hover-border);
+    box-shadow: var(--node-editor-button-hover-shadow);
+}
+
+.node-editor-action-btn--primary:not(:disabled):hover {
+    color: var(--node-editor-button-active-text);
+    border-color: var(--node-editor-button-active-border);
+    background: var(--node-editor-button-active-bg);
+    box-shadow: var(--node-editor-button-active-shadow);
+}
+
+.node-editor-action-btn--secondary:not(:disabled):hover {
+    color: var(--node-editor-button-hover-text);
+    border-color: var(--node-editor-button-hover-border);
+    box-shadow: var(--node-editor-button-hover-shadow);
+}
+
+.node-editor-action-btn--danger {
+    background: var(--node-editor-danger-bg);
+    color: var(--node-editor-danger-text);
+    border-color: var(--node-editor-danger-border);
+}
+
+.node-editor-action-btn--danger:not(:disabled):hover {
+    background: var(--node-editor-danger-hover-bg);
+    border-color: var(--node-editor-danger-text);
+    box-shadow: var(--node-editor-danger-shadow);
+}
+
 /* Custom Scrollbar for vintage guild theme */
 ::-webkit-scrollbar {
     width: 10px;

@@ -9,6 +9,10 @@ import {
 } from '../../constants/uiText';
 import { appStore } from '../../stores/appStore.svelte';
 import { choiceStore } from '../../stores/choiceStore.svelte';
+import {
+    getButtonByText,
+    queryDialogElement,
+} from '../../test-utils/componentQueries';
 import AppPhaseNavigationTabs from './AppPhaseNavigationTabs.svelte';
 
 type NavigationProps = {
@@ -53,18 +57,6 @@ async function unmountTabs(): Promise<void> {
     mountedTabs = undefined;
 }
 
-function getButtonByText(target: ParentNode, text: string): HTMLButtonElement {
-    const button = Array.from(target.querySelectorAll<HTMLButtonElement>('button'))
-        .find(candidate => candidate.textContent?.trim() === text);
-    expect(button).toBeDefined();
-
-    return button as HTMLButtonElement;
-}
-
-function getDialog(target: ParentNode): HTMLElement | null {
-    return target.querySelector<HTMLElement>('[role="dialog"]');
-}
-
 afterEach(async () => {
     await unmountTabs();
     document.body.replaceChildren();
@@ -88,7 +80,7 @@ describe('AppPhaseNavigationTabs interaction', () => {
         nextButton.click();
         await tick();
 
-        expect(getDialog(target)).toBeNull();
+        expect(queryDialogElement(target)).toBeNull();
         expect(appStore.phase).toBe(APP_PHASES.CYOA);
     });
 
@@ -101,13 +93,13 @@ describe('AppPhaseNavigationTabs interaction', () => {
         getButtonByText(target, UI_BUTTON_TEXT.SUBMIT_REGISTRATION).click();
         await tick();
 
-        const dialog = getDialog(target);
+        const dialog = queryDialogElement(target);
         expect(dialog).not.toBeNull();
 
         getButtonByText(dialog as HTMLElement, UI_BUTTON_TEXT.SUBMIT_REGISTRATION).click();
         await tick();
 
-        expect(getDialog(target)).toBeNull();
+        expect(queryDialogElement(target)).toBeNull();
         expect(appStore.phase).toBe(APP_PHASES.NODE_INTRO_DIALOGUE);
     });
 
@@ -119,13 +111,13 @@ describe('AppPhaseNavigationTabs interaction', () => {
         getButtonByText(target, UI_BUTTON_TEXT.REVIEW_REGISTRATION).click();
         await tick();
 
-        const dialog = getDialog(target);
+        const dialog = queryDialogElement(target);
         expect(dialog).not.toBeNull();
 
         getButtonByText(dialog as HTMLElement, CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_LABEL).click();
         await tick();
 
-        expect(getDialog(target)).toBeNull();
+        expect(queryDialogElement(target)).toBeNull();
         expect(appStore.phase).toBe(APP_PHASES.CYOA);
     });
 

@@ -4,15 +4,10 @@ import { graphStore } from './graphStore.svelte';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
 import { isSystemMagicNode } from '../systems/graph/model/systemMagicNodes';
 import type { MagicGraphPresetConfig } from '../types/magic';
-
-const EMPTY_EFFECTS = {
-    nodeEffects: [],
-    finalEffects: [],
-};
+import { resetGraphStoreFixture } from '../test-utils/graphFixtures';
 
 function resetGraphStore(): void {
-    graphStore.clear();
-    graphStore.setExternalStatEffects(EMPTY_EFFECTS);
+    resetGraphStoreFixture();
 }
 
 function connection(source: string, target: string): Connection {

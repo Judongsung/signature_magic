@@ -7,8 +7,8 @@
     import { choiceStore } from '../../../stores/choiceStore.svelte';
     import CharacterSpeechBubble from '../../shared/CharacterSpeechBubble.svelte';
     import {
-        getDialogFocusTarget,
-        restoreDialogTriggerFocus,
+        activateDialogFocus,
+        closeDialogOnEscape,
         trapDialogFocus,
     } from '../../shared/dialogFocus';
     import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
@@ -27,24 +27,15 @@
     } = $props();
 
     let dialogElement: HTMLElement;
-    let triggerElement: Element | null = null;
 
     $effect(() => {
         if (!dialogElement) return;
 
-        triggerElement = document.activeElement;
-        getDialogFocusTarget(dialogElement).focus();
-
-        return () => {
-            restoreDialogTriggerFocus(triggerElement);
-        };
+        return activateDialogFocus(dialogElement);
     });
 
     function handleWindowKeydown(event: KeyboardEvent) {
-        if (event.key !== 'Escape') return;
-
-        event.preventDefault();
-        onClose();
+        closeDialogOnEscape(event, onClose);
     }
 
     function handleDialogKeydown(event: KeyboardEvent) {

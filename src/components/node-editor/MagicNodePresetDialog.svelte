@@ -5,8 +5,8 @@
     } from '../../systems/graph/presets/magicGraphPresets';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
     import {
-        getDialogFocusTarget,
-        restoreDialogTriggerFocus,
+        activateDialogFocus,
+        closeDialogOnEscape,
         trapDialogFocus,
     } from '../shared/dialogFocus';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
@@ -42,7 +42,6 @@
     } = $props();
 
     let dialogElement: HTMLElement;
-    let triggerElement: Element | null = null;
     let presetName = $state(NODE_EDITOR_TEXT.PRESET_DEFAULT_NAME);
     const builtInPresetOptions = $derived(
         presetOptions.filter(option => option.source === MAGIC_GRAPH_PRESET_SOURCES.BUILT_IN)
@@ -55,19 +54,11 @@
     $effect(() => {
         if (!dialogElement) return;
 
-        triggerElement = document.activeElement;
-        getDialogFocusTarget(dialogElement).focus();
-
-        return () => {
-            restoreDialogTriggerFocus(triggerElement);
-        };
+        return activateDialogFocus(dialogElement);
     });
 
     function handleWindowKeydown(event: KeyboardEvent) {
-        if (event.key !== 'Escape') return;
-
-        event.preventDefault();
-        onClose();
+        closeDialogOnEscape(event, onClose);
     }
 
     function handleDialogKeydown(event: KeyboardEvent) {
@@ -178,7 +169,11 @@
                         bind:value={presetName}
                         placeholder={NODE_EDITOR_TEXT.PRESET_NAME_PLACEHOLDER}
                     />
-                    <button class="action-btn preset-btn" type="submit" disabled={!canSubmitSave}>
+                    <button
+                        class="node-editor-action-btn node-editor-action-btn--primary action-btn"
+                        type="submit"
+                        disabled={!canSubmitSave}
+                    >
                         {NODE_EDITOR_TEXT.PRESET_SAVE}
                     </button>
                 </div>
@@ -188,7 +183,7 @@
         <footer class="preset-dialog-actions">
             <span class="tooltip-host action-tooltip-host">
                 <button
-                    class="action-btn preset-btn"
+                    class="node-editor-action-btn node-editor-action-btn--primary action-btn"
                     type="button"
                     onclick={loadPreset}
                     disabled={!canLoadPreset}
@@ -203,7 +198,7 @@
             </span>
             <span class="tooltip-host action-tooltip-host">
                 <button
-                    class="action-btn clear-btn"
+                    class="node-editor-action-btn node-editor-action-btn--danger action-btn"
                     type="button"
                     onclick={deletePreset}
                     disabled={!canDeletePreset}
@@ -216,7 +211,11 @@
                     description={NODE_EDITOR_TEXT.PRESET_DELETE_TOOLTIP}
                 />
             </span>
-            <button class="action-btn close-btn" type="button" onclick={onClose}>
+            <button
+                class="node-editor-action-btn node-editor-action-btn--secondary action-btn"
+                type="button"
+                onclick={onClose}
+            >
                 {NODE_EDITOR_TEXT.PRESET_CLOSE}
             </button>
         </footer>
@@ -412,54 +411,11 @@
 
     .action-btn {
         padding: 7px 13px;
-        border-radius: var(--node-editor-radius-md);
-        font-size: 13px;
-        font-weight: 700;
-        cursor: pointer;
-        border: 1px solid;
-        transition:
-            background var(--node-editor-transition-fast),
-            border-color var(--node-editor-transition-fast),
-            box-shadow var(--node-editor-transition-fast),
-            color var(--node-editor-transition-fast);
-    }
-
-    .action-btn:disabled {
-        cursor: not-allowed;
-        opacity: 0.52;
-        box-shadow: none;
-    }
-
-    .preset-btn,
-    .close-btn {
-        background: var(--node-editor-obsidian);
-        color: var(--node-editor-button-text);
-        border-color: var(--node-editor-button-border);
-    }
-
-    .preset-btn:not(:disabled):hover,
-    .close-btn:hover {
-        color: var(--node-editor-button-hover-text);
-        border-color: var(--node-editor-button-hover-border);
-        box-shadow: var(--node-editor-button-hover-shadow);
-    }
-
-    .clear-btn {
-        background: var(--node-editor-danger-bg);
-        color: var(--node-editor-danger-text);
-        border-color: var(--node-editor-danger-border);
-    }
-
-    .clear-btn:not(:disabled):hover {
-        background: var(--node-editor-danger-hover-bg);
-        border-color: var(--node-editor-danger-text);
-        box-shadow: var(--node-editor-danger-shadow);
     }
 
     .icon-close-btn:focus-visible,
     .preset-list-item:focus-visible,
-    .preset-save-row input:focus-visible,
-    .action-btn:focus-visible {
+    .preset-save-row input:focus-visible {
         outline: 2px solid var(--node-editor-starlight);
         outline-offset: 2px;
     }
@@ -476,7 +432,7 @@
             flex-direction: column;
         }
 
-        .preset-dialog-actions .action-btn {
+        .preset-dialog-actions .node-editor-action-btn {
             width: 100%;
         }
 

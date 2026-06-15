@@ -9,8 +9,8 @@ import {
     hasOtherCycleClosingEdgeFromSource,
     isCycleClosingEdge,
     type CyclePolicyContext,
-    type MagicTypeLookup,
 } from './graphCyclePolicy';
+import { readMagicTypeConfig, type MagicTypeLookup } from './magicTypeLookup';
 import { isProtectedSystemConnection } from './systemMagicNodes';
 
 export const DEFAULT_INPUT_HANDLE_ID = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID;
@@ -37,14 +37,6 @@ function findMagicTypeConfig(
     const node = findNode(nodes, nodeId, topology);
     if (!node) return undefined;
     return readMagicTypeConfig(node, magicTypes);
-}
-
-function readMagicTypeConfig(
-    node: MagicNode,
-    magicTypes: MagicTypeLookup
-): MagicTypeConfig | undefined {
-    if ('get' in magicTypes) return magicTypes.get(node.data.magicType);
-    return magicTypes.find(magicType => magicType.type === node.data.magicType);
 }
 
 export function resolveConnectionLimit(

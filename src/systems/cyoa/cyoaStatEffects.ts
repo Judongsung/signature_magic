@@ -1,7 +1,5 @@
-import type { CyoaChoiceRowData } from '../../types/cyoa';
+import type { CyoaChoiceRowData, CyoaRowSelections } from '../../types/cyoa';
 import type { MagicStatEffectBundle, MagicStatEffectConfig } from '../../types/magic';
-
-type RowSelections = Record<string, string[]>;
 
 export function createEmptyCyoaStatEffects(): MagicStatEffectBundle {
     return {
@@ -26,7 +24,7 @@ export function mapCyoaStatEffectsByChoiceId(
 }
 
 export function calculateCyoaStatEffects(
-    selectedChoiceIds: RowSelections,
+    selectedChoiceIds: CyoaRowSelections,
     effectsByChoiceId: ReadonlyMap<string, readonly MagicStatEffectConfig[]>
 ): MagicStatEffectBundle {
     const result = createEmptyCyoaStatEffects();

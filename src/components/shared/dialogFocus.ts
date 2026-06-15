@@ -28,6 +28,24 @@ export function restoreDialogTriggerFocus(triggerElement: Element | null): void 
     triggerElement.focus();
 }
 
+export function activateDialogFocus(dialogElement: HTMLElement): () => void {
+    const triggerElement = document.activeElement;
+
+    getDialogFocusTarget(dialogElement).focus();
+
+    return () => {
+        restoreDialogTriggerFocus(triggerElement);
+    };
+}
+
+export function closeDialogOnEscape(event: KeyboardEvent, onClose: () => void): boolean {
+    if (event.key !== 'Escape') return false;
+
+    event.preventDefault();
+    onClose();
+    return true;
+}
+
 export function trapDialogFocus(event: KeyboardEvent, dialogElement: HTMLElement): void {
     if (event.key !== 'Tab') return;
 

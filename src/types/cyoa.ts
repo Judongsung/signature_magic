@@ -146,3 +146,7 @@ export interface CyoaDialogueScriptData extends Omit<CyoaDialogueScriptConfig, '
     options: CyoaDialogueOptionData[];
     optionRows: CyoaDialogueOptionRowData[];
 }
+
+export type CyoaRowVisibility = Record<string, boolean>;
+export type CyoaRowSelections = Record<string, string[]>;
+export type CyoaInputValues = Record<string, string>;

@@ -7,11 +7,13 @@
     } from '../../../constants/uiText';
     import {
         buildCyoaRegistrationSummary,
-        type InputValues,
-        type RowSelections,
-        type RowVisibility,
     } from '../../../systems/cyoa/cyoaRegistrationSummary';
-    import type { CyoaChoiceRowData } from '../../../types/cyoa';
+    import type {
+        CyoaChoiceRowData,
+        CyoaInputValues,
+        CyoaRowSelections,
+        CyoaRowVisibility,
+    } from '../../../types/cyoa';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import CyoaRegistrationSummaryBody from './CyoaRegistrationSummaryBody.svelte';
     import CyoaRegistrationSummaryFooter from './CyoaRegistrationSummaryFooter.svelte';
@@ -34,9 +36,9 @@
         titleId = defaultTitleId,
     }: {
         rows?: CyoaChoiceRowData[];
-        visibleRowIds?: RowVisibility;
-        selectedChoiceIds?: RowSelections;
-        inputValues?: InputValues;
+        visibleRowIds?: CyoaRowVisibility;
+        selectedChoiceIds?: CyoaRowSelections;
+        inputValues?: CyoaInputValues;
         onSubmit?: () => void;
         onBack?: () => void;
         actionLeadIn?: Snippet;

@@ -5,7 +5,6 @@ import {
     MAGIC_EDGE_ID_PREFIX,
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_ID_PREFIX,
-    MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import {
@@ -26,6 +25,7 @@ import type { MagicNode, MagicType } from '../../../types/magic';
 import { isSystemMagicNode } from './systemMagicNodes';
 import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
 import { createReachabilityCache } from '../topology/graphTraversal';
+import { createUserMagicNodeData } from './magicNodeData';
 
 export type IdFactory = () => string;
 
@@ -49,14 +49,7 @@ export function createNode(
         id: `${MAGIC_NODE_ID_PREFIX}-${createId()}`,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position,
-        data: {
-            magicType,
-            nodeKind: MAGIC_NODE_KINDS.USER,
-            isRoot: true,
-            isLeaf: true,
-            inputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
-            outputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
-        },
+        data: createUserMagicNodeData(magicType),
     };
 }
 

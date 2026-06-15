@@ -6,6 +6,10 @@ import {
     UI_BUTTON_TEXT,
 } from '../../../constants/uiText';
 import { choiceStore } from '../../../stores/choiceStore.svelte';
+import {
+    getButtonByText,
+    getDialogElement,
+} from '../../../test-utils/componentQueries';
 import CyoaRegistrationSummaryDialog from './CyoaRegistrationSummaryDialog.svelte';
 
 type DialogProps = {
@@ -52,21 +56,6 @@ async function unmountDialog(): Promise<void> {
     mountedDialog = undefined;
 }
 
-function getDialog(target: ParentNode): HTMLElement {
-    const dialog = target.querySelector<HTMLElement>('[role="dialog"]');
-    expect(dialog).not.toBeNull();
-
-    return dialog as HTMLElement;
-}
-
-function getButtonByText(target: ParentNode, text: string): HTMLButtonElement {
-    const button = Array.from(target.querySelectorAll<HTMLButtonElement>('button'))
-        .find(candidate => candidate.textContent?.trim() === text);
-    expect(button).toBeDefined();
-
-    return button as HTMLButtonElement;
-}
-
 afterEach(async () => {
     await unmountDialog();
     document.body.replaceChildren();
@@ -82,7 +71,7 @@ describe('CyoaRegistrationSummaryDialog interaction', () => {
         const { target } = mountDialog();
         await tick();
 
-        expect(document.activeElement).toBe(getDialog(target));
+        expect(document.activeElement).toBe(getDialogElement(target));
     });
 
     it('closes from Escape, backdrop click, and the internal close action', async () => {

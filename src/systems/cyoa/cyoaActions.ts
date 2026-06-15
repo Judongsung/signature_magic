@@ -1,4 +1,12 @@
-import type { CyoaChoice, CyoaChoiceConfig, CyoaChoiceRowConfig, CyoaChoiceRowData } from '../../types/cyoa';
+import type {
+    CyoaChoice,
+    CyoaChoiceConfig,
+    CyoaChoiceRowConfig,
+    CyoaChoiceRowData,
+    CyoaInputValues,
+    CyoaRowSelections,
+    CyoaRowVisibility,
+} from '../../types/cyoa';
 import {
     CYOA_CHOICE_IMAGE_PLACEMENTS,
     CYOA_CHOICE_IMAGE_SIZES,
@@ -9,10 +17,6 @@ import {
     parseCyoaChoiceWidth,
     resolveCyoaLayoutColumns,
 } from './cyoaChoiceLayout';
-
-type RowVisibility = Record<string, boolean>;
-type RowSelections = Record<string, string[]>;
-type InputValues = Record<string, string>;
 
 const DEFAULT_REQUIRED_COUNT = 1;
 const INPUT_REQUIRED_COUNT = 1;
@@ -71,11 +75,11 @@ export function mapCyoaRows(
     return rows.map(row => mapCyoaRowConfig(row, resolveImagePath));
 }
 
-export function createInitialRowVisibility(rows: CyoaChoiceRowData[]): RowVisibility {
+export function createInitialRowVisibility(rows: CyoaChoiceRowData[]): CyoaRowVisibility {
     return resolveCyoaRowVisibility(rows, {});
 }
 
-export function createInitialInputValues(rows: CyoaChoiceRowData[]): InputValues {
+export function createInitialInputValues(rows: CyoaChoiceRowData[]): CyoaInputValues {
     return Object.fromEntries(
         rows
             .filter(row => row.input?.defaultValue)
@@ -83,11 +87,11 @@ export function createInitialInputValues(rows: CyoaChoiceRowData[]): InputValues
     );
 }
 
-function isChoiceSelected(selectedChoiceIds: RowSelections, choiceId: string): boolean {
+function isChoiceSelected(selectedChoiceIds: CyoaRowSelections, choiceId: string): boolean {
     return Object.values(selectedChoiceIds).some(rowSelections => rowSelections.includes(choiceId));
 }
 
-function isRowVisible(row: CyoaChoiceRowData, selectedChoiceIds: RowSelections): boolean {
+function isRowVisible(row: CyoaChoiceRowData, selectedChoiceIds: CyoaRowSelections): boolean {
     const condition = row.visibleWhen;
     if (!condition) return row.visible;
 
@@ -110,15 +114,15 @@ function isRowVisible(row: CyoaChoiceRowData, selectedChoiceIds: RowSelections):
 
 export function resolveCyoaRowVisibility(
     rows: CyoaChoiceRowData[],
-    selectedChoiceIds: RowSelections
-): RowVisibility {
+    selectedChoiceIds: CyoaRowSelections
+): CyoaRowVisibility {
     return Object.fromEntries(rows.map(row => [row.id, isRowVisible(row, selectedChoiceIds)]));
 }
 
 export function canContinueCyoa(
     rows: CyoaChoiceRowData[],
-    selectedChoiceIds: RowSelections,
-    inputValues: InputValues = {}
+    selectedChoiceIds: CyoaRowSelections,
+    inputValues: CyoaInputValues = {}
 ): boolean {
     return rows
         .filter(row => row.selectable && row.requiredCount > 0)
@@ -135,9 +139,9 @@ export function canContinueCyoa(
 
 export function toggleCyoaChoiceSelection(
     row: CyoaChoiceRowData,
-    selectedChoiceIds: RowSelections,
+    selectedChoiceIds: CyoaRowSelections,
     choiceId: string
-): RowSelections {
+): CyoaRowSelections {
     if (!row.selectable) return selectedChoiceIds;
 
     const rowSelections = selectedChoiceIds[row.id] ?? [];

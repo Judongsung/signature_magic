@@ -1,8 +1,10 @@
-import type { CyoaChoice, CyoaChoiceRowData } from '../../types/cyoa';
-
-export type RowVisibility = Record<string, boolean>;
-export type RowSelections = Record<string, string[]>;
-export type InputValues = Record<string, string>;
+import type {
+    CyoaChoice,
+    CyoaChoiceRowData,
+    CyoaInputValues,
+    CyoaRowSelections,
+    CyoaRowVisibility,
+} from '../../types/cyoa';
 
 export interface CyoaRegistrationSummaryInputItem {
     id: string;
@@ -26,9 +28,9 @@ export interface CyoaRegistrationSummaryModel {
 
 interface BuildCyoaRegistrationSummaryOptions {
     rows: readonly CyoaChoiceRowData[];
-    visibleRowIds: RowVisibility;
-    selectedChoiceIds: RowSelections;
-    inputValues: InputValues;
+    visibleRowIds: CyoaRowVisibility;
+    selectedChoiceIds: CyoaRowSelections;
+    inputValues: CyoaInputValues;
 }
 
 const SIGNATURE_INPUT_ID_PARTS = ['name'];
@@ -39,7 +41,7 @@ export function isCyoaRegistrationRequiredRow(row: CyoaChoiceRowData): boolean {
 
 function isSummaryRow(
     row: CyoaChoiceRowData,
-    visibleRowIds: RowVisibility
+    visibleRowIds: CyoaRowVisibility
 ): boolean {
     return visibleRowIds[row.id] || isCyoaRegistrationRequiredRow(row);
 }

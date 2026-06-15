@@ -4,6 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { NODE_EDITOR_TEXT } from '../../constants/uiText';
 import {
+    getButtonByText,
+    getDialogElement,
+} from '../../test-utils/componentQueries';
+import {
     MAGIC_GRAPH_PRESET_SOURCES,
     type MagicGraphPresetOption,
 } from '../../systems/graph/presets/magicGraphPresets';
@@ -79,21 +83,6 @@ async function unmountDialog(): Promise<void> {
     mountedDialog = undefined;
 }
 
-function getDialog(target: ParentNode): HTMLElement {
-    const dialog = target.querySelector<HTMLElement>('[role="dialog"]');
-    expect(dialog).toBeDefined();
-
-    return dialog as HTMLElement;
-}
-
-function getButtonByText(target: ParentNode, text: string): HTMLButtonElement {
-    const button = Array.from(target.querySelectorAll<HTMLButtonElement>('button'))
-        .find(candidate => candidate.textContent?.trim() === text);
-    expect(button).toBeDefined();
-
-    return button as HTMLButtonElement;
-}
-
 function getPresetButton(target: ParentNode, label: string): HTMLButtonElement {
     const button = Array.from(target.querySelectorAll<HTMLButtonElement>('.preset-list-item'))
         .find(candidate => candidate.textContent?.trim() === label);
@@ -116,7 +105,7 @@ describe('MagicNodePresetDialog interaction', () => {
         const { target } = mountDialog();
         await tick();
 
-        expect(document.activeElement).toBe(getDialog(target));
+        expect(document.activeElement).toBe(getDialogElement(target));
 
         await unmountDialog();
 
@@ -225,7 +214,7 @@ describe('MagicNodePresetDialog interaction', () => {
         const { target } = mountDialog();
         await tick();
 
-        const dialog = getDialog(target);
+        const dialog = getDialogElement(target);
         const firstFocusable = dialog.querySelector<HTMLButtonElement>('.icon-close-btn');
         const closeButton = getButtonByText(target, NODE_EDITOR_TEXT.PRESET_CLOSE);
         expect(firstFocusable).toBeDefined();

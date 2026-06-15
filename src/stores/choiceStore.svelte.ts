@@ -11,12 +11,14 @@ import {
     calculateCyoaStatEffects,
     mapCyoaStatEffectsByChoiceId,
 } from '../systems/cyoa/cyoaStatEffects';
-import type { CyoaChoiceRowConfig, CyoaChoiceRowData } from '../types/cyoa';
+import type {
+    CyoaChoiceRowConfig,
+    CyoaChoiceRowData,
+    CyoaInputValues,
+    CyoaRowSelections,
+    CyoaRowVisibility,
+} from '../types/cyoa';
 import type { MagicStatEffectBundle } from '../types/magic';
-
-type RowVisibility = Record<string, boolean>;
-type RowSelections = Record<string, string[]>;
-type InputValues = Record<string, string>;
 
 class ChoiceStore {
     readonly rows: CyoaChoiceRowData[] = mapCyoaRows(
@@ -24,9 +26,9 @@ class ChoiceStore {
         resolveCyoaImagePath
     );
 
-    selectedChoiceIds = $state<RowSelections>({});
-    inputValues = $state<InputValues>(createInitialInputValues(this.rows));
-    readonly visibleRowIds: RowVisibility = $derived(
+    selectedChoiceIds = $state<CyoaRowSelections>({});
+    inputValues = $state<CyoaInputValues>(createInitialInputValues(this.rows));
+    readonly visibleRowIds: CyoaRowVisibility = $derived(
         resolveCyoaRowVisibility(this.rows, this.selectedChoiceIds)
     );
     readonly statEffectsByChoiceId = mapCyoaStatEffectsByChoiceId(this.rows);

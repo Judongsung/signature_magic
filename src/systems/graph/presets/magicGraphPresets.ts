@@ -4,7 +4,6 @@ import {
     GRAPH_NODE_TYPES,
     MAGIC_EDGE_ID_PREFIX,
     MAGIC_NODE_HANDLE_CONFIG,
-    MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type {
@@ -18,6 +17,7 @@ import type {
 import { createUniqueId } from '../model/graphActions';
 import { createInitialSystemNodes, isSystemMagicNode } from '../model/systemMagicNodes';
 import type { GraphSnapshot } from '../model/graphEventHandlers';
+import { createUserMagicNodeData } from '../model/magicNodeData';
 
 export const MAGIC_GRAPH_PRESET_SOURCES = {
     BUILT_IN: 'builtIn',
@@ -141,14 +141,7 @@ function createUserNodeFromPreset(node: MagicGraphPresetNodeConfig): MagicNode {
         id: node.id,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position: { ...node.position },
-        data: {
-            magicType: node.magicType,
-            nodeKind: MAGIC_NODE_KINDS.USER,
-            isRoot: true,
-            isLeaf: true,
-            inputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
-            outputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
-        },
+        data: createUserMagicNodeData(node.magicType),
     };
 }
 
