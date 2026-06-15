@@ -23,7 +23,7 @@ describe('CyoaDialogueScript', () => {
         expect(html).toContain('등록 안내');
         expect(html).toContain('어서 오세요.');
         expect(html).toContain('마법사 길드?');
-        expect(html).toContain('접수 절차?');
+        expect(html).toContain('등록 절차?');
         expect(html).toContain('이름?');
         expect(html).not.toContain('길드가 맡는 업무를 알고 싶어요.');
         expect(html).not.toContain('aria-pressed="true"');

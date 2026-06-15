@@ -12,6 +12,7 @@
         resolveAppPhaseNavigationPolicy,
         resolveRegistrationReviewAccess,
     } from '../../systems/app/appPhaseNavigationPolicy';
+    import type { DirectAppPhaseTransitionRequest } from '../../systems/app/appPhaseTransition';
     import CyoaRegistrationSummaryDialog from '../cyoa/registration-summary/CyoaRegistrationSummaryDialog.svelte';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
 
@@ -26,8 +27,10 @@
 
     let {
         canSubmitRegistration = false,
+        onDirectNextPhaseRequest,
     }: {
         canSubmitRegistration?: boolean;
+        onDirectNextPhaseRequest?: (request: DirectAppPhaseTransitionRequest) => boolean;
     } = $props();
 
     let registrationDialogMode = $state<RegistrationDialogMode | undefined>();
@@ -70,6 +73,14 @@
         }
 
         if (navigationPolicy.nextAction === APP_PHASE_NAVIGATION_NEXT_ACTIONS.MOVE_TO_NEXT_PHASE) {
+            if (!navigationPolicy.nextPhase) return;
+
+            const handled = onDirectNextPhaseRequest?.({
+                currentPhase: appStore.phase,
+                nextPhase: navigationPolicy.nextPhase,
+            });
+            if (handled) return;
+
             appStore.moveToNextPhase();
         }
     }

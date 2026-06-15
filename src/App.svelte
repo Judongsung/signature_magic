@@ -6,10 +6,18 @@
     import { appStore } from './stores/appStore.svelte';
     import { choiceStore } from './stores/choiceStore.svelte';
     import { graphStore } from './stores/graphStore.svelte';
+    import {
+        createNodeCompositionTransitionPlan,
+        type DirectAppPhaseTransitionRequest,
+        type NodeCompositionTransitionPlan,
+    } from './systems/app/appPhaseTransition';
     import AppPhaseNavigationTabs from './components/app/AppPhaseNavigationTabs.svelte';
     import CyoaRegistrationScreen from './components/cyoa/CyoaRegistrationScreen.svelte';
     import CyoaDialogueScreen from './components/cyoa/dialogue/CyoaDialogueScreen.svelte';
     import NodeCompositionScreen from './components/node-editor/NodeCompositionScreen.svelte';
+    import NodeCompositionTransitionOverlay from './components/node-editor/NodeCompositionTransitionOverlay.svelte';
+
+    let nodeCompositionTransition = $state<NodeCompositionTransitionPlan | undefined>();
 
     $effect(() => {
         graphStore.setExternalStatEffects(choiceStore.statEffects);
@@ -25,6 +33,26 @@
             }
             : undefined
     );
+
+    function handleDirectNextPhaseRequest(request: DirectAppPhaseTransitionRequest): boolean {
+        if (nodeCompositionTransition) return true;
+
+        const transitionPlan = createNodeCompositionTransitionPlan(request, graphStore.circles);
+        if (!transitionPlan) return false;
+
+        nodeCompositionTransition = transitionPlan;
+        return true;
+    }
+
+    function completeNodeCompositionTransition() {
+        const nextPhase = nodeCompositionTransition?.targetPhase;
+
+        nodeCompositionTransition = undefined;
+
+        if (!nextPhase) return;
+
+        appStore.setPhase(nextPhase);
+    }
 </script>
 
 {#if activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.DIALOGUE}
@@ -38,7 +66,17 @@
     <NodeCompositionScreen />
 {/if}
 
-<AppPhaseNavigationTabs canSubmitRegistration={choiceStore.canContinue} />
+{#if nodeCompositionTransition}
+    <NodeCompositionTransitionOverlay
+        circles={nodeCompositionTransition.circles}
+        onComplete={completeNodeCompositionTransition}
+    />
+{/if}
+
+<AppPhaseNavigationTabs
+    canSubmitRegistration={choiceStore.canContinue}
+    onDirectNextPhaseRequest={handleDirectNextPhaseRequest}
+/>
 
 <style>
     :global(body) {

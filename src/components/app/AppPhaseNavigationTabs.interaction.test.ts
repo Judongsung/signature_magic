@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
-import { afterEach, describe, expect, it } from 'vitest';
-import { APP_PHASES } from '../../constants/gameConfigs';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { APP_PHASES, type AppPhase } from '../../constants/gameConfigs';
 import {
     APP_PHASE_NAVIGATION_TEXT,
     CYOA_REGISTRATION_SUMMARY_TEXT,
@@ -13,6 +13,10 @@ import AppPhaseNavigationTabs from './AppPhaseNavigationTabs.svelte';
 
 type NavigationProps = {
     canSubmitRegistration?: boolean;
+    onDirectNextPhaseRequest?: (request: {
+        currentPhase: AppPhase;
+        nextPhase: AppPhase;
+    }) => boolean;
 };
 
 let mountedTabs: Record<string, unknown> | undefined;
@@ -123,5 +127,40 @@ describe('AppPhaseNavigationTabs interaction', () => {
 
         expect(getDialog(target)).toBeNull();
         expect(appStore.phase).toBe(APP_PHASES.CYOA);
+    });
+
+    it('lets node composition next navigation be handled by an external transition', async () => {
+        appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
+        const onDirectNextPhaseRequest = vi.fn(() => true);
+        const target = mountTabs({ onDirectNextPhaseRequest });
+        await tick();
+
+        getButtonByText(
+            target,
+            APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]
+        ).click();
+        await tick();
+
+        expect(onDirectNextPhaseRequest).toHaveBeenCalledWith({
+            currentPhase: APP_PHASES.NODE_COMPOSITION,
+            nextPhase: APP_PHASES.NODE_RESULT_DIALOGUE,
+        });
+        expect(appStore.phase).toBe(APP_PHASES.NODE_COMPOSITION);
+    });
+
+    it('falls back to direct next navigation when the external transition declines', async () => {
+        appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
+        const onDirectNextPhaseRequest = vi.fn(() => false);
+        const target = mountTabs({ onDirectNextPhaseRequest });
+        await tick();
+
+        getButtonByText(
+            target,
+            APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]
+        ).click();
+        await tick();
+
+        expect(onDirectNextPhaseRequest).toHaveBeenCalledOnce();
+        expect(appStore.phase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
     });
 });
