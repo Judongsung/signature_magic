@@ -53,8 +53,8 @@ const magicTypes = [
 function edge(
     source: string,
     target: string,
-    sourceHandle = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
-    targetHandle = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID
+    sourceHandle: string = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
+    targetHandle: string = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID
 ): Edge {
     return { id: `${source}-${target}`, source, target, sourceHandle, targetHandle };
 }

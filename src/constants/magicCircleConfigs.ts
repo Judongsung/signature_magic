@@ -29,4 +29,18 @@ export const MAGIC_CIRCLE_RENDERING_CONFIG = {
     DENSE_RING_THRESHOLD: 4,
     RING_STROKE_WIDTH: 1.4,
     DENSE_RING_STROKE_WIDTH: 1.15,
+    LIGHTWEIGHT_NODE_THRESHOLD: 100,
+    LIGHTWEIGHT_GLYPH_MARK_LIMIT: 8,
+    LOOP_BREATHE_SECONDS: 9,
+    BURST_SPIN_SECONDS: 0.8,
+    BURST_BREATHE_SECONDS: 0.8,
 } as const;
+
+export const MAGIC_CIRCLE_ANIMATION_MODES = {
+    STATIC: 'static',
+    BURST: 'burst',
+    LOOP: 'loop',
+} as const;
+
+export type MagicCircleAnimationMode =
+    (typeof MAGIC_CIRCLE_ANIMATION_MODES)[keyof typeof MAGIC_CIRCLE_ANIMATION_MODES];

@@ -2,6 +2,10 @@
 import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/magicCircleConfigs';
 import { magicGlyphMap, type MagicGlyphConfig } from './magicGlyphRegistry';
 import type { GlyphKind } from './magicGlyphShapes';
+import {
+    GRAPH_PERFORMANCE_OPERATION_IDS,
+    measureGraphOperation,
+} from '../diagnostics/graphPerformance';
 
 export type SpinDirection = 'normal' | 'reverse';
 
@@ -46,6 +50,7 @@ export interface NodeStarLayout {
 export interface MagicCircleRenderModel {
     id: string;
     stats: MagicStats;
+    lightweight: boolean;
     nodeStar?: NodeStarLayout;
     rings: NodeRingLayout[];
     bands: GlyphBandLayout[];
@@ -63,21 +68,45 @@ export function buildMagicCircleRenderModels(
     options: MagicCircleRenderOptions = DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS,
     glyphs: ReadonlyMap<MagicType, MagicGlyphConfig> = magicGlyphMap
 ): MagicCircleRenderModel[] {
+    return measureGraphOperation(
+        GRAPH_PERFORMANCE_OPERATION_IDS.BUILD_MAGIC_CIRCLE_RENDER_MODELS,
+        {
+            circleCount: circles.length,
+            nodeCount: countCircleNodes(circles),
+        },
+        () => buildMagicCircleRenderModelsNow(circles, options, glyphs)
+    );
+}
+
+function buildMagicCircleRenderModelsNow(
+    circles: CirclePath[],
+    options: MagicCircleRenderOptions,
+    glyphs: ReadonlyMap<MagicType, MagicGlyphConfig>
+): MagicCircleRenderModel[] {
+    const lightweight = countCircleNodes(circles) >= MAGIC_CIRCLE_RENDERING_CONFIG.LIGHTWEIGHT_NODE_THRESHOLD;
+
     return circles.map(circle => {
         const total = circle.nodes.length;
 
         return {
             id: circle.id,
             stats: circle.stats,
+            lightweight,
             nodeStar: buildNodeStar(circle.id, total, options),
             rings: circle.nodes.map((node, index) => ({
                 id: `${circle.id}-ring-${node.id}`,
                 node,
                 radius: nodeRadius(total, index, options),
             })),
-            bands: circle.nodes.map((node, index) => buildGlyphBand(circle.id, node, total, index, options, glyphs)),
+            bands: circle.nodes.map((node, index) =>
+                buildGlyphBand(circle.id, node, total, index, options, glyphs, lightweight)
+            ),
         };
     });
+}
+
+function countCircleNodes(circles: readonly CirclePath[]): number {
+    return circles.reduce((total, circle) => total + circle.nodes.length, 0);
 }
 
 function buildNodeStar(
@@ -167,16 +196,20 @@ function buildGlyphBand(
     total: number,
     index: number,
     options: MagicCircleRenderOptions,
-    glyphs: ReadonlyMap<MagicType, MagicGlyphConfig>
+    glyphs: ReadonlyMap<MagicType, MagicGlyphConfig>,
+    lightweight: boolean
 ): GlyphBandLayout {
     const definition = glyphs.get(node.data.magicType);
     if (!definition) {
         throw new Error(`Missing magic glyph config: ${node.data.magicType}`);
     }
 
-    const count = definition.baseCount
+    const fullCount = definition.baseCount
         + Math.min(index, MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_INDEX_COUNT_STEP_LIMIT)
         * MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_INDEX_COUNT_STEP;
+    const count = lightweight
+        ? Math.min(fullCount, MAGIC_CIRCLE_RENDERING_CONFIG.LIGHTWEIGHT_GLYPH_MARK_LIMIT)
+        : fullCount;
 
     return {
         id: `${circleId}-band-${node.id}`,

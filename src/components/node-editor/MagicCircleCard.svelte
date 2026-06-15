@@ -1,5 +1,9 @@
 ﻿<script lang="ts">
-    import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../constants/magicCircleConfigs';
+    import {
+        MAGIC_CIRCLE_ANIMATION_MODES,
+        MAGIC_CIRCLE_RENDERING_CONFIG,
+        type MagicCircleAnimationMode,
+    } from '../../constants/magicCircleConfigs';
     import { MAGIC_CIRCLE_TEXT } from '../../constants/uiText';
     import {
         DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS,
@@ -15,17 +19,35 @@
     let {
         circle,
         index,
+        animationMode = MAGIC_CIRCLE_ANIMATION_MODES.STATIC,
     }: {
         circle: MagicCircleRenderModel;
         index: number;
+        animationMode?: MagicCircleAnimationMode;
     } = $props();
 
     function colorFor(magicType: keyof typeof magicTypeColorMap): string {
         return magicTypeColorMap[magicType] ?? 'var(--node-editor-circle-fallback-color)';
     }
+
+    function spinDurationFor(bandDuration: number): string {
+        const duration = animationMode === MAGIC_CIRCLE_ANIMATION_MODES.BURST
+            ? MAGIC_CIRCLE_RENDERING_CONFIG.BURST_SPIN_SECONDS
+            : bandDuration;
+
+        return `${duration}s`;
+    }
 </script>
 
-<div class="circle-card">
+<div
+    class="circle-card"
+    class:mode-static={animationMode === MAGIC_CIRCLE_ANIMATION_MODES.STATIC}
+    class:mode-burst={animationMode === MAGIC_CIRCLE_ANIMATION_MODES.BURST}
+    class:mode-loop={animationMode === MAGIC_CIRCLE_ANIMATION_MODES.LOOP}
+    data-animation-mode={animationMode}
+    style:--circle-loop-duration={`${MAGIC_CIRCLE_RENDERING_CONFIG.LOOP_BREATHE_SECONDS}s`}
+    style:--circle-burst-duration={`${MAGIC_CIRCLE_RENDERING_CONFIG.BURST_BREATHE_SECONDS}s`}
+>
     <div class="circle-label">{MAGIC_CIRCLE_TEXT.CIRCLE_LABEL} {index + 1}</div>
     <svg
         width={MAGIC_CIRCLE_RENDERING_CONFIG.VIEWBOX_SIZE}
@@ -98,8 +120,8 @@
             <g
                 class="glyph-band"
                 style:--glyph-color={color}
-                style:animation-duration={`${band.spinDuration}s`}
-                style:animation-direction={band.spinDirection}
+                style:--glyph-spin-duration={spinDurationFor(band.spinDuration)}
+                style:--glyph-spin-direction={band.spinDirection}
             >
                 {#each band.marks as mark}
                     <g
@@ -137,7 +159,9 @@
         transition:
             border-color var(--node-editor-transition-medium),
             box-shadow var(--node-editor-transition-medium),
-            transform var(--node-editor-transition-medium);
+        transform var(--node-editor-transition-medium);
+        content-visibility: auto;
+        contain-intrinsic-size: 360px 430px;
     }
 
     .circle-card:hover {
@@ -158,7 +182,14 @@
         border-radius: 50%;
         border: 1px solid var(--node-editor-circle-border);
         box-shadow: var(--node-editor-circle-shadow);
-        animation: circle-breathe 9s ease-in-out infinite;
+    }
+
+    .mode-burst .magic-svg {
+        animation: circle-breathe var(--circle-burst-duration) ease-in-out 1;
+    }
+
+    .mode-loop .magic-svg {
+        animation: circle-breathe var(--circle-loop-duration) ease-in-out infinite;
     }
 
     .outer-ring,
@@ -205,8 +236,21 @@
 
     .glyph-band {
         transform-origin: 130px 130px;
+    }
+
+    .mode-burst .glyph-band,
+    .mode-loop .glyph-band {
         animation-name: spin;
+        animation-duration: var(--glyph-spin-duration);
+        animation-direction: var(--glyph-spin-direction);
         animation-timing-function: linear;
+    }
+
+    .mode-burst .glyph-band {
+        animation-iteration-count: 1;
+    }
+
+    .mode-loop .glyph-band {
         animation-iteration-count: infinite;
     }
 
@@ -265,8 +309,10 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .glyph-band,
-        .magic-svg {
+        .mode-burst .glyph-band,
+        .mode-loop .glyph-band,
+        .mode-burst .magic-svg,
+        .mode-loop .magic-svg {
             animation: none;
         }
     }

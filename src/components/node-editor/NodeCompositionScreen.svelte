@@ -3,6 +3,7 @@
     import { SvelteFlowProvider } from '@xyflow/svelte';
     import magicGraphPresetsData from '../../data/magicGraphPresets.json';
     import { NODE_EDITOR_TEXT } from '../../constants/uiText';
+    import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../constants/magicCircleConfigs';
     import { graphStore } from '../../stores/graphStore.svelte';
     import {
         createMagicGraphPresetOption,
@@ -195,7 +196,7 @@
             <span class="resizer-line"></span>
         </div>
         <div class="preview-pane">
-            <MagicCircleGenerator />
+            <MagicCircleGenerator animationMode={MAGIC_CIRCLE_ANIMATION_MODES.STATIC} />
         </div>
     </div>
 

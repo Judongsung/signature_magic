@@ -3,8 +3,10 @@ import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
 import type { MagicGraphNode, MagicTypeConfig } from '../../../types/magic';
 import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
 import {
+    createReachabilityCache,
     findNearestCommonReachableNode,
     reachableNodeIds,
+    type ReachabilityCache,
 } from '../topology/graphTraversal';
 import {
     resolveCycleCirclePaths,
@@ -20,6 +22,7 @@ export interface MagicGraphAnalysis {
     circleStartNodes: readonly MagicGraphNode[];
     cycleClosingEdges: readonly Edge[];
     cycleCirclePaths: readonly CycleCirclePath[];
+    reachabilityCache: ReachabilityCache;
 }
 
 export function buildMagicGraphAnalysis(
@@ -28,13 +31,18 @@ export function buildMagicGraphAnalysis(
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>
 ): MagicGraphAnalysis {
     const topology = buildGraphTopology(nodes, edges);
+    const reachabilityCache = createReachabilityCache();
     const rootIds = topology.rootIds;
     const rootReachableNodeIds = reachableNodeIds(topology, rootIds);
     const unrootedNodes = topology.nodes.filter(node => !rootReachableNodeIds.has(node.id));
     const mergeNodeId = rootIds.length > 1
-        ? findNearestCommonReachableNode(topology, rootIds)
+        ? findNearestCommonReachableNode(topology, rootIds, reachabilityCache)
         : undefined;
-    const cycleCirclePaths = resolveCycleCirclePaths(topology.edges, topology.nodes, magicTypeMap);
+    const cycleCirclePaths = resolveCycleCirclePaths(topology.edges, topology.nodes, magicTypeMap, {
+        outEdges: topology.outEdges,
+        nodeMap: topology.nodeMap,
+        reachabilityCache,
+    });
     const circleStartNodes = resolveCircleStartNodes(
         topology,
         rootReachableNodeIds,
@@ -51,6 +59,7 @@ export function buildMagicGraphAnalysis(
         circleStartNodes,
         cycleClosingEdges: cycleCirclePaths.map(path => path.closingEdge),
         cycleCirclePaths,
+        reachabilityCache,
     };
 }
 

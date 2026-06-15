@@ -1,13 +1,14 @@
 import type { Connection, Edge } from '@xyflow/svelte';
 import { MAGIC_NODE_HANDLE_CONFIG } from '../../../constants/graphConfigs';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
-import { buildOutEdgeMap } from '../topology/graphTopology';
-import { canReach } from '../topology/graphTraversal';
+import { buildGraphTopology, buildOutEdgeMap, type GraphTopology } from '../topology/graphTopology';
+import { canReach, createReachabilityCache, type ReachabilityCache } from '../topology/graphTraversal';
 import {
     canNodeReceiveCycleInput,
     hasCycleClosingEdgeFromSource,
     hasOtherCycleClosingEdgeFromSource,
     isCycleClosingEdge,
+    type CyclePolicyContext,
     type MagicTypeLookup,
 } from './graphCyclePolicy';
 import { isProtectedSystemConnection } from './systemMagicNodes';
@@ -18,16 +19,22 @@ export const DEFAULT_OUTPUT_HANDLE_ID = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_
 type Direction = 'inputs' | 'outputs';
 export type { MagicTypeLookup } from './graphCyclePolicy';
 
-function findNode(nodes: MagicNode[], nodeId: string): MagicNode | undefined {
-    return nodes.find(node => node.id === nodeId);
+function findNode(
+    nodes: MagicNode[],
+    nodeId: string,
+    topology?: GraphTopology
+): MagicNode | undefined {
+    return (topology?.nodeMap.get(nodeId) as MagicNode | undefined) ??
+        nodes.find(node => node.id === nodeId);
 }
 
 function findMagicTypeConfig(
     nodeId: string,
     nodes: MagicNode[],
-    magicTypes: MagicTypeLookup
+    magicTypes: MagicTypeLookup,
+    topology?: GraphTopology
 ): MagicTypeConfig | undefined {
-    const node = findNode(nodes, nodeId);
+    const node = findNode(nodes, nodeId, topology);
     if (!node) return undefined;
     return readMagicTypeConfig(node, magicTypes);
 }
@@ -105,30 +112,32 @@ export function isOutputLimitReached(
     sourceId: string,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: MagicTypeLookup
+    magicTypes: MagicTypeLookup,
+    topology: GraphTopology = buildGraphTopology(nodes, edges)
 ): boolean {
-    const sourceConfig = findMagicTypeConfig(sourceId, nodes, magicTypes);
+    const sourceConfig = findMagicTypeConfig(sourceId, nodes, magicTypes, topology);
     if (!sourceConfig) return true;
 
     const maxOutputs = resolveConnectionLimit(sourceConfig, 'outputs');
     if (maxOutputs === null) return false;
 
-    return edges.filter(e => e.source === sourceId).length >= maxOutputs;
+    return (topology.sourceEdges.get(sourceId)?.length ?? 0) >= maxOutputs;
 }
 
 export function isInputLimitReached(
     targetId: string,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: MagicTypeLookup
+    magicTypes: MagicTypeLookup,
+    topology: GraphTopology = buildGraphTopology(nodes, edges)
 ): boolean {
-    const targetConfig = findMagicTypeConfig(targetId, nodes, magicTypes);
+    const targetConfig = findMagicTypeConfig(targetId, nodes, magicTypes, topology);
     if (!targetConfig) return true;
 
     const maxInputs = resolveConnectionLimit(targetConfig, 'inputs');
     if (maxInputs === null) return false;
 
-    return edges.filter(e => e.target === targetId).length >= maxInputs;
+    return (topology.targetEdges.get(targetId)?.length ?? 0) >= maxInputs;
 }
 
 export function isDuplicateConnection(connection: Connection, edges: Edge[]): boolean {
@@ -137,37 +146,45 @@ export function isDuplicateConnection(connection: Connection, edges: Edge[]): bo
     return edges.some(e => e.source === source && e.target === target);
 }
 
-export function hasCycleDFS(connection: Connection, edges: Edge[]): boolean {
+export function hasCycleDFS(
+    connection: Connection,
+    edges: Edge[],
+    outEdges: ReadonlyMap<string, readonly string[]> = buildOutEdgeMap(edges),
+    reachabilityCache?: ReachabilityCache
+): boolean {
     const { source, target } = connection;
     if (!source || !target) return true;
-    return canReach({ outEdges: buildOutEdgeMap(edges) }, target, source);
+    return canReach({ outEdges }, target, source, new Set(), reachabilityCache);
 }
 
 export function isAllowedCycleConnection(
     connection: Connection,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: MagicTypeLookup
+    magicTypes: MagicTypeLookup,
+    context?: CyclePolicyContext
 ): boolean {
-    return isCycleClosingEdge(connection, edges, nodes, magicTypes);
+    return isCycleClosingEdge(connection, edges, nodes, magicTypes, context);
 }
 
 export function hasAllowedCycleConnectionFromSource(
     sourceId: string,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: MagicTypeLookup
+    magicTypes: MagicTypeLookup,
+    context?: CyclePolicyContext
 ): boolean {
-    return hasCycleClosingEdgeFromSource(sourceId, edges, nodes, magicTypes);
+    return hasCycleClosingEdgeFromSource(sourceId, edges, nodes, magicTypes, context);
 }
 
 export function hasOtherAllowedCycleConnectionFromSource(
     connection: Connection,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: MagicTypeLookup
+    magicTypes: MagicTypeLookup,
+    context?: CyclePolicyContext
 ): boolean {
-    return hasOtherCycleClosingEdgeFromSource(connection, edges, nodes, magicTypes);
+    return hasOtherCycleClosingEdgeFromSource(connection, edges, nodes, magicTypes, context);
 }
 
 export function isConnectionValid(
@@ -179,16 +196,38 @@ export function isConnectionValid(
     const { source, target } = connection;
 
     if (!source || !target || source === target) return false;
-    if (!findNode(nodes, source) || !findNode(nodes, target)) return false;
     if (isProtectedSystemConnection(connection)) return false;
 
     const validationEdges = filterEdgesReplacedByConnection(connection, edges);
-    const allowedCycleConnection = isAllowedCycleConnection(connection, validationEdges, nodes, magicTypes);
+    const validationTopology = buildGraphTopology(nodes, validationEdges);
+    const reachabilityCache = createReachabilityCache();
+    const validationCycleContext: CyclePolicyContext = {
+        outEdges: validationTopology.outEdges,
+        nodeMap: validationTopology.nodeMap,
+        reachabilityCache,
+    };
+
+    if (!findNode(nodes, source, validationTopology) || !findNode(nodes, target, validationTopology)) return false;
+
+    const allowedCycleConnection = isAllowedCycleConnection(
+        connection,
+        validationEdges,
+        nodes,
+        magicTypes,
+        validationCycleContext
+    );
     if (isDuplicateConnection(connection, validationEdges)) return false;
-    if (isOutputLimitReached(source, validationEdges, nodes, magicTypes)) return false;
-    if (allowedCycleConnection && hasOtherCycleClosingEdgeFromSource(connection, edges, nodes, magicTypes)) return false;
-    if (!allowedCycleConnection && isInputLimitReached(target, validationEdges, nodes, magicTypes)) return false;
-    if (!allowedCycleConnection && hasCycleDFS(connection, validationEdges)) return false;
+    if (isOutputLimitReached(source, validationEdges, nodes, magicTypes, validationTopology)) return false;
+    if (allowedCycleConnection) {
+        const edgeTopology = buildGraphTopology(nodes, edges);
+        if (hasOtherCycleClosingEdgeFromSource(connection, edges, nodes, magicTypes, {
+            outEdges: edgeTopology.outEdges,
+            nodeMap: edgeTopology.nodeMap,
+            reachabilityCache,
+        })) return false;
+    }
+    if (!allowedCycleConnection && isInputLimitReached(target, validationEdges, nodes, magicTypes, validationTopology)) return false;
+    if (!allowedCycleConnection && hasCycleDFS(connection, validationEdges, validationTopology.outEdges, reachabilityCache)) return false;
 
     return true;
 }

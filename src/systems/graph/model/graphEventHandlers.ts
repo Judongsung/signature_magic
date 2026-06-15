@@ -8,6 +8,10 @@ import {
     refreshNodeRoles,
 } from './graphActions';
 import { ensureSystemMagicNodes, isSystemMagicNode } from './systemMagicNodes';
+import {
+    GRAPH_PERFORMANCE_OPERATION_IDS,
+    measureGraphOperation,
+} from '../diagnostics/graphPerformance';
 
 export interface GraphSnapshot {
     nodes: MagicNode[];
@@ -57,6 +61,20 @@ export function removeDeletedGraphElements(
 }
 
 export function syncGraphTopology(
+    snapshot: GraphSnapshot,
+    magicTypes: MagicTypeLookup
+): GraphTopologyUpdate {
+    return measureGraphOperation(
+        GRAPH_PERFORMANCE_OPERATION_IDS.SYNC_GRAPH_TOPOLOGY,
+        {
+            nodeCount: snapshot.nodes.length,
+            edgeCount: snapshot.edges.length,
+        },
+        () => syncGraphTopologyNow(snapshot, magicTypes)
+    );
+}
+
+function syncGraphTopologyNow(
     snapshot: GraphSnapshot,
     magicTypes: MagicTypeLookup
 ): GraphTopologyUpdate {

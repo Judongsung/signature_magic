@@ -18,6 +18,10 @@ import {
     buildMagicGraphAnalysis,
     type MagicGraphAnalysis,
 } from './magicGraphAnalysis';
+import {
+    GRAPH_PERFORMANCE_OPERATION_IDS,
+    measureGraphOperation,
+} from '../diagnostics/graphPerformance';
 
 const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
     nodeEffects: [],
@@ -31,6 +35,24 @@ export function calculateMagic(
     edges: Edge[],
     magicTypes: readonly MagicTypeConfig[] = [],
     statEffects: MagicStatEffectBundle = EMPTY_MAGIC_STAT_EFFECTS
+): MagicCalculationResult {
+    return measureGraphOperation(
+        GRAPH_PERFORMANCE_OPERATION_IDS.CALCULATE_MAGIC,
+        {
+            nodeCount: nodes.length,
+            edgeCount: edges.length,
+            nodeEffectCount: statEffects.nodeEffects.length,
+            finalEffectCount: statEffects.finalEffects.length,
+        },
+        () => calculateMagicNow(nodes, edges, magicTypes, statEffects)
+    );
+}
+
+function calculateMagicNow(
+    nodes: MagicNode[],
+    edges: Edge[],
+    magicTypes: readonly MagicTypeConfig[],
+    statEffects: MagicStatEffectBundle
 ): MagicCalculationResult {
     const magicTypeMap = buildMagicTypeMap(magicTypes);
     const calculableGraph = filterCalculableMagicGraph(nodes, edges);
@@ -120,14 +142,13 @@ function expandCycleCircleChain(
 
     while (chain.length > 0) {
         const firstNode = chain[0];
-        const predecessorEdges = topology.edges.filter(edge =>
-            edge.target === firstNode.id &&
-            edge.id !== cyclePath.closingEdge.id
-        );
+        const predecessorEdges = (topology.targetEdges.get(firstNode.id) ?? [])
+            .filter(edge => edge.id !== cyclePath.closingEdge.id);
         if (predecessorEdges.length !== SINGLE_PREDECESSOR_COUNT) break;
 
         const predecessor = topology.nodeMap.get(predecessorEdges[0].source);
         if (!predecessor || chainNodeIds.has(predecessor.id)) break;
+        if ((topology.outEdges.get(predecessor.id)?.length ?? 0) > SINGLE_PREDECESSOR_COUNT) break;
 
         chain.unshift(predecessor);
         chainNodeIds.add(predecessor.id);
@@ -166,9 +187,9 @@ function collectCircleChains(
 
 export function computeNodeRoles(
     nodes: MagicNode[],
-    edges: Edge[]
+    edges: Edge[],
+    topology: GraphTopology = buildGraphTopology(nodes, edges)
 ): Map<string, { isRoot: boolean; isLeaf: boolean }> {
-    const topology = buildGraphTopology(nodes, edges);
     const hasSomeOutput = new Set(topology.edges.map(edge => edge.source));
 
     const roles = new Map<string, { isRoot: boolean; isLeaf: boolean }>();

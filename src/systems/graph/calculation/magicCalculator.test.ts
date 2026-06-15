@@ -253,8 +253,57 @@ describe('calculateCircles', () => {
         const circles = calculateCircles(nodes, edges, magicTypes);
 
         expect(circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
-            ['a', 'split', 'b', 'repeat'],
+            ['b', 'repeat'],
+            ['a', 'split'],
             ['other'],
+        ]);
+    });
+
+    it('does not expand nested cycle circles past their branch predecessor', () => {
+        const root = node('root', 'detect');
+        const split = node('split', 'branch');
+        const outerRepeat = node('outer-repeat', 'repeat');
+        const nestedTarget = node('nested-target', 'detect');
+        const nestedSplit = node('nested-split', 'branch');
+        const nestedRepeat = node('nested-repeat', 'repeat');
+        const output = node('output', 'stream');
+        const nodes = [
+            root,
+            split,
+            outerRepeat,
+            nestedTarget,
+            nestedSplit,
+            nestedRepeat,
+            output,
+        ];
+        const edges = [
+            edge('root', 'split'),
+            edge('split', 'outer-repeat'),
+            edge('outer-repeat', 'root'),
+            edge('split', 'nested-target'),
+            edge('nested-target', 'nested-split'),
+            edge('nested-split', 'nested-repeat'),
+            edge('nested-repeat', 'nested-target'),
+            edge('nested-split', 'output'),
+        ];
+        const magicTypes = [
+            {
+                type: 'repeat',
+                label: 'Repeat',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Repeat magic.',
+                connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+            },
+        ] as MagicTypeConfig[];
+
+        const circles = calculateCircles(nodes, edges, magicTypes);
+
+        expect(circles.map(circle => circle.nodes.map(n => n.id))).toEqual([
+            ['root', 'split', 'outer-repeat'],
+            ['nested-target', 'nested-split', 'nested-repeat'],
+            ['output'],
         ]);
     });
 });

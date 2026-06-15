@@ -19,10 +19,13 @@ import {
 import {
     canNodeReceiveCycleInput,
     isCycleClosingEdge,
+    type CyclePolicyContext,
 } from './graphCyclePolicy';
 import { computeNodeRoles } from '../calculation/magicCalculator';
 import type { MagicNode, MagicType } from '../../../types/magic';
 import { isSystemMagicNode } from './systemMagicNodes';
+import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
+import { createReachabilityCache } from '../topology/graphTraversal';
 
 export type IdFactory = () => string;
 
@@ -93,13 +96,19 @@ export function refreshNodeRoles(
     edges: Edge[],
     magicTypes: MagicTypeLookup
 ): { nodes: MagicNode[]; changed: boolean } {
-    const roles = computeNodeRoles(nodes, edges);
+    const topology = buildGraphTopology(nodes, edges);
+    const roles = computeNodeRoles(nodes, edges, topology);
+    const cycleContext: CyclePolicyContext = {
+        outEdges: topology.outEdges,
+        nodeMap: topology.nodeMap,
+        reachabilityCache: createReachabilityCache(),
+    };
     let changed = false;
 
     const updated = nodes.map(n => {
         const role = roles.get(n.id);
         if (!role) return n;
-        const handleCounts = resolveNodeHandleCounts(n, edges, magicTypes, nodes);
+        const handleCounts = resolveNodeHandleCounts(n, edges, magicTypes, nodes, topology, cycleContext);
         const nodeRole = isSystemMagicNode(n)
             ? {
                 isRoot: n.id === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
@@ -139,11 +148,12 @@ function findCycleInputEdge(
     nodeId: string,
     edges: Edge[],
     nodes: MagicNode[],
-    magicTypes: MagicTypeLookup
+    magicTypes: MagicTypeLookup,
+    topology: GraphTopology,
+    cycleContext: CyclePolicyContext
 ): Edge | undefined {
-    return edges.find(edge =>
-        edge.target === nodeId &&
-        isCycleClosingEdge(edge, edges, nodes, magicTypes)
+    return (topology.targetEdges.get(nodeId) ?? []).find(edge =>
+        isCycleClosingEdge(edge, edges, nodes, magicTypes, cycleContext)
     );
 }
 
@@ -153,9 +163,11 @@ function resolveCycleInputHandleState(
     nodes: MagicNode[],
     magicTypes: MagicTypeLookup,
     maxInputs: number | null,
-    usedInputCount: number
+    usedInputCount: number,
+    topology: GraphTopology,
+    cycleContext: CyclePolicyContext
 ): Pick<NodeHandleState, 'cycleInputHandleIndex' | 'cycleInputHandleConnected'> {
-    const cycleInputEdge = findCycleInputEdge(node.id, edges, nodes, magicTypes);
+    const cycleInputEdge = findCycleInputEdge(node.id, edges, nodes, magicTypes, topology, cycleContext);
     if (cycleInputEdge) {
         return {
             cycleInputHandleIndex: readHandleIndex(cycleInputEdge.targetHandle, DEFAULT_INPUT_HANDLE_ID),
@@ -169,7 +181,7 @@ function resolveCycleInputHandleState(
             cycleInputHandleConnected: undefined,
         };
     }
-    if (canNodeReceiveCycleInput(node.id, edges, nodes, magicTypes)) {
+    if (canNodeReceiveCycleInput(node.id, edges, nodes, magicTypes, cycleContext)) {
         return {
             cycleInputHandleIndex: maxInputs,
             cycleInputHandleConnected: false,
@@ -186,15 +198,22 @@ export function resolveNodeHandleCounts(
     node: MagicNode,
     edges: Edge[],
     magicTypes: MagicTypeLookup,
-    nodes: MagicNode[] = [node]
+    nodes: MagicNode[] = [node],
+    topology?: GraphTopology,
+    cycleContext?: CyclePolicyContext
 ): NodeHandleState {
+    const resolvedTopology = topology ?? buildGraphTopology(nodes, edges);
+    const resolvedCycleContext = cycleContext ?? {
+        outEdges: resolvedTopology.outEdges,
+        nodeMap: resolvedTopology.nodeMap,
+        reachabilityCache: createReachabilityCache(),
+    };
+    const shouldScanRawEdges = !topology;
     const maxInputs = resolveNodeConnectionLimit(node, magicTypes, 'inputs');
     const maxOutputs = resolveNodeConnectionLimit(node, magicTypes, 'outputs');
-    const usedInputs = new Set(edges
-        .filter(edge => edge.target === node.id)
+    const usedInputs = new Set(readNodeTargetEdges(node.id, edges, resolvedTopology, shouldScanRawEdges)
         .map(edge => edge.targetHandle ?? DEFAULT_INPUT_HANDLE_ID));
-    const usedOutputs = new Set(edges
-        .filter(edge => edge.source === node.id)
+    const usedOutputs = new Set(readNodeSourceEdges(node.id, edges, resolvedTopology, shouldScanRawEdges)
         .map(edge => edge.sourceHandle ?? DEFAULT_OUTPUT_HANDLE_ID));
     const cycleInputHandleState = resolveCycleInputHandleState(
         node,
@@ -202,7 +221,9 @@ export function resolveNodeHandleCounts(
         nodes,
         magicTypes,
         maxInputs,
-        usedInputs.size
+        usedInputs.size,
+        resolvedTopology,
+        resolvedCycleContext
     );
     const hasExtraCycleInputHandle = cycleInputHandleState.cycleInputHandleIndex !== undefined;
 
@@ -213,61 +234,90 @@ export function resolveNodeHandleCounts(
     };
 }
 
+function readNodeSourceEdges(
+    nodeId: string,
+    edges: Edge[],
+    topology: GraphTopology,
+    shouldScanRawEdges: boolean
+): readonly Edge[] {
+    return shouldScanRawEdges
+        ? edges.filter(edge => edge.source === nodeId)
+        : topology.sourceEdges.get(nodeId) ?? [];
+}
+
+function readNodeTargetEdges(
+    nodeId: string,
+    edges: Edge[],
+    topology: GraphTopology,
+    shouldScanRawEdges: boolean
+): readonly Edge[] {
+    return shouldScanRawEdges
+        ? edges.filter(edge => edge.target === nodeId)
+        : topology.targetEdges.get(nodeId) ?? [];
+}
+
 function readHandleIndex(handleId: string | null | undefined, fallbackHandleId: string): number {
     const id = handleId ?? fallbackHandleId;
     const match = id.match(/-(\d+)$/);
     return match ? Number(match[1]) : 0;
 }
 
-function normalizeDirectionalHandles(
+function buildNormalizedDirectionalHandleIds(
     edges: Edge[],
-    nodeId: string,
     direction: 'source' | 'target'
-): Edge[] {
+): Map<string, string> {
     const handleKey = direction === 'source' ? 'sourceHandle' : 'targetHandle';
     const fallbackHandleId = direction === 'source' ? DEFAULT_OUTPUT_HANDLE_ID : DEFAULT_INPUT_HANDLE_ID;
     const handlePrefix = direction === 'source'
         ? MAGIC_NODE_HANDLE_CONFIG.OUTPUT_PREFIX
         : MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX;
-    const nodeEdges = edges
-        .map((edge, index) => ({ edge, index }))
-        .filter(({ edge }) => edge[direction] === nodeId)
-        .sort((a, b) => {
+    const groupedEdges = new Map<string, { edge: Edge; index: number }[]>();
+    const nextHandleIds = new Map<string, string>();
+
+    edges.forEach((edge, index) => {
+        const nodeId = edge[direction];
+        const group = groupedEdges.get(nodeId) ?? [];
+        group.push({ edge, index });
+        groupedEdges.set(nodeId, group);
+    });
+
+    groupedEdges.forEach(nodeEdges => {
+        nodeEdges.sort((a, b) => {
             const indexDiff =
                 readHandleIndex(a.edge[handleKey], fallbackHandleId) -
                 readHandleIndex(b.edge[handleKey], fallbackHandleId);
             return indexDiff || a.index - b.index;
         });
 
-    if (nodeEdges.length === 0) return edges;
-
-    const nextHandleIds = new Map<string, string>();
-    // edge 삭제 뒤에는 남은 핸들 번호를 앞쪽부터 다시 채워 중간 빈칸을 없앤다.
-    nodeEdges.forEach(({ edge }, index) => {
-        nextHandleIds.set(edge.id, `${handlePrefix}-${index}`);
+        // edge 삭제 뒤에는 남은 핸들 번호를 앞쪽부터 다시 채워 중간 빈칸을 없앤다.
+        nodeEdges.forEach(({ edge }, index) => {
+            nextHandleIds.set(edge.id, `${handlePrefix}-${index}`);
+        });
     });
 
-    return edges.map(edge => {
-        const nextHandleId = nextHandleIds.get(edge.id);
-        if (!nextHandleId || edge[handleKey] === nextHandleId) return edge;
-        return { ...edge, [handleKey]: nextHandleId };
-    });
+    return nextHandleIds;
 }
 
 export function normalizeEdgeHandles(edges: Edge[]): Edge[] {
-    const nodeIds = new Set<string>();
-    edges.forEach(edge => {
-        nodeIds.add(edge.source);
-        nodeIds.add(edge.target);
-    });
+    const sourceHandleIds = buildNormalizedDirectionalHandleIds(edges, 'source');
+    const targetHandleIds = buildNormalizedDirectionalHandleIds(edges, 'target');
 
-    let normalized = edges;
-    nodeIds.forEach(nodeId => {
-        normalized = normalizeDirectionalHandles(normalized, nodeId, 'source');
-        normalized = normalizeDirectionalHandles(normalized, nodeId, 'target');
-    });
+    return edges.map(edge => {
+        const sourceHandle = sourceHandleIds.get(edge.id);
+        const targetHandle = targetHandleIds.get(edge.id);
+        if (
+            (!sourceHandle || edge.sourceHandle === sourceHandle) &&
+            (!targetHandle || edge.targetHandle === targetHandle)
+        ) {
+            return edge;
+        }
 
-    return normalized;
+        return {
+            ...edge,
+            ...(sourceHandle ? { sourceHandle } : {}),
+            ...(targetHandle ? { targetHandle } : {}),
+        };
+    });
 }
 
 export function filterEdgesForDeletedNodes(

@@ -1,5 +1,9 @@
 ﻿<script lang="ts">
     import { graphStore } from '../../stores/graphStore.svelte';
+    import {
+        MAGIC_CIRCLE_ANIMATION_MODES,
+        type MagicCircleAnimationMode,
+    } from '../../constants/magicCircleConfigs';
     import { MAGIC_CIRCLE_TEXT } from '../../constants/uiText';
     import {
         buildMagicCircleRenderModels,
@@ -7,7 +11,36 @@
     import MagicCircleCard from './MagicCircleCard.svelte';
     import MagicStatsGrid from './MagicStatsGrid.svelte';
 
-    const renderCircles = $derived(buildMagicCircleRenderModels(graphStore.circles));
+    let {
+        animationMode = MAGIC_CIRCLE_ANIMATION_MODES.STATIC,
+    }: {
+        animationMode?: MagicCircleAnimationMode;
+    } = $props();
+
+    let renderCircles = $state(buildMagicCircleRenderModels(graphStore.circles));
+    let renderModelFrame: number | undefined;
+
+    $effect(() => {
+        const circles = graphStore.circles;
+
+        if (typeof requestAnimationFrame !== 'function') {
+            renderCircles = buildMagicCircleRenderModels(circles);
+            return;
+        }
+
+        if (renderModelFrame !== undefined) cancelAnimationFrame(renderModelFrame);
+        renderModelFrame = requestAnimationFrame(() => {
+            renderModelFrame = undefined;
+            renderCircles = buildMagicCircleRenderModels(circles);
+        });
+
+        return () => {
+            if (renderModelFrame === undefined) return;
+
+            cancelAnimationFrame(renderModelFrame);
+            renderModelFrame = undefined;
+        };
+    });
 </script>
 
 <div class="generator-container">
@@ -34,7 +67,7 @@
 
     <div class="circles-grid">
         {#each renderCircles as circle, ci}
-            <MagicCircleCard {circle} index={ci} />
+            <MagicCircleCard {circle} index={ci} {animationMode} />
         {/each}
     </div>
 </div>

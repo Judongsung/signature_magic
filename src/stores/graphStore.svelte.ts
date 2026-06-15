@@ -11,6 +11,10 @@ import { isConnectionValid } from '../systems/graph/model/graphRules';
 import { magicTypeMap, magicTypes } from '../systems/graph/registry/magicTypeRegistry';
 import { createInitialSystemNodes } from '../systems/graph/model/systemMagicNodes';
 import {
+    GRAPH_PERFORMANCE_OPERATION_IDS,
+    measureGraphOperation,
+} from '../systems/graph/diagnostics/graphPerformance';
+import {
     createMagicGraphFromPreset,
     createMagicGraphPresetSnapshot,
     hasUserMagicGraphContent,
@@ -29,12 +33,21 @@ const EMPTY_EXTERNAL_STAT_EFFECTS: MagicStatEffectBundle = {
     nodeEffects: [],
     finalEffects: [],
 };
+const CONNECTION_VALIDATION_CACHE_KEY_SEPARATOR = '|';
+
+interface ConnectionValidationCache {
+    nodes: MagicNode[];
+    edges: Edge[];
+    key: string;
+    result: boolean;
+}
 
 class GraphStore {
     nodes = $state.raw<MagicNode[]>(createInitialSystemNodes());
     edges = $state.raw<Edge[]>([]);
     externalStatEffects = $state.raw<MagicStatEffectBundle>(EMPTY_EXTERNAL_STAT_EFFECTS);
     private topologySyncScheduled = false;
+    private connectionValidationCache: ConnectionValidationCache | undefined;
 
     readonly calculation: MagicCalculationResult = $derived(
         calculateMagic(this.nodes, this.edges, magicTypes, this.externalStatEffects)
@@ -60,7 +73,31 @@ class GraphStore {
             targetHandle: edge.targetHandle ?? null,
         };
 
-        return isConnectionValid(conn, this.edges, this.nodes, magicTypeMap);
+        const cacheKey = createConnectionValidationCacheKey(conn);
+        if (
+            this.connectionValidationCache?.nodes === this.nodes &&
+            this.connectionValidationCache.edges === this.edges &&
+            this.connectionValidationCache.key === cacheKey
+        ) {
+            return this.connectionValidationCache.result;
+        }
+
+        const result = measureGraphOperation(
+            GRAPH_PERFORMANCE_OPERATION_IDS.CHECK_CONNECTION,
+            {
+                nodeCount: this.nodes.length,
+                edgeCount: this.edges.length,
+            },
+            () => isConnectionValid(conn, this.edges, this.nodes, magicTypeMap)
+        );
+
+        this.connectionValidationCache = {
+            nodes: this.nodes,
+            edges: this.edges,
+            key: cacheKey,
+            result,
+        };
+        return result;
     }
 
     prepareEdge(connection: Connection): Edge | false {
@@ -126,3 +163,12 @@ class GraphStore {
 }
 
 export const graphStore = new GraphStore();
+
+function createConnectionValidationCacheKey(connection: Connection): string {
+    return [
+        connection.source ?? '',
+        connection.target ?? '',
+        connection.sourceHandle ?? '',
+        connection.targetHandle ?? '',
+    ].join(CONNECTION_VALIDATION_CACHE_KEY_SEPARATOR);
+}
