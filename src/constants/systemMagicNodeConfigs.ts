@@ -9,7 +9,7 @@ import {
 export const SYSTEM_MAGIC_NODE_CONFIGS = {
     MANA_SOURCE: {
         id: 'system-mana-source',
-        label: '마나 공급원',
+        label: '마나 근원',
         icon: '⊕',
         color: '#41d6a4',
         category: 'basic',

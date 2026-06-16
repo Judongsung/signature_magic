@@ -90,16 +90,19 @@ describe('graphStore', () => {
 
     it('clear resets the graph back to only the fixed system nodes', () => {
         graphStore.addNode('ignition', { x: 0, y: 0 });
+        graphStore.setSignatureMetadata({ name: 'Flame Spear', description: 'Burns bright.' });
         graphStore.clear();
 
         expect(graphStore.nodes).toHaveLength(2);
         expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
         expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
         expect(graphStore.edges).toHaveLength(0);
+        expect(graphStore.signatureMetadata).toEqual({ name: '', description: '' });
     });
 
     it('loads a preset by replacing the current graph and refreshing topology roles', () => {
         graphStore.addNode('stream', { x: 0, y: 0 });
+        graphStore.setSignatureMetadata({ name: 'Old Spell', description: 'Old note.' });
 
         graphStore.loadPreset(preset);
 
@@ -119,6 +122,7 @@ describe('graphStore', () => {
             'preset-source-ignition',
             'preset-ignition-output',
         ]);
+        expect(graphStore.signatureMetadata).toEqual({ name: '', description: '' });
         expect(graphStore.totalStats.power).toBe(4);
     });
 

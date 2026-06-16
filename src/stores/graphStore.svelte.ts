@@ -21,6 +21,7 @@ import {
 } from '../systems/graph/presets/magicGraphPresets';
 import type {
     CirclePath,
+    MagicSignatureMetadata,
     MagicCalculationResult,
     MagicGraphPresetConfig,
     MagicNode,
@@ -28,6 +29,7 @@ import type {
     MagicStats,
     MagicType,
 } from '../types/magic';
+import { EMPTY_MAGIC_SIGNATURE_METADATA } from '../types/magic';
 
 const EMPTY_EXTERNAL_STAT_EFFECTS: MagicStatEffectBundle = {
     nodeEffects: [],
@@ -46,6 +48,7 @@ class GraphStore {
     nodes = $state.raw<MagicNode[]>(createInitialSystemNodes());
     edges = $state.raw<Edge[]>([]);
     externalStatEffects = $state.raw<MagicStatEffectBundle>(EMPTY_EXTERNAL_STAT_EFFECTS);
+    signatureMetadata = $state.raw<MagicSignatureMetadata>(createEmptySignatureMetadata());
     private topologySyncScheduled = false;
     private connectionValidationCache: ConnectionValidationCache | undefined;
 
@@ -58,6 +61,13 @@ class GraphStore {
 
     setExternalStatEffects(statEffects: MagicStatEffectBundle): void {
         this.externalStatEffects = statEffects;
+    }
+
+    setSignatureMetadata(metadata: MagicSignatureMetadata): void {
+        this.signatureMetadata = {
+            name: metadata.name,
+            description: metadata.description,
+        };
     }
 
     addNode(magicType: MagicType, position: { x: number; y: number }): void {
@@ -122,6 +132,7 @@ class GraphStore {
     clear(): void {
         this.nodes = createInitialSystemNodes();
         this.edges = [];
+        this.signatureMetadata = createEmptySignatureMetadata();
     }
 
     loadPreset(preset: MagicGraphPresetConfig): void {
@@ -129,6 +140,7 @@ class GraphStore {
 
         this.nodes = next.nodes;
         this.edges = next.edges;
+        this.signatureMetadata = createEmptySignatureMetadata();
         this.syncTopology();
     }
 
@@ -163,6 +175,10 @@ class GraphStore {
 }
 
 export const graphStore = new GraphStore();
+
+function createEmptySignatureMetadata(): MagicSignatureMetadata {
+    return { ...EMPTY_MAGIC_SIGNATURE_METADATA };
+}
 
 function createConnectionValidationCacheKey(connection: Connection): string {
     return [

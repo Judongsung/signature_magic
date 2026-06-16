@@ -4,9 +4,31 @@
     import MagicCircleCompositionPreview from '../../node-editor/MagicCircleCompositionPreview.svelte';
     import MagicGraphResultPreview from '../../node-editor/MagicGraphResultPreview.svelte';
     import MagicStatsGrid from '../../node-editor/MagicStatsGrid.svelte';
+
+    const signatureName = $derived(
+        graphStore.signatureMetadata.name.trim() || CYOA_REGISTRATION_RESULT_TEXT.EMPTY_SIGNATURE_NAME
+    );
+    const signatureDescription = $derived(
+        graphStore.signatureMetadata.description.trim() ||
+            CYOA_REGISTRATION_RESULT_TEXT.EMPTY_SIGNATURE_DESCRIPTION
+    );
 </script>
 
 <section class="registration-result-details" aria-label={CYOA_REGISTRATION_RESULT_TEXT.ARIA_LABEL}>
+    <article class="result-section">
+        <h3>{CYOA_REGISTRATION_RESULT_TEXT.SIGNATURE_TITLE}</h3>
+        <dl class="signature-metadata">
+            <div>
+                <dt>{CYOA_REGISTRATION_RESULT_TEXT.SIGNATURE_NAME_LABEL}</dt>
+                <dd>{signatureName}</dd>
+            </div>
+            <div>
+                <dt>{CYOA_REGISTRATION_RESULT_TEXT.SIGNATURE_DESCRIPTION_LABEL}</dt>
+                <dd class="signature-description">{signatureDescription}</dd>
+            </div>
+        </dl>
+    </article>
+
     <article class="result-section">
         <h3>{CYOA_REGISTRATION_RESULT_TEXT.GRAPH_TITLE}</h3>
         <MagicGraphResultPreview nodes={graphStore.nodes} edges={graphStore.edges} />
@@ -59,6 +81,42 @@
         font-size: 15px;
         line-height: 1.25;
         letter-spacing: 0;
+    }
+
+    .signature-metadata {
+        margin: 0;
+        display: grid;
+        gap: 10px;
+    }
+
+    .signature-metadata div {
+        display: grid;
+        gap: 5px;
+        padding: 12px;
+        border: 1px solid var(--node-editor-stats-border);
+        border-radius: var(--node-editor-radius-sm);
+        background: var(--node-editor-stats-bg);
+    }
+
+    .signature-metadata dt,
+    .signature-metadata dd {
+        margin: 0;
+    }
+
+    .signature-metadata dt {
+        color: var(--node-editor-preview-section-label);
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .signature-metadata dd {
+        color: var(--node-editor-text);
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .signature-description {
+        white-space: pre-wrap;
     }
 
     .result-empty {

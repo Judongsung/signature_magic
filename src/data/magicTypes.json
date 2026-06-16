@@ -64,11 +64,11 @@
     },
     {
         "type": "coordinate",
-        "label": "좌표 지정",
+        "label": "지정",
         "icon": "⊙",
         "color": "#f1c40f",
         "category": "action",
-        "description": "마법이 발현할 위치 혹은 목표 지점을 지정한다.",
+        "description": "마법이 발현할 위치 혹은 목표 지점, 대상 등을 지정한다.",
         "stats": { "castingTime": 1, "instability": 0, "power": 0, "range": 3, "manaCost": 1, "duration": 0 }
     },
     {
@@ -77,7 +77,7 @@
         "icon": "↗",
         "color": "#1abc9c",
         "category": "action",
-        "description": "지정된 좌표로 이동시킨다.",
+        "description": "지정된 곳으로 이동시킨다.",
         "stats": { "castingTime": 1, "instability": 1, "power": 1, "range": 1, "manaCost": 2, "duration": 1 }
     },
     {
@@ -113,7 +113,7 @@
         "icon": "◌",
         "color": "#5dade2",
         "category": "extension",
-        "description": "효과가 넓게 퍼트린다.",
+        "description": "넓게 퍼트린다.",
         "stats": { "castingTime": 2, "instability": 4, "power": 1, "range": 6, "manaCost": 3, "duration": 1 }
     },
     {
@@ -150,7 +150,7 @@
         "icon": "✦",
         "color": "#85c1e9",
         "category": "extension",
-        "description": "출력을 낮추고 효과의 범위를 넓게 퍼트립니다.",
+        "description": "출력을 낮추고 효과의 범위를 넓게 퍼트린다.",
         "stats": { "castingTime": 2, "instability": 2, "power": -2, "range": 10, "manaCost": 3, "duration": 1 }
     },
     {
@@ -159,7 +159,7 @@
         "icon": "⇧",
         "color": "#ff6b6b",
         "category": "control",
-        "description": "효과의 출력이나 강도를 키웁니다.",
+        "description": "효과의 출력이나 강도를 키운다.",
         "stats": { "castingTime": 2, "instability": 3, "power": 5, "range": 1, "manaCost": 4, "duration": 1 }
     },
     {

@@ -84,6 +84,16 @@ export const EMPTY_MAGIC_STATS: MagicStats = {
     duration: 0,
 };
 
+export interface MagicSignatureMetadata {
+    name: string;
+    description: string;
+}
+
+export const EMPTY_MAGIC_SIGNATURE_METADATA: MagicSignatureMetadata = {
+    name: '',
+    description: '',
+};
+
 export interface MagicNodeConnectionLimits {
     // undefined는 기본 제한, null은 무제한, 0은 시스템 노드의 방향별 연결 금지를 뜻한다.
     maxInputs?: number | null;

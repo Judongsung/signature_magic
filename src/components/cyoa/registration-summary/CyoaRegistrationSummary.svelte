@@ -197,7 +197,8 @@
     .secondary-action {
         border: 1px solid var(--guild-action-secondary-border);
         background: var(--guild-action-secondary-bg);
-        color: var(--guild-action-text);
+        color: var(--guild-action-secondary-text);
+        box-shadow: var(--guild-action-secondary-shadow);
     }
 
     button:hover {

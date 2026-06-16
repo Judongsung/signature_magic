@@ -15,8 +15,11 @@
     import CyoaRegistrationScreen from './components/cyoa/CyoaRegistrationScreen.svelte';
     import CyoaDialogueScreen from './components/cyoa/dialogue/CyoaDialogueScreen.svelte';
     import NodeCompositionScreen from './components/node-editor/NodeCompositionScreen.svelte';
+    import NodeCompositionSignatureDialog from './components/node-editor/NodeCompositionSignatureDialog.svelte';
     import NodeCompositionTransitionOverlay from './components/node-editor/NodeCompositionTransitionOverlay.svelte';
+    import type { MagicSignatureMetadata } from './types/magic';
 
+    let pendingNodeCompositionTransition = $state<NodeCompositionTransitionPlan | undefined>();
     let nodeCompositionTransition = $state<NodeCompositionTransitionPlan | undefined>();
 
     $effect(() => {
@@ -35,13 +38,25 @@
     );
 
     function handleDirectNextPhaseRequest(request: DirectAppPhaseTransitionRequest): boolean {
-        if (nodeCompositionTransition) return true;
+        if (pendingNodeCompositionTransition || nodeCompositionTransition) return true;
 
         const transitionPlan = createNodeCompositionTransitionPlan(request, graphStore.circles);
         if (!transitionPlan) return false;
 
-        nodeCompositionTransition = transitionPlan;
+        pendingNodeCompositionTransition = transitionPlan;
         return true;
+    }
+
+    function cancelNodeCompositionSignatureDialog() {
+        pendingNodeCompositionTransition = undefined;
+    }
+
+    function submitNodeCompositionSignatureDialog(metadata: MagicSignatureMetadata) {
+        if (!pendingNodeCompositionTransition) return;
+
+        graphStore.setSignatureMetadata(metadata);
+        nodeCompositionTransition = pendingNodeCompositionTransition;
+        pendingNodeCompositionTransition = undefined;
     }
 
     function completeNodeCompositionTransition() {
@@ -64,6 +79,13 @@
     <CyoaRegistrationScreen />
 {:else if activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.NODE_COMPOSITION}
     <NodeCompositionScreen />
+{/if}
+
+{#if pendingNodeCompositionTransition}
+    <NodeCompositionSignatureDialog
+        onSubmit={submitNodeCompositionSignatureDialog}
+        onClose={cancelNodeCompositionSignatureDialog}
+    />
 {/if}
 
 {#if nodeCompositionTransition}

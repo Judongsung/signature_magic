@@ -2,15 +2,33 @@ import { APP_PHASES, type AppPhase, type MagicNodeCategory } from './gameConfigs
 import type { MagicStatKey } from '../types/magic';
 
 export const DIALOGUE_SCREEN_TEXT = {
-    CONTINUE_TO_CYOA: '서류를 작성한다.',
+    CONTINUE_TO_CYOA: '서류 작성',
 } as const;
 
 export const NODE_INTRO_DIALOGUE_SCREEN_TEXT = {
-    CONTINUE_TO_NODE_COMPOSITION: '시연 시작',
+    CONTINUE_TO_NODE_COMPOSITION: '시연 준비',
 } as const;
 
 export const NODE_RESULT_DIALOGUE_SCREEN_TEXT = {
-    CONTINUE_TO_NODE_RESULT: '시연 결과 확인',
+    CONTINUE_TO_NODE_RESULT: '시연 시작',
+} as const;
+
+export const NODE_COMPOSITION_SIGNATURE_TEXT = {
+    EYEBROW: 'SIGNATURE SPELL',
+    TITLE: '시그니처 마법 기록',
+    DESCRIPTION: '시연 전에 마법의 이름과 설명을 기록합니다.',
+    NAME_LABEL: '주문 이름',
+    NAME_PLACEHOLDER: '주문 이름',
+    DESCRIPTION_LABEL: '주문 설명',
+    DESCRIPTION_PLACEHOLDER: '마법의 효과나 의도를 적어주세요.',
+    SUBMIT: '시연 시작',
+    CANCEL: '조합으로 돌아가기',
+    CLOSE_ARIA_LABEL: '시그니처 마법 기록 닫기',
+    TOP_MESSAGE: '보여주기 전에 마법에 대해서 설명해주세요.',
+    BOTTOM_MESSAGE: '준비 다 되셨으면 보여주시면 되는데요.',
+    LUARN_IMAGE_ALT: '루아른 오라이어 chibi',
+    SPEAKER_NAME: '루아른 오라이어',
+    SPEAKER_TITLE: '시그니처 마법 기록원',
 } as const;
 
 export const DEV_PHASE_NAVIGATION_TEXT = {
@@ -31,7 +49,7 @@ export const CYOA_GUIDE_SPEECH_TEXT = {
 export const CYOA_SCREEN_TEXT = {
     EYEBROW: 'GUILD RECEPTION DESK',
     TITLE: '길드 등록 접수',
-    DESCRIPTION: '여기 서류 드릴테니까 빈 칸 채워주세요. 궁금하신 거 있으면 물어보셔도 되고요.',
+    DESCRIPTION: '빈 칸을 빠짐 없이 채워 넣어 주세요.',
 } as const;
 
 export const CYOA_REGISTRATION_SUMMARY_TEXT = {
@@ -55,6 +73,11 @@ export const CYOA_REGISTRATION_SUMMARY_TEXT = {
 
 export const CYOA_REGISTRATION_RESULT_TEXT = {
     ARIA_LABEL: '등록 결과 상세',
+    SIGNATURE_TITLE: '시그니처 마법',
+    SIGNATURE_NAME_LABEL: '주문 이름',
+    SIGNATURE_DESCRIPTION_LABEL: '주문 설명',
+    EMPTY_SIGNATURE_NAME: '미기재',
+    EMPTY_SIGNATURE_DESCRIPTION: '설명 없음',
     GRAPH_TITLE: '편집한 그래프',
     GRAPH_ARIA_LABEL: '편집한 마법 그래프',
     CIRCLES_TITLE: '서클 조합',
@@ -116,7 +139,7 @@ export const UI_BUTTON_TEXT = {
     DEV_SKIP_TO_NODE_COMPOSITION: 'DEV: 비술 조합실',
     REVIEW_REGISTRATION: '등록 결과',
     SUBMIT_REGISTRATION: '등록 신청서 제출',
-    COMPLETE_REQUIRED_FIELDS_TOOLTIP: '필수 사항을 전부 기재해 주세요.',
+    COMPLETE_REQUIRED_FIELDS_TOOLTIP: '빠진 부분을 채워 주세요.',
 } as const;
 
 export const APP_PHASE_NAVIGATION_TEXT = {

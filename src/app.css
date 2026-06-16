@@ -68,10 +68,12 @@
     --guild-action-primary-hover-bg: linear-gradient(180deg, #992c2c, #771c1c);
     --guild-action-primary-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
     --guild-action-primary-hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
-    --guild-action-secondary-border: rgba(141, 115, 74, 0.55);
-    --guild-action-secondary-bg: rgba(141, 115, 74, 0.08);
-    --guild-action-secondary-hover-bg: rgba(141, 115, 74, 0.16);
-    --guild-action-secondary-hover-shadow: 0 4px 10px rgba(44, 34, 23, 0.18);
+    --guild-action-secondary-text: #332619;
+    --guild-action-secondary-border: rgba(141, 115, 74, 0.78);
+    --guild-action-secondary-bg: linear-gradient(180deg, rgba(255, 253, 247, 0.94), rgba(232, 218, 190, 0.92));
+    --guild-action-secondary-hover-bg: linear-gradient(180deg, rgba(255, 255, 252, 0.98), rgba(240, 226, 196, 0.96));
+    --guild-action-secondary-shadow: 0 5px 14px rgba(44, 34, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+    --guild-action-secondary-hover-shadow: 0 7px 16px rgba(44, 34, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
     /* Node editor 테마 토큰 */
     --node-editor-transition-fast: 0.16s ease;
