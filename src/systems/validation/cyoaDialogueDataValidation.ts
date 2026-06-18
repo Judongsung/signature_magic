@@ -11,13 +11,10 @@ import {
     formatValidationError,
     isFiniteNumber,
     isPlainObject,
-    isReleaseValidation,
     result,
     success,
-    type DataValidationOptions,
     type DataValidationResult,
 } from './commonValidation';
-import { validateReleaseDialogueScriptContent } from './cyoaReleaseValidation';
 import {
     getVisibilityConditionChoiceIds,
     isValidCyoaDialogueTextVariant,
@@ -198,8 +195,7 @@ function validateCyoaDialogueLine(
 
 export function validateCyoaDialogueScripts(
     scripts: CyoaDialogueScriptConfig[],
-    isKnownImagePath: (imagePath: string) => boolean,
-    options: DataValidationOptions = {}
+    isKnownImagePath: (imagePath: string) => boolean
 ): DataValidationResult {
     if (scripts.length === 0) return success();
 
@@ -316,10 +312,6 @@ export function validateCyoaDialogueScripts(
                 ));
             }
         });
-
-        if (isReleaseValidation(options)) {
-            errors.push(...validateReleaseDialogueScriptContent(script));
-        }
     });
 
     return result(errors);

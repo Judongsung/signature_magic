@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { domToPng } from 'modern-screenshot';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
+import { domToPng, type Options as ScreenshotOptions } from 'modern-screenshot';
 import {
     MAGIC_GRAPH_RESULT_CAPTURE_CONFIG,
 } from '../../constants/graphConfigs';
 import { CYOA_REGISTRATION_RESULT_TEXT } from '../../constants/uiText';
+import { installResizeObserverStub } from '../../test-utils/domApis';
 import {
     createTestMagicEdge,
     createTestMagicNode,
@@ -16,18 +17,14 @@ vi.mock('modern-screenshot', () => ({
     domToPng: vi.fn(),
 }));
 
-const mockedDomToPng = vi.mocked(domToPng);
+type DomToPngNodeCall = (node: HTMLDivElement, options?: ScreenshotOptions) => Promise<string>;
+
+const mockedDomToPng = vi.mocked(domToPng) as unknown as MockedFunction<DomToPngNodeCall>;
 
 let mountedPreview: Record<string, unknown> | undefined;
 
 function installDomAPIs(): void {
-    if (!('ResizeObserver' in window)) {
-        window.ResizeObserver = class ResizeObserver {
-            observe() {}
-            unobserve() {}
-            disconnect() {}
-        };
-    }
+    installResizeObserverStub();
 
     window.requestAnimationFrame = (callback: FrameRequestCallback) => {
         callback(0);
@@ -104,7 +101,8 @@ describe('MagicGraphResultPreview', () => {
                     backgroundColor: MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.BACKGROUND_COLOR,
                 })
             );
-            expect(mockedDomToPng.mock.calls[0]?.[1]?.height)
+            const captureOptions = mockedDomToPng.mock.calls[0]?.[1];
+            expect(captureOptions?.height)
                 .toBeGreaterThanOrEqual(MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.MIN_HEIGHT_PX);
         });
     });

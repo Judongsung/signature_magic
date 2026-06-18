@@ -3,6 +3,7 @@ import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
 import { graphStore } from '../../../stores/graphStore.svelte';
+import { installResizeObserverStub } from '../../../test-utils/domApis';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
@@ -10,16 +11,6 @@ import {
 import CyoaRegistrationResultDetails from './CyoaRegistrationResultDetails.svelte';
 
 let mountedDetails: Record<string, unknown> | undefined;
-
-function installResizeObserver(): void {
-    if ('ResizeObserver' in window) return;
-
-    window.ResizeObserver = class ResizeObserver {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-    };
-}
 
 async function unmountDetails(): Promise<void> {
     if (!mountedDetails) return;
@@ -29,7 +20,7 @@ async function unmountDetails(): Promise<void> {
 }
 
 beforeEach(() => {
-    installResizeObserver();
+    installResizeObserverStub();
     resetGraphStoreFixture();
 });
 

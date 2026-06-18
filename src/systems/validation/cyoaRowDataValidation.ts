@@ -11,13 +11,10 @@ import {
     formatValidationPath,
     isFiniteNumber,
     isPlainObject,
-    isReleaseValidation,
     result,
     success,
-    type DataValidationOptions,
     type DataValidationResult,
 } from './commonValidation';
-import { validateReleaseChoiceContent } from './cyoaReleaseValidation';
 import {
     isValidCyoaChoiceImagePlacement,
     isValidCyoaChoiceImageSize,
@@ -89,8 +86,7 @@ function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string
 
 export function validateCyoaRows(
     rows: CyoaChoiceRowConfig[],
-    isKnownImagePath: (imagePath: string) => boolean,
-    options: DataValidationOptions = {}
+    isKnownImagePath: (imagePath: string) => boolean
 ): DataValidationResult {
     if (rows.length === 0) return success();
 
@@ -202,9 +198,6 @@ export function validateCyoaRows(
                 errors.push(formatValidationError('Invalid', 'CYOA choice width', choice.id, choice.width));
             }
             errors.push(...validateCyoaStatEffects(choice.id, choice.statEffects));
-            if (isReleaseValidation(options)) {
-                errors.push(...validateReleaseChoiceContent(choice));
-            }
         });
     });
 

@@ -1,5 +1,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
+import { UI_BUTTON_TEXT } from '../../../constants/uiText';
 import type { CyoaChoiceRowData } from '../../../types/cyoa';
 import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
 
@@ -99,7 +100,7 @@ describe('CyoaRegistrationSummary', () => {
 
         expect(html).toContain('tooltip-host');
         expect(html).toContain('registration-submit-disabled-tooltip');
-        expect(html).toContain('필수 사항을 전부 기재해 주세요.');
+        expect(html).toContain(UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP);
     });
 
 });

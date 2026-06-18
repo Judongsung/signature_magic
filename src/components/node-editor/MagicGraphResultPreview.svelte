@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tick } from 'svelte';
+    import type { Action } from 'svelte/action';
     import { domToPng } from 'modern-screenshot';
     import {
         ConnectionMode,
@@ -89,18 +90,18 @@
         void capturePreviewImage(element, generation);
     }
 
-    function captureGraphPreview(element: HTMLDivElement) {
+    const captureGraphPreview: Action<HTMLDivElement, string> = (element, _captureKey) => {
         startCapture(element);
 
         return {
-            update() {
+            update(_nextCaptureKey: string) {
                 startCapture(element);
             },
             destroy() {
                 captureGeneration++;
             },
         };
-    }
+    };
 
     function createCaptureKey(): string {
         const nodeKey = preview.nodes

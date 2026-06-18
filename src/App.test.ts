@@ -12,6 +12,7 @@ import {
     getButtonByText,
     queryDialogElement,
 } from './test-utils/componentQueries';
+import { installResizeObserverStub } from './test-utils/domApis';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
@@ -21,13 +22,7 @@ import App from './App.svelte';
 let mountedApp: Record<string, unknown> | undefined;
 
 function installDomAPIs(): void {
-    if (!('ResizeObserver' in window)) {
-        window.ResizeObserver = class ResizeObserver {
-            observe() {}
-            unobserve() {}
-            disconnect() {}
-        };
-    }
+    installResizeObserverStub();
 
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
         matches: false,

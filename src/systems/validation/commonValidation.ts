@@ -3,18 +3,6 @@ export interface DataValidationResult {
     errors: string[];
 }
 
-export const DATA_VALIDATION_PROFILES = {
-    DEVELOPMENT: 'development',
-    RELEASE: 'release',
-} as const;
-
-export type DataValidationProfile =
-    (typeof DATA_VALIDATION_PROFILES)[keyof typeof DATA_VALIDATION_PROFILES];
-
-export interface DataValidationOptions {
-    profile?: DataValidationProfile;
-}
-
 export type ValidationPathSegment = string | number;
 export type ValidationErrorKind = string;
 
@@ -24,10 +12,6 @@ export function success(): DataValidationResult {
 
 export function result(errors: string[]): DataValidationResult {
     return { valid: errors.length === 0, errors };
-}
-
-export function isReleaseValidation(options: DataValidationOptions = {}): boolean {
-    return options.profile === DATA_VALIDATION_PROFILES.RELEASE;
 }
 
 export function formatValidationPath(...segments: ValidationPathSegment[]): string {

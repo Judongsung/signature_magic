@@ -1,19 +1,32 @@
 import { describe, expect, it } from 'vitest';
+import cyoaRowsData from '../../data/cyoaRows.json';
+import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import {
     isKnownCyoaImagePath,
     resolveCyoaImagePath,
 } from './cyoaImageRegistry';
 
+const UNKNOWN_CYOA_IMAGE_PATH = '../assets/images/missing.webp';
+
+function collectConfiguredImagePaths(rows: CyoaChoiceRowConfig[]): string[] {
+    const imagePaths = rows.flatMap(row =>
+        (row.choices ?? [])
+            .map(choice => choice.imagePath)
+            .filter((imagePath): imagePath is string => Boolean(imagePath))
+    );
+
+    return [...new Set(imagePaths)];
+}
+
 describe('cyoaImageRegistry', () => {
-    it('resolves image paths under the CYOA image directory', () => {
-        [
-            '../assets/images/vera.webp',
-            '../assets/images/age/youngage.jpg',
-            '../assets/images/catalyst/staff.webp',
-            '../assets/images/luarn_chibi.png',
-            '../assets/images/race/elf.webp',
-            '../assets/images/catalyst/tattoo_bak.webp',
-        ].forEach(imagePath => {
+    it('resolves image paths used by configured CYOA rows', () => {
+        const configuredImagePaths = collectConfiguredImagePaths(
+            cyoaRowsData as CyoaChoiceRowConfig[]
+        );
+
+        expect(configuredImagePaths.length).toBeGreaterThan(0);
+
+        configuredImagePaths.forEach(imagePath => {
             expect(isKnownCyoaImagePath(imagePath)).toBe(true);
             expect(resolveCyoaImagePath(imagePath)).toBeTypeOf('string');
         });
@@ -21,6 +34,7 @@ describe('cyoaImageRegistry', () => {
 
     it('allows image-less choices and rejects unregistered assets', () => {
         expect(resolveCyoaImagePath()).toBeUndefined();
-        expect(isKnownCyoaImagePath('../assets/images/missing.webp')).toBe(false);
+        expect(isKnownCyoaImagePath(UNKNOWN_CYOA_IMAGE_PATH)).toBe(false);
+        expect(resolveCyoaImagePath(UNKNOWN_CYOA_IMAGE_PATH)).toBeUndefined();
     });
 });

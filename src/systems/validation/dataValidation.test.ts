@@ -23,7 +23,6 @@ import type { MagicGlyphConfig } from '../graph/presentation/magicGlyphRegistry'
 import type { GlyphShape } from '../graph/presentation/magicGlyphShapes';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
 import {
-    DATA_VALIDATION_PROFILES,
     validateCyoaDialogueScripts,
     validateCyoaRows,
     validateMagicGlyphShapes,
@@ -209,101 +208,6 @@ describe('dataValidation', () => {
             cyoaDialogueScriptsData as CyoaDialogueScriptConfig[],
             isKnownCyoaImagePath
         )).toEqual({ valid: true, errors: [] });
-    });
-
-    it('keeps release readiness checks disabled in the default development profile', () => {
-        expect(validateCyoaRows(
-            [
-                {
-                    id: 'release-fixture',
-                    title: 'Release fixture',
-                    choices: [
-                        {
-                            id: 'release-choice-test',
-                            imagePath: '../assets/images/temp.webp',
-                            imageAlt: '',
-                            title: 'QA test choice',
-                            description: '',
-                        },
-                    ],
-                },
-            ],
-            isKnownCyoaImagePath
-        )).toEqual({ valid: true, errors: [] });
-    });
-
-    it('reports release-only CYOA row content readiness issues', () => {
-        expect(validateCyoaRows(
-            [
-                {
-                    id: 'release-fixture',
-                    title: 'Release fixture',
-                    choices: [
-                        {
-                            id: 'release-choice-test',
-                            imagePath: '../assets/images/temp.webp',
-                            imageAlt: '',
-                            title: 'QA test choice',
-                            description: 'ㅁㅁㅁ',
-                        },
-                    ],
-                },
-            ],
-            isKnownCyoaImagePath,
-            { profile: DATA_VALIDATION_PROFILES.RELEASE }
-        )).toEqual({
-            valid: false,
-            errors: [
-                'Release test id: CYOA choice -> release-choice-test',
-                'Release placeholder image path: CYOA choice release-choice-test -> ../assets/images/temp.webp',
-                'Missing release image alt: CYOA choice release-choice-test',
-                'Release placeholder text: CYOA choice release-choice-test title -> test',
-                'Release placeholder text: CYOA choice release-choice-test description -> ㅁㅁㅁ',
-            ],
-        });
-    });
-
-    it('reports release-only CYOA dialogue content readiness issues', () => {
-        expect(validateCyoaDialogueScripts(
-            [
-                {
-                    id: 'dialogue-test',
-                    title: 'Release dialogue',
-                    npcName: 'NPC',
-                    npcTitle: 'Desk',
-                    imagePath: '../assets/images/temp.webp',
-                    imageAlt: '',
-                    defaultNpcLine: 'test',
-                    optionRows: [
-                        {
-                            id: 'dialogue-row',
-                            options: [
-                                {
-                                    id: 'dialogue-option',
-                                    playerLine: 'Question',
-                                    npcLine: 'aaa',
-                                    npcImagePath: '../assets/images/temp.webp',
-                                    npcImageAlt: '',
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ] as CyoaDialogueScriptConfig[],
-            isKnownCyoaImagePath,
-            { profile: DATA_VALIDATION_PROFILES.RELEASE }
-        )).toEqual({
-            valid: false,
-            errors: [
-                'Release test id: CYOA dialogue script -> dialogue-test',
-                'Release placeholder image path: CYOA dialogue script dialogue-test -> ../assets/images/temp.webp',
-                'Missing release image alt: CYOA dialogue script dialogue-test',
-                'Release placeholder text: CYOA dialogue script dialogue-test defaultNpcLine[0] -> test',
-                'Release placeholder image path: CYOA dialogue option dialogue-test -> dialogue-option -> ../assets/images/temp.webp',
-                'Missing release image alt: CYOA dialogue option dialogue-test -> dialogue-option',
-                'Release placeholder text: CYOA dialogue option dialogue-test -> dialogue-option npcLine[0] -> aaa',
-            ],
-        });
     });
 
     it('validates configured magic glyphs against magic type data', () => {

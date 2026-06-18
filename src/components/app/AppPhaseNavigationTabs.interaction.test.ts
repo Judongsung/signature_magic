@@ -14,6 +14,7 @@ import {
     getButtonByText,
     queryDialogElement,
 } from '../../test-utils/componentQueries';
+import { installResizeObserverStub } from '../../test-utils/domApis';
 import { resetGraphStoreFixture } from '../../test-utils/graphFixtures';
 import AppPhaseNavigationTabs from './AppPhaseNavigationTabs.svelte';
 
@@ -26,16 +27,6 @@ type NavigationProps = {
 };
 
 let mountedTabs: Record<string, unknown> | undefined;
-
-function installResizeObserver(): void {
-    if ('ResizeObserver' in window) return;
-
-    window.ResizeObserver = class ResizeObserver {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-    };
-}
 
 function completeCyoaRegistration(): void {
     choiceStore.updateInputValue('personal-name-input', 'Arin');
@@ -79,7 +70,7 @@ afterEach(async () => {
 
 describe('AppPhaseNavigationTabs interaction', () => {
     beforeEach(() => {
-        installResizeObserver();
+        installResizeObserverStub();
         resetGraphStoreFixture();
     });
 

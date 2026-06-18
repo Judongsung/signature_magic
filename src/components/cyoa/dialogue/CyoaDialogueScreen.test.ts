@@ -1,13 +1,29 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
+import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
 import { CYOA_DIALOGUE_SCRIPT_IDS } from '../../../constants/gameConfigs';
 import { DIALOGUE_SCREEN_TEXT, NODE_INTRO_DIALOGUE_SCREEN_TEXT } from '../../../constants/uiText';
+import {
+    matchesCyoaDialogueResultCondition,
+    resolveCyoaDialogueResultLine,
+} from '../../../systems/cyoa/cyoaDialogueResultConditions';
+import type { CyoaDialogueResultContext, CyoaDialogueScriptConfig } from '../../../types/cyoa';
 import CyoaDialogueScreen from './CyoaDialogueScreen.svelte';
+
+const NODE_RESULT_PLACEHOLDER_LINE = '추가 예정.';
 
 function buttonTextPattern(label: string): RegExp {
     const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     return new RegExp(`<button[^>]*>\\s*${escapedLabel}\\s*<\\/button>`);
+}
+
+function getNodeCompositionResultScript(): CyoaDialogueScriptConfig {
+    const script = (dialogueScriptsData as CyoaDialogueScriptConfig[])
+        .find(script => script.id === CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_RESULT);
+    expect(script).toBeDefined();
+
+    return script as CyoaDialogueScriptConfig;
 }
 
 describe('CyoaDialogueScreen', () => {
@@ -34,25 +50,35 @@ describe('CyoaDialogueScreen', () => {
     });
 
     it('renders the node composition result dialogue with graph result context', () => {
+        const resultContext = {
+            circleCount: 0,
+            totalStats: {
+                castingTime: 0,
+                instability: 0,
+                power: 0,
+                range: 0,
+                manaCost: 0,
+                duration: 0,
+            },
+        } satisfies CyoaDialogueResultContext;
+        const resultScript = getNodeCompositionResultScript();
+        const resultLine = resolveCyoaDialogueResultLine(resultScript.resultLines, resultContext);
+        const resultOptionRow = resultScript.optionRows
+            ?.find(row => row.resultWhen && matchesCyoaDialogueResultCondition(row.resultWhen, resultContext));
+        const resultOptionLabel = resultOptionRow?.options[0]?.playerLine;
+        expect(resultLine).toBeDefined();
+        expect(resultOptionLabel).toBeDefined();
+
         const { html } = render(CyoaDialogueScreen, {
             props: {
                 scriptId: CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_RESULT,
-                resultContext: {
-                    circleCount: 0,
-                    totalStats: {
-                        castingTime: 0,
-                        instability: 0,
-                        power: 0,
-                        range: 0,
-                        manaCost: 0,
-                        duration: 0,
-                    },
-                },
+                resultContext,
             },
         });
 
-        expect(html).toContain('시그니처 마법 평가');
-        expect(html).toContain('아직 완성된 서클이 없네요.');
-        expect(html).toContain('서클을 만들려면?');
+        expect(html).toContain(resultScript.title);
+        expect(html).toContain(resultLine?.npcLine);
+        expect(html).toContain(resultOptionLabel);
+        expect(html).not.toContain(NODE_RESULT_PLACEHOLDER_LINE);
     });
 });

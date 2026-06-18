@@ -14,9 +14,13 @@ function normalizeCyoaImagePath(imagePath: string): string {
 export function resolveCyoaImagePath(imagePath?: string): string | undefined {
     // imagePath가 없는 선택지는 정상 데이터이며, 카드가 이미지 영역 없이 렌더링된다.
     if (!imagePath) return undefined;
-    return imageModules[normalizeCyoaImagePath(imagePath)];
+
+    const normalizedPath = normalizeCyoaImagePath(imagePath);
+    if (!Object.hasOwn(imageModules, normalizedPath)) return undefined;
+
+    return imageModules[normalizedPath];
 }
 
 export function isKnownCyoaImagePath(imagePath: string): boolean {
-    return normalizeCyoaImagePath(imagePath) in imageModules;
+    return Object.hasOwn(imageModules, normalizeCyoaImagePath(imagePath));
 }

@@ -1,6 +1,7 @@
 import { APP_PHASES, type AppPhase, type MagicNodeCategory } from './gameConfigs';
 import type { MagicStatKey } from '../types/magic';
 
+// 앱 단계와 전역 내비게이션 문구
 export const DIALOGUE_SCREEN_TEXT = {
     CONTINUE_TO_CYOA: '서류 작성',
 } as const;
@@ -13,22 +14,24 @@ export const NODE_RESULT_DIALOGUE_SCREEN_TEXT = {
     CONTINUE_TO_NODE_RESULT: '시연 시작',
 } as const;
 
-export const NODE_COMPOSITION_SIGNATURE_TEXT = {
-    EYEBROW: 'SIGNATURE SPELL',
-    TITLE: '시그니처 마법 기록',
-    DESCRIPTION: '시연 전에 마법의 이름과 설명을 기록합니다.',
-    NAME_LABEL: '주문 이름',
-    NAME_PLACEHOLDER: '주문 이름',
-    DESCRIPTION_LABEL: '주문 설명',
-    DESCRIPTION_PLACEHOLDER: '마법의 효과나 의도를 적어주세요.',
-    SUBMIT: '시연 시작',
-    CANCEL: '조합으로 돌아가기',
-    CLOSE_ARIA_LABEL: '시그니처 마법 기록 닫기',
-    TOP_MESSAGE: '보여주기 전에 마법에 대해서 설명해주세요.',
-    BOTTOM_MESSAGE: '준비 다 되셨으면 보여주시면 되는데요.',
-    LUARN_IMAGE_ALT: '루아른 오라이어 chibi',
-    SPEAKER_NAME: '루아른 오라이어',
-    SPEAKER_TITLE: '시그니처 마법 기록원',
+export const UI_BUTTON_TEXT = {
+    DEV_SKIP_TO_NODE_COMPOSITION: 'DEV: 비술 조합실',
+    REVIEW_REGISTRATION: '등록 결과',
+    SUBMIT_REGISTRATION: '등록 신청서 제출',
+    COMPLETE_REQUIRED_FIELDS_TOOLTIP: '빠진 부분을 채워 주세요.',
+} as const;
+
+export const APP_PHASE_NAVIGATION_TEXT = {
+    ARIA_LABEL: '화면 이동',
+    PREVIOUS_LABEL: '이전',
+    PREVIOUS_ARIA_LABEL: '이전 화면으로 이동',
+    NEXT_ARIA_LABEL: '다음 화면으로 이동',
+    NEXT_LABELS: {
+        [APP_PHASES.INTRO_DIALOGUE]: DIALOGUE_SCREEN_TEXT.CONTINUE_TO_CYOA,
+        [APP_PHASES.CYOA]: UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
+        [APP_PHASES.NODE_INTRO_DIALOGUE]: NODE_INTRO_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_COMPOSITION,
+        [APP_PHASES.NODE_COMPOSITION]: NODE_RESULT_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_RESULT,
+    } satisfies Partial<Record<AppPhase, string>>,
 } as const;
 
 export const DEV_PHASE_NAVIGATION_TEXT = {
@@ -42,6 +45,11 @@ export const DEV_PHASE_NAVIGATION_TEXT = {
     } satisfies Record<AppPhase, string>,
 } as const;
 
+export const CYOA_BUILD_PLACEHOLDER_TEXT = {
+    NODE_COMPOSITION_ONLY: 'node composition only build',
+} as const;
+
+// CYOA 접수와 등록 결과 문구
 export const CYOA_GUIDE_SPEECH_TEXT = {
     IMAGE_ALT: 'Vera chibi',
 } as const;
@@ -91,10 +99,7 @@ export const CYOA_REGISTRATION_RESULT_TEXT = {
     EMPTY_STATS: '서클이 생성되면 최종 스탯이 표시됩니다.',
 } as const;
 
-export const CYOA_BUILD_PLACEHOLDER_TEXT = {
-    NODE_COMPOSITION_ONLY: 'node composition only build',
-} as const;
-
+// 노드 조합과 마법진 문구
 export const NODE_EDITOR_TEXT = {
     TOOLBAR_LABEL: '노드',
     CATEGORY_ARIA_LABEL: '노드 카테고리',
@@ -126,6 +131,24 @@ export const NODE_EDITOR_TEXT = {
     PANE_RESIZER_ARIA_LABEL: '노드 편집창과 마법진 미리보기 크기 조절',
 } as const;
 
+export const NODE_COMPOSITION_SIGNATURE_TEXT = {
+    EYEBROW: 'SIGNATURE SPELL',
+    TITLE: '시그니처 마법 기록',
+    DESCRIPTION: '시연 전에 마법의 이름과 설명을 기록합니다.',
+    NAME_LABEL: '주문 이름',
+    NAME_PLACEHOLDER: '주문 이름',
+    DESCRIPTION_LABEL: '주문 설명',
+    DESCRIPTION_PLACEHOLDER: '마법의 효과나 의도를 적어주세요.',
+    SUBMIT: '시연 시작',
+    CANCEL: '조합으로 돌아가기',
+    CLOSE_ARIA_LABEL: '시그니처 마법 기록 닫기',
+    TOP_MESSAGE: '보여주기 전에 마법에 대해서 설명해주세요.',
+    BOTTOM_MESSAGE: '준비 다 되셨으면 보여주시면 되는데요.',
+    LUARN_IMAGE_ALT: '루아른 오라이어 chibi',
+    SPEAKER_NAME: '루아른 오라이어',
+    SPEAKER_TITLE: '시그니처 마법 기록원',
+} as const;
+
 export const MAGIC_CIRCLE_TEXT = {
     EMPTY_HINT: '노드를 연결하면 마법진이 생성됩니다.',
     TOTAL_STATS_ARIA_LABEL: 'Total magic stats',
@@ -135,26 +158,7 @@ export const MAGIC_CIRCLE_TEXT = {
     CIRCLE_ARIA_LABEL: 'Magic circle',
 } as const;
 
-export const UI_BUTTON_TEXT = {
-    DEV_SKIP_TO_NODE_COMPOSITION: 'DEV: 비술 조합실',
-    REVIEW_REGISTRATION: '등록 결과',
-    SUBMIT_REGISTRATION: '등록 신청서 제출',
-    COMPLETE_REQUIRED_FIELDS_TOOLTIP: '빠진 부분을 채워 주세요.',
-} as const;
-
-export const APP_PHASE_NAVIGATION_TEXT = {
-    ARIA_LABEL: '화면 이동',
-    PREVIOUS_LABEL: '이전',
-    PREVIOUS_ARIA_LABEL: '이전 화면으로 이동',
-    NEXT_ARIA_LABEL: '다음 화면으로 이동',
-    NEXT_LABELS: {
-        [APP_PHASES.INTRO_DIALOGUE]: DIALOGUE_SCREEN_TEXT.CONTINUE_TO_CYOA,
-        [APP_PHASES.CYOA]: UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
-        [APP_PHASES.NODE_INTRO_DIALOGUE]: NODE_INTRO_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_COMPOSITION,
-        [APP_PHASES.NODE_COMPOSITION]: NODE_RESULT_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_RESULT,
-    } satisfies Partial<Record<AppPhase, string>>,
-} as const;
-
+// 공통 도메인 라벨
 export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
     castingTime: '시전 시간',
     instability: '불안정성',
