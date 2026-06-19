@@ -25,9 +25,9 @@
     } from '../../systems/graph/presets/magicGraphPresetStorage';
     import type { MagicGraphPresetConfig } from '../../types/magic';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
-    import MagicCircleGenerator from './MagicCircleGenerator.svelte';
-    import MagicNodeEditor from './MagicNodeEditor.svelte';
-    import MagicNodePresetDialog from './MagicNodePresetDialog.svelte';
+    import MagicCircleGenerator from './magic-circle/MagicCircleGenerator.svelte';
+    import MagicNodeEditor from './editor/MagicNodeEditor.svelte';
+    import MagicNodePresetDialog from './presets/MagicNodePresetDialog.svelte';
 
     const builtInPresets = magicGraphPresetsData as MagicGraphPresetConfig[];
     const initialPresetValue = builtInPresets[0]

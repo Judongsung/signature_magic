@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { MAGIC_STAT_LABELS, NODE_EDITOR_TEXT } from '../../constants/uiText';
+    import { MAGIC_STAT_LABELS, NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import {
         EMPTY_MAGIC_STATS,
         MAGIC_STAT_KEYS,
         type MagicStatsConfig,
-    } from '../../types/magic';
-    import { formatMagicStat } from '../../systems/graph/presentation/magicStatFormatting';
+    } from '../../../types/magic';
+    import { formatMagicStat } from '../../../systems/graph/presentation/magicStatFormatting';
 
     let {
         stats,

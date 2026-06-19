@@ -2,18 +2,18 @@
     import {
         MAGIC_CIRCLE_ANIMATION_MODES,
         NODE_COMPOSITION_TRANSITION_CONFIG,
-    } from '../../constants/magicCircleConfigs';
-    import { CYOA_REGISTRATION_RESULT_TEXT } from '../../constants/uiText';
+    } from '../../../constants/magicCircleConfigs';
+    import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
     import {
         buildMagicCircleRenderModels,
         type MagicCircleRenderModel,
-    } from '../../systems/graph/presentation/magicCircleRenderer';
+    } from '../../../systems/graph/presentation/magicCircleRenderer';
     import {
         buildNodeCompositionTransitionLayout,
         type NodeCompositionTransitionLayout,
-    } from '../../systems/graph/presentation/nodeCompositionTransitionLayout';
-    import type { CirclePath } from '../../types/magic';
-    import MagicCircleSvg from './MagicCircleSvg.svelte';
+    } from '../../../systems/graph/presentation/nodeCompositionTransitionLayout';
+    import type { CirclePath } from '../../../types/magic';
+    import MagicCircleSvg from '../magic-circle/MagicCircleSvg.svelte';
 
     const CIRCLE_START_INDEX = 1;
     const COMPOSITION_STAGE_PADDING_PX = 24;

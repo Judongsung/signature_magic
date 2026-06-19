@@ -1,6 +1,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import { EMPTY_MAGIC_STATS, type CirclePath, type MagicType } from '../../types/magic';
+import { EMPTY_MAGIC_STATS, type CirclePath, type MagicType } from '../../../types/magic';
 import MagicCircleCompositionPreview from './MagicCircleCompositionPreview.svelte';
 
 function circle(id: string, magicType: MagicType): CirclePath {

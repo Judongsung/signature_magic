@@ -1,14 +1,14 @@
 import { render } from 'svelte/server';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../constants/magicCircleConfigs';
+import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../../constants/magicCircleConfigs';
 import {
     buildMagicCircleRenderModels,
     type MagicCircleRenderModel,
-} from '../../systems/graph/presentation/magicCircleRenderer';
+} from '../../../systems/graph/presentation/magicCircleRenderer';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
-} from '../../test-utils/graphFixtures';
+} from '../../../test-utils/graphFixtures';
 import MagicCircleSvg from './MagicCircleSvg.svelte';
 
 function resetGraphStore(): void {

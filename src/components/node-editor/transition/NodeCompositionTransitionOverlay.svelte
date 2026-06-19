@@ -3,19 +3,19 @@
     import {
         MAGIC_CIRCLE_ANIMATION_MODES,
         NODE_COMPOSITION_TRANSITION_CONFIG,
-    } from '../../constants/magicCircleConfigs';
-    import { MAGIC_STAR_FIELD_CONFIG } from '../../constants/graphConfigs';
-    import type { CirclePath } from '../../types/magic';
+    } from '../../../constants/magicCircleConfigs';
+    import { MAGIC_STAR_FIELD_CONFIG } from '../../../constants/graphConfigs';
+    import type { CirclePath } from '../../../types/magic';
     import {
         buildMagicCircleRenderModels,
         type MagicCircleRenderModel,
-    } from '../../systems/graph/presentation/magicCircleRenderer';
+    } from '../../../systems/graph/presentation/magicCircleRenderer';
     import {
         buildNodeCompositionTransitionLayout,
         type NodeCompositionTransitionLayout,
-    } from '../../systems/graph/presentation/nodeCompositionTransitionLayout';
-    import { createStarField } from '../../systems/graph/presentation/starField';
-    import MagicCircleSvg from './MagicCircleSvg.svelte';
+    } from '../../../systems/graph/presentation/nodeCompositionTransitionLayout';
+    import { createStarField } from '../../../systems/graph/presentation/starField';
+    import MagicCircleSvg from '../magic-circle/MagicCircleSvg.svelte';
 
     const REDUCED_MOTION_MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
     const CIRCLE_START_INDEX = 1;

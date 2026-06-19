@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-    import { MAGIC_GLYPH_SHAPES, type GlyphKind, type GlyphShape } from '../../systems/graph/presentation/magicGlyphShapes';
+    import { MAGIC_GLYPH_SHAPES, type GlyphKind, type GlyphShape } from '../../../systems/graph/presentation/magicGlyphShapes';
 
     let { kind }: { kind: GlyphKind } = $props();
     const shape: GlyphShape = $derived(MAGIC_GLYPH_SHAPES[kind]);

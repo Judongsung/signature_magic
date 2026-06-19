@@ -1,13 +1,13 @@
 ﻿<script lang="ts">
-    import { graphStore } from '../../stores/graphStore.svelte';
+    import { graphStore } from '../../../stores/graphStore.svelte';
     import {
         MAGIC_CIRCLE_ANIMATION_MODES,
         type MagicCircleAnimationMode,
-    } from '../../constants/magicCircleConfigs';
-    import { MAGIC_CIRCLE_TEXT } from '../../constants/uiText';
+    } from '../../../constants/magicCircleConfigs';
+    import { MAGIC_CIRCLE_TEXT } from '../../../constants/uiText';
     import {
         buildMagicCircleRenderModels,
-    } from '../../systems/graph/presentation/magicCircleRenderer';
+    } from '../../../systems/graph/presentation/magicCircleRenderer';
     import MagicCircleCard from './MagicCircleCard.svelte';
     import MagicStatsGrid from './MagicStatsGrid.svelte';
 

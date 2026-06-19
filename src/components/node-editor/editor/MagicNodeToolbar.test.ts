@@ -1,9 +1,10 @@
 ﻿import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import type { MagicNodeCategory } from '../../constants/gameConfigs';
-import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
-import type { MagicTypeConfig } from '../../types/magic';
-import { getMagicTypesByCategory } from '../../systems/graph/registry/magicTypeRegistry';
+import type { MagicNodeCategory } from '../../../constants/gameConfigs';
+import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
+import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
+import type { MagicTypeConfig } from '../../../types/magic';
+import { getMagicTypesByCategory } from '../../../systems/graph/registry/magicTypeRegistry';
 import MagicNodeToolbar from './MagicNodeToolbar.svelte';
 
 const visibleMagicTypes: MagicTypeConfig[] = [
@@ -40,7 +41,7 @@ describe('MagicNodeToolbar', () => {
         expect(html).toContain('* Ignition</span>');
         expect(html).toContain('magic-node-tooltip-ignition');
         expect(html).toContain('Starts a fire effect.');
-        expect(html).toContain('노드 스탯');
+        expect(html).toContain(NODE_EDITOR_TEXT.NODE_STATS_ARIA_LABEL);
         expect(html).toContain('시전 시간');
         expect(html).toContain('1');
         expect(html).toContain('불안정성');

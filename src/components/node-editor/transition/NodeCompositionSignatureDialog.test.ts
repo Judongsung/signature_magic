@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../constants/uiText';
+import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../../constants/uiText';
 import {
     getButtonByText,
     getDialogElement,
-} from '../../test-utils/componentQueries';
+} from '../../../test-utils/componentQueries';
 import NodeCompositionSignatureDialog from './NodeCompositionSignatureDialog.svelte';
 
 let mountedDialog: Record<string, unknown> | undefined;

@@ -15,8 +15,8 @@
     import CyoaRegistrationScreen from './components/cyoa/CyoaRegistrationScreen.svelte';
     import CyoaDialogueScreen from './components/cyoa/dialogue/CyoaDialogueScreen.svelte';
     import NodeCompositionScreen from './components/node-editor/NodeCompositionScreen.svelte';
-    import NodeCompositionSignatureDialog from './components/node-editor/NodeCompositionSignatureDialog.svelte';
-    import NodeCompositionTransitionOverlay from './components/node-editor/NodeCompositionTransitionOverlay.svelte';
+    import NodeCompositionSignatureDialog from './components/node-editor/transition/NodeCompositionSignatureDialog.svelte';
+    import NodeCompositionTransitionOverlay from './components/node-editor/transition/NodeCompositionTransitionOverlay.svelte';
     import type { MagicSignatureMetadata } from './types/magic';
 
     let pendingNodeCompositionTransition = $state<NodeCompositionTransitionPlan | undefined>();

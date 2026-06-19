@@ -1,13 +1,13 @@
 <script lang="ts">
-    import luarnChibiImageSrc from '../../assets/images/luarn_chibi.png';
-    import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../constants/uiText';
-    import type { MagicSignatureMetadata } from '../../types/magic';
+    import luarnChibiImageSrc from '../../../assets/images/luarn_chibi.png';
+    import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../../constants/uiText';
+    import type { MagicSignatureMetadata } from '../../../types/magic';
     import {
         activateDialogFocus,
         closeDialogOnEscape,
         trapDialogFocus,
-    } from '../shared/dialogFocus';
-    import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
+    } from '../../shared/dialogFocus';
+    import CharacterSpeechBubble from '../../shared/CharacterSpeechBubble.svelte';
 
     const dialogId = $props.id();
     const dialogTitleId = `${dialogId}-signature-dialog-title`;

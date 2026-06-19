@@ -14,30 +14,30 @@
     } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css';
 
-    import { graphStore } from '../../stores/graphStore.svelte';
+    import { graphStore } from '../../../stores/graphStore.svelte';
     import {
         DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES,
         EDITOR_CANVAS,
         type MagicNodeCategory,
-    } from '../../constants/gameConfigs';
+    } from '../../../constants/gameConfigs';
     import {
         GRAPH_EDGE_TYPES,
         GRAPH_NODE_TYPES,
         MAGIC_STAR_FIELD_CONFIG,
-    } from '../../constants/graphConfigs';
-    import { NODE_EDITOR_TEXT } from '../../constants/uiText';
+    } from '../../../constants/graphConfigs';
+    import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import {
         getExtentCenter,
         resolveCenteredDropPosition,
         resolveCenteredViewport,
         resolveDropPosition,
-    } from '../../systems/graph/editor/editorCanvas';
-    import { createStarField } from '../../systems/graph/presentation/starField';
-    import { getMagicTypesByCategory } from '../../systems/graph/registry/magicTypeRegistry';
+    } from '../../../systems/graph/editor/editorCanvas';
+    import { createStarField } from '../../../systems/graph/presentation/starField';
+    import { getMagicTypesByCategory } from '../../../systems/graph/registry/magicTypeRegistry';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
     import MagicNodeToolbar from './MagicNodeToolbar.svelte';
-    import type { MagicNode, MagicType } from '../../types/magic';
+    import type { MagicNode, MagicType } from '../../../types/magic';
 
     let {
         onOpenPresetDialog,

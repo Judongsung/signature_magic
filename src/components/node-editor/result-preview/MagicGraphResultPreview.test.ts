@@ -4,13 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockedFunction } 
 import { domToPng, type Options as ScreenshotOptions } from 'modern-screenshot';
 import {
     MAGIC_GRAPH_RESULT_CAPTURE_CONFIG,
-} from '../../constants/graphConfigs';
-import { CYOA_REGISTRATION_RESULT_TEXT } from '../../constants/uiText';
-import { installResizeObserverStub } from '../../test-utils/domApis';
+} from '../../../constants/graphConfigs';
+import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
+import { installResizeObserverStub } from '../../../test-utils/domApis';
 import {
     createTestMagicEdge,
     createTestMagicNode,
-} from '../../test-utils/graphFixtures';
+} from '../../../test-utils/graphFixtures';
 import MagicGraphResultPreview from './MagicGraphResultPreview.svelte';
 
 vi.mock('modern-screenshot', () => ({

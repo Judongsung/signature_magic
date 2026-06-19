@@ -13,14 +13,14 @@
         MAGIC_GRAPH_RESULT_CAPTURE_CONFIG,
         GRAPH_EDGE_TYPES,
         GRAPH_NODE_TYPES,
-    } from '../../constants/graphConfigs';
-    import { CYOA_REGISTRATION_RESULT_TEXT } from '../../constants/uiText';
+    } from '../../../constants/graphConfigs';
+    import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
     import {
         buildMagicGraphResultPreview,
-    } from '../../systems/graph/presentation/magicGraphResultPreview';
-    import type { MagicNode } from '../../types/magic';
-    import CustomEdge from './CustomEdge.svelte';
-    import CustomNode from './CustomNode.svelte';
+    } from '../../../systems/graph/presentation/magicGraphResultPreview';
+    import type { MagicNode } from '../../../types/magic';
+    import CustomEdge from '../editor/CustomEdge.svelte';
+    import CustomNode from '../editor/CustomNode.svelte';
 
     let {
         nodes,

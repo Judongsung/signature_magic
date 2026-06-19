@@ -2,13 +2,13 @@
     import {
         MAGIC_NODE_CATEGORIES,
         type MagicNodeCategory,
-    } from '../../constants/gameConfigs';
+    } from '../../../constants/gameConfigs';
     import {
         MAGIC_NODE_CATEGORY_LABELS,
         NODE_EDITOR_TEXT,
-    } from '../../constants/uiText';
-    import type { MagicType, MagicTypeConfig } from '../../types/magic';
-    import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
+    } from '../../../constants/uiText';
+    import type { MagicType, MagicTypeConfig } from '../../../types/magic';
+    import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
 
     let {

@@ -1,10 +1,10 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import { NODE_EDITOR_TEXT } from '../../constants/uiText';
+import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
 import {
     MAGIC_GRAPH_PRESET_SOURCES,
     type MagicGraphPresetOption,
-} from '../../systems/graph/presets/magicGraphPresets';
+} from '../../../systems/graph/presets/magicGraphPresets';
 import MagicNodePresetDialog from './MagicNodePresetDialog.svelte';
 
 const presetOptions: MagicGraphPresetOption[] = [

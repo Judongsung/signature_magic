@@ -3,14 +3,14 @@ import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     NODE_COMPOSITION_TRANSITION_CONFIG,
-} from '../../constants/magicCircleConfigs';
-import { MAGIC_STAR_FIELD_CONFIG } from '../../constants/graphConfigs';
-import { buildNodeCompositionTransitionLayout } from '../../systems/graph/presentation/nodeCompositionTransitionLayout';
+} from '../../../constants/magicCircleConfigs';
+import { MAGIC_STAR_FIELD_CONFIG } from '../../../constants/graphConfigs';
+import { buildNodeCompositionTransitionLayout } from '../../../systems/graph/presentation/nodeCompositionTransitionLayout';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
-} from '../../test-utils/graphFixtures';
-import type { CirclePath } from '../../types/magic';
+} from '../../../test-utils/graphFixtures';
+import type { CirclePath } from '../../../types/magic';
 import NodeCompositionTransitionOverlay from './NodeCompositionTransitionOverlay.svelte';
 
 const TOTAL_TRANSITION_DURATION_MS =

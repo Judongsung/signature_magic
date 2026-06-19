@@ -2,9 +2,9 @@
     import {
         MAGIC_CIRCLE_ANIMATION_MODES,
         type MagicCircleAnimationMode,
-    } from '../../constants/magicCircleConfigs';
-    import { MAGIC_CIRCLE_TEXT } from '../../constants/uiText';
-    import type { MagicCircleRenderModel } from '../../systems/graph/presentation/magicCircleRenderer';
+    } from '../../../constants/magicCircleConfigs';
+    import { MAGIC_CIRCLE_TEXT } from '../../../constants/uiText';
+    import type { MagicCircleRenderModel } from '../../../systems/graph/presentation/magicCircleRenderer';
     import MagicCircleSvg from './MagicCircleSvg.svelte';
     import MagicStatsGrid from './MagicStatsGrid.svelte';
 

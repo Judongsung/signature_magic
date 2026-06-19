@@ -1,10 +1,10 @@
 import { render } from 'svelte/server';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../constants/magicCircleConfigs';
+import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../../constants/magicCircleConfigs';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
-} from '../../test-utils/graphFixtures';
+} from '../../../test-utils/graphFixtures';
 import MagicCircleGenerator from './MagicCircleGenerator.svelte';
 
 function resetGraphStore(): void {

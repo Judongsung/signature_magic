@@ -1,7 +1,7 @@
 ﻿<script lang="ts">
-    import { MAGIC_STAT_LABELS } from '../../constants/uiText';
-    import { MAGIC_STAT_KEYS, type MagicStats } from '../../types/magic';
-    import { formatMagicStat } from '../../systems/graph/presentation/magicStatFormatting';
+    import { MAGIC_STAT_LABELS } from '../../../constants/uiText';
+    import { MAGIC_STAT_KEYS, type MagicStats } from '../../../types/magic';
+    import { formatMagicStat } from '../../../systems/graph/presentation/magicStatFormatting';
 
     let {
         stats,

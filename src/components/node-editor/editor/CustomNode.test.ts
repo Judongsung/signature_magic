@@ -1,6 +1,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it, vi } from 'vitest';
-import type { MagicNodeData } from '../../types/magic';
+import type { MagicNodeData } from '../../../types/magic';
 import CustomNode from './CustomNode.svelte';
 
 vi.mock('@xyflow/svelte', () => ({

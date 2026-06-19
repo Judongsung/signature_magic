@@ -2,15 +2,15 @@
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import { NODE_EDITOR_TEXT } from '../../constants/uiText';
+import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
 import {
     getButtonByText,
     getDialogElement,
-} from '../../test-utils/componentQueries';
+} from '../../../test-utils/componentQueries';
 import {
     MAGIC_GRAPH_PRESET_SOURCES,
     type MagicGraphPresetOption,
-} from '../../systems/graph/presets/magicGraphPresets';
+} from '../../../systems/graph/presets/magicGraphPresets';
 import MagicNodePresetDialog from './MagicNodePresetDialog.svelte';
 
 type VoidHandler = () => void;

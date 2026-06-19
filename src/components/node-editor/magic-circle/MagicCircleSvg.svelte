@@ -3,14 +3,14 @@
         MAGIC_CIRCLE_ANIMATION_MODES,
         MAGIC_CIRCLE_RENDERING_CONFIG,
         type MagicCircleAnimationMode,
-    } from '../../constants/magicCircleConfigs';
-    import { MAGIC_CIRCLE_TEXT } from '../../constants/uiText';
+    } from '../../../constants/magicCircleConfigs';
+    import { MAGIC_CIRCLE_TEXT } from '../../../constants/uiText';
     import {
         DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS,
         magicCircleRingStrokeWidth,
         type MagicCircleRenderModel,
-    } from '../../systems/graph/presentation/magicCircleRenderer';
-    import { magicTypeColorMap } from '../../systems/graph/registry/magicTypeRegistry';
+    } from '../../../systems/graph/presentation/magicCircleRenderer';
+    import { magicTypeColorMap } from '../../../systems/graph/registry/magicTypeRegistry';
     import MagicGlyphMark from './MagicGlyphMark.svelte';
 
     const CIRCLE = DEFAULT_MAGIC_CIRCLE_RENDER_OPTIONS;
