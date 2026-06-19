@@ -86,24 +86,24 @@ export const CYOA_REGISTRATION_RESULT_TEXT = {
     SIGNATURE_DESCRIPTION_LABEL: '주문 설명',
     EMPTY_SIGNATURE_NAME: '미기재',
     EMPTY_SIGNATURE_DESCRIPTION: '설명 없음',
-    GRAPH_TITLE: '편집한 그래프',
-    GRAPH_ARIA_LABEL: '편집한 마법 그래프',
-    CIRCLES_TITLE: '서클 조합',
-    CIRCLES_ARIA_LABEL: '생성된 서클 조합',
+    GRAPH_TITLE: '마법 조합',
+    GRAPH_ARIA_LABEL: '생성된 마법 조합',
+    CIRCLES_TITLE: '서클',
+    CIRCLES_ARIA_LABEL: '생성된 서클',
     TOTAL_STATS_TITLE: '최종 스탯',
     TOTAL_STATS_ARIA_LABEL: '최종 마법 스탯',
     EMPTY_GRAPH: '표시할 그래프가 없습니다.',
     GRAPH_CAPTURE_LOADING: '그래프 이미지를 생성하고 있습니다.',
     GRAPH_CAPTURE_FAILED: '그래프 이미지를 생성하지 못했습니다.',
-    EMPTY_CIRCLES: '노드를 연결하면 서클 조합이 표시됩니다.',
+    EMPTY_CIRCLES: '노드를 연결하면 서클이 표시됩니다.',
     EMPTY_STATS: '서클이 생성되면 최종 스탯이 표시됩니다.',
 } as const;
 
 // 노드 조합과 마법진 문구
 export const NODE_EDITOR_TEXT = {
-    TOOLBAR_LABEL: '노드',
-    CATEGORY_ARIA_LABEL: '노드 카테고리',
-    EMPTY_CATEGORY: '표시할 노드 없음',
+    TOOLBAR_LABEL: '기초 마법',
+    CATEGORY_ARIA_LABEL: '기초 마법 카테고리',
+    EMPTY_CATEGORY: '표시할 기초 마법 없음',
     CLEAR_ALL: '전체 초기화',
     PRESET_LABEL: '프리셋',
     PRESET_OPEN: '프리셋',
@@ -127,17 +127,17 @@ export const NODE_EDITOR_TEXT = {
     ROOT_BADGE: 'START',
     LEAF_BADGE: 'END',
     CYCLE_BADGE: 'CYCLE',
-    NODE_STATS_ARIA_LABEL: '노드 스탯',
-    PANE_RESIZER_ARIA_LABEL: '노드 편집창과 마법진 미리보기 크기 조절',
+    NODE_STATS_ARIA_LABEL: '마법 스탯',
+    PANE_RESIZER_ARIA_LABEL: '마법 편집창과 마법진 미리보기 크기 조절',
 } as const;
 
 export const NODE_COMPOSITION_SIGNATURE_TEXT = {
-    EYEBROW: 'SIGNATURE SPELL',
+    EYEBROW: 'SIGNATURE MAGIC',
     TITLE: '시그니처 마법 기록',
     DESCRIPTION: '시연 전에 마법의 이름과 설명을 기록합니다.',
-    NAME_LABEL: '주문 이름',
-    NAME_PLACEHOLDER: '주문 이름',
-    DESCRIPTION_LABEL: '주문 설명',
+    NAME_LABEL: '마법 이름',
+    NAME_PLACEHOLDER: '마법 이름',
+    DESCRIPTION_LABEL: '마법 설명',
     DESCRIPTION_PLACEHOLDER: '마법의 효과나 의도를 적어주세요.',
     SUBMIT: '시연 시작',
     CANCEL: '조합으로 돌아가기',
@@ -150,7 +150,7 @@ export const NODE_COMPOSITION_SIGNATURE_TEXT = {
 } as const;
 
 export const MAGIC_CIRCLE_TEXT = {
-    EMPTY_HINT: '노드를 연결하면 마법진이 생성됩니다.',
+    EMPTY_HINT: '기초 마법을 연결하면 서클이 생성됩니다.',
     TOTAL_STATS_ARIA_LABEL: 'Total magic stats',
     TOTAL_STATS_LABEL: 'Total Stats',
     CIRCLE_COUNT_LABEL: '서클 마법',
@@ -169,7 +169,7 @@ export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
 };
 
 export const MAGIC_NODE_CATEGORY_LABELS: Record<MagicNodeCategory, string> = {
-    basic: '기초',
+    basic: '속성',
     action: '행동',
     control: '조절',
     extension: '확장',
