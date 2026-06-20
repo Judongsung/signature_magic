@@ -216,4 +216,56 @@ describe('magicGraphPresets', () => {
         expect(loadStoredMagicGraphPresets(storage)).toEqual([preset]);
         expect(deleteStoredMagicGraphPreset(preset.id, storage)).toEqual([]);
     });
+
+    it('preserves instance settings through graph and storage round trips', () => {
+        const configurablePreset: MagicGraphPresetConfig = {
+            id: 'custom-settings-preset',
+            label: 'Named custom node',
+            nodes: [
+                {
+                    id: 'custom-node',
+                    magicType: 'custom',
+                    settings: { displayName: '별빛 핵' },
+                    position: { x: 0, y: 0 },
+                },
+                {
+                    id: 'detect-node',
+                    magicType: 'detect',
+                    settings: { caption: '대상이 움직일 때' },
+                    position: { x: 40, y: 0 },
+                },
+                {
+                    id: 'ignition-node',
+                    magicType: 'ignition',
+                    settings: { caption: '불꽃을 일으킨다' },
+                    position: { x: 80, y: 0 },
+                },
+            ],
+            edges: [],
+        };
+        const graph = createMagicGraphFromPreset(
+            configurablePreset,
+            magicTypesData as MagicTypeConfig[]
+        );
+        const snapshot = createMagicGraphPresetSnapshot('Saved custom', graph, () => 'settings-id');
+        const storage = new MemoryStorage();
+
+        expect(graph.nodes.find(item => item.id === 'custom-node')?.data.settings).toEqual({
+            displayName: '별빛 핵',
+        });
+        expect(graph.nodes.find(item => item.id === 'detect-node')?.data.settings).toEqual({
+            caption: '대상이 움직일 때',
+        });
+        expect(graph.nodes.find(item => item.id === 'ignition-node')?.data.settings).toEqual({
+            caption: '불꽃을 일으킨다',
+        });
+        expect(snapshot && snapshot.nodes.map(node => node.settings)).toEqual([
+            { displayName: '별빛 핵' },
+            { caption: '대상이 움직일 때' },
+            { caption: '불꽃을 일으킨다' },
+        ]);
+        expect(loadStoredMagicGraphPresets(storage)).toEqual([]);
+        expect(saveStoredMagicGraphPreset(configurablePreset, storage)).toEqual([configurablePreset]);
+        expect(loadStoredMagicGraphPresets(storage)).toEqual([configurablePreset]);
+    });
 });

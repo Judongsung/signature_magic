@@ -1,6 +1,7 @@
 ﻿import { type Connection, type Edge } from '@xyflow/svelte';
 import type { OnBeforeConnect } from '@xyflow/svelte';
 import { createNode } from '../systems/graph/model/graphActions';
+import { updateMagicNodeSettings } from '../systems/graph/model/magicNodeData';
 import {
     prepareGraphEdge,
     removeDeletedGraphElements,
@@ -25,6 +26,7 @@ import type {
     MagicCalculationResult,
     MagicGraphPresetConfig,
     MagicNode,
+    MagicNodeSettings,
     MagicStatEffectBundle,
     MagicStats,
     MagicType,
@@ -73,6 +75,10 @@ class GraphStore {
     addNode(magicType: MagicType, position: { x: number; y: number }): void {
         this.nodes = [...this.nodes, createNode(magicType, position)];
         this.syncTopology();
+    }
+
+    updateNodeSettings(nodeId: string, settings: MagicNodeSettings | undefined): void {
+        this.nodes = updateMagicNodeSettings(this.nodes, nodeId, settings, magicTypeMap);
     }
 
     checkConnection(edge: Edge | Connection): boolean {
@@ -136,7 +142,7 @@ class GraphStore {
     }
 
     loadPreset(preset: MagicGraphPresetConfig): void {
-        const next = createMagicGraphFromPreset(preset);
+        const next = createMagicGraphFromPreset(preset, magicTypeMap);
 
         this.nodes = next.nodes;
         this.edges = next.edges;

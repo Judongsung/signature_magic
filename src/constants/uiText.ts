@@ -93,17 +93,15 @@ export const CYOA_REGISTRATION_RESULT_TEXT = {
     TOTAL_STATS_TITLE: '최종 스탯',
     TOTAL_STATS_ARIA_LABEL: '최종 마법 스탯',
     EMPTY_GRAPH: '표시할 그래프가 없습니다.',
-    GRAPH_CAPTURE_LOADING: '그래프 이미지를 생성하고 있습니다.',
-    GRAPH_CAPTURE_FAILED: '그래프 이미지를 생성하지 못했습니다.',
     EMPTY_CIRCLES: '노드를 연결하면 서클이 표시됩니다.',
     EMPTY_STATS: '서클이 생성되면 최종 스탯이 표시됩니다.',
 } as const;
 
 // 노드 조합과 마법진 문구
 export const NODE_EDITOR_TEXT = {
-    TOOLBAR_LABEL: '기초 마법',
-    CATEGORY_ARIA_LABEL: '기초 마법 카테고리',
-    EMPTY_CATEGORY: '표시할 기초 마법 없음',
+    TOOLBAR_LABEL: '단위 마법',
+    CATEGORY_ARIA_LABEL: '단위 마법 카테고리',
+    EMPTY_CATEGORY: '표시할 단위 마법 없음',
     CLEAR_ALL: '전체 초기화',
     PRESET_LABEL: '프리셋',
     PRESET_OPEN: '프리셋',
@@ -128,7 +126,15 @@ export const NODE_EDITOR_TEXT = {
     LEAF_BADGE: 'END',
     CYCLE_BADGE: 'CYCLE',
     NODE_STATS_ARIA_LABEL: '마법 스탯',
-    PANE_RESIZER_ARIA_LABEL: '마법 편집창과 마법진 미리보기 크기 조절',
+    NODE_DETAILS_DIALOG_TITLE: '노드 정보',
+    NODE_DETAILS_DIALOG_CLOSE_ARIA_LABEL: '노드 정보 닫기',
+    NODE_DETAILS_CATEGORY_LABEL: '카테고리',
+    NODE_DETAILS_DESCRIPTION_LABEL: '설명',
+    NODE_DETAILS_STATS_LABEL: '기본 스탯',
+    NODE_DETAILS_SAVE: '저장',
+    NODE_DETAILS_CANCEL: '취소',
+    NODE_DETAILS_CLOSE: '닫기',
+    PANE_RESIZER_ARIA_LABEL: '마법 편집창과 서클 미리보기 크기 조절',
 } as const;
 
 export const NODE_COMPOSITION_SIGNATURE_TEXT = {
@@ -150,7 +156,7 @@ export const NODE_COMPOSITION_SIGNATURE_TEXT = {
 } as const;
 
 export const MAGIC_CIRCLE_TEXT = {
-    EMPTY_HINT: '기초 마법을 연결하면 서클이 생성됩니다.',
+    EMPTY_HINT: '단위 마법을 연결하면 서클이 생성됩니다.',
     TOTAL_STATS_ARIA_LABEL: 'Total magic stats',
     TOTAL_STATS_LABEL: 'Total Stats',
     CIRCLE_COUNT_LABEL: '서클 마법',
@@ -167,6 +173,25 @@ export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
     manaCost: '마나 소모',
     duration: '지속 시간',
 };
+
+export const MAGIC_STAT_CALCULATION_DESCRIPTIONS = {
+    circle: {
+        castingTime: '서클을 구성하는 모든 노드의 시전 시간을 합산합니다.',
+        instability: '서클의 불안정성 합계에 1.15^(노드 수 - 1)을 곱합니다.',
+        power: '서클을 구성하는 모든 노드의 출력 값을 합산합니다.',
+        range: '서클을 구성하는 모든 노드의 범위 값을 곱합니다.',
+        manaCost: '서클을 구성하는 모든 노드의 마나 소모를 합산합니다.',
+        duration: '서클을 구성하는 모든 노드의 지속 시간을 합산합니다.',
+    },
+    total: {
+        castingTime: '직렬 경로의 시전 시간을 합산하고, 분기에서는 가장 오래 걸리는 경로를 사용합니다.',
+        instability: '서클별 불안정성에 노드 수 보정을 적용한 뒤, 가장 불안정한 서클의 값을 사용합니다.',
+        power: '연결 방식과 관계없이 모든 노드와 분기의 출력 값을 합산합니다.',
+        range: '직렬 경로의 범위 값을 곱하고, 분기에서는 가장 넓은 경로의 값을 사용합니다.',
+        manaCost: '연결 방식과 관계없이 모든 노드와 분기의 마나 소모를 합산합니다.',
+        duration: '직렬 경로의 지속 시간을 합산하고, 분기에서는 가장 오래 지속되는 경로를 사용합니다.',
+    },
+} as const satisfies Record<'circle' | 'total', Record<MagicStatKey, string>>;
 
 export const MAGIC_NODE_CATEGORY_LABELS: Record<MagicNodeCategory, string> = {
     basic: '속성',

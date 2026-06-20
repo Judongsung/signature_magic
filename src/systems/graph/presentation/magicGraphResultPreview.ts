@@ -28,7 +28,7 @@ function clamp(value: number, min: number, max: number): number {
 function clonePreviewNode(node: MagicNode): MagicNode {
     return {
         ...node,
-        data: { ...node.data, showTooltip: false },
+        data: { ...node.data, showTooltip: false, showBadges: false },
         position: { ...node.position },
         draggable: false,
         selectable: false,

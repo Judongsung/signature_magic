@@ -135,6 +135,25 @@ describe('graphStore', () => {
         expect(graphStore.totalStats.power).toBe(0);
     });
 
+    it('updates instance settings without changing calculated stats', () => {
+        graphStore.addNode('custom', { x: 0, y: 0 });
+        const [customNode] = userNodes();
+        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
+        const output = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)!;
+        const sourceEdge = graphStore.prepareEdge(connection(source.id, customNode.id));
+        const outputEdge = graphStore.prepareEdge(connection(customNode.id, output.id));
+        graphStore.edges = [
+            ...(sourceEdge ? [sourceEdge] : []),
+            ...(outputEdge ? [outputEdge] : []),
+        ];
+        const before = { ...graphStore.totalStats };
+
+        graphStore.updateNodeSettings(customNode.id, { displayName: '  별빛 핵  ' });
+
+        expect(userNodes()[0].data.settings).toEqual({ displayName: '별빛 핵' });
+        expect(graphStore.totalStats).toEqual(before);
+    });
+
     it('calculates only user nodes connected from source to final output', () => {
         graphStore.addNode('ignition', { x: 0, y: 0 });
         graphStore.addNode('stream', { x: 80, y: 0 });

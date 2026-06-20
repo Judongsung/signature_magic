@@ -1,7 +1,11 @@
 ﻿<script lang="ts">
-    import { MAGIC_STAT_LABELS } from '../../../constants/uiText';
+    import {
+        MAGIC_STAT_CALCULATION_DESCRIPTIONS,
+        MAGIC_STAT_LABELS,
+    } from '../../../constants/uiText';
     import { MAGIC_STAT_KEYS, type MagicStats } from '../../../types/magic';
     import { formatMagicStat } from '../../../systems/graph/presentation/magicStatFormatting';
+    import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
 
     let {
         stats,
@@ -12,12 +16,28 @@
         ariaLabel: string;
         total?: boolean;
     } = $props();
+
+    const statsGridId = $props.id();
 </script>
 
 <dl class="stats-grid" class:total-stats-grid={total} aria-label={ariaLabel}>
     {#each MAGIC_STAT_KEYS as statKey}
-        <div class="stat-item" class:total-stat-item={total}>
-            <dt>{MAGIC_STAT_LABELS[statKey]}</dt>
+        {@const tooltipId = `${statsGridId}-${statKey}-calculation-tooltip`}
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex (계산식 툴팁에 키보드로 접근할 수 있게 한다.) -->
+        <div
+            class="stat-item tooltip-host"
+            class:total-stat-item={total}
+            tabindex="0"
+            aria-describedby={tooltipId}
+        >
+            <dt>
+                {MAGIC_STAT_LABELS[statKey]}
+                <DescriptionTooltip
+                    id={tooltipId}
+                    description={MAGIC_STAT_CALCULATION_DESCRIPTIONS[total ? 'total' : 'circle'][statKey]}
+                    placement="bottom"
+                />
+            </dt>
             <dd>{formatMagicStat(stats[statKey])}</dd>
         </div>
     {/each}
@@ -39,12 +59,18 @@
     }
 
     .stat-item {
+        position: relative;
         min-width: 0;
         padding: 7px 8px;
         border: 1px solid var(--node-editor-stats-border);
         border-radius: var(--node-editor-radius-sm);
         background: var(--node-editor-stats-bg);
         box-shadow: var(--node-editor-stat-inset-highlight);
+    }
+
+    .stat-item:focus-visible {
+        outline: 2px solid var(--node-editor-starlight);
+        outline-offset: 2px;
     }
 
     .total-stat-item {

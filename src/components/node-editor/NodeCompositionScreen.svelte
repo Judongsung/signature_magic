@@ -23,10 +23,12 @@
         loadStoredMagicGraphPresets,
         saveStoredMagicGraphPreset,
     } from '../../systems/graph/presets/magicGraphPresetStorage';
-    import type { MagicGraphPresetConfig } from '../../types/magic';
+    import { getMagicTypeConfig } from '../../systems/graph/registry/magicTypeRegistry';
+    import type { MagicGraphPresetConfig, MagicNodeSettings } from '../../types/magic';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
     import MagicCircleGenerator from './magic-circle/MagicCircleGenerator.svelte';
     import MagicNodeEditor from './editor/MagicNodeEditor.svelte';
+    import MagicNodeDetailsDialog from './editor/MagicNodeDetailsDialog.svelte';
     import MagicNodePresetDialog from './presets/MagicNodePresetDialog.svelte';
 
     const builtInPresets = magicGraphPresetsData as MagicGraphPresetConfig[];
@@ -41,6 +43,7 @@
     let userPresets = $state<MagicGraphPresetConfig[]>(loadStoredMagicGraphPresets());
     let selectedPresetValue = $state(initialPresetValue);
     let isPresetDialogOpen = $state(false);
+    let activeNodeId = $state<string | undefined>(undefined);
 
     const editorPaneSize = $derived(`${editorPanePercent}%`);
     const resizerOrientation = $derived(isCompactLayout ? 'horizontal' : 'vertical');
@@ -48,7 +51,10 @@
     const presetSelection = $derived(resolveMagicGraphPresetSelection(presetOptions, selectedPresetValue));
     const selectedPresetOption = $derived(presetSelection.selectedPresetOption);
     const selectedPresetIsUser = $derived(presetSelection.selectedPresetIsUser);
-    const resizerTabIndex = $derived(isPresetDialogOpen ? -1 : 0);
+    const activeNode = $derived(graphStore.nodes.find(node => node.id === activeNodeId));
+    const activeNodeConfig = $derived(activeNode ? getMagicTypeConfig(activeNode.data.magicType) : undefined);
+    const isDialogOpen = $derived(isPresetDialogOpen || Boolean(activeNode));
+    const resizerTabIndex = $derived(isDialogOpen ? -1 : 0);
 
     function updatePanePercentFromPointer(event: PointerEvent) {
         const containerRect = appContainerElement?.getBoundingClientRect();
@@ -70,7 +76,7 @@
     }
 
     function startPaneResize(event: PointerEvent) {
-        if (isPresetDialogOpen) return;
+        if (isDialogOpen) return;
         if (event.button !== NODE_COMPOSITION_PANE_RESIZE_CONFIG.PRIMARY_POINTER_BUTTON) return;
 
         event.preventDefault();
@@ -82,7 +88,7 @@
     }
 
     function handlePaneResizeKeydown(event: KeyboardEvent) {
-        if (isPresetDialogOpen) return;
+        if (isDialogOpen) return;
 
         const nextPanePercent = resolvePanePercentFromKey(editorPanePercent, event.key);
         if (nextPanePercent === undefined) return;
@@ -93,7 +99,25 @@
 
     function openPresetDialog() {
         stopPaneResize();
+        activeNodeId = undefined;
         isPresetDialogOpen = true;
+    }
+
+    function openNodeDetails(nodeId: string) {
+        stopPaneResize();
+        isPresetDialogOpen = false;
+        activeNodeId = nodeId;
+    }
+
+    function closeNodeDetails() {
+        activeNodeId = undefined;
+    }
+
+    function saveNodeSettings(settings: MagicNodeSettings | undefined) {
+        if (!activeNode) return;
+
+        graphStore.updateNodeSettings(activeNode.id, settings);
+        closeNodeDetails();
     }
 
     function selectPreset(value: string) {
@@ -148,18 +172,22 @@
         bind:this={appContainerElement}
         class="app-container"
         class:is-resizing={isResizing}
-        class:preset-dialog-open={isPresetDialogOpen}
+        class:dialog-open={isDialogOpen}
         style:--editor-pane-size={editorPaneSize}
     >
         <div class="editor-pane">
             <SvelteFlowProvider>
-                <MagicNodeEditor onOpenPresetDialog={openPresetDialog} />
+                <MagicNodeEditor
+                    onOpenPresetDialog={openPresetDialog}
+                    onOpenNodeDetails={openNodeDetails}
+                    interactionBlocked={isDialogOpen}
+                />
             </SvelteFlowProvider>
         </div>
         <div
             class="pane-resizer"
             role="slider"
-            aria-disabled={isPresetDialogOpen}
+            aria-disabled={isDialogOpen}
             aria-label={NODE_EDITOR_TEXT.PANE_RESIZER_ARIA_LABEL}
             aria-orientation={resizerOrientation}
             aria-valuemin={NODE_COMPOSITION_PANE_RESIZE_CONFIG.MIN_PERCENT}
@@ -188,6 +216,15 @@
             onSavePreset={saveCurrentPreset}
             onDeletePreset={deleteSelectedPreset}
             onClose={() => isPresetDialogOpen = false}
+        />
+    {/if}
+
+    {#if activeNode && activeNodeConfig}
+        <MagicNodeDetailsDialog
+            node={activeNode}
+            config={activeNodeConfig}
+            onSave={saveNodeSettings}
+            onClose={closeNodeDetails}
         />
     {/if}
 </main>
@@ -241,7 +278,7 @@
         z-index: 4;
     }
 
-    .app-container.preset-dialog-open .pane-resizer {
+    .app-container.dialog-open .pane-resizer {
         pointer-events: none;
     }
 

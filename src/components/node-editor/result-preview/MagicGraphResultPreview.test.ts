@@ -1,25 +1,14 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
-import { afterEach, beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
-import { domToPng, type Options as ScreenshotOptions } from 'modern-screenshot';
-import {
-    MAGIC_GRAPH_RESULT_CAPTURE_CONFIG,
-} from '../../../constants/graphConfigs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
+import { MAGIC_STAR_FIELD_CONFIG } from '../../../constants/graphConfigs';
 import { installResizeObserverStub } from '../../../test-utils/domApis';
 import {
     createTestMagicEdge,
     createTestMagicNode,
 } from '../../../test-utils/graphFixtures';
 import MagicGraphResultPreview from './MagicGraphResultPreview.svelte';
-
-vi.mock('modern-screenshot', () => ({
-    domToPng: vi.fn(),
-}));
-
-type DomToPngNodeCall = (node: HTMLDivElement, options?: ScreenshotOptions) => Promise<string>;
-
-const mockedDomToPng = vi.mocked(domToPng) as unknown as MockedFunction<DomToPngNodeCall>;
 
 let mountedPreview: Record<string, unknown> | undefined;
 
@@ -65,7 +54,6 @@ async function unmountPreview(): Promise<void> {
 
 beforeEach(() => {
     installDomAPIs();
-    mockedDomToPng.mockReset();
 });
 
 afterEach(async () => {
@@ -74,54 +62,41 @@ afterEach(async () => {
 });
 
 describe('MagicGraphResultPreview', () => {
-    it('renders a captured graph image after screenshot generation succeeds', async () => {
-        mockedDomToPng.mockResolvedValue('data:image/png;base64,graph');
-
+    it('renders the graph as a live SvelteFlow instead of a captured image', async () => {
         const target = await mountPreview();
 
         await vi.waitFor(() => {
-            expect(mockedDomToPng).toHaveBeenCalled();
-            const image = target.querySelector<HTMLImageElement>('.graph-result-image');
-            expect(image?.src).toBe('data:image/png;base64,graph');
-            expect(image?.alt).toBe(CYOA_REGISTRATION_RESULT_TEXT.GRAPH_ARIA_LABEL);
+            expect(target.querySelector('.svelte-flow')).not.toBeNull();
+            expect(target.querySelector('.magic-graph-canvas-background')).not.toBeNull();
         });
+        expect(target.querySelectorAll('.magic-graph-canvas-star'))
+            .toHaveLength(MAGIC_STAR_FIELD_CONFIG.COUNT);
+        expect(target.querySelector('.graph-result-image')).toBeNull();
+        expect(target.querySelector('.graph-capture-stage')).toBeNull();
     });
 
-    it('passes capture size and quality options to modern-screenshot', async () => {
-        mockedDomToPng.mockResolvedValue('data:image/png;base64,graph');
-
-        await mountPreview();
+    it('renders result node text without editor tooltips or badges', async () => {
+        const target = await mountPreview({
+            nodes: [
+                createTestMagicNode('detect-node', 'detect', {
+                    settings: { caption: '대상이 움직일 때' },
+                }),
+            ],
+            edges: [],
+        });
 
         await vi.waitFor(() => {
-            expect(mockedDomToPng).toHaveBeenCalledWith(
-                expect.any(HTMLDivElement),
-                expect.objectContaining({
-                    width: MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.WIDTH_PX,
-                    scale: MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.PIXEL_RATIO,
-                    backgroundColor: MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.BACKGROUND_COLOR,
-                })
-            );
-            const captureOptions = mockedDomToPng.mock.calls[0]?.[1];
-            expect(captureOptions?.height)
-                .toBeGreaterThanOrEqual(MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.MIN_HEIGHT_PX);
+            expect(target.textContent).toContain('감지');
+            expect(target.textContent).toContain('대상이 움직일 때');
         });
+        expect(target.querySelector('.tooltip-host')).toBeNull();
+        expect(target.querySelector('.badge')).toBeNull();
     });
 
-    it('renders a fallback message when screenshot generation fails', async () => {
-        mockedDomToPng.mockRejectedValue(new Error('capture failed'));
-
-        const target = await mountPreview();
-
-        await vi.waitFor(() => {
-            expect(target.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.GRAPH_CAPTURE_FAILED);
-            expect(target.querySelector('.graph-result-image')).toBeNull();
-        });
-    });
-
-    it('does not request a screenshot for an empty graph', async () => {
+    it('renders the existing fallback for an empty graph', async () => {
         const target = await mountPreview({ nodes: [], edges: [] });
 
-        expect(mockedDomToPng).not.toHaveBeenCalled();
         expect(target.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.EMPTY_GRAPH);
+        expect(target.querySelector('.svelte-flow')).toBeNull();
     });
 });

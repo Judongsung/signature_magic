@@ -79,8 +79,16 @@ function isMagicGraphPresetNodeConfig(value: unknown): boolean {
 
     return typeof value.id === 'string' &&
         typeof value.magicType === 'string' &&
+        isOptionalMagicNodeSettings(value.settings) &&
         Number.isFinite(value.position.x) &&
         Number.isFinite(value.position.y);
+}
+
+function isOptionalMagicNodeSettings(value: unknown): boolean {
+    if (value === undefined) return true;
+    if (!isRecord(value)) return false;
+
+    return Object.values(value).every(settingValue => typeof settingValue === 'string');
 }
 
 function isMagicGraphPresetEdgeConfig(value: unknown): boolean {

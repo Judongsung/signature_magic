@@ -10,6 +10,10 @@
     } from '../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
+    import {
+        resolveMagicNodeCaption,
+        resolveMagicNodeLabel,
+    } from '../../../systems/graph/model/magicNodeData';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
 
@@ -27,10 +31,12 @@
 
     const color = $derived(nodeConfig?.color || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_COLOR);
     const icon = $derived(nodeConfig?.icon || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_ICON);
-    const label  = $derived(nodeConfig?.label || data.magicType);
+    const label = $derived(resolveMagicNodeLabel(data, nodeConfig));
+    const caption = $derived(resolveMagicNodeCaption(data, nodeConfig));
     const description = $derived(nodeConfig?.description || '');
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
     const shouldShowTooltip = $derived(data.showTooltip !== false);
+    const shouldShowBadges = $derived(data.showBadges !== false);
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
     const inputHandleCount = $derived(data.inputHandleCount ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT);
@@ -88,9 +94,11 @@
         isLeaf = 아직 아무데도 연결 안 한 노드 → 상단에 END 배지 표시
         연결을 생성하면 isLeaf=false가 되어 이 배지가 사라집니다.
     -->
-    <div class="badge-wrap top-badge-wrap">
-        {#if isLeaf}<span class="badge leaf-badge">{NODE_EDITOR_TEXT.LEAF_BADGE}</span>{/if}
-    </div>
+    {#if shouldShowBadges}
+        <div class="badge-wrap top-badge-wrap">
+            {#if isLeaf}<span class="badge leaf-badge">{NODE_EDITOR_TEXT.LEAF_BADGE}</span>{/if}
+        </div>
+    {/if}
     {#each outputHandles as index}
         <Handle
             type="source"
@@ -102,9 +110,10 @@
         />
     {/each}
 
-    <div class="node-body">
+    <div class="node-body" class:has-caption={Boolean(caption)}>
         <div class="icon">{icon}</div>
         <div class="label">{label}</div>
+        {#if caption}<div class="caption">{caption}</div>{/if}
     </div>
 
     <!--
@@ -121,7 +130,7 @@
             class={`node-handle target-handle ${isCycleInputHandle(index) ? 'cycle-input-handle' : ''}`}
             style={`left: ${handleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
         />
-        {#if isCycleInputHandle(index)}
+        {#if isCycleInputHandle(index) && shouldShowBadges}
             <span
                 class="badge cycle-badge"
                 style={`left: ${handleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
@@ -130,9 +139,11 @@
             </span>
         {/if}
     {/each}
-    <div class="badge-wrap bottom-badge-wrap">
-        {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
-    </div>
+    {#if shouldShowBadges}
+        <div class="badge-wrap bottom-badge-wrap">
+            {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
+        </div>
+    {/if}
 
     {#if nodeConfig && shouldShowTooltip}
         <DescriptionTooltip
@@ -147,6 +158,7 @@
 <style>
     .custom-node {
         --c: var(--node-editor-node-fallback-color);
+        --node-caption-max-lines: 2;
         background: var(--node-editor-node-bg);
         border: 1px solid color-mix(in srgb, var(--c) 58%, var(--node-editor-node-border));
         border-radius: var(--node-editor-radius-md);
@@ -237,6 +249,10 @@
         z-index: 1;
     }
 
+    .node-body.has-caption {
+        gap: 2px;
+    }
+
     .icon {
         color: var(--c);
         font-size: var(--node-editor-node-icon-size);
@@ -252,6 +268,20 @@
         max-width: 100%;
         overflow-wrap: anywhere;
         line-height: var(--node-editor-node-label-line-height);
+    }
+
+    .caption {
+        display: -webkit-box;
+        width: 100%;
+        overflow: hidden;
+        color: color-mix(in srgb, var(--c) 54%, var(--node-editor-text));
+        font-size: var(--node-editor-node-caption-size);
+        line-height: var(--node-editor-node-caption-line-height);
+        overflow-wrap: anywhere;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: var(--node-caption-max-lines);
+        line-clamp: var(--node-caption-max-lines);
+        white-space: normal;
     }
 
     .badge-wrap {

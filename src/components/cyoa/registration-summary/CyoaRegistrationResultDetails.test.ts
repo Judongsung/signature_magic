@@ -52,6 +52,7 @@ describe('CyoaRegistrationResultDetails', () => {
         expect(target.querySelector('.graph-result-preview')).not.toBeNull();
         expect(target.querySelector('.circle-composition-preview')).not.toBeNull();
         expect(target.querySelector('.total-stats-grid')).not.toBeNull();
+        expect(target.querySelectorAll('.total-stats-grid [role="tooltip"]')).toHaveLength(6);
     });
 
     it('renders fallback signature metadata before a spell is named', async () => {

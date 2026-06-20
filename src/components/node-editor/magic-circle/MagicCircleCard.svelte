@@ -60,6 +60,11 @@
         transform: translateY(-1px);
     }
 
+    .circle-card:hover,
+    .circle-card:focus-within {
+        content-visibility: visible;
+    }
+
     .circle-label {
         font-size: 11px;
         color: var(--node-editor-circle-label);

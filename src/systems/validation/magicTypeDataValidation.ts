@@ -1,10 +1,13 @@
 import {
     MAGIC_CONNECTION_RULE_KEYS,
+    MAGIC_NODE_EDITOR_CONTROLS,
+    MAGIC_NODE_EDITOR_PRESENTATIONS,
     type MagicNodeCategory,
 } from '../../constants/gameConfigs';
 import {
     MAGIC_STAT_KEYS,
     type MagicNodeConnectionRules,
+    type MagicNodeInstanceEditorConfig,
     type MagicNodeStatRulesConfig,
     type MagicTypeConfig,
     type MagicStatsConfig,
@@ -13,6 +16,8 @@ import { isMagicStatBranchAggregation } from '../graph/calculation/magicStatRule
 import {
     collectDuplicateErrors,
     isFiniteNumber,
+    isNonEmptyString,
+    isPlainObject,
     result,
     type DataValidationResult,
 } from './commonValidation';
@@ -23,6 +28,11 @@ import {
     MAGIC_STAT_KEY_SET,
     type MagicTypeValidationOptions,
 } from './magicValidationShared';
+
+const MAGIC_NODE_EDITOR_CONTROL_SET: ReadonlySet<string> =
+    new Set(Object.values(MAGIC_NODE_EDITOR_CONTROLS));
+const MAGIC_NODE_EDITOR_PRESENTATION_SET: ReadonlySet<string> =
+    new Set(Object.values(MAGIC_NODE_EDITOR_PRESENTATIONS));
 
 function validateMagicConnectionRules(
     type: string,
@@ -55,6 +65,63 @@ function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): 
             ? []
             : [`Invalid magic type stat: ${type} -> ${key}`];
     });
+}
+
+function validateMagicNodeInstanceEditor(
+    type: string,
+    instanceEditor: MagicNodeInstanceEditorConfig | undefined
+): string[] {
+    if (!instanceEditor) return [];
+    if (!Array.isArray(instanceEditor.fields)) {
+        return [`Invalid magic node editor fields: ${type}`];
+    }
+
+    const errors: string[] = [];
+    const validFields = instanceEditor.fields.filter(isPlainObject);
+
+    if (validFields.length !== instanceEditor.fields.length) {
+        errors.push(`Invalid magic node editor field config: ${type}`);
+    }
+
+    errors.push(...collectDuplicateErrors(
+        validFields.map(field => String(field.key ?? '')),
+        `magic node editor field key: ${type}`
+    ));
+    errors.push(...collectDuplicateErrors(
+        validFields.flatMap(field =>
+            typeof field.presentation === 'string' ? [field.presentation] : []
+        ),
+        `magic node editor presentation: ${type}`
+    ));
+
+    validFields.forEach((field, index) => {
+        if (!isNonEmptyString(field.key)) {
+            errors.push(`Invalid magic node editor field key: ${type} -> ${index}`);
+        }
+        if (!isNonEmptyString(field.label)) {
+            errors.push(`Invalid magic node editor field label: ${type} -> ${index}`);
+        }
+        if (!MAGIC_NODE_EDITOR_CONTROL_SET.has(String(field.control))) {
+            errors.push(`Unknown magic node editor control: ${type} -> ${index} -> ${field.control}`);
+        }
+        if (
+            field.maxLength !== undefined &&
+            (!Number.isInteger(field.maxLength) || (field.maxLength as number) <= 0)
+        ) {
+            errors.push(`Invalid magic node editor maxLength: ${type} -> ${index} -> ${field.maxLength}`);
+        }
+        if (field.placeholder !== undefined && typeof field.placeholder !== 'string') {
+            errors.push(`Invalid magic node editor placeholder: ${type} -> ${index}`);
+        }
+        if (
+            field.presentation !== undefined &&
+            !MAGIC_NODE_EDITOR_PRESENTATION_SET.has(String(field.presentation))
+        ) {
+            errors.push(`Unknown magic node editor presentation: ${type} -> ${index} -> ${field.presentation}`);
+        }
+    });
+
+    return errors;
 }
 
 function validateMagicNodeStatRules(type: string, statRules: MagicNodeStatRulesConfig | undefined): string[] {
@@ -103,6 +170,7 @@ function validateMagicTypeConfigs(
             errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
         }
         errors.push(...validateMagicConnectionRules(magicType.type, magicType.connectionRules));
+        errors.push(...validateMagicNodeInstanceEditor(magicType.type, magicType.instanceEditor));
         errors.push(...validateMagicStats(magicType.type, magicType.stats));
         errors.push(...validateMagicNodeStatRules(magicType.type, magicType.statRules));
     });

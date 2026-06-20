@@ -63,6 +63,27 @@
         "stats": { "castingTime": 2, "instability": 3, "power": 5, "range": 0.8, "manaCost": 3, "duration": 1 }
     },
     {
+        "type": "custom",
+        "label": "커스텀",
+        "icon": "◈",
+        "color": "#7f8c8d",
+        "category": "basic",
+        "description": "정해진 분류에 없는 속성이나 개념을 대신하는 범용 기초 노드입니다.",
+        "instanceEditor": {
+            "fields": [
+                {
+                    "key": "displayName",
+                    "label": "이름",
+                    "control": "text",
+                    "maxLength": 20,
+                    "placeholder": "커스텀",
+                    "presentation": "nodeLabel"
+                }
+            ]
+        },
+        "stats": { "castingTime": 2, "instability": 2, "power": 2, "range": 1, "manaCost": 2, "duration": 2 }
+    },
+    {
         "type": "coordinate",
         "label": "지정",
         "icon": "⊙",
@@ -97,6 +118,15 @@
         "category": "action",
         "description": "한 방향으로 쏘아낸다.",
         "stats": { "castingTime": 2, "instability": 3, "power": 4, "range": 1, "manaCost": 3, "duration": 1 }
+    },
+    {
+        "type": "attract",
+        "label": "흡인",
+        "icon": "⤵",
+        "color": "#2471a3",
+        "category": "action",
+        "description": "대상이나 효과를 지정된 지점으로 끌어당긴다.",
+        "stats": { "castingTime": 2, "instability": 2, "power": 3, "range": 1.5, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "shape",
@@ -179,6 +209,15 @@
         "category": "control",
         "description": "효과를 좁은 범위에 밀집시켜 응축한다.",
         "stats": { "castingTime": 2, "instability": 3, "power": 3, "range": 0.5, "manaCost": 3, "duration": 1 }
+    },
+    {
+        "type": "invert",
+        "label": "반전",
+        "icon": "⇄",
+        "color": "#8e44ad",
+        "category": "control",
+        "description": "앞선 효과가 가진 방향이나 작용을 반대로 뒤집는다.",
+        "stats": { "castingTime": 2.5, "instability": 4, "power": 0, "range": 1, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "split",

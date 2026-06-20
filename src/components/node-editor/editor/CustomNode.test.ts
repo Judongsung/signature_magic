@@ -34,11 +34,47 @@ describe('CustomNode', () => {
         expect(html).toContain('description-tooltip');
     });
 
-    it('omits tooltip DOM for image capture preview nodes', () => {
-        const { html } = renderNode({ showTooltip: false });
+    it('omits editor-only tooltip and badge DOM for result preview nodes', () => {
+        const { html } = renderNode({
+            magicType: 'detect',
+            settings: { caption: '대상이 움직일 때' },
+            showTooltip: false,
+            showBadges: false,
+        });
 
         expect(html).not.toContain('tooltip-host');
         expect(html).not.toContain('aria-describedby="canvas-node-tooltip-node-1"');
         expect(html).not.toContain('description-tooltip');
+        expect(html).not.toContain('class="badge ');
+        expect(html).toContain('대상이 움직일 때');
+    });
+
+    it('uses an instance label without replacing the type description', () => {
+        const { html } = renderNode({
+            magicType: 'custom',
+            settings: { displayName: '별빛 핵' },
+        });
+
+        expect(html).toContain('별빛 핵');
+        expect(html).toContain('정해진 분류에 없는 속성이나 개념을 대신하는 범용 기초 노드입니다.');
+    });
+
+    it('renders the default caption field for a regular node', () => {
+        const { html } = renderNode({
+            magicType: 'ignition',
+            settings: { caption: '불꽃을 일으킨다' },
+        });
+
+        expect(html).toContain('class="caption ');
+        expect(html).toContain('불꽃을 일으킨다');
+    });
+
+    it('omits the node caption when its setting is empty', () => {
+        const { html } = renderNode({
+            magicType: 'branch',
+            settings: { caption: '   ' },
+        });
+
+        expect(html).not.toContain('class="caption ');
     });
 });

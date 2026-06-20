@@ -41,7 +41,8 @@ describe('magicGraphResultPreview', () => {
             node.draggable === false &&
             node.selectable === false &&
             node.connectable === false &&
-            node.data.showTooltip === false
+            node.data.showTooltip === false &&
+            node.data.showBadges === false
         )).toBe(true);
         expect(preview.edges).toHaveLength(2);
     });

@@ -1,6 +1,7 @@
 import { render } from 'svelte/server';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../../constants/magicCircleConfigs';
+import { MAGIC_STAT_CALCULATION_DESCRIPTIONS } from '../../../constants/uiText';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
@@ -32,6 +33,9 @@ describe('MagicCircleGenerator', () => {
         expect(html).toContain('total-stats');
         expect(html).toContain('circle-card');
         expect(html).toContain('data-animation-mode="static"');
+        expect(html).toContain(MAGIC_STAT_CALCULATION_DESCRIPTIONS.circle.castingTime);
+        expect(html).toContain(MAGIC_STAT_CALCULATION_DESCRIPTIONS.total.castingTime);
+        expect((html.match(/role="tooltip"/g) ?? [])).toHaveLength(12);
     });
 
     it('passes the requested animation mode to circle cards', () => {

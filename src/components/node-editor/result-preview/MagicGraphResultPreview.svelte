@@ -1,16 +1,13 @@
 <script lang="ts">
-    import { tick } from 'svelte';
-    import type { Action } from 'svelte/action';
-    import { domToPng } from 'modern-screenshot';
     import {
         ConnectionMode,
         SvelteFlow,
+        ViewportPortal,
         type Edge,
     } from '@xyflow/svelte';
     import '@xyflow/svelte/dist/style.css';
 
     import {
-        MAGIC_GRAPH_RESULT_CAPTURE_CONFIG,
         GRAPH_EDGE_TYPES,
         GRAPH_NODE_TYPES,
     } from '../../../constants/graphConfigs';
@@ -19,6 +16,7 @@
         buildMagicGraphResultPreview,
     } from '../../../systems/graph/presentation/magicGraphResultPreview';
     import type { MagicNode } from '../../../types/magic';
+    import MagicGraphCanvasBackground from '../MagicGraphCanvasBackground.svelte';
     import CustomEdge from '../editor/CustomEdge.svelte';
     import CustomNode from '../editor/CustomNode.svelte';
 
@@ -34,85 +32,6 @@
     const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: CustomEdge };
     const proOptions = { hideAttribution: true };
     const preview = $derived(buildMagicGraphResultPreview(nodes, edges));
-    const previewHeight = $derived(
-        Math.max(
-            MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.MIN_HEIGHT_PX,
-            Math.round(MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.WIDTH_PX / preview.aspectRatio)
-        )
-    );
-    let capturedDataUrl = $state<string | undefined>();
-    let captureFailed = $state(false);
-    let captureGeneration = 0;
-    const captureKey = $derived(createCaptureKey());
-
-    async function waitForCaptureLayout(): Promise<void> {
-        await tick();
-        await document.fonts?.ready;
-        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-
-        if (MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.CAPTURE_FRAME_DELAY_MS <= 0) return;
-
-        await new Promise<void>(resolve => {
-            window.setTimeout(resolve, MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.CAPTURE_FRAME_DELAY_MS);
-        });
-    }
-
-    async function capturePreviewImage(element: HTMLDivElement, generation: number): Promise<void> {
-        if (preview.nodes.length === 0) return;
-
-        await waitForCaptureLayout();
-        if (generation !== captureGeneration) return;
-
-        try {
-            const dataUrl = await domToPng(element, {
-                width: MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.WIDTH_PX,
-                height: previewHeight,
-                scale: MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.PIXEL_RATIO,
-                backgroundColor: MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.BACKGROUND_COLOR,
-            });
-
-            if (generation !== captureGeneration) return;
-
-            capturedDataUrl = dataUrl;
-            captureFailed = false;
-        } catch {
-            if (generation !== captureGeneration) return;
-
-            capturedDataUrl = undefined;
-            captureFailed = true;
-        }
-    }
-
-    function startCapture(element: HTMLDivElement): void {
-        const generation = ++captureGeneration;
-        capturedDataUrl = undefined;
-        captureFailed = false;
-        void capturePreviewImage(element, generation);
-    }
-
-    const captureGraphPreview: Action<HTMLDivElement, string> = (element, _captureKey) => {
-        startCapture(element);
-
-        return {
-            update(_nextCaptureKey: string) {
-                startCapture(element);
-            },
-            destroy() {
-                captureGeneration++;
-            },
-        };
-    };
-
-    function createCaptureKey(): string {
-        const nodeKey = preview.nodes
-            .map(node => `${node.id}:${node.position.x}:${node.position.y}:${node.data.magicType}`)
-            .join('|');
-        const edgeKey = preview.edges
-            .map(edge => `${edge.id}:${edge.source}:${edge.target}:${edge.sourceHandle ?? ''}:${edge.targetHandle ?? ''}`)
-            .join('|');
-
-        return `${nodeKey}::${edgeKey}::${previewHeight}`;
-    }
 </script>
 
 <div
@@ -122,27 +41,7 @@
 >
     {#if preview.nodes.length === 0}
         <p class="graph-empty">{CYOA_REGISTRATION_RESULT_TEXT.EMPTY_GRAPH}</p>
-    {:else if capturedDataUrl}
-        <img
-            class="graph-result-image"
-            src={capturedDataUrl}
-            alt={CYOA_REGISTRATION_RESULT_TEXT.GRAPH_ARIA_LABEL}
-            aria-label={CYOA_REGISTRATION_RESULT_TEXT.GRAPH_ARIA_LABEL}
-        />
-    {:else if captureFailed}
-        <p class="graph-empty">{CYOA_REGISTRATION_RESULT_TEXT.GRAPH_CAPTURE_FAILED}</p>
     {:else}
-        <p class="graph-empty">{CYOA_REGISTRATION_RESULT_TEXT.GRAPH_CAPTURE_LOADING}</p>
-    {/if}
-
-    {#if preview.nodes.length > 0}
-        <div
-            use:captureGraphPreview={captureKey}
-            class="graph-capture-stage"
-            aria-hidden="true"
-            style:width={`${MAGIC_GRAPH_RESULT_CAPTURE_CONFIG.WIDTH_PX}px`}
-            style:height={`${previewHeight}px`}
-        >
         <SvelteFlow
             id="registration-result-graph-preview"
             nodes={preview.nodes}
@@ -169,8 +68,11 @@
             zoomActivationKey={null}
             multiSelectionKey={null}
             {proOptions}
-        />
-        </div>
+        >
+            <ViewportPortal target="back">
+                <MagicGraphCanvasBackground />
+            </ViewportPortal>
+        </SvelteFlow>
     {/if}
 </div>
 
@@ -186,11 +88,21 @@
         background: var(--node-editor-canvas-base-bg);
         box-shadow: var(--node-editor-panel-shadow);
         isolation: isolate;
+        --node-editor-node-body-gap: 2px;
+        --node-editor-node-icon-size: 18px;
+        --node-editor-node-label-size: 13px;
+        --node-editor-node-caption-size: 9.5px;
+        --node-editor-node-caption-line-height: 1.1;
+        --node-editor-handle-size: 9px;
     }
 
     .graph-result-preview :global(.svelte-flow) {
         z-index: 1;
-        background: var(--node-editor-canvas-bg);
+        background: transparent;
+    }
+
+    .graph-result-preview :global(.svelte-flow__viewport) {
+        overflow: visible;
     }
 
     .graph-result-preview :global(.svelte-flow__pane),
@@ -199,30 +111,12 @@
         cursor: default;
     }
 
-    .graph-result-image {
-        width: 100%;
-        height: 100%;
-        display: block;
-        object-fit: contain;
-        pointer-events: none;
-        user-select: none;
-    }
-
-    .graph-capture-stage {
-        position: fixed;
-        left: -10000px;
-        top: 0;
-        overflow: hidden;
-        pointer-events: none;
-        background: var(--node-editor-canvas-base-bg);
-    }
-
-    .graph-capture-stage::after {
+    .graph-result-preview::after {
         content: '';
         position: absolute;
         inset: 0;
-        pointer-events: none;
         z-index: 2;
+        pointer-events: none;
         background: var(--node-editor-canvas-vignette);
     }
 

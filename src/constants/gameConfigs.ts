@@ -52,6 +52,30 @@ export const MAGIC_CONNECTION_RULE_KEYS = {
     ALLOW_CYCLE_FROM_OUTPUT: 'allowCycleFromOutput',
 } as const;
 
+export const MAGIC_NODE_EDITOR_CONTROLS = {
+    TEXT: 'text',
+} as const;
+
+export type MagicNodeEditorControl =
+    (typeof MAGIC_NODE_EDITOR_CONTROLS)[keyof typeof MAGIC_NODE_EDITOR_CONTROLS];
+
+export const MAGIC_NODE_EDITOR_PRESENTATIONS = {
+    NODE_LABEL: 'nodeLabel',
+    NODE_CAPTION: 'nodeCaption',
+} as const;
+
+export type MagicNodeEditorPresentation =
+    (typeof MAGIC_NODE_EDITOR_PRESENTATIONS)[keyof typeof MAGIC_NODE_EDITOR_PRESENTATIONS];
+
+export const MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD = {
+    key: 'caption',
+    label: '캡션',
+    control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
+    maxLength: 80,
+    placeholder: '노드 캡션을 입력하세요.',
+    presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_CAPTION,
+} as const;
+
 export const CYOA_SELECTION_MODES = {
     SINGLE: 'single',
     MULTI: 'multi',

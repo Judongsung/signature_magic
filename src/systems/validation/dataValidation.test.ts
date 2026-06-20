@@ -3,6 +3,8 @@ import {
     CYOA_DIALOGUE_TEXT_VARIANTS,
     MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_CATEGORIES,
+    MAGIC_NODE_EDITOR_CONTROLS,
+    MAGIC_NODE_EDITOR_PRESENTATIONS,
 } from '../../constants/gameConfigs';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
@@ -125,6 +127,30 @@ describe('dataValidation', () => {
                     statRules: { castingTime: { branchAggregation: 'fastest' } },
                     connectionLimits: { maxInputs: 0, maxOutputs: -1 },
                     connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: 'yes', unknownRule: true },
+                    instanceEditor: {
+                        fields: [
+                            {
+                                key: 'duplicate',
+                                label: '',
+                                control: 'number',
+                                maxLength: 0,
+                                placeholder: 1,
+                                presentation: 'tooltip',
+                            },
+                            {
+                                key: 'duplicate',
+                                label: 'Name',
+                                control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
+                                presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL,
+                            },
+                            {
+                                key: '',
+                                label: 'Empty key',
+                                control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
+                                presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL,
+                            },
+                        ],
+                    },
                 },
             ] as MagicTypeConfig[],
             MAGIC_NODE_CATEGORIES
@@ -138,6 +164,14 @@ describe('dataValidation', () => {
                 'Invalid magic type maxOutputs: ignition -> -1',
                 `Invalid magic connection rule ${MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT}: ignition -> yes`,
                 'Unknown magic connection rule key: ignition -> unknownRule',
+                'Duplicate magic node editor field key: ignition: duplicate',
+                'Duplicate magic node editor presentation: ignition: nodeLabel',
+                'Invalid magic node editor field label: ignition -> 0',
+                'Unknown magic node editor control: ignition -> 0 -> number',
+                'Invalid magic node editor maxLength: ignition -> 0 -> 0',
+                'Invalid magic node editor placeholder: ignition -> 0',
+                'Unknown magic node editor presentation: ignition -> 0 -> tooltip',
+                'Invalid magic node editor field key: ignition -> 2',
                 'Invalid magic type stat: ignition -> power',
                 'Invalid magic stat branch aggregation: ignition -> castingTime -> fastest',
             ],
@@ -194,6 +228,66 @@ describe('dataValidation', () => {
                 'Unknown magic graph preset edge target: bad-preset -> edge-a -> missing-target',
             ],
         });
+    });
+
+    it('reports undeclared and oversized preset node settings', () => {
+        expect(validateMagicGraphPresets(
+            [
+                {
+                    id: 'bad-settings-preset',
+                    label: 'Bad settings',
+                    nodes: [
+                        {
+                            id: 'custom-node',
+                            magicType: 'custom',
+                            settings: {
+                                displayName: 'x'.repeat(21),
+                                unknown: 'value',
+                            },
+                            position: { x: 0, y: 0 },
+                        },
+                        {
+                            id: 'detect-node',
+                            magicType: 'detect',
+                            settings: {
+                                caption: 'x'.repeat(81),
+                            },
+                            position: { x: 40, y: 0 },
+                        },
+                    ],
+                    edges: [],
+                },
+            ],
+            magicTypesData as MagicTypeConfig[]
+        )).toEqual({
+            valid: false,
+            errors: [
+                'Magic graph preset node setting is too long: bad-settings-preset -> custom-node -> displayName',
+                'Unknown magic graph preset node setting: bad-settings-preset -> custom-node -> unknown',
+                'Magic graph preset node setting is too long: bad-settings-preset -> detect-node -> caption',
+            ],
+        });
+    });
+
+    it('accepts the default caption setting for regular user nodes', () => {
+        expect(validateMagicGraphPresets(
+            [
+                {
+                    id: 'caption-preset',
+                    label: 'Caption preset',
+                    nodes: [
+                        {
+                            id: 'ignition-node',
+                            magicType: 'ignition',
+                            settings: { caption: '불꽃을 일으킨다' },
+                            position: { x: 0, y: 0 },
+                        },
+                    ],
+                    edges: [],
+                },
+            ],
+            magicTypesData as MagicTypeConfig[]
+        )).toEqual({ valid: true, errors: [] });
     });
 
     it('validates configured CYOA rows against visibility conditions and image registries', () => {

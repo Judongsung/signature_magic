@@ -8,6 +8,7 @@
         useSvelteFlow,
         type Connection,
         type Edge,
+        type NodeEventWithPointer,
         type OnDelete,
         type CoordinateExtent,
         type SnapGrid,
@@ -23,7 +24,6 @@
     import {
         GRAPH_EDGE_TYPES,
         GRAPH_NODE_TYPES,
-        MAGIC_STAR_FIELD_CONFIG,
     } from '../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import {
@@ -32,33 +32,29 @@
         resolveCenteredViewport,
         resolveDropPosition,
     } from '../../../systems/graph/editor/editorCanvas';
-    import { createStarField } from '../../../systems/graph/presentation/starField';
     import { getMagicTypesByCategory } from '../../../systems/graph/registry/magicTypeRegistry';
+    import MagicGraphCanvasBackground from '../MagicGraphCanvasBackground.svelte';
     import CustomNode from './CustomNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
     import MagicNodeToolbar from './MagicNodeToolbar.svelte';
+    import { openNodeDetailsFromContextMenu } from './nodeDetailsInteraction';
     import type { MagicNode, MagicType } from '../../../types/magic';
 
     let {
         onOpenPresetDialog,
+        onOpenNodeDetails,
+        interactionBlocked = false,
     }: {
         onOpenPresetDialog: () => void;
+        onOpenNodeDetails: (nodeId: string) => void;
+        interactionBlocked?: boolean;
     } = $props();
 
     const nodeTypes = { [GRAPH_NODE_TYPES.MAGIC_NODE]: CustomNode };
     const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: CustomEdge };
     const snapGrid = EDITOR_CANVAS.SNAP_GRID as SnapGrid;
     const canvasExtent = EDITOR_CANVAS.EXTENT as CoordinateExtent;
-    const canvasLayerLeft = `${EDITOR_CANVAS.EXTENT[0][0]}px`;
-    const canvasLayerTop = `${EDITOR_CANVAS.EXTENT[0][1]}px`;
-    const canvasLayerWidth = `${EDITOR_CANVAS.EXTENT[1][0] - EDITOR_CANVAS.EXTENT[0][0]}px`;
-    const canvasLayerHeight = `${EDITOR_CANVAS.EXTENT[1][1] - EDITOR_CANVAS.EXTENT[0][1]}px`;
     const panOnDragButtons = [...EDITOR_CANVAS.PAN_ON_DRAG_BUTTONS];
-    const canvasStars = createStarField(MAGIC_STAR_FIELD_CONFIG, {
-        width: EDITOR_CANVAS.EXTENT[1][0] - EDITOR_CANVAS.EXTENT[0][0],
-        height: EDITOR_CANVAS.EXTENT[1][1] - EDITOR_CANVAS.EXTENT[0][1],
-        unit: 'px',
-    });
     const canvasCenter = getExtentCenter(EDITOR_CANVAS.EXTENT);
     const { screenToFlowPosition, setViewport } = useSvelteFlow();
 
@@ -145,6 +141,10 @@
         graphStore.onDelete(nodes, edges);
     };
 
+    const onNodeContextMenu: NodeEventWithPointer<MouseEvent, MagicNode> = ({ node, event }) => {
+        openNodeDetailsFromContextMenu(node, event, onOpenNodeDetails);
+    };
+
 </script>
 
 <div class="editor-container">
@@ -167,10 +167,6 @@
         role="region"
         aria-label={NODE_EDITOR_TEXT.CANVAS_ARIA_LABEL}
         data-tooltip-boundary
-        style:--node-editor-canvas-layer-left={canvasLayerLeft}
-        style:--node-editor-canvas-layer-top={canvasLayerTop}
-        style:--node-editor-canvas-layer-width={canvasLayerWidth}
-        style:--node-editor-canvas-layer-height={canvasLayerHeight}
     >
         <SvelteFlow
             bind:nodes={graphStore.nodes}
@@ -189,22 +185,12 @@
             onbeforeconnect={(conn) => graphStore.prepareEdge(conn)}
             onconnect={(conn: Connection) => graphStore.onEdgeConnected(conn)}
             ondelete={onDelete}
+            onnodecontextmenu={onNodeContextMenu}
             oninit={centerInitialViewport}
-            deleteKey="Delete"
+            deleteKey={interactionBlocked ? null : 'Delete'}
         >
             <ViewportPortal target="back">
-                <div class="star-field" aria-hidden="true">
-                    {#each canvasStars as star}
-                        <span
-                            class="star"
-                            style:left={star.x}
-                            style:top={star.y}
-                            style:--star-size={star.size}
-                            style:--star-color={star.color}
-                            style:--star-glow={star.glow}
-                        ></span>
-                    {/each}
-                </div>
+                <MagicGraphCanvasBackground />
             </ViewportPortal>
             <Controls />
         </SvelteFlow>
@@ -248,40 +234,6 @@
 
     .flow-wrapper :global(.svelte-flow__viewport) {
         overflow: visible;
-    }
-
-    .flow-wrapper :global(.svelte-flow__viewport::before) {
-        content: '';
-        position: absolute;
-        left: var(--node-editor-canvas-layer-left);
-        top: var(--node-editor-canvas-layer-top);
-        width: var(--node-editor-canvas-layer-width);
-        height: var(--node-editor-canvas-layer-height);
-        pointer-events: none;
-    }
-
-    .flow-wrapper :global(.svelte-flow__viewport::before) {
-        z-index: -2;
-        background: var(--node-editor-canvas-bg);
-    }
-
-    .star-field {
-        position: absolute;
-        left: var(--node-editor-canvas-layer-left);
-        top: var(--node-editor-canvas-layer-top);
-        width: var(--node-editor-canvas-layer-width);
-        height: var(--node-editor-canvas-layer-height);
-        pointer-events: none;
-    }
-
-    .star {
-        position: absolute;
-        width: var(--star-size);
-        height: var(--star-size);
-        border-radius: 50%;
-        background: var(--star-color);
-        box-shadow: var(--star-glow);
-        transform: translate(-50%, -50%);
     }
 
     .flow-wrapper :global(.svelte-flow__controls) {

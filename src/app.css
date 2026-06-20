@@ -167,6 +167,8 @@
     --node-editor-node-icon-size: 24px;
     --node-editor-node-label-size: 10.5px;
     --node-editor-node-label-line-height: 1.18;
+    --node-editor-node-caption-size: 8px;
+    --node-editor-node-caption-line-height: 1.1;
     --node-editor-node-fallback-color: #a9b0bd;
     --node-editor-node-bg:
         linear-gradient(180deg, rgba(14, 17, 31, 0.96), rgba(7, 10, 20, 0.98));

@@ -17,7 +17,8 @@ import type {
 import { createUniqueId } from '../model/graphActions';
 import { createInitialSystemNodes, isSystemMagicNode } from '../model/systemMagicNodes';
 import type { GraphSnapshot } from '../model/graphEventHandlers';
-import { createUserMagicNodeData } from '../model/magicNodeData';
+import { createUserMagicNodeData, normalizeMagicNodeSettings } from '../model/magicNodeData';
+import { readMagicTypeConfigByType, type MagicTypeLookup } from '../model/magicTypeLookup';
 
 export const MAGIC_GRAPH_PRESET_SOURCES = {
     BUILT_IN: 'builtIn',
@@ -63,11 +64,14 @@ export function createMagicGraphPresetOption(
     };
 }
 
-export function createMagicGraphFromPreset(preset: MagicGraphPresetConfig): GraphSnapshot {
+export function createMagicGraphFromPreset(
+    preset: MagicGraphPresetConfig,
+    magicTypes?: MagicTypeLookup
+): GraphSnapshot {
     return {
         nodes: [
             ...createSystemNodesFromPreset(preset.systemNodePositions),
-            ...preset.nodes.map(createUserNodeFromPreset),
+            ...preset.nodes.map(node => createUserNodeFromPreset(node, magicTypes)),
         ],
         edges: preset.edges.map(createEdgeFromPreset),
     };
@@ -136,12 +140,22 @@ export function collectMagicGraphPresetReferenceErrors(
     return errors;
 }
 
-function createUserNodeFromPreset(node: MagicGraphPresetNodeConfig): MagicNode {
+function createUserNodeFromPreset(
+    node: MagicGraphPresetNodeConfig,
+    magicTypes?: MagicTypeLookup
+): MagicNode {
+    const config = magicTypes
+        ? readMagicTypeConfigByType(node.magicType, magicTypes)
+        : undefined;
+    const settings = magicTypes
+        ? normalizeMagicNodeSettings(config, node.settings)
+        : node.settings;
+
     return {
         id: node.id,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position: { ...node.position },
-        data: createUserMagicNodeData(node.magicType),
+        data: createUserMagicNodeData(node.magicType, settings),
     };
 }
 
@@ -179,6 +193,7 @@ function createPresetNodeFromGraph(node: MagicNode): MagicGraphPresetNodeConfig 
     return {
         id: node.id,
         magicType: node.data.magicType,
+        ...(node.data.settings ? { settings: { ...node.data.settings } } : {}),
         position: { ...node.position },
     };
 }

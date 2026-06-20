@@ -2,6 +2,8 @@ import type { Node } from '@xyflow/svelte';
 import {
     MAGIC_CONNECTION_RULE_KEYS,
     type MagicNodeCategory,
+    type MagicNodeEditorControl,
+    type MagicNodeEditorPresentation,
 } from '../constants/gameConfigs';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
@@ -104,6 +106,21 @@ export interface MagicNodeConnectionRules {
     [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]?: boolean;
 }
 
+export interface MagicNodeEditorFieldConfig {
+    key: string;
+    label: string;
+    control: MagicNodeEditorControl;
+    maxLength?: number;
+    placeholder?: string;
+    presentation?: MagicNodeEditorPresentation;
+}
+
+export interface MagicNodeInstanceEditorConfig {
+    fields: MagicNodeEditorFieldConfig[];
+}
+
+export type MagicNodeSettings = Record<string, string>;
+
 export type MagicNodeKind = 'user' | 'system';
 
 export interface MagicTypeConfig {
@@ -115,12 +132,14 @@ export interface MagicTypeConfig {
     description: string;
     connectionLimits?: MagicNodeConnectionLimits;
     connectionRules?: MagicNodeConnectionRules;
+    instanceEditor?: MagicNodeInstanceEditorConfig;
     stats?: MagicStatsConfig;
     statRules?: MagicNodeStatRulesConfig;
 }
 
 export interface MagicNodeData extends Record<string, unknown> {
     magicType: MagicType;
+    settings?: MagicNodeSettings;
     nodeKind?: MagicNodeKind;
     isRoot?: boolean;
     isLeaf?: boolean;
@@ -129,6 +148,7 @@ export interface MagicNodeData extends Record<string, unknown> {
     cycleInputHandleIndex?: number;
     cycleInputHandleConnected?: boolean;
     showTooltip?: boolean;
+    showBadges?: boolean;
 }
 
 export interface MagicGraphNode {
@@ -144,6 +164,7 @@ export type MagicNode = Node<MagicNodeData> & MagicGraphNode;
 export interface MagicGraphPresetNodeConfig {
     id: string;
     magicType: MagicType;
+    settings?: MagicNodeSettings;
     position: { x: number; y: number };
 }
 
