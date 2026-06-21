@@ -22,6 +22,10 @@ import {
     GRAPH_PERFORMANCE_OPERATION_IDS,
     measureGraphOperation,
 } from '../diagnostics/graphPerformance';
+import {
+    buildMagicNodeExecutionCounts,
+    type MagicNodeExecutionCounts,
+} from './magicRepeatCalculation';
 
 const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
     nodeEffects: [],
@@ -61,10 +65,12 @@ function calculateMagicNow(
         calculableGraph.edges,
         magicTypeMap
     );
+    const nodeExecutionCounts = buildMagicNodeExecutionCounts(analysis, magicTypeMap);
     const circles = calculateCirclesWithMagicTypes(
         analysis,
         magicTypeMap,
-        statEffects.nodeEffects
+        statEffects.nodeEffects,
+        nodeExecutionCounts
     );
     const totalStats = calculateMagicStats(
         calculableGraph.nodes,
@@ -72,7 +78,8 @@ function calculateMagicNow(
         magicTypeMap,
         'total',
         statEffects.nodeEffects,
-        analysis
+        analysis,
+        nodeExecutionCounts
     );
 
     return {
@@ -105,17 +112,20 @@ export function calculateCircles(
     if (nodes.length === 0) return [];
 
     const magicTypeMap = buildMagicTypeMap(magicTypes);
+    const analysis = buildMagicGraphAnalysis(nodes, edges, magicTypeMap);
     return calculateCirclesWithMagicTypes(
-        buildMagicGraphAnalysis(nodes, edges, magicTypeMap),
+        analysis,
         magicTypeMap,
-        nodeStatEffects
+        nodeStatEffects,
+        buildMagicNodeExecutionCounts(analysis, magicTypeMap)
     );
 }
 
 function calculateCirclesWithMagicTypes(
     analysis: MagicGraphAnalysis,
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
-    nodeStatEffects: readonly MagicStatEffectConfig[] = []
+    nodeStatEffects: readonly MagicStatEffectConfig[] = [],
+    nodeExecutionCounts: MagicNodeExecutionCounts = new Map()
 ): CirclePath[] {
     const { topology, circleStartNodes, cycleCirclePaths } = analysis;
     const cycleChains = cycleCirclePaths.map(path => expandCycleCircleChain(path, topology));
@@ -131,7 +141,15 @@ function calculateCirclesWithMagicTypes(
         .map((chain, index) => ({
             id: `${MAGIC_CIRCLE_ID_PREFIX}-${index}`,
             nodes: chain,
-            stats: calculateMagicStats(chain, topology.edges, magicTypeMap, 'circle', nodeStatEffects),
+            stats: calculateMagicStats(
+                chain,
+                topology.edges,
+                magicTypeMap,
+                'circle',
+                nodeStatEffects,
+                undefined,
+                nodeExecutionCounts
+            ),
         }));
 }
 

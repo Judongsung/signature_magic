@@ -1,8 +1,17 @@
+@font-face {
+    font-family: 'Source Han Serif K';
+    src: url('./fonts/SourceHanSerifK-VF.otf.woff2') format('woff2');
+    font-style: normal;
+    font-weight: 200 900;
+    font-display: swap;
+}
+
 :root {
     /* ── Mage Guild Theme Palette ────────────────────────────────────────── */
-    --font-title: 'Cinzel', Georgia, 'Times New Roman', serif;
-    --font-body: 'Noto Serif KR', 'Nanum Myeongjo', Georgia, serif;
-    --font-accent: 'Cinzel Decorative', Georgia, serif;
+    --font-primary: 'Source Han Serif K', Georgia, 'Times New Roman', serif;
+    --font-title: var(--font-primary);
+    --font-body: var(--font-primary);
+    --font-accent: var(--font-primary);
     
     /* Document Colors */
     --guild-desk-bg: #090807; /* Dark oak desk */
@@ -254,8 +263,15 @@ body {
     padding: 0;
     background-color: var(--guild-desk-bg);
     color: var(--guild-body-text);
-    font-family: var(--font-body), -apple-system, sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
 }
 
 .node-editor-action-btn {

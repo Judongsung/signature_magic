@@ -1,5 +1,6 @@
 import {
     MAGIC_CONNECTION_RULE_KEYS,
+    MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
     type MagicNodeCategory,
@@ -33,6 +34,8 @@ const MAGIC_NODE_EDITOR_CONTROL_SET: ReadonlySet<string> =
     new Set(Object.values(MAGIC_NODE_EDITOR_CONTROLS));
 const MAGIC_NODE_EDITOR_PRESENTATION_SET: ReadonlySet<string> =
     new Set(Object.values(MAGIC_NODE_EDITOR_PRESENTATIONS));
+const MAGIC_NODE_EDITOR_BEHAVIOR_SET: ReadonlySet<string> =
+    new Set(Object.values(MAGIC_NODE_EDITOR_BEHAVIORS));
 
 function validateMagicConnectionRules(
     type: string,
@@ -93,8 +96,16 @@ function validateMagicNodeInstanceEditor(
         ),
         `magic node editor presentation: ${type}`
     ));
+    errors.push(...collectDuplicateErrors(
+        validFields.flatMap(field =>
+            typeof field.behavior === 'string' ? [field.behavior] : []
+        ),
+        `magic node editor behavior: ${type}`
+    ));
 
     validFields.forEach((field, index) => {
+        const rawField = field as unknown as Record<string, unknown>;
+
         if (!isNonEmptyString(field.key)) {
             errors.push(`Invalid magic node editor field key: ${type} -> ${index}`);
         }
@@ -105,19 +116,64 @@ function validateMagicNodeInstanceEditor(
             errors.push(`Unknown magic node editor control: ${type} -> ${index} -> ${field.control}`);
         }
         if (
-            field.maxLength !== undefined &&
-            (!Number.isInteger(field.maxLength) || (field.maxLength as number) <= 0)
+            rawField.maxLength !== undefined &&
+            (!Number.isInteger(rawField.maxLength) || Number(rawField.maxLength) <= 0)
         ) {
-            errors.push(`Invalid magic node editor maxLength: ${type} -> ${index} -> ${field.maxLength}`);
+            errors.push(`Invalid magic node editor maxLength: ${type} -> ${index} -> ${rawField.maxLength}`);
         }
-        if (field.placeholder !== undefined && typeof field.placeholder !== 'string') {
+        if (rawField.placeholder !== undefined && typeof rawField.placeholder !== 'string') {
             errors.push(`Invalid magic node editor placeholder: ${type} -> ${index}`);
+        }
+        if (field.control === MAGIC_NODE_EDITOR_CONTROLS.STEPPER) {
+            if (!Number.isInteger(field.min)) {
+                errors.push(`Invalid magic node editor stepper min: ${type} -> ${index} -> ${field.min}`);
+            }
+            if (!Number.isInteger(field.max) || Number(field.max) < Number(field.min)) {
+                errors.push(`Invalid magic node editor stepper max: ${type} -> ${index} -> ${field.max}`);
+            }
+            if (!Number.isInteger(field.step) || Number(field.step) <= 0) {
+                errors.push(`Invalid magic node editor stepper step: ${type} -> ${index} -> ${field.step}`);
+            }
+            if (
+                !Number.isInteger(field.defaultValue) ||
+                Number(field.defaultValue) < Number(field.min) ||
+                Number(field.defaultValue) > Number(field.max)
+            ) {
+                errors.push(`Invalid magic node editor stepper defaultValue: ${type} -> ${index} -> ${field.defaultValue}`);
+            }
+        }
+        if (field.helpText !== undefined && typeof field.helpText !== 'string') {
+            errors.push(`Invalid magic node editor helpText: ${type} -> ${index}`);
         }
         if (
             field.presentation !== undefined &&
             !MAGIC_NODE_EDITOR_PRESENTATION_SET.has(String(field.presentation))
         ) {
             errors.push(`Unknown magic node editor presentation: ${type} -> ${index} -> ${field.presentation}`);
+        }
+        if (
+            field.behavior !== undefined &&
+            !MAGIC_NODE_EDITOR_BEHAVIOR_SET.has(String(field.behavior))
+        ) {
+            errors.push(`Unknown magic node editor behavior: ${type} -> ${index} -> ${field.behavior}`);
+        }
+        if (
+            field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT &&
+            field.control !== MAGIC_NODE_EDITOR_CONTROLS.STEPPER
+        ) {
+            errors.push(`Invalid cycle repeat count control: ${type} -> ${index}`);
+        }
+        if (
+            field.presentation === MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX &&
+            field.control !== MAGIC_NODE_EDITOR_CONTROLS.STEPPER
+        ) {
+            errors.push(`Invalid node label suffix control: ${type} -> ${index}`);
+        }
+        if (
+            field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT &&
+            field.presentation !== MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX
+        ) {
+            errors.push(`Invalid cycle repeat count presentation: ${type} -> ${index}`);
         }
     });
 

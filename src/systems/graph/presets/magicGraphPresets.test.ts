@@ -240,6 +240,12 @@ describe('magicGraphPresets', () => {
                     settings: { caption: '불꽃을 일으킨다' },
                     position: { x: 80, y: 0 },
                 },
+                {
+                    id: 'repeat-node',
+                    magicType: 'repeat',
+                    settings: { repeatCount: '3', caption: '되풀이' },
+                    position: { x: 120, y: 0 },
+                },
             ],
             edges: [],
         };
@@ -259,10 +265,15 @@ describe('magicGraphPresets', () => {
         expect(graph.nodes.find(item => item.id === 'ignition-node')?.data.settings).toEqual({
             caption: '불꽃을 일으킨다',
         });
+        expect(graph.nodes.find(item => item.id === 'repeat-node')?.data.settings).toEqual({
+            repeatCount: '3',
+            caption: '되풀이',
+        });
         expect(snapshot && snapshot.nodes.map(node => node.settings)).toEqual([
             { displayName: '별빛 핵' },
             { caption: '대상이 움직일 때' },
             { caption: '불꽃을 일으킨다' },
+            { repeatCount: '3', caption: '되풀이' },
         ]);
         expect(loadStoredMagicGraphPresets(storage)).toEqual([]);
         expect(saveStoredMagicGraphPreset(configurablePreset, storage)).toEqual([configurablePreset]);

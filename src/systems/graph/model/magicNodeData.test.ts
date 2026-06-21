@@ -5,9 +5,11 @@ import {
     getMagicNodeEditorFields,
     normalizeMagicNodeSettings,
     resolveMagicNodeCaption,
+    resolveMagicNodeCycleRepeatCount,
     resolveMagicNodeLabel,
     updateMagicNodeSettings,
 } from './magicNodeData';
+import { getMagicTypeConfig } from '../registry/magicTypeRegistry';
 
 const plainType: MagicTypeConfig = {
     type: 'ignition',
@@ -93,6 +95,21 @@ describe('magicNodeData', () => {
             { magicType: plainType.type, settings: { caption: '불꽃을 일으킨다' } },
             plainType
         )).toBe('불꽃을 일으킨다');
+    });
+
+    it('normalizes repeat stepper values and formats the node label suffix', () => {
+        const repeatType = getMagicTypeConfig('repeat')!;
+        const repeatNode = node({ repeatCount: '3', caption: '되풀이' });
+        repeatNode.data.magicType = 'repeat';
+
+        expect(normalizeMagicNodeSettings(repeatType, {
+            repeatCount: '120',
+            caption: '  되풀이  ',
+        })).toEqual({ repeatCount: '99', caption: '되풀이' });
+        expect(normalizeMagicNodeSettings(repeatType, { repeatCount: '0' })).toBeUndefined();
+        expect(resolveMagicNodeCycleRepeatCount(repeatNode.data, repeatType)).toBe(3);
+        expect(resolveMagicNodeLabel(repeatNode.data, repeatType)).toBe('반복 ×3');
+        expect(resolveMagicNodeLabel({ magicType: 'repeat' }, repeatType)).toBe('반복 ∞');
     });
 
     it('updates one node without changing its graph identity or position', () => {

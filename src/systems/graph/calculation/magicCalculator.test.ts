@@ -2,14 +2,23 @@
 import { describe, expect, it } from 'vitest';
 import { calculateCircles, calculateMagic, computeNodeRoles } from './magicCalculator';
 import { EMPTY_MAGIC_STATS, type MagicNode, type MagicStats, type MagicType, type MagicTypeConfig } from '../../../types/magic';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
+import {
+    MAGIC_CONNECTION_RULE_KEYS,
+    MAGIC_NODE_EDITOR_BEHAVIORS,
+    MAGIC_NODE_EDITOR_CONTROLS,
+    MAGIC_NODE_EDITOR_PRESENTATIONS,
+} from '../../../constants/gameConfigs';
 
-function node(id: string, magicType: MagicType = 'ignition'): MagicNode {
+function node(
+    id: string,
+    magicType: MagicType = 'ignition',
+    settings?: Record<string, string>
+): MagicNode {
     return {
         id,
         type: 'magicNode',
         position: { x: 0, y: 0 },
-        data: { magicType },
+        data: { magicType, settings },
     };
 }
 
@@ -599,6 +608,156 @@ describe('calculateMagic', () => {
         ]);
         expect(result.circles.map(circle => circle.stats.castingTime)).toEqual([10]);
         expect(result.totalStats.instability).toBeCloseTo(result.circles[0].stats.instability);
+    });
+
+    it('repeats cycle stats except instability for a finite repeat count', () => {
+        const nodes = [
+            node('a', 'ignition'),
+            node('b', 'stream'),
+            node('c', 'soil'),
+            node('repeat', 'repeat', { repeatCount: '3' }),
+        ];
+        const edges = [
+            edge('a', 'b'),
+            edge('b', 'c'),
+            edge('c', 'repeat'),
+            edge('repeat', 'b'),
+        ];
+        const magicTypes = [
+            {
+                type: 'ignition',
+                label: 'Ignition',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Ignition magic.',
+                stats: { castingTime: 1, instability: 1, power: 1, range: 2, manaCost: 1, duration: 1 },
+            },
+            {
+                type: 'stream',
+                label: 'Stream',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Stream magic.',
+                stats: { castingTime: 2, instability: 2, power: 2, range: 2, manaCost: 2, duration: 2 },
+            },
+            {
+                type: 'soil',
+                label: 'Soil',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Soil magic.',
+                stats: { castingTime: 3, instability: 3, power: 3, range: 3, manaCost: 3, duration: 3 },
+            },
+            {
+                type: 'repeat',
+                label: 'Repeat',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Repeat magic.',
+                instanceEditor: {
+                    fields: [
+                        {
+                            key: 'repeatCount',
+                            label: 'Count',
+                            control: MAGIC_NODE_EDITOR_CONTROLS.STEPPER,
+                            min: 0,
+                            max: 99,
+                            step: 1,
+                            defaultValue: 0,
+                            presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX,
+                            behavior: MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT,
+                        },
+                    ],
+                },
+                stats: { castingTime: 4, instability: 4, power: 4, range: 4, manaCost: 4, duration: 4 },
+                connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, edges, magicTypes);
+        const expectedInstability = 10 * (1.15 ** 3);
+
+        expect(result.circles[0].nodes.map(item => item.id)).toEqual(['a', 'b', 'c', 'repeat']);
+        expectStatsClose(result.circles[0].stats, {
+            castingTime: 28,
+            instability: expectedInstability,
+            power: 28,
+            range: 27_648,
+            manaCost: 28,
+            duration: 28,
+        });
+        expectStatsClose(result.totalStats, {
+            castingTime: 28,
+            instability: expectedInstability,
+            power: 28,
+            range: 27_648,
+            manaCost: 28,
+            duration: 28,
+        });
+    });
+
+    it('calculates infinite and disconnected repeats once', () => {
+        const repeatType = {
+            type: 'repeat',
+            label: 'Repeat',
+            icon: '',
+            color: '',
+            category: 'control',
+            description: 'Repeat magic.',
+            instanceEditor: {
+                fields: [
+                    {
+                        key: 'repeatCount',
+                        label: 'Count',
+                        control: MAGIC_NODE_EDITOR_CONTROLS.STEPPER,
+                        min: 0,
+                        max: 99,
+                        step: 1,
+                        defaultValue: 0,
+                        presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX,
+                        behavior: MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT,
+                    },
+                ],
+            },
+            stats: { castingTime: 4, instability: 4, power: 4, range: 4, manaCost: 4, duration: 4 },
+            connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
+        } satisfies MagicTypeConfig;
+        const ignitionType = {
+            type: 'ignition',
+            label: 'Ignition',
+            icon: '',
+            color: '',
+            category: 'basic',
+            description: 'Ignition magic.',
+            stats: { castingTime: 1, instability: 1, power: 1, range: 2, manaCost: 1, duration: 1 },
+        } satisfies MagicTypeConfig;
+        const infiniteCycle = calculateMagic(
+            [node('a'), node('repeat', 'repeat', { repeatCount: '0' })],
+            [edge('a', 'repeat'), edge('repeat', 'a')],
+            [ignitionType, repeatType]
+        );
+        const disconnectedRepeat = calculateMagic(
+            [node('a'), node('repeat', 'repeat', { repeatCount: '3' })],
+            [edge('a', 'repeat')],
+            [ignitionType, repeatType]
+        );
+        const expected = {
+            castingTime: 5,
+            instability: 5.75,
+            power: 5,
+            range: 8,
+            manaCost: 5,
+            duration: 5,
+        };
+
+        expectStatsClose(infiniteCycle.circles[0].stats, expected);
+        expectStatsClose(infiniteCycle.totalStats, expected);
+        expectStatsClose(disconnectedRepeat.circles[0].stats, expected);
+        expectStatsClose(disconnectedRepeat.totalStats, expected);
     });
 
     it('applies node stat effects before circle and total stat calculation', () => {

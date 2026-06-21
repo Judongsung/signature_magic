@@ -171,6 +171,22 @@
         "color": "#f8c471",
         "category": "control",
         "description": "서클을 반복한다. 순환 연결을 할 수 있다.",
+        "instanceEditor": {
+            "fields": [
+                {
+                    "key": "repeatCount",
+                    "label": "횟수",
+                    "control": "stepper",
+                    "min": 0,
+                    "max": 99,
+                    "step": 1,
+                    "defaultValue": 0,
+                    "helpText": "0은 무한 반복이며 스탯은 1회 기준으로 계산됩니다.",
+                    "presentation": "nodeLabelSuffix",
+                    "behavior": "cycleRepeatCount"
+                }
+            ]
+        },
         "stats": { "castingTime": 2, "instability": 2, "power": 0, "range": 1, "manaCost": 4, "duration": 4 },
         "connectionRules": { "allowCycleFromOutput": true }
     },

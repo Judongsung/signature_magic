@@ -21,6 +21,11 @@ import {
     type MagicGraphAnalysis,
 } from './magicGraphAnalysis';
 import { findNearestCommonReachableNode } from '../topology/graphTraversal';
+import type { MagicNodeExecutionCounts } from './magicRepeatCalculation';
+
+const EMPTY_NODE_EXECUTION_COUNTS: MagicNodeExecutionCounts = new Map();
+const DEFAULT_NODE_EXECUTION_COUNT = 1;
+const NON_REPEATABLE_STAT_KEY: MagicStatKey = 'instability';
 
 export function buildMagicTypeMap(
     magicTypes: readonly MagicTypeConfig[]
@@ -31,6 +36,7 @@ export function buildMagicTypeMap(
 interface MagicStatCalculationContext {
     nodeStatEffectSummary: MagicStatEffectSummary;
     nodeStatsById: Map<string, MagicStats>;
+    nodeExecutionCounts: MagicNodeExecutionCounts;
 }
 
 export function calculateMagicStats(
@@ -39,7 +45,8 @@ export function calculateMagicStats(
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     scope: MagicStatScope,
     nodeStatEffects: readonly MagicStatEffectConfig[] = [],
-    analysis?: MagicGraphAnalysis
+    analysis?: MagicGraphAnalysis,
+    nodeExecutionCounts: MagicNodeExecutionCounts = EMPTY_NODE_EXECUTION_COUNTS
 ): MagicStats {
     const result = { ...EMPTY_MAGIC_STATS };
     const graphAnalysis = scope === 'total'
@@ -48,6 +55,7 @@ export function calculateMagicStats(
     const context: MagicStatCalculationContext = {
         nodeStatEffectSummary: buildMagicStatEffectSummary(nodeStatEffects),
         nodeStatsById: new Map(),
+        nodeExecutionCounts,
     };
 
     MAGIC_STAT_KEYS.forEach(statKey => {
@@ -165,7 +173,7 @@ function evaluateFrom(
     const graph = analysis.topology;
 
     if (nodeId === stopNodeId) return 0;
-    if (visiting.has(nodeId)) return 0;
+    if (visiting.has(nodeId)) return MAGIC_STAT_RULES[statKey].serialIdentity;
 
     const node = graph.nodeMap.get(nodeId);
     if (!node) return 0;
@@ -283,15 +291,22 @@ function readNodeStats(
     if (cached) return cached;
 
     const rawStats = magicTypes.get(node.data.magicType)?.stats;
+    const executionCount = context.nodeExecutionCounts.get(node.id) ?? DEFAULT_NODE_EXECUTION_COUNT;
     const stats = Object.fromEntries(
-        MAGIC_STAT_KEYS.map(statKey => [
-            statKey,
-            applyMagicStatEffectSummary(
+        MAGIC_STAT_KEYS.map(statKey => {
+            const value = applyMagicStatEffectSummary(
                 rawStats?.[statKey] ?? 0,
                 statKey,
                 context.nodeStatEffectSummary
-            ),
-        ])
+            );
+
+            return [
+                statKey,
+                statKey === NON_REPEATABLE_STAT_KEY
+                    ? value
+                    : MAGIC_STAT_RULES[statKey].repeatSerialValue(value, executionCount),
+            ];
+        })
     ) as MagicStats;
 
     context.nodeStatsById.set(node.id, stats);

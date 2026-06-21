@@ -1,4 +1,5 @@
 import { MAGIC_NODE_HANDLE_CONFIG } from '../../constants/graphConfigs';
+import { MAGIC_NODE_EDITOR_CONTROLS } from '../../constants/gameConfigs';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
 import type { MagicGraphPresetConfig, MagicTypeConfig } from '../../types/magic';
 import { getMagicNodeEditorFields } from '../graph/model/magicNodeData';
@@ -131,8 +132,24 @@ function validatePresetNodeSettings(
             errors.push(`Invalid magic graph preset node setting value: ${presetId} -> ${node.id} -> ${key}`);
             return;
         }
-        if (field.maxLength !== undefined && value.trim().length > field.maxLength) {
+        if (
+            field.control === MAGIC_NODE_EDITOR_CONTROLS.TEXT &&
+            field.maxLength !== undefined &&
+            value.trim().length > field.maxLength
+        ) {
             errors.push(`Magic graph preset node setting is too long: ${presetId} -> ${node.id} -> ${key}`);
+        }
+        if (field.control === MAGIC_NODE_EDITOR_CONTROLS.STEPPER) {
+            const numericValue = Number(value);
+            const isAlignedToStep = Number.isInteger(numericValue) &&
+                (numericValue - field.min) % field.step === 0;
+            if (
+                !isAlignedToStep ||
+                numericValue < field.min ||
+                numericValue > field.max
+            ) {
+                errors.push(`Invalid magic graph preset stepper setting: ${presetId} -> ${node.id} -> ${key}`);
+            }
         }
     });
 

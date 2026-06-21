@@ -31,8 +31,10 @@ export interface MagicStatRuleContext {
 }
 
 export interface MagicStatRule {
+    serialIdentity: number;
     combineNodeValues(values: number[], context: MagicStatRuleContext): number;
     combineSerialValues(left: number, right: number, context: MagicStatRuleContext): number;
+    repeatSerialValue(value: number, count: number): number;
     combineBranchValues(values: number[], aggregation: MagicStatBranchAggregation | undefined, context: MagicStatRuleContext): number;
     scaleFinalValue(value: number, context: MagicStatRuleContext): number;
 }
@@ -76,6 +78,18 @@ const serialAggregationOperations: Record<MagicStatAggregationOperation, (left: 
     [MAGIC_STAT_AGGREGATION_OPERATIONS.MAX]: maxSerialValues,
 };
 
+const repeatSerialOperations: Record<MagicStatAggregationOperation, (value: number, count: number) => number> = {
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.SUM]: (value, count) => value * count,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.MULTIPLY]: (value, count) => value ** count,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.MAX]: value => value,
+};
+
+const serialIdentityValues: Record<MagicStatAggregationOperation, number> = {
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.SUM]: 0,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.MULTIPLY]: 1,
+    [MAGIC_STAT_AGGREGATION_OPERATIONS.MAX]: 0,
+};
+
 function scaleByNodeCount(
     value: number,
     context: MagicStatRuleContext,
@@ -97,8 +111,10 @@ function buildScaleFinalValue(config: MagicStatScalingConfig): MagicStatRule['sc
 
 function buildMagicStatRule(config: MagicStatRuleConfig): MagicStatRule {
     return {
+        serialIdentity: serialIdentityValues[config.serialAggregation],
         combineNodeValues: nodeAggregationOperations[config.nodeAggregation],
         combineSerialValues: serialAggregationOperations[config.serialAggregation],
+        repeatSerialValue: repeatSerialOperations[config.serialAggregation],
         combineBranchValues: (values, aggregation) =>
             nodeAggregationOperations[aggregation ?? config.branchAggregation](values),
         scaleFinalValue: buildScaleFinalValue(config.scaling),

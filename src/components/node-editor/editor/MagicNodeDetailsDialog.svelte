@@ -1,13 +1,23 @@
 <script lang="ts">
     import { untrack } from 'svelte';
-    import { MAGIC_NODE_EDITOR_CONTROLS } from '../../../constants/gameConfigs';
+    import {
+        MAGIC_NODE_EDITOR_BEHAVIORS,
+        MAGIC_NODE_EDITOR_CONTROLS,
+        MAGIC_REPEAT_CONFIG,
+    } from '../../../constants/gameConfigs';
     import { MAGIC_NODE_CATEGORY_LABELS, NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import {
         getMagicNodeEditorFields,
+        getMagicNodeEditorFieldDraftValue,
         normalizeMagicNodeSettings,
         resolveMagicNodeLabel,
     } from '../../../systems/graph/model/magicNodeData';
-    import type { MagicNode, MagicNodeSettings, MagicTypeConfig } from '../../../types/magic';
+    import type {
+        MagicNode,
+        MagicNodeSettings,
+        MagicNodeStepperEditorFieldConfig,
+        MagicTypeConfig,
+    } from '../../../types/magic';
     import {
         activateDialogFocus,
         closeDialogOnEscape,
@@ -37,7 +47,7 @@
     const displayLabel = $derived(resolveMagicNodeLabel(node.data, config));
     let dialogElement: HTMLElement;
     let draftSettings = $state<MagicNodeSettings>(untrack(() => Object.fromEntries(
-        fields.map(field => [field.key, node.data.settings?.[field.key] ?? ''])
+        fields.map(field => [field.key, getMagicNodeEditorFieldDraftValue(field, node.data.settings)])
     )));
 
     $effect(() => {
@@ -59,6 +69,30 @@
         if (!isEditable) return;
 
         onSave(normalizeMagicNodeSettings(config, draftSettings));
+    }
+
+    function readStepperValue(field: MagicNodeStepperEditorFieldConfig): number {
+        const value = Number(draftSettings[field.key]);
+        return Number.isFinite(value) ? value : field.defaultValue;
+    }
+
+    function adjustStepperValue(field: MagicNodeStepperEditorFieldConfig, direction: -1 | 1): void {
+        const nextValue = readStepperValue(field) + field.step * direction;
+        draftSettings[field.key] = String(Math.min(field.max, Math.max(field.min, nextValue)));
+    }
+
+    function formatStepperValue(field: MagicNodeStepperEditorFieldConfig): string {
+        const value = readStepperValue(field);
+        return field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT &&
+            value === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
+            ? MAGIC_REPEAT_CONFIG.INFINITE_LABEL
+            : String(value);
+    }
+
+    function getStepperValueAriaLabel(field: MagicNodeStepperEditorFieldConfig): string {
+        return formatStepperValue(field) === MAGIC_REPEAT_CONFIG.INFINITE_LABEL
+            ? NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INFINITE_VALUE
+            : `${field.label} ${formatStepperValue(field)}`;
     }
 </script>
 
@@ -111,7 +145,7 @@
                 <section class="node-details-settings">
                     {#each fields as field}
                         {#if field.control === MAGIC_NODE_EDITOR_CONTROLS.TEXT}
-                            <label>
+                            <label class="node-details-setting">
                                 <span>{field.label}</span>
                                 <input
                                     type="text"
@@ -119,7 +153,35 @@
                                     placeholder={field.placeholder}
                                     bind:value={draftSettings[field.key]}
                                 />
+                                {#if field.helpText}<small>{field.helpText}</small>{/if}
                             </label>
+                        {:else if field.control === MAGIC_NODE_EDITOR_CONTROLS.STEPPER}
+                            <div class="node-details-setting">
+                                <span id={`${dialogId}-${field.key}-label`}>{field.label}</span>
+                                <div
+                                    class="node-details-stepper"
+                                    role="group"
+                                    aria-labelledby={`${dialogId}-${field.key}-label`}
+                                >
+                                    <button
+                                        type="button"
+                                        aria-label={`${field.label} ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_DECREASE}`}
+                                        disabled={readStepperValue(field) <= field.min}
+                                        onclick={() => adjustStepperValue(field, -1)}
+                                    >−</button>
+                                    <output
+                                        aria-live="polite"
+                                        aria-label={getStepperValueAriaLabel(field)}
+                                    >{formatStepperValue(field)}</output>
+                                    <button
+                                        type="button"
+                                        aria-label={`${field.label} ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INCREASE}`}
+                                        disabled={readStepperValue(field) >= field.max}
+                                        onclick={() => adjustStepperValue(field, 1)}
+                                    >+</button>
+                                </div>
+                                {#if field.helpText}<small>{field.helpText}</small>{/if}
+                            </div>
                         {/if}
                     {/each}
                 </section>
@@ -240,7 +302,7 @@
     }
 
     .node-details-info div,
-    .node-details-settings label {
+    .node-details-setting {
         display: grid;
         gap: 6px;
     }
@@ -285,6 +347,52 @@
     .node-details-settings input:focus-visible {
         outline: 2px solid var(--node-editor-starlight);
         outline-offset: 2px;
+    }
+
+    .node-details-stepper {
+        display: grid;
+        grid-template-columns: 42px minmax(64px, 1fr) 42px;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    .node-details-stepper button,
+    .node-details-stepper output {
+        min-height: 38px;
+        border: 1px solid var(--node-editor-button-border);
+        border-radius: var(--node-editor-radius-sm);
+        background: var(--node-editor-button-bg);
+        color: var(--node-editor-text-strong);
+        font: inherit;
+        box-sizing: border-box;
+    }
+
+    .node-details-stepper button {
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    .node-details-stepper button:disabled {
+        cursor: default;
+        opacity: 0.4;
+    }
+
+    .node-details-stepper button:focus-visible {
+        outline: 2px solid var(--node-editor-starlight);
+        outline-offset: 2px;
+    }
+
+    .node-details-stepper output {
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .node-details-setting small {
+        color: var(--node-editor-muted-strong);
+        font-size: 11px;
+        line-height: 1.4;
     }
 
     .node-details-actions {

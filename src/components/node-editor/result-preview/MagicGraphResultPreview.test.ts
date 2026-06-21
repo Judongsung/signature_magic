@@ -78,16 +78,16 @@ describe('MagicGraphResultPreview', () => {
     it('renders result node text without editor tooltips or badges', async () => {
         const target = await mountPreview({
             nodes: [
-                createTestMagicNode('detect-node', 'detect', {
-                    settings: { caption: '대상이 움직일 때' },
+                createTestMagicNode('repeat-node', 'repeat', {
+                    settings: { repeatCount: '3', caption: '되풀이' },
                 }),
             ],
             edges: [],
         });
 
         await vi.waitFor(() => {
-            expect(target.textContent).toContain('감지');
-            expect(target.textContent).toContain('대상이 움직일 때');
+            expect(target.textContent).toContain('반복 ×3');
+            expect(target.textContent).toContain('되풀이');
         });
         expect(target.querySelector('.tooltip-host')).toBeNull();
         expect(target.querySelector('.badge')).toBeNull();

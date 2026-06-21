@@ -54,6 +54,7 @@ export const MAGIC_CONNECTION_RULE_KEYS = {
 
 export const MAGIC_NODE_EDITOR_CONTROLS = {
     TEXT: 'text',
+    STEPPER: 'stepper',
 } as const;
 
 export type MagicNodeEditorControl =
@@ -62,10 +63,25 @@ export type MagicNodeEditorControl =
 export const MAGIC_NODE_EDITOR_PRESENTATIONS = {
     NODE_LABEL: 'nodeLabel',
     NODE_CAPTION: 'nodeCaption',
+    NODE_LABEL_SUFFIX: 'nodeLabelSuffix',
 } as const;
 
 export type MagicNodeEditorPresentation =
     (typeof MAGIC_NODE_EDITOR_PRESENTATIONS)[keyof typeof MAGIC_NODE_EDITOR_PRESENTATIONS];
+
+export const MAGIC_NODE_EDITOR_BEHAVIORS = {
+    CYCLE_REPEAT_COUNT: 'cycleRepeatCount',
+} as const;
+
+export type MagicNodeEditorBehavior =
+    (typeof MAGIC_NODE_EDITOR_BEHAVIORS)[keyof typeof MAGIC_NODE_EDITOR_BEHAVIORS];
+
+export const MAGIC_REPEAT_CONFIG = {
+    INFINITE_COUNT: 0,
+    INFINITE_CALCULATION_COUNT: 1,
+    INFINITE_LABEL: '∞',
+    FINITE_LABEL_PREFIX: '×',
+} as const;
 
 export const MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD = {
     key: 'caption',

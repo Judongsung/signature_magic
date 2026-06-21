@@ -1,8 +1,9 @@
 import type { Node } from '@xyflow/svelte';
 import {
     MAGIC_CONNECTION_RULE_KEYS,
+    MAGIC_NODE_EDITOR_CONTROLS,
     type MagicNodeCategory,
-    type MagicNodeEditorControl,
+    type MagicNodeEditorBehavior,
     type MagicNodeEditorPresentation,
 } from '../constants/gameConfigs';
 import {
@@ -106,14 +107,31 @@ export interface MagicNodeConnectionRules {
     [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]?: boolean;
 }
 
-export interface MagicNodeEditorFieldConfig {
+interface MagicNodeEditorFieldBaseConfig {
     key: string;
     label: string;
-    control: MagicNodeEditorControl;
+    helpText?: string;
+    presentation?: MagicNodeEditorPresentation;
+    behavior?: MagicNodeEditorBehavior;
+}
+
+export interface MagicNodeTextEditorFieldConfig extends MagicNodeEditorFieldBaseConfig {
+    control: typeof MAGIC_NODE_EDITOR_CONTROLS.TEXT;
     maxLength?: number;
     placeholder?: string;
-    presentation?: MagicNodeEditorPresentation;
 }
+
+export interface MagicNodeStepperEditorFieldConfig extends MagicNodeEditorFieldBaseConfig {
+    control: typeof MAGIC_NODE_EDITOR_CONTROLS.STEPPER;
+    min: number;
+    max: number;
+    step: number;
+    defaultValue: number;
+}
+
+export type MagicNodeEditorFieldConfig =
+    | MagicNodeTextEditorFieldConfig
+    | MagicNodeStepperEditorFieldConfig;
 
 export interface MagicNodeInstanceEditorConfig {
     fields: MagicNodeEditorFieldConfig[];

@@ -204,7 +204,7 @@
     .choice-title {
         color: var(--guild-text-title);
         font-family: var(--font-title);
-        font-size: 17px;
+        font-size: 19px;
         font-weight: 800;
         line-height: 1.25;
         transition: color 0.18s ease;
@@ -213,9 +213,9 @@
     .choice-description {
         color: var(--guild-text-muted);
         font-family: var(--font-body);
-        font-size: 13.5px;
+        font-size: 15px;
         line-height: 1.5;
-        font-weight: 500;
+        font-weight: 400;
         white-space: pre-line;
     }
 
@@ -236,7 +236,7 @@
         }
 
         .choice-title {
-            font-size: 15px;
+            font-size: 17px;
         }
     }
 </style>

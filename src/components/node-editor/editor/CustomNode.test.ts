@@ -69,6 +69,18 @@ describe('CustomNode', () => {
         expect(html).toContain('불꽃을 일으킨다');
     });
 
+    it('renders repeat count in the node name while preserving its caption', () => {
+        const finite = renderNode({
+            magicType: 'repeat',
+            settings: { repeatCount: '3', caption: '되풀이' },
+        }).html;
+        const infinite = renderNode({ magicType: 'repeat' }).html;
+
+        expect(finite).toContain('반복 ×3');
+        expect(finite).toContain('되풀이');
+        expect(infinite).toContain('반복 ∞');
+    });
+
     it('omits the node caption when its setting is empty', () => {
         const { html } = renderNode({
             magicType: 'branch',

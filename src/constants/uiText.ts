@@ -134,6 +134,9 @@ export const NODE_EDITOR_TEXT = {
     NODE_DETAILS_SAVE: '저장',
     NODE_DETAILS_CANCEL: '취소',
     NODE_DETAILS_CLOSE: '닫기',
+    NODE_DETAILS_STEPPER_DECREASE: '감소',
+    NODE_DETAILS_STEPPER_INCREASE: '증가',
+    NODE_DETAILS_STEPPER_INFINITE_VALUE: '무한 반복',
     PANE_RESIZER_ARIA_LABEL: '마법 편집창과 서클 미리보기 크기 조절',
 } as const;
 
@@ -176,20 +179,20 @@ export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
 
 export const MAGIC_STAT_CALCULATION_DESCRIPTIONS = {
     circle: {
-        castingTime: '서클을 구성하는 모든 노드의 시전 시간을 합산합니다.',
-        instability: '서클의 불안정성 합계에 1.15^(노드 수 - 1)을 곱합니다.',
-        power: '서클을 구성하는 모든 노드의 출력 값을 합산합니다.',
-        range: '서클을 구성하는 모든 노드의 범위 값을 곱합니다.',
-        manaCost: '서클을 구성하는 모든 노드의 마나 소모를 합산합니다.',
-        duration: '서클을 구성하는 모든 노드의 지속 시간을 합산합니다.',
+        castingTime: '서클의 시전 시간을 합산하며, 유한 반복 구간은 지정 횟수만큼 반영합니다.',
+        instability: '물리 노드의 불안정성 합계에 1.15^(노드 수 - 1)을 곱하며 반복 횟수는 적용하지 않습니다.',
+        power: '서클의 출력 값을 합산하며, 유한 반복 구간은 지정 횟수만큼 반영합니다.',
+        range: '서클의 범위 값을 곱하며, 유한 반복 구간은 지정 횟수만큼 반복해 곱합니다.',
+        manaCost: '서클의 마나 소모를 합산하며, 유한 반복 구간은 지정 횟수만큼 반영합니다.',
+        duration: '서클의 지속 시간을 합산하며, 유한 반복 구간은 지정 횟수만큼 반영합니다.',
     },
     total: {
-        castingTime: '직렬 경로의 시전 시간을 합산하고, 분기에서는 가장 오래 걸리는 경로를 사용합니다.',
-        instability: '서클별 불안정성에 노드 수 보정을 적용한 뒤, 가장 불안정한 서클의 값을 사용합니다.',
-        power: '연결 방식과 관계없이 모든 노드와 분기의 출력 값을 합산합니다.',
-        range: '직렬 경로의 범위 값을 곱하고, 분기에서는 가장 넓은 경로의 값을 사용합니다.',
-        manaCost: '연결 방식과 관계없이 모든 노드와 분기의 마나 소모를 합산합니다.',
-        duration: '직렬 경로의 지속 시간을 합산하고, 분기에서는 가장 오래 지속되는 경로를 사용합니다.',
+        castingTime: '직렬 경로와 유한 반복의 시전 시간을 합산하고, 분기에서는 가장 오래 걸리는 경로를 사용합니다.',
+        instability: '반복 횟수를 제외한 서클별 불안정성에 노드 수 보정을 적용한 뒤 최댓값을 사용합니다.',
+        power: '모든 노드와 분기의 출력 값을 합산하며 유한 반복 구간은 지정 횟수만큼 반영합니다.',
+        range: '직렬·유한 반복 경로의 범위 값을 곱하고, 분기에서는 가장 넓은 경로를 사용합니다.',
+        manaCost: '모든 노드와 분기의 마나 소모를 합산하며 유한 반복 구간은 지정 횟수만큼 반영합니다.',
+        duration: '직렬·유한 반복 경로의 지속 시간을 합산하고, 분기에서는 가장 오래 지속되는 경로를 사용합니다.',
     },
 } as const satisfies Record<'circle' | 'total', Record<MagicStatKey, string>>;
 

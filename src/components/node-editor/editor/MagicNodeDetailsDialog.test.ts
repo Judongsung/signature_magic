@@ -82,6 +82,47 @@ describe('MagicNodeDetailsDialog', () => {
         expect(onSave).toHaveBeenCalledWith({ caption: '불꽃을 일으킨다' });
     });
 
+    it('increments the repeat stepper and saves it with the common caption', async () => {
+        const { target, onSave } = mountDialog('repeat', { caption: '되풀이' });
+        const stepper = target.querySelector<HTMLElement>('.node-details-stepper')!;
+        const decrease = stepper.querySelector<HTMLButtonElement>(
+            `button[aria-label="횟수 ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_DECREASE}"]`
+        )!;
+        const increase = stepper.querySelector<HTMLButtonElement>(
+            `button[aria-label="횟수 ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INCREASE}"]`
+        )!;
+        const output = stepper.querySelector<HTMLOutputElement>('output')!;
+
+        expect(stepper.querySelector('input')).toBeNull();
+        expect(output.textContent).toBe('∞');
+        expect(decrease.disabled).toBe(true);
+        expect(target.textContent).toContain('0은 무한 반복이며 스탯은 1회 기준으로 계산됩니다.');
+
+        increase.click();
+        increase.click();
+        await tick();
+
+        expect(output.textContent).toBe('2');
+        expect(decrease.disabled).toBe(false);
+        target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
+            bubbles: true,
+            cancelable: true,
+        }));
+
+        expect(onSave).toHaveBeenCalledWith({ repeatCount: '2', caption: '되풀이' });
+    });
+
+    it('disables the repeat stepper at its maximum value', () => {
+        const { target } = mountDialog('repeat', { repeatCount: '99' });
+        const stepper = target.querySelector<HTMLElement>('.node-details-stepper')!;
+        const increase = stepper.querySelector<HTMLButtonElement>(
+            `button[aria-label="횟수 ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INCREASE}"]`
+        )!;
+
+        expect(stepper.querySelector('output')?.textContent).toBe('99');
+        expect(increase.disabled).toBe(true);
+    });
+
     it('renders JSON-configured fields and saves normalized custom settings', () => {
         const { target, onSave } = mountDialog('custom', { displayName: '기존 이름' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;

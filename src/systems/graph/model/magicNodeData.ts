@@ -1,6 +1,9 @@
 import {
     MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD,
+    MAGIC_NODE_EDITOR_BEHAVIORS,
+    MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
+    MAGIC_REPEAT_CONFIG,
 } from '../../../constants/gameConfigs';
 import {
     MAGIC_NODE_HANDLE_CONFIG,
@@ -11,6 +14,7 @@ import type {
     MagicNode,
     MagicNodeEditorFieldConfig,
     MagicNodeSettings,
+    MagicNodeStepperEditorFieldConfig,
     MagicType,
     MagicTypeConfig,
 } from '../../../types/magic';
@@ -65,10 +69,7 @@ export function normalizeMagicNodeSettings(
             const rawValue = settings[field.key];
             if (typeof rawValue !== 'string') return [];
 
-            const trimmedValue = rawValue.trim();
-            const value = field.maxLength === undefined
-                ? trimmedValue
-                : trimmedValue.slice(0, field.maxLength);
+            const value = normalizeMagicNodeEditorFieldValue(field, rawValue);
 
             return value ? [[field.key, value]] : [];
         })
@@ -89,7 +90,19 @@ export function resolveMagicNodeLabel(
         MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL
     );
 
-    return customLabel || config?.label || data.magicType;
+    const baseLabel = customLabel || config?.label || data.magicType;
+    const suffixValue = resolveMagicNodePresentationValue(
+        data,
+        config,
+        MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX
+    );
+    if (suffixValue === undefined) return baseLabel;
+
+    const suffix = Number(suffixValue) === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
+        ? MAGIC_REPEAT_CONFIG.INFINITE_LABEL
+        : `${MAGIC_REPEAT_CONFIG.FINITE_LABEL_PREFIX}${suffixValue}`;
+
+    return `${baseLabel} ${suffix}`;
 }
 
 export function resolveMagicNodeCaption(
@@ -100,6 +113,33 @@ export function resolveMagicNodeCaption(
         data,
         config,
         MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_CAPTION
+    );
+}
+
+export function getMagicNodeEditorFieldDraftValue(
+    field: MagicNodeEditorFieldConfig,
+    settings: Readonly<MagicNodeSettings> | undefined
+): string {
+    const storedValue = settings?.[field.key];
+    if (typeof storedValue === 'string') return storedValue;
+
+    return field.control === MAGIC_NODE_EDITOR_CONTROLS.STEPPER
+        ? String(field.defaultValue)
+        : '';
+}
+
+export function resolveMagicNodeCycleRepeatCount(
+    data: MagicNode['data'],
+    config: MagicTypeConfig | undefined
+): number | undefined {
+    const field = getMagicNodeEditorFields(config).find(
+        candidate => candidate.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT
+    );
+    if (!field || field.control !== MAGIC_NODE_EDITOR_CONTROLS.STEPPER) return undefined;
+
+    return normalizeMagicNodeStepperValue(
+        field,
+        getMagicNodeEditorFieldDraftValue(field, data.settings)
     );
 }
 
@@ -151,7 +191,37 @@ function resolveMagicNodePresentationValue(
     const field = getMagicNodeEditorFields(config).find(
         candidate => candidate.presentation === presentation
     );
-    const value = field ? data.settings?.[field.key]?.trim() : undefined;
+    const value = field
+        ? getMagicNodeEditorFieldDraftValue(field, data.settings).trim()
+        : undefined;
 
     return value || undefined;
+}
+
+function normalizeMagicNodeEditorFieldValue(
+    field: MagicNodeEditorFieldConfig,
+    rawValue: string
+): string | undefined {
+    if (field.control === MAGIC_NODE_EDITOR_CONTROLS.TEXT) {
+        const trimmedValue = rawValue.trim();
+        const value = field.maxLength === undefined
+            ? trimmedValue
+            : trimmedValue.slice(0, field.maxLength);
+
+        return value || undefined;
+    }
+
+    const value = normalizeMagicNodeStepperValue(field, rawValue);
+    return value === field.defaultValue ? undefined : String(value);
+}
+
+function normalizeMagicNodeStepperValue(
+    field: MagicNodeStepperEditorFieldConfig,
+    rawValue: string
+): number {
+    const parsedValue = Number(rawValue);
+    if (!Number.isFinite(parsedValue)) return field.defaultValue;
+
+    const steppedValue = field.min + Math.round((parsedValue - field.min) / field.step) * field.step;
+    return Math.min(field.max, Math.max(field.min, steppedValue));
 }
