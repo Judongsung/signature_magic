@@ -13,8 +13,8 @@
         resolveRegistrationReviewAccess,
     } from '../../systems/app/appPhaseNavigationPolicy';
     import type { DirectAppPhaseTransitionRequest } from '../../systems/app/appPhaseTransition';
-    import CyoaRegistrationResultDetails from '../cyoa/registration-summary/CyoaRegistrationResultDetails.svelte';
-    import CyoaRegistrationSummaryDialog from '../cyoa/registration-summary/CyoaRegistrationSummaryDialog.svelte';
+    import RegistrationResultDetails from '../registration/RegistrationResultDetails.svelte';
+    import RegistrationSummaryDialog from '../registration/RegistrationSummaryDialog.svelte';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
 
     const nextDisabledTooltipId = 'app-phase-next-disabled-tooltip';
@@ -97,7 +97,7 @@
 </script>
 
 {#snippet registrationResultDetails()}
-    <CyoaRegistrationResultDetails />
+    <RegistrationResultDetails />
 {/snippet}
 
 {#if navigationPolicy.shouldRenderNavigation}
@@ -164,12 +164,13 @@
 {/if}
 
 {#if registrationDialogMode}
-    <CyoaRegistrationSummaryDialog
+    <RegistrationSummaryDialog
         onClose={closeRegistrationDialog}
         onSubmit={registrationDialogMode === REGISTRATION_DIALOG_MODES.SUBMIT
             ? submitRegistrationDialog
             : undefined}
         showSubmitGuidance={registrationDialogMode === REGISTRATION_DIALOG_MODES.SUBMIT}
+        enableExport={registrationDialogMode === REGISTRATION_DIALOG_MODES.REVIEW}
         supplementalContent={registrationDialogMode === REGISTRATION_DIALOG_MODES.REVIEW
             ? registrationResultDetails
             : undefined}

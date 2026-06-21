@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
-    import { graphStore } from '../../../stores/graphStore.svelte';
-    import MagicCircleCompositionPreview from '../../node-editor/result-preview/MagicCircleCompositionPreview.svelte';
-    import MagicGraphResultPreview from '../../node-editor/result-preview/MagicGraphResultPreview.svelte';
-    import MagicStatsGrid from '../../node-editor/magic-circle/MagicStatsGrid.svelte';
+    import { CYOA_REGISTRATION_RESULT_TEXT } from '../../constants/uiText';
+    import { graphStore } from '../../stores/graphStore.svelte';
+    import MagicCircleCompositionPreview from '../node-editor/result-preview/MagicCircleCompositionPreview.svelte';
+    import MagicGraphResultPreview from '../node-editor/result-preview/MagicGraphResultPreview.svelte';
+    import MagicStatsGrid from '../node-editor/magic-circle/MagicStatsGrid.svelte';
 
     const signatureName = $derived(
         graphStore.signatureMetadata.name.trim() || CYOA_REGISTRATION_RESULT_TEXT.EMPTY_SIGNATURE_NAME

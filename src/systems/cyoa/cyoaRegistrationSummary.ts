@@ -1,5 +1,4 @@
 import type {
-    CyoaChoice,
     CyoaChoiceRowData,
     CyoaInputValues,
     CyoaRowSelections,
@@ -13,10 +12,16 @@ export interface CyoaRegistrationSummaryInputItem {
     requiredMissing: boolean;
 }
 
+export interface CyoaRegistrationSummaryChoicePath {
+    id: string;
+    titles: string[];
+    requiredMissing: boolean;
+}
+
 export interface CyoaRegistrationSummaryChoiceItem {
     id: string;
     title: string;
-    choices: CyoaChoice[];
+    selections: CyoaRegistrationSummaryChoicePath[];
     requiredMissing: boolean;
 }
 
@@ -70,13 +75,57 @@ export function buildCyoaRegistrationSummary({
 
         const selectedIds = selectedChoiceIds[row.id] ?? [];
         const selectedChoices = row.choices.filter(choice => selectedIds.includes(choice.id));
+        const selections = selectedChoices.flatMap(choice => {
+            const subChoiceGroup = choice.subChoiceGroup;
+            if (!subChoiceGroup) {
+                return [{
+                    id: choice.id,
+                    titles: [choice.title],
+                    requiredMissing: false,
+                }];
+            }
+
+            const selectedSubChoiceIds = selectedChoiceIds[subChoiceGroup.id] ?? [];
+            const selectedSubChoices = subChoiceGroup.choices.filter(subChoice =>
+                selectedSubChoiceIds.includes(subChoice.id)
+            );
+            const requiredMissing = selectedSubChoices.length < subChoiceGroup.requiredCount;
+
+            if (selectedSubChoices.length === 0) {
+                return [{
+                    id: choice.id,
+                    titles: [choice.title],
+                    requiredMissing,
+                }];
+            }
+
+            const selectedPaths = selectedSubChoices.map(subChoice => ({
+                id: `${choice.id}:${subChoice.id}`,
+                titles: [choice.title, subChoice.title],
+                requiredMissing: false,
+            }));
+
+            return requiredMissing
+                ? [
+                    ...selectedPaths,
+                    {
+                        id: `${choice.id}:required`,
+                        titles: [choice.title],
+                        requiredMissing: true,
+                    },
+                ]
+                : selectedPaths;
+        });
+        const requiredMissing = (
+            isCyoaRegistrationRequiredRow(row)
+            && selectedChoices.length < row.requiredCount
+        ) || selections.some(selection => selection.requiredMissing);
 
         return [{
             id: row.id,
             title: row.title,
-            choices: selectedChoices,
-            requiredMissing: isCyoaRegistrationRequiredRow(row) &&
-                selectedChoices.length < row.requiredCount,
+            selections,
+            requiredMissing,
         }];
     });
     const signatureName = inputItems.find(item =>

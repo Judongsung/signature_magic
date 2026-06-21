@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
     CYOA_REGISTRATION_SUMMARY_TEXT,
     UI_BUTTON_TEXT,
-} from '../../../constants/uiText';
-import { choiceStore } from '../../../stores/choiceStore.svelte';
-import CyoaRegistrationSummaryDialog from './CyoaRegistrationSummaryDialog.svelte';
+} from '../../constants/uiText';
+import { choiceStore } from '../../stores/choiceStore.svelte';
+import RegistrationSummaryDialog from './RegistrationSummaryDialog.svelte';
 
 function getDialogTitleId(html: string): string {
     const dialogLabelMatch = html.match(/role="dialog"[^>]*aria-labelledby="([^"]+)"/);
@@ -14,15 +14,16 @@ function getDialogTitleId(html: string): string {
     return dialogLabelMatch?.[1] ?? '';
 }
 
-describe('CyoaRegistrationSummaryDialog', () => {
+describe('RegistrationSummaryDialog', () => {
     afterEach(() => {
         choiceStore.reset();
     });
 
     it('renders a review-only registration summary dialog without submit guidance', () => {
-        const { html } = render(CyoaRegistrationSummaryDialog, {
+        const { html } = render(RegistrationSummaryDialog, {
             props: {
                 onClose: () => {},
+                enableExport: true,
             },
         });
 
@@ -38,10 +39,11 @@ describe('CyoaRegistrationSummaryDialog', () => {
         expect(html).not.toContain(CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_BOTTOM_MESSAGE);
         expect(html).not.toContain('vera_chibi');
         expect(html).not.toContain(UI_BUTTON_TEXT.SUBMIT_REGISTRATION);
+        expect(html).toContain(CYOA_REGISTRATION_SUMMARY_TEXT.EXPORT_PNG_LABEL);
     });
 
     it('renders submit guidance and actions for the submit confirmation dialog', () => {
-        const { html } = render(CyoaRegistrationSummaryDialog, {
+        const { html } = render(RegistrationSummaryDialog, {
             props: {
                 onClose: () => {},
                 onSubmit: () => {},
@@ -55,6 +57,7 @@ describe('CyoaRegistrationSummaryDialog', () => {
         expect(html).toContain(CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_BOTTOM_MESSAGE);
         expect(html).toContain('vera_chibi');
         expect(html).toContain(UI_BUTTON_TEXT.SUBMIT_REGISTRATION);
+        expect(html).not.toContain(CYOA_REGISTRATION_SUMMARY_TEXT.EXPORT_PNG_LABEL);
         expect(html.indexOf(CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_BOTTOM_MESSAGE))
             .toBeLessThan(html.indexOf(`>${UI_BUTTON_TEXT.SUBMIT_REGISTRATION}</button>`));
     });

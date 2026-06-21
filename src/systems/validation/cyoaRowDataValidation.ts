@@ -1,4 +1,9 @@
-import type { CyoaChoiceRowConfig } from '../../types/cyoa';
+import type {
+    CyoaChoiceBaseConfig,
+    CyoaChoiceRowConfig,
+    CyoaSubChoiceGroupConfig,
+} from '../../types/cyoa';
+import { CYOA_SELECTION_MODES } from '../../constants/gameConfigs';
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
@@ -22,6 +27,19 @@ import {
 } from './cyoaValidationShared';
 
 const MAX_INPUT_REQUIRED_COUNT = 1;
+const DEFAULT_REQUIRED_COUNT = 1;
+
+function getCyoaSubChoiceGroup(
+    choice: CyoaChoiceBaseConfig
+): CyoaSubChoiceGroupConfig | undefined {
+    const group = (choice as CyoaChoiceBaseConfig & { subChoiceGroup?: unknown }).subChoiceGroup;
+    return isPlainObject(group) ? group as unknown as CyoaSubChoiceGroupConfig : undefined;
+}
+
+function getCyoaSubChoices(group?: CyoaSubChoiceGroupConfig): CyoaChoiceBaseConfig[] {
+    if (!group || !Array.isArray(group.choices)) return [];
+    return group.choices.filter(isPlainObject) as unknown as CyoaChoiceBaseConfig[];
+}
 
 function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string[] {
     if (statEffects === undefined) return [];
@@ -84,6 +102,105 @@ function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string
     return errors;
 }
 
+function validateCyoaChoice(
+    choice: CyoaChoiceBaseConfig,
+    isKnownImagePath: (imagePath: string) => boolean
+): string[] {
+    const errors: string[] = [];
+
+    if (choice.imagePath && !isKnownImagePath(choice.imagePath)) {
+        errors.push(formatValidationError(
+            'Unknown',
+            'CYOA image path',
+            choice.id,
+            choice.imagePath
+        ));
+    }
+    if (choice.imageSize !== undefined && !isValidCyoaChoiceImageSize(choice.imageSize)) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA choice image size',
+            choice.id,
+            String(choice.imageSize)
+        ));
+    }
+    if (choice.imagePlacement !== undefined && !isValidCyoaChoiceImagePlacement(choice.imagePlacement)) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA choice image placement',
+            choice.id,
+            String(choice.imagePlacement)
+        ));
+    }
+    if (choice.description !== undefined && typeof choice.description !== 'string') {
+        errors.push(formatValidationError('Invalid', 'CYOA choice description', choice.id));
+    }
+    if (choice.tooltip !== undefined && typeof choice.tooltip !== 'string') {
+        errors.push(formatValidationError('Invalid', 'CYOA choice tooltip', choice.id));
+    }
+    if (choice.width && !isValidCyoaChoiceWidth(choice.width)) {
+        errors.push(formatValidationError('Invalid', 'CYOA choice width', choice.id, choice.width));
+    }
+    errors.push(...validateCyoaStatEffects(choice.id, choice.statEffects));
+
+    return errors;
+}
+
+function validateCyoaSubChoiceGroup(
+    group: CyoaSubChoiceGroupConfig,
+    isKnownImagePath: (imagePath: string) => boolean
+): string[] {
+    const errors: string[] = [];
+    const requiredCount = group.requiredCount ?? DEFAULT_REQUIRED_COUNT;
+    const selectionMode = group.selectionMode ?? CYOA_SELECTION_MODES.SINGLE;
+    const rawChoices: unknown[] = Array.isArray(group.choices) ? group.choices : [];
+
+    if (typeof group.title !== 'string' || group.title.trim().length === 0) {
+        errors.push(formatValidationError('Invalid', 'CYOA sub-choice group title', group.id));
+    }
+    if (!Number.isInteger(requiredCount) || requiredCount < 0) {
+        errors.push(formatValidationError('Invalid', 'CYOA sub-choice required count', group.id, requiredCount));
+    }
+    if (!isValidCyoaSelectionMode(selectionMode)) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA sub-choice selection mode',
+            group.id,
+            String(selectionMode)
+        ));
+    }
+    if (!Array.isArray(group.choices)) {
+        errors.push(formatValidationError('Invalid', 'CYOA sub-choice choices', group.id));
+    }
+    if (requiredCount > rawChoices.length) {
+        errors.push(`CYOA sub-choice required count exceeds choices: ${formatValidationPath(group.id, requiredCount)}`);
+    }
+    if (selectionMode === CYOA_SELECTION_MODES.SINGLE && requiredCount > MAX_INPUT_REQUIRED_COUNT) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA single-select sub-choice required count',
+            group.id,
+            requiredCount
+        ));
+    }
+
+    rawChoices.forEach((rawChoice, index) => {
+        if (!isPlainObject(rawChoice)) {
+            errors.push(formatValidationError('Invalid', 'CYOA sub-choice', group.id, index));
+            return;
+        }
+
+        const choice = rawChoice as unknown as CyoaChoiceBaseConfig;
+        errors.push(...validateCyoaChoice(choice, isKnownImagePath));
+
+        if ('subChoiceGroup' in choice && choice.subChoiceGroup !== undefined) {
+            errors.push(formatValidationError('Invalid', 'nested CYOA sub-choice group', choice.id));
+        }
+    });
+
+    return errors;
+}
+
 export function validateCyoaRows(
     rows: CyoaChoiceRowConfig[],
     isKnownImagePath: (imagePath: string) => boolean
@@ -92,11 +209,25 @@ export function validateCyoaRows(
 
     const errors: string[] = [];
     const rowIds = rows.map(row => row.id);
-    const choiceIds = rows.flatMap(row => (row.choices ?? []).map(choice => choice.id));
+    const subChoiceGroups = rows.flatMap(row =>
+        (row.choices ?? []).flatMap(choice => {
+            const group = getCyoaSubChoiceGroup(choice);
+            return group ? [group] : [];
+        })
+    );
+    const subChoiceGroupIds = subChoiceGroups.map(group => group.id);
+    const choiceIds = rows.flatMap(row => (row.choices ?? []).flatMap(choice => [
+        choice.id,
+        ...getCyoaSubChoices(getCyoaSubChoiceGroup(choice)).map(subChoice => subChoice.id),
+    ]));
     const choiceIdSet = new Set(choiceIds);
     const inputIds = rows.flatMap(row => row.input ? [row.input.id] : []);
 
     errors.push(...collectDuplicateErrors(rowIds, 'CYOA row id'));
+    errors.push(...collectDuplicateErrors(subChoiceGroupIds, 'CYOA sub-choice group id'));
+    [...new Set(subChoiceGroupIds.filter(groupId => rowIds.includes(groupId)))].forEach(groupId => {
+        errors.push(formatValidationError('Duplicate', 'CYOA selection group id', groupId));
+    });
     errors.push(...collectDuplicateErrors(choiceIds, 'CYOA choice id'));
     errors.push(...collectDuplicateErrors(inputIds, 'CYOA input id'));
 
@@ -164,40 +295,14 @@ export function validateCyoaRows(
         });
 
         (row.choices ?? []).forEach(choice => {
-            if (choice.imagePath && !isKnownImagePath(choice.imagePath)) {
-                errors.push(formatValidationError(
-                    'Unknown',
-                    'CYOA image path',
-                    choice.id,
-                    choice.imagePath
-                ));
+            errors.push(...validateCyoaChoice(choice, isKnownImagePath));
+            const rawSubChoiceGroup = (choice as typeof choice & { subChoiceGroup?: unknown }).subChoiceGroup;
+            const subChoiceGroup = getCyoaSubChoiceGroup(choice);
+            if (rawSubChoiceGroup !== undefined && !subChoiceGroup) {
+                errors.push(formatValidationError('Invalid', 'CYOA sub-choice group', choice.id));
+            } else if (subChoiceGroup) {
+                errors.push(...validateCyoaSubChoiceGroup(subChoiceGroup, isKnownImagePath));
             }
-            if (choice.imageSize !== undefined && !isValidCyoaChoiceImageSize(choice.imageSize)) {
-                errors.push(formatValidationError(
-                    'Invalid',
-                    'CYOA choice image size',
-                    choice.id,
-                    String(choice.imageSize)
-                ));
-            }
-            if (choice.imagePlacement !== undefined && !isValidCyoaChoiceImagePlacement(choice.imagePlacement)) {
-                errors.push(formatValidationError(
-                    'Invalid',
-                    'CYOA choice image placement',
-                    choice.id,
-                    String(choice.imagePlacement)
-                ));
-            }
-            if (choice.description !== undefined && typeof choice.description !== 'string') {
-                errors.push(formatValidationError('Invalid', 'CYOA choice description', choice.id));
-            }
-            if (choice.tooltip !== undefined && typeof choice.tooltip !== 'string') {
-                errors.push(formatValidationError('Invalid', 'CYOA choice tooltip', choice.id));
-            }
-            if (choice.width && !isValidCyoaChoiceWidth(choice.width)) {
-                errors.push(formatValidationError('Invalid', 'CYOA choice width', choice.id, choice.width));
-            }
-            errors.push(...validateCyoaStatEffects(choice.id, choice.statEffects));
         });
     });
 

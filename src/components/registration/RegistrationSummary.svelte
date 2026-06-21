@@ -1,23 +1,23 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
-    import { choiceStore } from '../../../stores/choiceStore.svelte';
+    import { choiceStore } from '../../stores/choiceStore.svelte';
     import {
         CYOA_REGISTRATION_SUMMARY_TEXT,
         UI_BUTTON_TEXT,
-    } from '../../../constants/uiText';
+    } from '../../constants/uiText';
     import {
         buildCyoaRegistrationSummary,
-    } from '../../../systems/cyoa/cyoaRegistrationSummary';
+    } from '../../systems/cyoa/cyoaRegistrationSummary';
     import type {
         CyoaChoiceRowData,
         CyoaInputValues,
         CyoaRowSelections,
         CyoaRowVisibility,
-    } from '../../../types/cyoa';
-    import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
-    import CyoaRegistrationSummaryBody from './CyoaRegistrationSummaryBody.svelte';
-    import CyoaRegistrationSummaryFooter from './CyoaRegistrationSummaryFooter.svelte';
-    import CyoaRegistrationSummaryHeader from './CyoaRegistrationSummaryHeader.svelte';
+    } from '../../types/cyoa';
+    import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
+    import RegistrationSummaryBody from './RegistrationSummaryBody.svelte';
+    import RegistrationSummaryFooter from './RegistrationSummaryFooter.svelte';
+    import RegistrationSummaryHeader from './RegistrationSummaryHeader.svelte';
 
     const defaultSummaryId = $props.id();
     const defaultTitleId = `${defaultSummaryId}-registration-summary-title`;
@@ -29,6 +29,7 @@
         inputValues = choiceStore.inputValues,
         onSubmit,
         onBack,
+        onExport,
         actionLeadIn,
         supplementalContent,
         submitLabel = UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
@@ -42,6 +43,7 @@
         inputValues?: CyoaInputValues;
         onSubmit?: () => void;
         onBack?: () => void;
+        onExport?: (element: HTMLElement) => Promise<void>;
         actionLeadIn?: Snippet;
         supplementalContent?: Snippet;
         submitLabel?: string;
@@ -50,6 +52,10 @@
         titleId?: string;
     } = $props();
 
+    let exportContentElement: HTMLDivElement | undefined;
+    let isExporting = $state(false);
+    let exportFailed = $state(false);
+
     const summary = $derived(buildCyoaRegistrationSummary({
         rows,
         visibleRowIds,
@@ -57,33 +63,69 @@
         inputValues,
     }));
     const submitTooltipId = 'registration-submit-disabled-tooltip';
+
+    async function handleExport() {
+        if (!onExport || !exportContentElement || isExporting) return;
+
+        isExporting = true;
+        exportFailed = false;
+
+        try {
+            await onExport(exportContentElement);
+        } catch {
+            exportFailed = true;
+        } finally {
+            isExporting = false;
+        }
+    }
 </script>
 
 <div class="registration-summary-layout">
-    <section class="registration-summary" aria-labelledby={titleId}>
-        <CyoaRegistrationSummaryHeader {titleId} />
-        <CyoaRegistrationSummaryBody
-            inputItems={summary.inputItems}
-            choiceItems={summary.choiceItems}
-        />
-        <CyoaRegistrationSummaryFooter signatureName={summary.signatureName} />
-    </section>
+    <div bind:this={exportContentElement} class="registration-summary-export-content">
+        <section class="registration-summary" aria-labelledby={titleId}>
+            <RegistrationSummaryHeader {titleId} />
+            <RegistrationSummaryBody
+                inputItems={summary.inputItems}
+                choiceItems={summary.choiceItems}
+            />
+            <RegistrationSummaryFooter signatureName={summary.signatureName} />
+        </section>
 
-    {#if supplementalContent}
-        <div class="summary-supplemental">
-            {@render supplementalContent()}
-        </div>
-    {/if}
+        {#if supplementalContent}
+            <div class="summary-supplemental">
+                {@render supplementalContent()}
+            </div>
+        {/if}
+    </div>
 
-    {#if onBack || onSubmit}
+    {#if onBack || onExport || onSubmit}
         {#if actionLeadIn}
             {@render actionLeadIn()}
+        {/if}
+
+        {#if exportFailed}
+            <p class="export-error" role="alert">
+                {CYOA_REGISTRATION_SUMMARY_TEXT.EXPORT_PNG_ERROR}
+            </p>
         {/if}
 
         <div class="summary-actions">
             {#if onBack}
                 <button type="button" class="secondary-action" onclick={onBack}>
                     {backLabel}
+                </button>
+            {/if}
+            {#if onExport}
+                <button
+                    type="button"
+                    class="primary-action export-action"
+                    disabled={isExporting}
+                    aria-busy={isExporting}
+                    onclick={handleExport}
+                >
+                    {isExporting
+                        ? CYOA_REGISTRATION_SUMMARY_TEXT.EXPORT_PNG_PENDING_LABEL
+                        : CYOA_REGISTRATION_SUMMARY_TEXT.EXPORT_PNG_LABEL}
                 </button>
             {/if}
             {#if onSubmit}
@@ -115,6 +157,14 @@
 <style>
     .registration-summary-layout {
         width: min(900px, 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 18px;
+    }
+
+    .registration-summary-export-content {
+        width: 100%;
         display: flex;
         flex-direction: column;
         align-items: stretch;
@@ -156,6 +206,14 @@
 
     .summary-supplemental {
         width: 100%;
+    }
+
+    .export-error {
+        margin: 0;
+        color: #a32727;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: right;
     }
 
     .disabled-submit-tooltip-host {

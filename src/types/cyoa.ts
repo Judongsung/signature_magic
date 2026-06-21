@@ -19,7 +19,7 @@ export interface CyoaTextInputConfig {
     defaultValue?: string;
 }
 
-export interface CyoaChoiceConfig {
+export interface CyoaChoiceBaseConfig {
     id: string;
     imagePath?: string;
     imageAlt: string;
@@ -31,6 +31,20 @@ export interface CyoaChoiceConfig {
     width?: string;
     disabled?: boolean;
     statEffects?: MagicStatEffectConfig[];
+}
+
+export type CyoaSubChoiceConfig = CyoaChoiceBaseConfig;
+
+export interface CyoaSubChoiceGroupConfig {
+    id: string;
+    title: string;
+    requiredCount?: number;
+    selectionMode?: CyoaSelectionMode;
+    choices: CyoaSubChoiceConfig[];
+}
+
+export interface CyoaChoiceConfig extends CyoaChoiceBaseConfig {
+    subChoiceGroup?: CyoaSubChoiceGroupConfig;
 }
 
 export interface CyoaChoiceRowConfig {
@@ -46,7 +60,7 @@ export interface CyoaChoiceRowConfig {
     choices?: CyoaChoiceConfig[];
 }
 
-export interface CyoaChoice {
+export interface CyoaChoiceBase {
     id: string;
     imageSrc?: string;
     imageAlt: string;
@@ -59,6 +73,20 @@ export interface CyoaChoice {
     layoutSpan?: number;
     disabled?: boolean;
     statEffects?: MagicStatEffectConfig[];
+}
+
+export type CyoaSubChoice = CyoaChoiceBase;
+
+export interface CyoaSubChoiceGroupData {
+    id: string;
+    title: string;
+    requiredCount: number;
+    selectionMode: CyoaSelectionMode;
+    choices: CyoaSubChoice[];
+}
+
+export interface CyoaChoice extends CyoaChoiceBase {
+    subChoiceGroup?: CyoaSubChoiceGroupData;
 }
 
 export interface CyoaChoiceRowData {

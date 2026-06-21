@@ -5,13 +5,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
     CYOA_REGISTRATION_SUMMARY_TEXT,
     UI_BUTTON_TEXT,
-} from '../../../constants/uiText';
-import { choiceStore } from '../../../stores/choiceStore.svelte';
+} from '../../constants/uiText';
+import { choiceStore } from '../../stores/choiceStore.svelte';
 import {
     getButtonByText,
     getDialogElement,
-} from '../../../test-utils/componentQueries';
-import CyoaRegistrationSummaryDialog from './CyoaRegistrationSummaryDialog.svelte';
+} from '../../test-utils/componentQueries';
+import RegistrationSummaryDialog from './RegistrationSummaryDialog.svelte';
 
 type DialogProps = {
     onClose?: () => void;
@@ -40,7 +40,7 @@ function mountDialog(props: DialogProps = {}) {
     const onClose = props.onClose ?? vi.fn();
 
     document.body.append(target);
-    mountedDialog = mount(CyoaRegistrationSummaryDialog, {
+    mountedDialog = mount(RegistrationSummaryDialog, {
         target,
         props: {
             ...props,
@@ -64,7 +64,7 @@ afterEach(async () => {
     choiceStore.reset();
 });
 
-describe('CyoaRegistrationSummaryDialog interaction', () => {
+describe('RegistrationSummaryDialog interaction', () => {
     it('moves focus to the dialog panel when mounted', async () => {
         const triggerButton = document.createElement('button');
         document.body.append(triggerButton);

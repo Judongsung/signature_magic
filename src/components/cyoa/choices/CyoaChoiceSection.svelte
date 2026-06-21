@@ -1,19 +1,27 @@
 <script lang="ts">
-    import type { CyoaChoiceRowData } from '../../../types/cyoa';
+    import type {
+        CyoaChoiceRowData,
+        CyoaRowSelections,
+        CyoaSubChoiceGroupData,
+    } from '../../../types/cyoa';
     import CyoaChoiceRow from './CyoaChoiceRow.svelte';
     import CyoaTextInputRow from './CyoaTextInputRow.svelte';
 
     let {
         row,
         selectedChoiceIds,
+        allSelectedChoiceIds,
         inputValues,
         onSelect,
+        onSubChoiceSelect,
         onInputValueChange,
     }: {
         row: CyoaChoiceRowData;
         selectedChoiceIds?: string[];
+        allSelectedChoiceIds?: CyoaRowSelections;
         inputValues?: Record<string, string>;
         onSelect?: (choiceId: string) => void;
+        onSubChoiceSelect?: (group: CyoaSubChoiceGroupData, choiceId: string) => void;
         onInputValueChange?: (inputId: string, value: string) => void;
     } = $props();
 </script>
@@ -36,7 +44,9 @@
             choices={row.choices}
             layoutColumns={row.layoutColumns}
             {selectedChoiceIds}
+            subChoiceSelections={allSelectedChoiceIds}
             {onSelect}
+            {onSubChoiceSelect}
         />
     {/if}
 </section>

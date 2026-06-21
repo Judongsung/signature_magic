@@ -15,8 +15,14 @@ export function mapCyoaStatEffectsByChoiceId(
 
     rows.forEach(row => {
         row.choices.forEach(choice => {
-            if (!choice.statEffects?.length) return;
-            effectsByChoiceId.set(choice.id, choice.statEffects);
+            if (choice.statEffects?.length) {
+                effectsByChoiceId.set(choice.id, choice.statEffects);
+            }
+
+            choice.subChoiceGroup?.choices.forEach(subChoice => {
+                if (!subChoice.statEffects?.length) return;
+                effectsByChoiceId.set(subChoice.id, subChoice.statEffects);
+            });
         });
     });
 

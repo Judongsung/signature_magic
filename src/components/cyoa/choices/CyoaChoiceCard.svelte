@@ -12,11 +12,15 @@
         choice,
         selected = false,
         disabled = false,
+        subChoice = false,
+        ariaLabel,
         onSelect,
     }: {
         choice: CyoaChoice;
         selected?: boolean;
         disabled?: boolean;
+        subChoice?: boolean;
+        ariaLabel?: string;
         onSelect?: (choiceId: string) => void;
     } = $props();
 
@@ -36,7 +40,9 @@
     class:without-image={!choice.imageSrc}
     class:without-description={!choice.description}
     class:selected
+    class:sub-choice={subChoice}
     {disabled}
+    aria-label={ariaLabel}
     aria-pressed={selected}
     aria-describedby={choice.tooltip ? tooltipId : undefined}
     onclick={selectChoice}
@@ -150,6 +156,28 @@
     }
 
     .choice-card.selected:hover:not(:disabled) {
+        border-color: var(--guild-selection-border-hover);
+        background: var(--guild-selection-hover-bg);
+        box-shadow: var(--guild-selection-hover-shadow);
+    }
+
+    .choice-card.sub-choice {
+        border-color: var(--guild-sub-choice-border);
+        background: var(--guild-sub-choice-bg);
+        box-shadow: var(--guild-sub-choice-shadow);
+    }
+
+    .choice-card.sub-choice:hover:not(:disabled) {
+        border-color: var(--guild-sub-choice-border-hover);
+        background: var(--guild-sub-choice-hover-bg);
+    }
+
+    .choice-card.sub-choice.selected {
+        border-color: var(--guild-sub-choice-selected-border);
+        background: var(--guild-sub-choice-selected-bg);
+    }
+
+    .choice-card.sub-choice.selected:hover:not(:disabled) {
         border-color: var(--guild-selection-border-hover);
         background: var(--guild-selection-hover-bg);
         box-shadow: var(--guild-selection-hover-shadow);

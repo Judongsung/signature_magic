@@ -85,4 +85,17 @@ describe('CyoaChoiceCard', () => {
         expect(html).toContain('툴팁 상세 설명');
         expect(html).toContain('without-description');
     });
+
+    it('marks sub-choice cards with their visual and accessible context', () => {
+        const { html } = render(CyoaChoiceCard, {
+            props: {
+                choice,
+                subChoice: true,
+                ariaLabel: '학술기관 세부: 마탑',
+            },
+        });
+
+        expect(html).toContain('sub-choice');
+        expect(html).toContain('aria-label="학술기관 세부: 마탑"');
+    });
 });

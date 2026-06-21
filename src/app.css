@@ -68,6 +68,17 @@
         0 0 0 1px rgba(62, 111, 103, 0.24),
         0 14px 30px rgba(42, 93, 84, 0.2);
     --guild-selection-focus-shadow: 0 0 0 3px rgba(62, 111, 103, 0.12);
+    --guild-sub-choice-border: rgba(116, 80, 128, 0.42);
+    --guild-sub-choice-border-hover: rgba(116, 80, 128, 0.62);
+    --guild-sub-choice-selected-border: rgba(62, 111, 103, 0.78);
+    --guild-sub-choice-bg:
+        linear-gradient(180deg, rgba(250, 247, 252, 0.98), rgba(235, 226, 239, 0.98));
+    --guild-sub-choice-hover-bg:
+        linear-gradient(180deg, rgba(253, 250, 255, 0.99), rgba(241, 232, 245, 0.99));
+    --guild-sub-choice-selected-bg:
+        linear-gradient(180deg, rgba(241, 250, 246, 0.99), rgba(218, 237, 229, 0.99));
+    --guild-sub-choice-shadow: inset 3px 0 0 rgba(116, 80, 128, 0.18);
+    --guild-sub-choice-marker: rgba(116, 80, 128, 0.5);
     --guild-paper-border: #d6c6a2;
     --guild-paper-bg:
         radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 42%),

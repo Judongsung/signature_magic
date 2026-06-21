@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CYOA_REGISTRATION_SUMMARY_TEXT } from '../../../constants/uiText';
+    import { CYOA_REGISTRATION_SUMMARY_TEXT } from '../../constants/uiText';
 
     let {
         titleId,

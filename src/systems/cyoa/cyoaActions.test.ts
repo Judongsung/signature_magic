@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CyoaChoiceRowData } from '../../types/cyoa';
 import {
     canContinueCyoa,
+    clearInactiveCyoaSubChoiceSelections,
     createInitialInputValues,
     createInitialRowVisibility,
     mapCyoaChoiceConfig,
@@ -121,6 +122,39 @@ describe('cyoaActions', () => {
         expect(mapped[0].choices[1]).toMatchObject({
             imageSize: 'large',
             imagePlacement: 'top',
+        });
+    });
+
+    it('maps sub-choices with shared row columns and group defaults', () => {
+        const [mapped] = mapCyoaRows([
+            {
+                id: 'affiliation',
+                title: 'Affiliation',
+                choices: [
+                    {
+                        id: 'academy',
+                        imageAlt: '',
+                        title: 'Academy',
+                        width: '1/2',
+                        subChoiceGroup: {
+                            id: 'academy-detail',
+                            title: 'Academy detail',
+                            choices: [
+                                { id: 'tower', imageAlt: '', title: 'Tower', width: '1/4' },
+                            ],
+                        },
+                    },
+                ],
+            },
+        ], () => undefined);
+
+        expect(mapped.layoutColumns).toBe(4);
+        expect(mapped.choices[0].layoutSpan).toBe(2);
+        expect(mapped.choices[0].subChoiceGroup).toMatchObject({
+            id: 'academy-detail',
+            requiredCount: 1,
+            selectionMode: 'single',
+            choices: [{ id: 'tower', layoutSpan: 1 }],
         });
     });
 
@@ -256,5 +290,107 @@ describe('cyoaActions', () => {
 
         expect(canContinueCyoa(multiRows, { focus: ['focus-region'] })).toBe(false);
         expect(canContinueCyoa(multiRows, { focus: ['focus-region', 'focus-catalyst'] })).toBe(true);
+    });
+
+    it('requires only active required sub-choice groups', () => {
+        const nestedRows = mapCyoaRows([
+            {
+                id: 'affiliation',
+                title: 'Affiliation',
+                choices: [
+                    {
+                        id: 'academy',
+                        imageAlt: '',
+                        title: 'Academy',
+                        subChoiceGroup: {
+                            id: 'academy-detail',
+                            title: 'Academy detail',
+                            requiredCount: 1,
+                            choices: [
+                                { id: 'tower', imageAlt: '', title: 'Tower' },
+                            ],
+                        },
+                    },
+                    { id: 'independent', imageAlt: '', title: 'Independent' },
+                ],
+            },
+        ], () => undefined);
+
+        expect(canContinueCyoa(nestedRows, { affiliation: ['academy'] })).toBe(false);
+        expect(canContinueCyoa(nestedRows, {
+            affiliation: ['academy'],
+            'academy-detail': ['tower'],
+        })).toBe(true);
+        expect(canContinueCyoa(nestedRows, { affiliation: ['independent'] })).toBe(true);
+    });
+
+    it('allows active optional sub-choice groups without a selection', () => {
+        const nestedRows = mapCyoaRows([
+            {
+                id: 'affiliation',
+                title: 'Affiliation',
+                choices: [
+                    {
+                        id: 'academy',
+                        imageAlt: '',
+                        title: 'Academy',
+                        subChoiceGroup: {
+                            id: 'academy-detail',
+                            title: 'Academy detail',
+                            requiredCount: 0,
+                            choices: [
+                                { id: 'tower', imageAlt: '', title: 'Tower' },
+                            ],
+                        },
+                    },
+                ],
+            },
+        ], () => undefined);
+
+        expect(canContinueCyoa(nestedRows, { affiliation: ['academy'] })).toBe(true);
+    });
+
+    it('clears sub-choice state when its parent becomes inactive', () => {
+        const nestedRows = mapCyoaRows([
+            {
+                id: 'affiliation',
+                title: 'Affiliation',
+                choices: [
+                    {
+                        id: 'academy',
+                        imageAlt: '',
+                        title: 'Academy',
+                        subChoiceGroup: {
+                            id: 'academy-detail',
+                            title: 'Academy detail',
+                            choices: [
+                                { id: 'tower', imageAlt: '', title: 'Tower' },
+                            ],
+                        },
+                    },
+                    { id: 'independent', imageAlt: '', title: 'Independent' },
+                ],
+            },
+        ], () => undefined);
+        const changedParentSelections = toggleCyoaChoiceSelection(
+            nestedRows[0],
+            { affiliation: ['academy'], 'academy-detail': ['tower'] },
+            'independent'
+        );
+
+        expect(clearInactiveCyoaSubChoiceSelections(
+            nestedRows,
+            changedParentSelections
+        )).toEqual({ affiliation: ['independent'] });
+
+        const deselectedParentSelections = toggleCyoaChoiceSelection(
+            nestedRows[0],
+            { affiliation: ['academy'], 'academy-detail': ['tower'] },
+            'academy'
+        );
+        expect(clearInactiveCyoaSubChoiceSelections(
+            nestedRows,
+            deselectedParentSelections
+        )).toEqual({ affiliation: [] });
     });
 });

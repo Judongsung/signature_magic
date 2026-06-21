@@ -1,8 +1,8 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import { UI_BUTTON_TEXT } from '../../../constants/uiText';
-import type { CyoaChoiceRowData } from '../../../types/cyoa';
-import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
+import { UI_BUTTON_TEXT } from '../../constants/uiText';
+import type { CyoaChoiceRowData } from '../../types/cyoa';
+import RegistrationSummary from './RegistrationSummary.svelte';
 
 const rows: CyoaChoiceRowData[] = [
     {
@@ -37,9 +37,9 @@ const rows: CyoaChoiceRowData[] = [
     },
 ];
 
-describe('CyoaRegistrationSummary', () => {
+describe('RegistrationSummary', () => {
     it('shows required rows before selection', () => {
-        const { html } = render(CyoaRegistrationSummary, {
+        const { html } = render(RegistrationSummary, {
             props: {
                 rows,
                 visibleRowIds: { name: false, region: false },
@@ -53,7 +53,7 @@ describe('CyoaRegistrationSummary', () => {
     });
 
     it('renders the signature name in the document and submit action outside it', () => {
-        const { html } = render(CyoaRegistrationSummary, {
+        const { html } = render(RegistrationSummary, {
             props: {
                 rows,
                 visibleRowIds: { name: true, region: false },
@@ -71,7 +71,7 @@ describe('CyoaRegistrationSummary', () => {
 
     it('uses a provided title id for the summary document label', () => {
         const titleId = 'custom-registration-summary-title';
-        const { html } = render(CyoaRegistrationSummary, {
+        const { html } = render(RegistrationSummary, {
             props: {
                 rows,
                 visibleRowIds: { name: false, region: false },
@@ -86,7 +86,7 @@ describe('CyoaRegistrationSummary', () => {
     });
 
     it('shows a required-fields tooltip for the disabled submit action', () => {
-        const { html } = render(CyoaRegistrationSummary, {
+        const { html } = render(RegistrationSummary, {
             props: {
                 rows,
                 visibleRowIds: { name: false, region: false },

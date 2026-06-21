@@ -79,12 +79,12 @@ describe('cyoaRegistrationSummary', () => {
         expect(summary.choiceItems.map(item => item.id)).toEqual(['region', 'optional']);
         expect(summary.choiceItems[0]).toMatchObject({
             id: 'region',
-            choices: [],
+            selections: [],
             requiredMissing: true,
         });
         expect(summary.choiceItems[1]).toMatchObject({
             id: 'optional',
-            choices: [],
+            selections: [],
             requiredMissing: false,
         });
         expect(summary.signatureName).toBe('');
@@ -110,10 +110,95 @@ describe('cyoaRegistrationSummary', () => {
             {
                 id: 'region',
                 title: 'Region',
-                choices: [rows[1].choices[0]],
+                selections: [{
+                    id: 'region-frontier',
+                    titles: ['Frontier'],
+                    requiredMissing: false,
+                }],
                 requiredMissing: false,
             },
         ]);
         expect(summary.signatureName).toBe(summary.inputItems[0].value);
+    });
+
+    it('builds parent and sub-choice paths and reports a missing required sub-choice', () => {
+        const nestedRows: CyoaChoiceRowData[] = [{
+            ...rows[1],
+            choices: [{
+                ...rows[1].choices[0],
+                title: 'Academy',
+                subChoiceGroup: {
+                    id: 'academy-detail',
+                    title: 'Academy detail',
+                    requiredCount: 1,
+                    selectionMode: 'single',
+                    choices: [
+                        { id: 'tower', imageAlt: '', title: 'Tower' },
+                    ],
+                },
+            }],
+        }];
+
+        const missingSummary = buildCyoaRegistrationSummary({
+            rows: nestedRows,
+            visibleRowIds: { region: true },
+            selectedChoiceIds: { region: ['region-frontier'] },
+            inputValues: {},
+        });
+        expect(missingSummary.choiceItems[0]).toMatchObject({
+            requiredMissing: true,
+            selections: [{ titles: ['Academy'], requiredMissing: true }],
+        });
+
+        const completeSummary = buildCyoaRegistrationSummary({
+            rows: nestedRows,
+            visibleRowIds: { region: true },
+            selectedChoiceIds: {
+                region: ['region-frontier'],
+                'academy-detail': ['tower'],
+            },
+            inputValues: {},
+        });
+        expect(completeSummary.choiceItems[0]).toMatchObject({
+            requiredMissing: false,
+            selections: [{ titles: ['Academy', 'Tower'], requiredMissing: false }],
+        });
+    });
+
+    it('keeps a required marker when a multi-select sub-choice group is incomplete', () => {
+        const nestedRows: CyoaChoiceRowData[] = [{
+            ...rows[1],
+            choices: [{
+                ...rows[1].choices[0],
+                title: 'Academy',
+                subChoiceGroup: {
+                    id: 'academy-detail',
+                    title: 'Academy detail',
+                    requiredCount: 2,
+                    selectionMode: 'multi',
+                    choices: [
+                        { id: 'tower', imageAlt: '', title: 'Tower' },
+                        { id: 'institute', imageAlt: '', title: 'Institute' },
+                    ],
+                },
+            }],
+        }];
+        const summary = buildCyoaRegistrationSummary({
+            rows: nestedRows,
+            visibleRowIds: { region: true },
+            selectedChoiceIds: {
+                region: ['region-frontier'],
+                'academy-detail': ['tower'],
+            },
+            inputValues: {},
+        });
+
+        expect(summary.choiceItems[0]).toMatchObject({
+            requiredMissing: true,
+            selections: [
+                { titles: ['Academy', 'Tower'], requiredMissing: false },
+                { titles: ['Academy'], requiredMissing: true },
+            ],
+        });
     });
 });

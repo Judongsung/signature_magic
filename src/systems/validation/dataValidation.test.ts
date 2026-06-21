@@ -326,6 +326,75 @@ describe('dataValidation', () => {
         )).toEqual({ valid: true, errors: [] });
     });
 
+    it('reports invalid nested CYOA choice groups', () => {
+        const validation = validateCyoaRows([
+            {
+                id: 'row',
+                title: 'Row',
+                choices: [
+                    {
+                        id: 'parent-a',
+                        imageAlt: '',
+                        title: 'Parent A',
+                        subChoiceGroup: {
+                            id: 'row',
+                            title: '',
+                            requiredCount: 2,
+                            selectionMode: 'single',
+                            choices: [
+                                { id: 'duplicate-child', imageAlt: '', title: 'Child' },
+                            ],
+                        },
+                    },
+                    {
+                        id: 'parent-b',
+                        imageAlt: '',
+                        title: 'Parent B',
+                        subChoiceGroup: {
+                            id: 'row',
+                            title: 'Invalid group',
+                            requiredCount: -1,
+                            selectionMode: 'double',
+                            choices: [
+                                {
+                                    id: 'duplicate-child',
+                                    imagePath: '../assets/images/missing.webp',
+                                    imageAlt: '',
+                                    title: 'Nested child',
+                                    width: '3/2',
+                                    statEffects: [
+                                        { phase: 'before', operation: 'add', stat: 'power', value: 1 },
+                                    ],
+                                    subChoiceGroup: {
+                                        id: 'too-deep',
+                                        title: 'Too deep',
+                                        choices: [],
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        ] as unknown as CyoaChoiceRowConfig[], isKnownCyoaImagePath);
+
+        expect(validation.valid).toBe(false);
+        expect(validation.errors).toEqual(expect.arrayContaining([
+            'Duplicate CYOA sub-choice group id: row',
+            'Duplicate CYOA selection group id: row',
+            'Duplicate CYOA choice id: duplicate-child',
+            'Invalid CYOA sub-choice group title: row',
+            'CYOA sub-choice required count exceeds choices: row -> 2',
+            'Invalid CYOA single-select sub-choice required count: row -> 2',
+            'Invalid CYOA sub-choice required count: row -> -1',
+            'Invalid CYOA sub-choice selection mode: row -> double',
+            'Unknown CYOA image path: duplicate-child -> ../assets/images/missing.webp',
+            'Invalid CYOA choice width: duplicate-child -> 3/2',
+            'Invalid CYOA stat effect phase: duplicate-child -> 0 -> before',
+            'Invalid nested CYOA sub-choice group: duplicate-child',
+        ]));
+    });
+
     it('validates configured CYOA dialogue scripts against image registries', () => {
         expect(validateCyoaDialogueScripts(
             cyoaDialogueScriptsData as CyoaDialogueScriptConfig[],

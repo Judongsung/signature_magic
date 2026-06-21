@@ -62,4 +62,35 @@ describe('CyoaChoiceRow', () => {
         expect(html).toContain('--layout-columns: 3');
         expect(html).toContain('--layout-span: 2');
     });
+
+    it('inserts styled sub-choices immediately after the selected parent', () => {
+        const nestedChoices: CyoaChoice[] = [
+            {
+                ...choices[0],
+                subChoiceGroup: {
+                    id: 'first-detail',
+                    title: '첫 번째 세부',
+                    requiredCount: 1,
+                    selectionMode: 'single',
+                    choices: [
+                        { id: 'first-child', imageAlt: '', title: '첫 번째 하위' },
+                    ],
+                },
+            },
+            choices[1],
+        ];
+        const { html } = render(CyoaChoiceRow, {
+            props: {
+                choices: nestedChoices,
+                selectedChoiceIds: ['first'],
+                subChoiceSelections: { 'first-detail': ['first-child'] },
+            },
+        });
+
+        expect(html.indexOf('첫 번째 하위')).toBeGreaterThan(html.indexOf('첫 번째 설명'));
+        expect(html.indexOf('두 번째 설명')).toBeGreaterThan(html.indexOf('첫 번째 하위'));
+        expect(html).toContain('sub-choice-row-item');
+        expect(html).toContain('selected sub-choice');
+        expect(html).toContain('aria-label="첫 번째 세부: 첫 번째 하위"');
+    });
 });

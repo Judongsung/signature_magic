@@ -11,7 +11,10 @@ const UNKNOWN_CYOA_IMAGE_PATH = '../assets/images/missing.webp';
 function collectConfiguredImagePaths(rows: CyoaChoiceRowConfig[]): string[] {
     const imagePaths = rows.flatMap(row =>
         (row.choices ?? [])
-            .map(choice => choice.imagePath)
+            .flatMap(choice => [
+                choice.imagePath,
+                ...(choice.subChoiceGroup?.choices.map(subChoice => subChoice.imagePath) ?? []),
+            ])
             .filter((imagePath): imagePath is string => Boolean(imagePath))
     );
 

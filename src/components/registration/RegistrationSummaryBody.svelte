@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { CYOA_REGISTRATION_SUMMARY_TEXT } from '../../../constants/uiText';
+    import { CYOA_REGISTRATION_SUMMARY_TEXT } from '../../constants/uiText';
     import type {
         CyoaRegistrationSummaryChoiceItem,
         CyoaRegistrationSummaryInputItem,
-    } from '../../../systems/cyoa/cyoaRegistrationSummary';
+    } from '../../systems/cyoa/cyoaRegistrationSummary';
 
     let {
         inputItems,
@@ -44,11 +44,19 @@
                 <article class="choice-entry">
                     <h4>{item.title}</h4>
                     <div class="choice-field">
-                        {#if item.choices.length > 0}
+                        {#if item.selections.length > 0}
                             <ul>
-                                {#each item.choices as choice}
+                                {#each item.selections as selection}
                                     <li>
-                                        <span class="choice-title">{choice.title}</span>
+                                        <span
+                                            class="choice-title"
+                                            class:required-missing={selection.requiredMissing}
+                                        >
+                                            {selection.titles.join(CYOA_REGISTRATION_SUMMARY_TEXT.SELECTION_PATH_SEPARATOR)}
+                                            {#if selection.requiredMissing}
+                                                {CYOA_REGISTRATION_SUMMARY_TEXT.SELECTION_PATH_SEPARATOR}{CYOA_REGISTRATION_SUMMARY_TEXT.REQUIRED_NOTICE_LABEL}
+                                            {/if}
+                                        </span>
                                     </li>
                                 {/each}
                             </ul>

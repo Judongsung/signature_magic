@@ -1,11 +1,15 @@
 import type {
     CyoaChoice,
+    CyoaChoiceBaseConfig,
     CyoaChoiceConfig,
     CyoaChoiceRowConfig,
     CyoaChoiceRowData,
     CyoaInputValues,
     CyoaRowSelections,
     CyoaRowVisibility,
+    CyoaSubChoice,
+    CyoaSubChoiceGroupConfig,
+    CyoaSubChoiceGroupData,
 } from '../../types/cyoa';
 import {
     CYOA_CHOICE_IMAGE_PLACEMENTS,
@@ -21,11 +25,13 @@ import {
 const DEFAULT_REQUIRED_COUNT = 1;
 const INPUT_REQUIRED_COUNT = 1;
 
-export function mapCyoaChoiceConfig(
-    choice: CyoaChoiceConfig,
+type CyoaSelectionGroup = CyoaChoiceRowData | CyoaSubChoiceGroupData;
+
+function mapCyoaChoiceBaseConfig(
+    choice: CyoaChoiceBaseConfig,
     resolveImagePath: (imagePath?: string) => string | undefined,
-    layoutColumns = 1
-): CyoaChoice {
+    layoutColumns: number
+): CyoaSubChoice {
     const width = parseCyoaChoiceWidth(choice.width);
 
     return {
@@ -45,12 +51,47 @@ export function mapCyoaChoiceConfig(
     };
 }
 
+function mapCyoaSubChoiceGroupConfig(
+    group: CyoaSubChoiceGroupConfig,
+    resolveImagePath: (imagePath?: string) => string | undefined,
+    layoutColumns: number
+): CyoaSubChoiceGroupData {
+    return {
+        id: group.id,
+        title: group.title,
+        requiredCount: group.requiredCount ?? DEFAULT_REQUIRED_COUNT,
+        selectionMode: group.selectionMode ?? CYOA_SELECTION_MODES.SINGLE,
+        choices: group.choices.map(choice => mapCyoaChoiceBaseConfig(
+            choice,
+            resolveImagePath,
+            layoutColumns
+        )),
+    };
+}
+
+export function mapCyoaChoiceConfig(
+    choice: CyoaChoiceConfig,
+    resolveImagePath: (imagePath?: string) => string | undefined,
+    layoutColumns = 1
+): CyoaChoice {
+    return {
+        ...mapCyoaChoiceBaseConfig(choice, resolveImagePath, layoutColumns),
+        subChoiceGroup: choice.subChoiceGroup
+            ? mapCyoaSubChoiceGroupConfig(choice.subChoiceGroup, resolveImagePath, layoutColumns)
+            : undefined,
+    };
+}
+
 export function mapCyoaRowConfig(
     row: CyoaChoiceRowConfig,
     resolveImagePath: (imagePath?: string) => string | undefined
 ): CyoaChoiceRowData {
     const choiceConfigs = row.choices ?? [];
-    const widths = choiceConfigs.map(choice => parseCyoaChoiceWidth(choice.width));
+    const allChoiceConfigs = choiceConfigs.flatMap(choice => [
+        choice,
+        ...(choice.subChoiceGroup?.choices ?? []),
+    ]);
+    const widths = allChoiceConfigs.map(choice => parseCyoaChoiceWidth(choice.width));
     const layoutColumns = resolveCyoaLayoutColumns(widths);
 
     return {
@@ -124,7 +165,7 @@ export function canContinueCyoa(
     selectedChoiceIds: CyoaRowSelections,
     inputValues: CyoaInputValues = {}
 ): boolean {
-    return rows
+    const requiredRowsComplete = rows
         .filter(row => row.selectable && row.requiredCount > 0)
         .every(row => {
             // visibleWhen은 표시 여부만 제어한다. 숨겨진 행도 requiredCount가 있으면 진행을 막을 수 있다.
@@ -135,14 +176,51 @@ export function canContinueCyoa(
 
             return (selectedChoiceIds[row.id]?.length ?? 0) >= row.requiredCount;
         });
+
+    if (!requiredRowsComplete) return false;
+
+    return getActiveCyoaSubChoiceGroups(rows, selectedChoiceIds)
+        .filter(group => group.requiredCount > 0)
+        .every(group => (selectedChoiceIds[group.id]?.length ?? 0) >= group.requiredCount);
+}
+
+export function getActiveCyoaSubChoiceGroups(
+    rows: readonly CyoaChoiceRowData[],
+    selectedChoiceIds: CyoaRowSelections
+): CyoaSubChoiceGroupData[] {
+    return rows.flatMap(row => {
+        const selectedIds = selectedChoiceIds[row.id] ?? [];
+
+        return row.choices.flatMap(choice =>
+            selectedIds.includes(choice.id) && choice.subChoiceGroup
+                ? [choice.subChoiceGroup]
+                : []
+        );
+    });
+}
+
+export function clearInactiveCyoaSubChoiceSelections(
+    rows: readonly CyoaChoiceRowData[],
+    selectedChoiceIds: CyoaRowSelections
+): CyoaRowSelections {
+    const allSubChoiceGroupIds = new Set(rows.flatMap(row =>
+        row.choices.flatMap(choice => choice.subChoiceGroup ? [choice.subChoiceGroup.id] : [])
+    ));
+    const activeSubChoiceGroupIds = new Set(
+        getActiveCyoaSubChoiceGroups(rows, selectedChoiceIds).map(group => group.id)
+    );
+
+    return Object.fromEntries(Object.entries(selectedChoiceIds).filter(([groupId]) =>
+        !allSubChoiceGroupIds.has(groupId) || activeSubChoiceGroupIds.has(groupId)
+    ));
 }
 
 export function toggleCyoaChoiceSelection(
-    row: CyoaChoiceRowData,
+    row: CyoaSelectionGroup,
     selectedChoiceIds: CyoaRowSelections,
     choiceId: string
 ): CyoaRowSelections {
-    if (!row.selectable) return selectedChoiceIds;
+    if ('selectable' in row && !row.selectable) return selectedChoiceIds;
 
     const rowSelections = selectedChoiceIds[row.id] ?? [];
     const isSelected = rowSelections.includes(choiceId);

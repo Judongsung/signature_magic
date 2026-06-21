@@ -1,6 +1,7 @@
 import cyoaRowsData from '../data/cyoaRows.json';
 import {
     canContinueCyoa,
+    clearInactiveCyoaSubChoiceSelections,
     createInitialInputValues,
     mapCyoaRows,
     resolveCyoaRowVisibility,
@@ -17,6 +18,7 @@ import type {
     CyoaInputValues,
     CyoaRowSelections,
     CyoaRowVisibility,
+    CyoaSubChoiceGroupData,
 } from '../types/cyoa';
 import type { MagicStatEffectBundle } from '../types/magic';
 
@@ -40,13 +42,14 @@ class ChoiceStore {
         calculateCyoaStatEffects(this.selectedChoiceIds, this.statEffectsByChoiceId)
     );
 
-    selectChoice(row: CyoaChoiceRowData, choiceId: string): void {
-        if (!row.selectable) return;
+    selectChoice(row: CyoaChoiceRowData | CyoaSubChoiceGroupData, choiceId: string): void {
+        if ('selectable' in row && !row.selectable) return;
 
         const choice = row.choices.find(item => item.id === choiceId);
         if (!choice || choice.disabled) return;
 
-        this.selectedChoiceIds = toggleCyoaChoiceSelection(row, this.selectedChoiceIds, choiceId);
+        const nextSelections = toggleCyoaChoiceSelection(row, this.selectedChoiceIds, choiceId);
+        this.selectedChoiceIds = clearInactiveCyoaSubChoiceSelections(this.rows, nextSelections);
     }
 
     updateInputValue(inputId: string, value: string): void {

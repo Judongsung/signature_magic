@@ -5,13 +5,20 @@
         CYOA_SCREEN_TEXT,
     } from '../../constants/uiText';
     import { choiceStore } from '../../stores/choiceStore.svelte';
-    import type { CyoaChoiceRowData } from '../../types/cyoa';
+    import type {
+        CyoaChoiceRowData,
+        CyoaSubChoiceGroupData,
+    } from '../../types/cyoa';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
     import CyoaChoiceSection from './choices/CyoaChoiceSection.svelte';
 
     function handleChoiceSelect(row: CyoaChoiceRowData, choiceId: string) {
         choiceStore.selectChoice(row, choiceId);
+    }
+
+    function handleSubChoiceSelect(group: CyoaSubChoiceGroupData, choiceId: string) {
+        choiceStore.selectChoice(group, choiceId);
     }
 
     function handleInputValueChange(inputId: string, value: string) {
@@ -40,8 +47,10 @@
                 <CyoaChoiceSection
                     {row}
                     selectedChoiceIds={choiceStore.selectedChoiceIds[row.id]}
+                    allSelectedChoiceIds={choiceStore.selectedChoiceIds}
                     inputValues={choiceStore.inputValues}
                     onSelect={(choiceId) => handleChoiceSelect(row, choiceId)}
+                    onSubChoiceSelect={handleSubChoiceSelect}
                     onInputValueChange={handleInputValueChange}
                 />
             {/if}

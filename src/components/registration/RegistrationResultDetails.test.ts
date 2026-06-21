@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
-import { graphStore } from '../../../stores/graphStore.svelte';
-import { installResizeObserverStub } from '../../../test-utils/domApis';
+import { CYOA_REGISTRATION_RESULT_TEXT } from '../../constants/uiText';
+import { graphStore } from '../../stores/graphStore.svelte';
+import { installResizeObserverStub } from '../../test-utils/domApis';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
-} from '../../../test-utils/graphFixtures';
-import CyoaRegistrationResultDetails from './CyoaRegistrationResultDetails.svelte';
+} from '../../test-utils/graphFixtures';
+import RegistrationResultDetails from './RegistrationResultDetails.svelte';
 
 let mountedDetails: Record<string, unknown> | undefined;
 
@@ -30,7 +30,7 @@ afterEach(async () => {
     resetGraphStoreFixture();
 });
 
-describe('CyoaRegistrationResultDetails', () => {
+describe('RegistrationResultDetails', () => {
     it('renders the graph preview, static circle composition, and total stats', async () => {
         createSingleNodeCircleFixture();
         graphStore.setSignatureMetadata({
@@ -40,7 +40,7 @@ describe('CyoaRegistrationResultDetails', () => {
         const target = document.createElement('div');
         document.body.append(target);
 
-        mountedDetails = mount(CyoaRegistrationResultDetails, { target });
+        mountedDetails = mount(RegistrationResultDetails, { target });
         await tick();
 
         expect(target.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.SIGNATURE_TITLE);
@@ -59,7 +59,7 @@ describe('CyoaRegistrationResultDetails', () => {
         const target = document.createElement('div');
         document.body.append(target);
 
-        mountedDetails = mount(CyoaRegistrationResultDetails, { target });
+        mountedDetails = mount(RegistrationResultDetails, { target });
         await tick();
 
         expect(target.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.SIGNATURE_TITLE);

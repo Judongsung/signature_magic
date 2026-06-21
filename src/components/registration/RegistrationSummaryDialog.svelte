@@ -1,18 +1,21 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
-    import veraChibiImageSrc from '../../../assets/images/vera_chibi.png';
+    import veraChibiImageSrc from '../../assets/images/vera_chibi.png';
     import {
         CYOA_GUIDE_SPEECH_TEXT,
         CYOA_REGISTRATION_SUMMARY_TEXT,
-    } from '../../../constants/uiText';
-    import { choiceStore } from '../../../stores/choiceStore.svelte';
-    import CharacterSpeechBubble from '../../shared/CharacterSpeechBubble.svelte';
+    } from '../../constants/uiText';
+    import { choiceStore } from '../../stores/choiceStore.svelte';
+    import { graphStore } from '../../stores/graphStore.svelte';
+    import { exportBuildResultImage } from '../../systems/export/buildResultImageExport';
+    import { buildMagicGraphResultPreview } from '../../systems/graph/presentation/magicGraphResultPreview';
+    import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
     import {
         activateDialogFocus,
         closeDialogOnEscape,
         trapDialogFocus,
-    } from '../../shared/dialogFocus';
-    import CyoaRegistrationSummary from './CyoaRegistrationSummary.svelte';
+    } from '../shared/dialogFocus';
+    import RegistrationSummary from './RegistrationSummary.svelte';
 
     const dialogId = $props.id();
     const dialogTitleId = `${dialogId}-registration-summary-title`;
@@ -22,11 +25,13 @@
         onSubmit,
         showSubmitGuidance = false,
         supplementalContent,
+        enableExport = false,
     }: {
         onClose: () => void;
         onSubmit?: () => void;
         showSubmitGuidance?: boolean;
         supplementalContent?: Snippet;
+        enableExport?: boolean;
     } = $props();
 
     let dialogElement: HTMLElement;
@@ -43,6 +48,11 @@
 
     function handleDialogKeydown(event: KeyboardEvent) {
         trapDialogFocus(event, dialogElement);
+    }
+
+    async function exportRegistrationResult(element: HTMLElement) {
+        const graphPreview = buildMagicGraphResultPreview(graphStore.nodes, graphStore.edges);
+        await exportBuildResultImage(element, graphPreview);
     }
 </script>
 
@@ -74,10 +84,11 @@
             </div>
         {/if}
 
-        <CyoaRegistrationSummary
+        <RegistrationSummary
             titleId={dialogTitleId}
             onBack={onClose}
             onSubmit={showSubmitGuidance ? onSubmit : undefined}
+            onExport={enableExport ? exportRegistrationResult : undefined}
             backLabel={showSubmitGuidance
                 ? CYOA_REGISTRATION_SUMMARY_TEXT.DEFAULT_BACK_LABEL
                 : CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_LABEL}
@@ -95,7 +106,7 @@
                     </div>
                 {/if}
             {/snippet}
-        </CyoaRegistrationSummary>
+        </RegistrationSummary>
     </div>
 </div>
 

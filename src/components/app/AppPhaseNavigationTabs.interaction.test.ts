@@ -105,6 +105,7 @@ describe('AppPhaseNavigationTabs interaction', () => {
         const dialog = queryDialogElement(target);
         expect(dialog).not.toBeNull();
         expect(dialog?.textContent).not.toContain(CYOA_REGISTRATION_RESULT_TEXT.GRAPH_TITLE);
+        expect(dialog?.textContent).not.toContain(CYOA_REGISTRATION_SUMMARY_TEXT.EXPORT_PNG_LABEL);
 
         getButtonByText(dialog as HTMLElement, UI_BUTTON_TEXT.SUBMIT_REGISTRATION).click();
         await tick();
@@ -126,6 +127,7 @@ describe('AppPhaseNavigationTabs interaction', () => {
         expect(dialog?.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.GRAPH_TITLE);
         expect(dialog?.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.CIRCLES_TITLE);
         expect(dialog?.textContent).toContain(CYOA_REGISTRATION_RESULT_TEXT.TOTAL_STATS_TITLE);
+        expect(dialog?.textContent).toContain(CYOA_REGISTRATION_SUMMARY_TEXT.EXPORT_PNG_LABEL);
 
         getButtonByText(dialog as HTMLElement, CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_LABEL).click();
         await tick();

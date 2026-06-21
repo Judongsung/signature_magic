@@ -1,19 +1,27 @@
 <script lang="ts">
     import CyoaChoiceCard from './CyoaChoiceCard.svelte';
-    import type { CyoaChoice } from '../../../types/cyoa';
+    import type {
+        CyoaChoice,
+        CyoaRowSelections,
+        CyoaSubChoiceGroupData,
+    } from '../../../types/cyoa';
 
     let {
         choices,
         layoutColumns = 3,
         selectedChoiceIds = [],
+        subChoiceSelections = {},
         disabled = false,
         onSelect,
+        onSubChoiceSelect,
     }: {
         choices: CyoaChoice[];
         layoutColumns?: number;
         selectedChoiceIds?: string[];
+        subChoiceSelections?: CyoaRowSelections;
         disabled?: boolean;
         onSelect?: (choiceId: string) => void;
+        onSubChoiceSelect?: (group: CyoaSubChoiceGroupData, choiceId: string) => void;
     } = $props();
 </script>
 
@@ -31,6 +39,25 @@
                 {onSelect}
             />
         </div>
+        {@const subChoiceGroup = choice.subChoiceGroup}
+        {#if selectedChoiceIds.includes(choice.id) && subChoiceGroup}
+            {#each subChoiceGroup.choices as subChoice (subChoice.id)}
+                <div
+                    class="choice-row-item sub-choice-row-item"
+                    style={`--layout-span: ${subChoice.layoutSpan ?? 1};`}
+                    role="listitem"
+                >
+                    <CyoaChoiceCard
+                        choice={subChoice}
+                        selected={(subChoiceSelections[subChoiceGroup.id] ?? []).includes(subChoice.id)}
+                        disabled={disabled || subChoice.disabled}
+                        subChoice
+                        ariaLabel={`${subChoiceGroup.title}: ${subChoice.title}`}
+                        onSelect={(choiceId) => onSubChoiceSelect?.(subChoiceGroup, choiceId)}
+                    />
+                </div>
+            {/each}
+        {/if}
     {/each}
 </div>
 
@@ -51,6 +78,21 @@
 
     .choice-row-item :global(.choice-card) {
         height: 100%;
+    }
+
+    .sub-choice-row-item {
+        position: relative;
+    }
+
+    .sub-choice-row-item::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        bottom: 10px;
+        left: -7px;
+        width: 2px;
+        border-radius: 999px;
+        background: var(--guild-sub-choice-marker);
     }
 
     @media (max-width: 640px) {

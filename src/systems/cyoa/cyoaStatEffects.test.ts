@@ -22,6 +22,20 @@ const rows: CyoaChoiceRowData[] = [
                 statEffects: [
                     { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.9 },
                 ],
+                subChoiceGroup: {
+                    id: 'scholar-detail',
+                    title: 'Scholar detail',
+                    requiredCount: 1,
+                    selectionMode: 'single',
+                    choices: [{
+                        id: 'scholar-researcher',
+                        imageAlt: '',
+                        title: 'Researcher',
+                        statEffects: [
+                            { phase: 'final', operation: 'add', stat: 'duration', value: 3 },
+                        ],
+                    }],
+                },
             },
             {
                 id: 'class-caster',
@@ -61,6 +75,9 @@ describe('cyoaStatEffects', () => {
         expect(effectsByChoiceId.get('class-scholar')).toEqual([
             { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.9 },
         ]);
+        expect(effectsByChoiceId.get('scholar-researcher')).toEqual([
+            { phase: 'final', operation: 'add', stat: 'duration', value: 3 },
+        ]);
     });
 
     it('groups selected effects by calculation phase', () => {
@@ -86,6 +103,20 @@ describe('cyoaStatEffects', () => {
         }, mapCyoaStatEffectsByChoiceId(rows))).toEqual({
             nodeEffects: [],
             finalEffects: [],
+        });
+    });
+
+    it('includes selected sub-choice effects', () => {
+        expect(calculateCyoaStatEffects({
+            class: ['class-scholar'],
+            'scholar-detail': ['scholar-researcher'],
+        }, mapCyoaStatEffectsByChoiceId(rows))).toEqual({
+            nodeEffects: [
+                { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.9 },
+            ],
+            finalEffects: [
+                { phase: 'final', operation: 'add', stat: 'duration', value: 3 },
+            ],
         });
     });
 });
