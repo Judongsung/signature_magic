@@ -223,6 +223,7 @@
         <MagicNodeDetailsDialog
             node={activeNode}
             config={activeNodeConfig}
+            nodeStatEffects={graphStore.externalStatEffects.nodeEffects}
             onSave={saveNodeSettings}
             onClose={closeNodeDetails}
         />

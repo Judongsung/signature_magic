@@ -50,6 +50,7 @@ export interface NodeStarLayout {
 export interface MagicCircleRenderModel {
     id: string;
     stats: MagicStats;
+    statAdjustments: MagicStats;
     lightweight: boolean;
     nodeStar?: NodeStarLayout;
     rings: NodeRingLayout[];
@@ -91,6 +92,7 @@ function buildMagicCircleRenderModelsNow(
         return {
             id: circle.id,
             stats: circle.stats,
+            statAdjustments: circle.statAdjustments,
             lightweight,
             nodeStar: buildNodeStar(circle.id, total, options),
             rings: circle.nodes.map((node, index) => ({

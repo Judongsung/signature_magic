@@ -2,23 +2,35 @@
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
+import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
-import type { MagicNode } from '../../../types/magic';
+import type { MagicNode, MagicStatEffectConfig } from '../../../types/magic';
 import MagicNodeDetailsDialog from './MagicNodeDetailsDialog.svelte';
 
 let mountedDialog: Record<string, unknown> | undefined;
 
 function node(magicType: string, settings?: Record<string, string>): MagicNode {
+    const isSystemNode = Object.values(SYSTEM_MAGIC_NODE_CONFIGS)
+        .some(config => config.id === magicType);
+
     return {
         id: `node-${magicType}`,
         type: 'magicNode',
         position: { x: 0, y: 0 },
-        data: { magicType, settings },
+        data: {
+            magicType,
+            settings,
+            nodeKind: isSystemNode ? MAGIC_NODE_KINDS.SYSTEM : undefined,
+        },
     };
 }
 
-function mountDialog(magicType: string, settings?: Record<string, string>) {
+function mountDialog(
+    magicType: string,
+    settings?: Record<string, string>,
+    nodeStatEffects: readonly MagicStatEffectConfig[] = []
+) {
     const target = document.createElement('div');
     document.body.append(target);
     const config = getMagicTypeConfig(magicType)!;
@@ -30,6 +42,7 @@ function mountDialog(magicType: string, settings?: Record<string, string>) {
         props: {
             node: node(magicType, settings),
             config,
+            nodeStatEffects,
             onSave,
             onClose,
         },
@@ -53,7 +66,9 @@ afterEach(async () => {
 
 describe('MagicNodeDetailsDialog', () => {
     it('renders read-only information for system nodes', () => {
-        const { target } = mountDialog(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id);
+        const { target } = mountDialog(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id, undefined, [
+            { phase: 'node', operation: 'add', stat: 'power', value: 1 },
+        ]);
 
         expect(target.querySelector('[role="dialog"]')).not.toBeNull();
         expect(target.textContent).toContain(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.label);
@@ -62,6 +77,16 @@ describe('MagicNodeDetailsDialog', () => {
         expect(target.textContent).toContain(NODE_EDITOR_TEXT.NODE_DETAILS_STATS_LABEL);
         expect(target.querySelector('input')).toBeNull();
         expect(target.textContent).toContain(NODE_EDITOR_TEXT.NODE_DETAILS_CLOSE);
+        expect(target.querySelector('.stat-adjustment')).toBeNull();
+    });
+
+    it('shows active node stat effects in the details stats', () => {
+        const { target } = mountDialog('ignition', undefined, [
+            { phase: 'node', operation: 'multiply', stat: 'castingTime', value: 0.9 },
+        ]);
+
+        expect(target.querySelector('.stat-adjustment')?.textContent).toBe('(-0.1)');
+        expect(target.textContent).toContain('0.9');
     });
 
     it('renders and saves the default caption field for a regular node', () => {

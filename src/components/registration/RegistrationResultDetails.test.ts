@@ -33,6 +33,12 @@ afterEach(async () => {
 describe('RegistrationResultDetails', () => {
     it('renders the graph preview, static circle composition, and total stats', async () => {
         createSingleNodeCircleFixture();
+        graphStore.setExternalStatEffects({
+            nodeEffects: [],
+            finalEffects: [
+                { phase: 'final', operation: 'add', stat: 'power', value: 1 },
+            ],
+        });
         graphStore.setSignatureMetadata({
             name: 'Crimson Lance',
             description: 'A focused fire spell.',
@@ -53,6 +59,7 @@ describe('RegistrationResultDetails', () => {
         expect(target.querySelector('.circle-composition-preview')).not.toBeNull();
         expect(target.querySelector('.total-stats-grid')).not.toBeNull();
         expect(target.querySelectorAll('.total-stats-grid [role="tooltip"]')).toHaveLength(6);
+        expect(target.querySelector('.total-stats-grid .stat-adjustment')?.textContent).toBe('(+1)');
     });
 
     it('renders fallback signature metadata before a spell is named', async () => {

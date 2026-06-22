@@ -6,9 +6,11 @@
     } from '../../../types/magic';
     import {
         MAGIC_NODE_HANDLE_CONFIG,
+        MAGIC_NODE_KINDS,
         MAGIC_NODE_RENDERING_CONFIG,
     } from '../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
+    import { graphStore } from '../../../stores/graphStore.svelte';
     import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
     import {
         resolveMagicNodeCaption,
@@ -37,6 +39,11 @@
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
     const shouldShowTooltip = $derived(data.showTooltip !== false);
     const shouldShowBadges = $derived(data.showBadges !== false);
+    const nodeStatEffects = $derived(
+        data.nodeKind === MAGIC_NODE_KINDS.SYSTEM
+            ? []
+            : graphStore.externalStatEffects.nodeEffects
+    );
     const isRoot = $derived(data.isRoot ?? true);
     const isLeaf = $derived(data.isLeaf ?? true);
     const inputHandleCount = $derived(data.inputHandleCount ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT);
@@ -150,7 +157,10 @@
             id={tooltipId}
             {description}
         >
-            <MagicNodeTooltipStats stats={nodeConfig.stats} />
+            <MagicNodeTooltipStats
+                stats={nodeConfig.stats}
+                {nodeStatEffects}
+            />
         </DescriptionTooltip>
     {/if}
 </div>

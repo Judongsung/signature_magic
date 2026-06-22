@@ -58,6 +58,7 @@
                 <div class="total-stats-label">{MAGIC_CIRCLE_TEXT.TOTAL_STATS_LABEL}</div>
                 <MagicStatsGrid
                     stats={graphStore.totalStats}
+                    adjustments={graphStore.totalStatAdjustments}
                     ariaLabel={MAGIC_CIRCLE_TEXT.TOTAL_STATS_ARIA_LABEL}
                     total
                 />

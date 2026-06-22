@@ -7,6 +7,7 @@ function circle(id: string, magicType: MagicType): CirclePath {
     return {
         id,
         stats: { ...EMPTY_MAGIC_STATS },
+        statAdjustments: { ...EMPTY_MAGIC_STATS },
         nodes: [
             {
                 id: `${id}-node`,

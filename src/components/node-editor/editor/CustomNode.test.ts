@@ -1,5 +1,6 @@
 import { render } from 'svelte/server';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { graphStore } from '../../../stores/graphStore.svelte';
 import type { MagicNodeData } from '../../../types/magic';
 import CustomNode from './CustomNode.svelte';
 
@@ -11,6 +12,10 @@ vi.mock('@xyflow/svelte', () => ({
     },
     useUpdateNodeInternals: () => () => {},
 }));
+
+afterEach(() => {
+    graphStore.setExternalStatEffects({ nodeEffects: [], finalEffects: [] });
+});
 
 function renderNode(data: Partial<MagicNodeData> = {}) {
     return render(CustomNode, {
@@ -32,6 +37,23 @@ describe('CustomNode', () => {
         expect(html).toContain('tooltip-host');
         expect(html).toContain('aria-describedby="canvas-node-tooltip-node-1"');
         expect(html).toContain('description-tooltip');
+    });
+
+    it('shows active node stat effects in canvas tooltips', () => {
+        graphStore.setExternalStatEffects({
+            nodeEffects: [
+                { phase: 'node', operation: 'add', stat: 'power', value: 1 },
+            ],
+            finalEffects: [
+                { phase: 'final', operation: 'add', stat: 'power', value: 10 },
+            ],
+        });
+
+        const { html } = renderNode();
+
+        expect(html).toContain('5');
+        expect(html).toContain('(+1)');
+        expect(html).not.toContain('(+11)');
     });
 
     it('omits editor-only tooltip and badge DOM for result preview nodes', () => {

@@ -13,6 +13,14 @@ const BASE_CIRCLE: CirclePath = {
         manaCost: 5,
         duration: 6,
     },
+    statAdjustments: {
+        castingTime: 0,
+        instability: -0.2,
+        power: 1,
+        range: 0,
+        manaCost: 0,
+        duration: 0,
+    },
     nodes: [
         {
             id: 'node-1',
@@ -38,6 +46,7 @@ describe('appPhaseTransition', () => {
         expect(plan?.circles).toEqual([BASE_CIRCLE]);
         expect(plan?.circles[0]).not.toBe(BASE_CIRCLE);
         expect(plan?.circles[0].nodes[0]).not.toBe(BASE_CIRCLE.nodes[0]);
+        expect(plan?.circles[0].statAdjustments).not.toBe(BASE_CIRCLE.statAdjustments);
     });
 
     it('does not create a plan for empty or unrelated phase transitions', () => {

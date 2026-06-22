@@ -12,22 +12,32 @@ function node(id: string, magicType: MagicType): MagicNode {
     };
 }
 
-function circle(nodes: MagicNode[]): CirclePath {
-    return { id: 'circle-0', nodes, stats: EMPTY_MAGIC_STATS };
+function circle(
+    nodes: MagicNode[],
+    statAdjustments = EMPTY_MAGIC_STATS
+): CirclePath {
+    return {
+        id: 'circle-0',
+        nodes,
+        stats: EMPTY_MAGIC_STATS,
+        statAdjustments,
+    };
 }
 
 describe('buildMagicCircleRenderModels', () => {
     it('creates ring and glyph band layouts for each node', () => {
+        const statAdjustments = { ...EMPTY_MAGIC_STATS, power: 1 };
         const [model] = buildMagicCircleRenderModels([
             circle([
                 node('ignition', 'ignition'),
                 node('stream', 'stream'),
                 node('soil', 'soil'),
-            ]),
+            ], statAdjustments),
         ]);
 
         expect(model.rings.map(ring => ring.node.id)).toEqual(['ignition', 'stream', 'soil']);
         expect(model.stats).toEqual(EMPTY_MAGIC_STATS);
+        expect(model.statAdjustments).toEqual(statAdjustments);
         expect(model.rings.map(ring => ring.radius)).toEqual([
             MAGIC_CIRCLE_RENDERING_CONFIG.INNER_RADIUS,
             (MAGIC_CIRCLE_RENDERING_CONFIG.INNER_RADIUS + MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_RADIUS) / 2,

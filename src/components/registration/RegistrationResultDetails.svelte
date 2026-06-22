@@ -44,6 +44,7 @@
         {#if graphStore.circles.length > 0}
             <MagicStatsGrid
                 stats={graphStore.totalStats}
+                adjustments={graphStore.totalStatAdjustments}
                 ariaLabel={CYOA_REGISTRATION_RESULT_TEXT.TOTAL_STATS_ARIA_LABEL}
                 total
             />

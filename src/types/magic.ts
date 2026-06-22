@@ -211,9 +211,11 @@ export interface CirclePath {
     id: string;
     nodes: MagicGraphNode[];
     stats: MagicStats;
+    statAdjustments: MagicStats;
 }
 
 export interface MagicCalculationResult {
     circles: CirclePath[];
     totalStats: MagicStats;
+    totalStatAdjustments: MagicStats;
 }

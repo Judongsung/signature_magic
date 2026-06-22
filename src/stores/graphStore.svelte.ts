@@ -59,6 +59,7 @@ class GraphStore {
     );
     readonly circles: CirclePath[] = $derived(this.calculation.circles);
     readonly totalStats: MagicStats = $derived(this.calculation.totalStats);
+    readonly totalStatAdjustments: MagicStats = $derived(this.calculation.totalStatAdjustments);
     readonly hasUserContent: boolean = $derived(hasUserMagicGraphContent(this.nodes));
 
     setExternalStatEffects(statEffects: MagicStatEffectBundle): void {

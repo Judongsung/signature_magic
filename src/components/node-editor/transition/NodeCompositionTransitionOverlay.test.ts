@@ -42,6 +42,7 @@ function createCircleSet(total: number): CirclePath[] {
             data: { ...node.data },
         })),
         stats: { ...baseCircle.stats },
+        statAdjustments: { ...baseCircle.statAdjustments },
     }));
 }
 

@@ -215,6 +215,7 @@ describe('graphStore', () => {
         });
 
         expect(graphStore.totalStats.power).toBe(14);
+        expect(graphStore.totalStatAdjustments.power).toBe(10);
     });
 
     it('keeps system nodes when deletion events include them', () => {

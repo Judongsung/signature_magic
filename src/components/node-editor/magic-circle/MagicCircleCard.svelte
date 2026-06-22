@@ -30,6 +30,7 @@
     <MagicCircleSvg {circle} {index} {animationMode} />
     <MagicStatsGrid
         stats={circle.stats}
+        adjustments={circle.statAdjustments}
         ariaLabel={`${MAGIC_CIRCLE_TEXT.CIRCLE_ARIA_LABEL} ${index + 1} stats`}
     />
 </div>

@@ -24,13 +24,14 @@ afterEach(async () => {
     document.body.replaceChildren();
 });
 
-function renderGrid(total = false): HTMLElement {
+function renderGrid(total = false, adjustments?: MagicStats): HTMLElement {
     const target = document.createElement('div');
     document.body.append(target);
     mountedGrid = mount(MagicStatsGrid, {
         target,
         props: {
             stats,
+            adjustments,
             ariaLabel: total ? 'Total stats' : 'Circle stats',
             total,
         },
@@ -76,5 +77,21 @@ describe('MagicStatsGrid', () => {
             );
         });
         expect(target.querySelector('.total-stats-grid')).not.toBeNull();
+    });
+
+    it('renders signed non-zero adjustments next to final values', () => {
+        const target = renderGrid(true, {
+            castingTime: -0.25,
+            instability: 0,
+            power: 1,
+            range: 0.004,
+            manaCost: 0,
+            duration: 0,
+        });
+
+        const adjustments = [...target.querySelectorAll('.stat-adjustment')]
+            .map(element => element.textContent);
+
+        expect(adjustments).toEqual(['(-0.25)', '(+1)']);
     });
 });

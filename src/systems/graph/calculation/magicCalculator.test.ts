@@ -27,7 +27,12 @@ function edge(source: string, target: string): Edge {
 }
 
 function circle(nodes: MagicNode[]) {
-    return { id: 'circle-0', nodes, stats: EMPTY_MAGIC_STATS };
+    return {
+        id: 'circle-0',
+        nodes,
+        stats: EMPTY_MAGIC_STATS,
+        statAdjustments: EMPTY_MAGIC_STATS,
+    };
 }
 
 function expectStatsClose(actual: MagicStats, expected: MagicStats): void {
@@ -82,6 +87,37 @@ describe('calculateCircles', () => {
             manaCost: 11,
             duration: 13,
         });
+    });
+
+    it('reports node-effect adjustments independently for each circle', () => {
+        const nodes = [node('a', 'first'), node('b', 'second')];
+        const magicTypes = [
+            {
+                type: 'first',
+                label: 'First',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'First magic.',
+                stats: { power: 4 },
+            },
+            {
+                type: 'second',
+                label: 'Second',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Second magic.',
+                stats: { power: 10 },
+            },
+        ] as MagicTypeConfig[];
+
+        const circles = calculateCircles(nodes, [], magicTypes, [
+            { phase: 'node', operation: 'multiply', stat: 'power', value: 0.5 },
+        ]);
+
+        expect(circles.map(circle => circle.stats.power)).toEqual([2, 5]);
+        expect(circles.map(circle => circle.statAdjustments.power)).toEqual([-2, -5]);
     });
 
     it('starts a new circle at nodes with multiple inputs', () => {
@@ -839,6 +875,60 @@ describe('calculateMagic', () => {
             manaCost: 1,
             duration: 1,
         });
+        expectStatsClose(result.totalStatAdjustments, {
+            castingTime: 0,
+            instability: 0,
+            power: 3,
+            range: 1,
+            manaCost: 0,
+            duration: 0,
+        });
+    });
+
+    it('reports the net total adjustment from combined node and final effects', () => {
+        const nodes = [node('a', 'test')];
+        const magicTypes = [
+            {
+                type: 'test',
+                label: 'Test',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Test magic.',
+                stats: {
+                    castingTime: 1,
+                    instability: 1,
+                    power: 3,
+                    range: 10,
+                    manaCost: 1,
+                    duration: 10,
+                },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, [], magicTypes, {
+            nodeEffects: [
+                { phase: 'node', operation: 'add', stat: 'power', value: 1 },
+                { phase: 'node', operation: 'multiply', stat: 'range', value: 0.9 },
+                { phase: 'node', operation: 'multiply', stat: 'duration', value: 0.5 },
+            ],
+            finalEffects: [
+                { phase: 'final', operation: 'add', stat: 'power', value: 2 },
+                { phase: 'final', operation: 'add', stat: 'duration', value: 5 },
+            ],
+        });
+
+        expect(result.totalStats.power).toBe(6);
+        expect(result.totalStats.range).toBe(9);
+        expect(result.totalStats.duration).toBe(10);
+        expect(result.totalStatAdjustments.power).toBe(3);
+        expect(result.totalStatAdjustments.range).toBe(-1);
+        expect(result.totalStatAdjustments.duration).toBe(0);
+        expect(result.circles[0].stats.power).toBe(4);
+        expect(result.circles[0].stats.duration).toBe(5);
+        expect(result.circles[0].statAdjustments.power).toBe(1);
+        expect(result.circles[0].statAdjustments.range).toBe(-1);
+        expect(result.circles[0].statAdjustments.duration).toBe(-5);
     });
 });
 

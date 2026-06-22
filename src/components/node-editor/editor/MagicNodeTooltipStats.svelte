@@ -3,28 +3,43 @@
     import {
         EMPTY_MAGIC_STATS,
         MAGIC_STAT_KEYS,
+        type MagicStatEffectConfig,
         type MagicStatsConfig,
     } from '../../../types/magic';
-    import { formatMagicStat } from '../../../systems/graph/presentation/magicStatFormatting';
+    import { applyMagicStatEffects } from '../../../systems/graph/calculation/magicStatEffects';
+    import {
+        formatMagicStat,
+        formatMagicStatAdjustment,
+    } from '../../../systems/graph/presentation/magicStatFormatting';
 
     let {
         stats,
+        nodeStatEffects = [],
     }: {
         stats?: MagicStatsConfig;
+        nodeStatEffects?: readonly MagicStatEffectConfig[];
     } = $props();
 
-    const tooltipStats = $derived(MAGIC_STAT_KEYS.map((statKey) => ({
-        key: statKey,
-        label: MAGIC_STAT_LABELS[statKey],
-        value: formatMagicStat(stats?.[statKey] ?? EMPTY_MAGIC_STATS[statKey]),
-    })));
+    const tooltipStats = $derived(MAGIC_STAT_KEYS.map((statKey) => {
+        const baseValue = stats?.[statKey] ?? EMPTY_MAGIC_STATS[statKey];
+        const adjustedValue = applyMagicStatEffects(baseValue, statKey, nodeStatEffects);
+
+        return {
+            key: statKey,
+            label: MAGIC_STAT_LABELS[statKey],
+            value: formatMagicStat(adjustedValue),
+            adjustment: formatMagicStatAdjustment(adjustedValue - baseValue),
+        };
+    }));
 </script>
 
 <span class="node-tooltip-stats" aria-label={NODE_EDITOR_TEXT.NODE_STATS_ARIA_LABEL}>
     {#each tooltipStats as stat}
         <span class="node-tooltip-stat">
             <span class="node-tooltip-stat-label">{stat.label}</span>
-            <span class="node-tooltip-stat-value">{stat.value}</span>
+            <span class="node-tooltip-stat-value">
+                {stat.value}{#if stat.adjustment}<span class="stat-adjustment">({stat.adjustment})</span>{/if}
+            </span>
         </span>
     {/each}
 </span>
@@ -64,5 +79,10 @@
         font-weight: 800;
         line-height: 1;
         font-variant-numeric: tabular-nums;
+    }
+
+    .stat-adjustment {
+        color: var(--node-editor-accent);
+        font-size: 9px;
     }
 </style>

@@ -7,13 +7,18 @@
         MAGIC_NODE_CATEGORY_LABELS,
         NODE_EDITOR_TEXT,
     } from '../../../constants/uiText';
-    import type { MagicType, MagicTypeConfig } from '../../../types/magic';
+    import type {
+        MagicStatEffectConfig,
+        MagicType,
+        MagicTypeConfig,
+    } from '../../../types/magic';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
 
     let {
         activeCategoryIds,
         visibleMagicTypes,
+        nodeStatEffects = [],
         onToggleCategory,
         onAddNode,
         onDragStart,
@@ -22,6 +27,7 @@
     }: {
         activeCategoryIds: MagicNodeCategory[];
         visibleMagicTypes: MagicTypeConfig[];
+        nodeStatEffects?: readonly MagicStatEffectConfig[];
         onToggleCategory: (categoryId: MagicNodeCategory) => void;
         onAddNode: (magicType: MagicType) => void;
         onDragStart: (event: DragEvent, magicType: MagicType) => void;
@@ -64,7 +70,7 @@
                 {description}
                 placement="bottom"
             >
-                <MagicNodeTooltipStats {stats} />
+                <MagicNodeTooltipStats {stats} {nodeStatEffects} />
             </DescriptionTooltip>
         </button>
     {/each}

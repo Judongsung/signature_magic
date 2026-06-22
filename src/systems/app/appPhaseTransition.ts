@@ -31,6 +31,7 @@ function snapshotCirclePaths(circles: readonly CirclePath[]): CirclePath[] {
     return circles.map(circle => ({
         ...circle,
         stats: { ...circle.stats },
+        statAdjustments: { ...circle.statAdjustments },
         nodes: circle.nodes.map(node => ({
             ...node,
             position: { ...node.position },

@@ -151,6 +151,7 @@
     <MagicNodeToolbar
         {activeCategoryIds}
         {visibleMagicTypes}
+        nodeStatEffects={graphStore.externalStatEffects.nodeEffects}
         onToggleCategory={toggleCategory}
         onAddNode={addNodeAtCanvasCenter}
         {onDragStart}

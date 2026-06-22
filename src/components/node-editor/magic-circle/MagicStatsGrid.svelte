@@ -4,15 +4,20 @@
         MAGIC_STAT_LABELS,
     } from '../../../constants/uiText';
     import { MAGIC_STAT_KEYS, type MagicStats } from '../../../types/magic';
-    import { formatMagicStat } from '../../../systems/graph/presentation/magicStatFormatting';
+    import {
+        formatMagicStat,
+        formatMagicStatAdjustment,
+    } from '../../../systems/graph/presentation/magicStatFormatting';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
 
     let {
         stats,
+        adjustments,
         ariaLabel,
         total = false,
     }: {
         stats: MagicStats;
+        adjustments?: MagicStats;
         ariaLabel: string;
         total?: boolean;
     } = $props();
@@ -23,6 +28,9 @@
 <dl class="stats-grid" class:total-stats-grid={total} aria-label={ariaLabel}>
     {#each MAGIC_STAT_KEYS as statKey}
         {@const tooltipId = `${statsGridId}-${statKey}-calculation-tooltip`}
+        {@const adjustment = adjustments
+            ? formatMagicStatAdjustment(adjustments[statKey])
+            : undefined}
         <!-- svelte-ignore a11y_no_noninteractive_tabindex (계산식 툴팁에 키보드로 접근할 수 있게 한다.) -->
         <div
             class="stat-item tooltip-host"
@@ -38,7 +46,9 @@
                     placement="bottom"
                 />
             </dt>
-            <dd>{formatMagicStat(stats[statKey])}</dd>
+            <dd>
+                {formatMagicStat(stats[statKey])}{#if adjustment}<span class="stat-adjustment">({adjustment})</span>{/if}
+            </dd>
         </div>
     {/each}
 </dl>
@@ -93,6 +103,11 @@
         font-weight: 700;
         line-height: 1.15;
         font-variant-numeric: tabular-nums;
+    }
+
+    .stat-adjustment {
+        color: var(--node-editor-accent);
+        font-size: 0.82em;
     }
 
     @media (max-width: 520px) {

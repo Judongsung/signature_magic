@@ -6,6 +6,7 @@
         MAGIC_REPEAT_CONFIG,
     } from '../../../constants/gameConfigs';
     import { MAGIC_NODE_CATEGORY_LABELS, NODE_EDITOR_TEXT } from '../../../constants/uiText';
+    import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
     import {
         getMagicNodeEditorFields,
         getMagicNodeEditorFieldDraftValue,
@@ -15,6 +16,7 @@
     import type {
         MagicNode,
         MagicNodeSettings,
+        MagicStatEffectConfig,
         MagicNodeStepperEditorFieldConfig,
         MagicTypeConfig,
     } from '../../../types/magic';
@@ -33,11 +35,13 @@
     let {
         node,
         config,
+        nodeStatEffects = [],
         onSave,
         onClose,
     }: {
         node: MagicNode;
         config: MagicTypeConfig;
+        nodeStatEffects?: readonly MagicStatEffectConfig[];
         onSave: (settings: MagicNodeSettings | undefined) => void;
         onClose: () => void;
     } = $props();
@@ -45,6 +49,9 @@
     const fields = $derived(getMagicNodeEditorFields(config));
     const isEditable = $derived(fields.length > 0);
     const displayLabel = $derived(resolveMagicNodeLabel(node.data, config));
+    const applicableNodeStatEffects = $derived(
+        node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM ? [] : nodeStatEffects
+    );
     let dialogElement: HTMLElement;
     let draftSettings = $state<MagicNodeSettings>(untrack(() => Object.fromEntries(
         fields.map(field => [field.key, getMagicNodeEditorFieldDraftValue(field, node.data.settings)])
@@ -138,7 +145,10 @@
 
             <section class="node-details-stats" aria-label={NODE_EDITOR_TEXT.NODE_DETAILS_STATS_LABEL}>
                 <h3>{NODE_EDITOR_TEXT.NODE_DETAILS_STATS_LABEL}</h3>
-                <MagicNodeTooltipStats stats={config.stats} />
+                <MagicNodeTooltipStats
+                    stats={config.stats}
+                    nodeStatEffects={applicableNodeStatEffects}
+                />
             </section>
 
             {#if isEditable}
