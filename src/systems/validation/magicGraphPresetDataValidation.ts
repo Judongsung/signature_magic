@@ -9,6 +9,7 @@ import {
     isFiniteNumber,
     isNonEmptyString,
     isPlainObject,
+    isPlainObjectArray,
     result,
     type DataValidationResult,
 } from './commonValidation';
@@ -20,9 +21,18 @@ const SYSTEM_NODE_IDS = new Set<string>([
 ]);
 
 export function validateMagicGraphPresets(
-    presets: MagicGraphPresetConfig[],
-    magicTypes: MagicTypeConfig[]
+    presetsInput: unknown,
+    magicTypesInput: unknown
 ): DataValidationResult {
+    if (!isMagicGraphPresetArray(presetsInput)) {
+        return result(['Invalid magic graph preset configs']);
+    }
+    if (!isSafeMagicTypesForPresetValidation(magicTypesInput)) {
+        return result(['Invalid magic type configs for graph presets']);
+    }
+
+    const presets = presetsInput as unknown as MagicGraphPresetConfig[];
+    const magicTypes = magicTypesInput as unknown as MagicTypeConfig[];
     const errors: string[] = [];
 
     errors.push(...collectDuplicateErrors(
@@ -44,6 +54,27 @@ export function validateMagicGraphPresets(
     });
 
     return result(errors);
+}
+
+function isMagicGraphPresetArray(value: unknown): value is Record<string, unknown>[] {
+    if (!isPlainObjectArray(value)) return false;
+
+    return value.every(preset =>
+        isPlainObjectArray(preset.nodes) &&
+        isPlainObjectArray(preset.edges) &&
+        (preset.systemNodePositions === undefined || isPlainObjectArray(preset.systemNodePositions))
+    );
+}
+
+function isSafeMagicTypesForPresetValidation(value: unknown): value is Record<string, unknown>[] {
+    if (!isPlainObjectArray(value)) return false;
+
+    return value.every(magicType => {
+        const instanceEditor = magicType.instanceEditor;
+        if (instanceEditor === undefined || !isPlainObject(instanceEditor)) return true;
+
+        return instanceEditor.fields === undefined || isPlainObjectArray(instanceEditor.fields);
+    });
 }
 
 function validatePresetSystemNodePositions(preset: MagicGraphPresetConfig): string[] {

@@ -19,6 +19,7 @@ import {
     isFiniteNumber,
     isNonEmptyString,
     isPlainObject,
+    isPlainObjectArray,
     result,
     type DataValidationResult,
 } from './commonValidation';
@@ -200,10 +201,19 @@ function validateMagicNodeStatRules(type: string, statRules: MagicNodeStatRulesC
 }
 
 function validateMagicTypeConfigs(
-    magicTypes: MagicTypeConfig[],
-    categories: readonly MagicNodeCategory[],
+    magicTypesInput: unknown,
+    categoriesInput: unknown,
     options: MagicTypeValidationOptions = {}
 ): DataValidationResult {
+    if (!isPlainObjectArray(magicTypesInput)) {
+        return result(['Invalid magic type configs']);
+    }
+    if (!Array.isArray(categoriesInput) || !categoriesInput.every(category => typeof category === 'string')) {
+        return result(['Invalid magic type categories']);
+    }
+
+    const magicTypes = magicTypesInput as unknown as MagicTypeConfig[];
+    const categories = categoriesInput as unknown as readonly MagicNodeCategory[];
     const errors: string[] = [];
     const categoryIds = getMagicCategoryIds(categories);
 
@@ -216,7 +226,7 @@ function validateMagicTypeConfigs(
         if (!categoryIds.has(magicType.category)) {
             errors.push(`Unknown magic type category: ${magicType.type} -> ${magicType.category}`);
         }
-        if (!magicType.description.trim()) {
+        if (!isNonEmptyString(magicType.description)) {
             errors.push(`Missing magic type description: ${magicType.type}`);
         }
         if (!isValidConnectionLimit(magicType.connectionLimits?.maxInputs, options)) {
@@ -235,15 +245,15 @@ function validateMagicTypeConfigs(
 }
 
 export function validateMagicTypes(
-    magicTypes: MagicTypeConfig[],
-    categories: readonly MagicNodeCategory[]
+    magicTypes: unknown,
+    categories: unknown
 ): DataValidationResult {
     return validateMagicTypeConfigs(magicTypes, categories);
 }
 
 export function validateSystemMagicTypes(
-    magicTypes: MagicTypeConfig[],
-    categories: readonly MagicNodeCategory[]
+    magicTypes: unknown,
+    categories: unknown
 ): DataValidationResult {
     return validateMagicTypeConfigs(magicTypes, categories, { allowZeroConnectionLimits: true });
 }

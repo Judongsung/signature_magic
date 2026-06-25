@@ -84,15 +84,4 @@ describe('appPhaseNavigationPolicy', () => {
         expect(policy.nextAction).toBeUndefined();
         expect(policy.shouldRenderNavigation).toBe(true);
     });
-
-    it('suppresses navigation rendering for node-composition-only builds', () => {
-        const policy = resolveAppPhaseNavigationPolicy({
-            phase: APP_PHASES.NODE_COMPOSITION,
-            canSubmitRegistration: true,
-            hasEnteredRegistrationReviewPhase: true,
-            nodeCompositionOnlyBuild: true,
-        });
-
-        expect(policy.shouldRenderNavigation).toBe(false);
-    });
 });

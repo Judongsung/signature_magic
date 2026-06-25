@@ -23,7 +23,6 @@ import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import type { CyoaDialogueScriptConfig } from '../../types/cyoa';
 import type { MagicGraphPresetConfig, MagicStatRulesConfig, MagicTypeConfig } from '../../types/magic';
 import type { MagicGlyphConfig } from '../graph/presentation/magicGlyphRegistry';
-import type { GlyphShape } from '../graph/presentation/magicGlyphShapes';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
 import {
     validateCyoaDialogueScripts,
@@ -41,7 +40,7 @@ const stats = { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1,
 describe('dataValidation', () => {
     it('validates configured magic types against category config', () => {
         expect(validateMagicTypes(
-            magicTypesData as MagicTypeConfig[],
+            magicTypesData,
             MAGIC_NODE_CATEGORIES
         )).toEqual({ valid: true, errors: [] });
     });
@@ -55,14 +54,14 @@ describe('dataValidation', () => {
 
     it('validates configured magic stat rule operations', () => {
         expect(validateMagicStatRuleConfigs(
-            magicStatRulesData as MagicStatRulesConfig
+            magicStatRulesData
         )).toEqual({ valid: true, errors: [] });
     });
 
     it('validates configured magic graph presets against magic type data', () => {
         expect(validateMagicGraphPresets(
-            magicGraphPresetsData as MagicGraphPresetConfig[],
-            magicTypesData as MagicTypeConfig[]
+            magicGraphPresetsData,
+            magicTypesData
         )).toEqual({ valid: true, errors: [] });
     });
 
@@ -228,7 +227,7 @@ describe('dataValidation', () => {
                     ],
                 },
             ] as MagicGraphPresetConfig[],
-            magicTypesData as MagicTypeConfig[]
+            magicTypesData
         )).toEqual({
             valid: false,
             errors: [
@@ -286,7 +285,7 @@ describe('dataValidation', () => {
                     edges: [],
                 },
             ],
-            magicTypesData as MagicTypeConfig[]
+            magicTypesData
         )).toEqual({
             valid: false,
             errors: [
@@ -315,13 +314,13 @@ describe('dataValidation', () => {
                     edges: [],
                 },
             ],
-            magicTypesData as MagicTypeConfig[]
+            magicTypesData
         )).toEqual({ valid: true, errors: [] });
     });
 
     it('validates configured CYOA rows against visibility conditions and image registries', () => {
         expect(validateCyoaRows(
-            cyoaRowsData as CyoaChoiceRowConfig[],
+            cyoaRowsData,
             isKnownCyoaImagePath
         )).toEqual({ valid: true, errors: [] });
     });
@@ -397,21 +396,21 @@ describe('dataValidation', () => {
 
     it('validates configured CYOA dialogue scripts against image registries', () => {
         expect(validateCyoaDialogueScripts(
-            cyoaDialogueScriptsData as CyoaDialogueScriptConfig[],
+            cyoaDialogueScriptsData,
             isKnownCyoaImagePath
         )).toEqual({ valid: true, errors: [] });
     });
 
     it('validates configured magic glyphs against magic type data', () => {
         expect(validateMagicGlyphs(
-            magicGlyphsData as MagicGlyphConfig[],
-            magicTypesData as MagicTypeConfig[]
+            magicGlyphsData,
+            magicTypesData
         )).toEqual({ valid: true, errors: [] });
     });
 
     it('validates configured magic glyph shapes', () => {
         expect(validateMagicGlyphShapes(
-            magicGlyphShapesData as Record<string, GlyphShape>
+            magicGlyphShapesData
         )).toEqual({ valid: true, errors: [] });
     });
 
@@ -672,6 +671,56 @@ describe('dataValidation', () => {
                 'Empty CYOA dialogue result condition range: script -> resultLines[1] -> totalStats.power',
                 'Invalid CYOA dialogue result condition min: script -> row -> totalStats.instability -> high',
             ],
+        });
+    });
+
+    it('reports unknown and duplicate CYOA input roles', () => {
+        const validation = validateCyoaRows([
+            {
+                id: 'signature-a',
+                title: 'Signature A',
+                input: { id: 'signature-a-input', label: 'A', role: 'signatureName' },
+            },
+            {
+                id: 'signature-b',
+                title: 'Signature B',
+                input: { id: 'signature-b-input', label: 'B', role: 'signatureName' },
+            },
+            {
+                id: 'unknown-role',
+                title: 'Unknown',
+                input: { id: 'unknown-input', label: 'Unknown', role: 'displayName' },
+            },
+        ], isKnownCyoaImagePath);
+
+        expect(validation.errors).toEqual(expect.arrayContaining([
+            'Duplicate CYOA input role: signatureName',
+            'Unknown CYOA input role: unknown-role -> displayName',
+        ]));
+    });
+
+    it('returns invalid results instead of throwing for malformed data structures', () => {
+        const validations = [
+            validateMagicTypes(null, MAGIC_NODE_CATEGORIES),
+            validateSystemMagicTypes([null], MAGIC_NODE_CATEGORIES),
+            validateMagicStatRuleConfigs(null),
+            validateMagicGraphPresets([{ id: 'bad', nodes: {}, edges: [] }], []),
+            validateMagicGraphPresets(
+                [{ id: 'bad', label: 'Bad', nodes: [], edges: [] }],
+                [{ type: 'bad', instanceEditor: { fields: {} } }]
+            ),
+            validateMagicGlyphs([{ magicType: 'bad', runeKinds: {} }], []),
+            validateMagicGlyphShapes({ bad: { paths: {} } }),
+            validateMagicGlyphShapes({ bad: { paths: [{ d: 1 }] } }),
+            validateCyoaRows([{ id: 'bad', choices: {} }], isKnownCyoaImagePath),
+            validateCyoaDialogueScripts([
+                { id: 'bad', optionRows: [{ id: 'row', options: {} }] },
+            ], isKnownCyoaImagePath),
+        ];
+
+        validations.forEach(validation => {
+            expect(validation.valid).toBe(false);
+            expect(validation.errors.length).toBeGreaterThan(0);
         });
     });
 });

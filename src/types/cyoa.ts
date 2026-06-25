@@ -2,6 +2,7 @@ import type {
     CyoaChoiceImagePlacement,
     CyoaChoiceImageSize,
     CyoaDialogueTextVariant,
+    CyoaInputRole,
     CyoaSelectionMode,
 } from '../constants/gameConfigs';
 import type { MagicStatEffectConfig, MagicStatKey, MagicStats } from './magic';
@@ -15,6 +16,7 @@ export interface CyoaRowVisibilityCondition {
 export interface CyoaTextInputConfig {
     id: string;
     label: string;
+    role?: CyoaInputRole;
     placeholder?: string;
     defaultValue?: string;
 }

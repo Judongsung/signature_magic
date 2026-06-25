@@ -99,6 +99,12 @@ export const CYOA_SELECTION_MODES = {
 
 export type CyoaSelectionMode = (typeof CYOA_SELECTION_MODES)[keyof typeof CYOA_SELECTION_MODES];
 
+export const CYOA_INPUT_ROLES = {
+    SIGNATURE_NAME: 'signatureName',
+} as const;
+
+export type CyoaInputRole = (typeof CYOA_INPUT_ROLES)[keyof typeof CYOA_INPUT_ROLES];
+
 export const CYOA_CHOICE_IMAGE_SIZES = {
     DEFAULT: 'default',
     LARGE: 'large',

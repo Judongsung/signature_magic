@@ -3,7 +3,10 @@ import type {
     CyoaChoiceRowConfig,
     CyoaSubChoiceGroupConfig,
 } from '../../types/cyoa';
-import { CYOA_SELECTION_MODES } from '../../constants/gameConfigs';
+import {
+    CYOA_INPUT_ROLES,
+    CYOA_SELECTION_MODES,
+} from '../../constants/gameConfigs';
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
@@ -16,6 +19,7 @@ import {
     formatValidationPath,
     isFiniteNumber,
     isPlainObject,
+    isPlainObjectArray,
     result,
     success,
     type DataValidationResult,
@@ -28,6 +32,7 @@ import {
 
 const MAX_INPUT_REQUIRED_COUNT = 1;
 const DEFAULT_REQUIRED_COUNT = 1;
+const VALID_CYOA_INPUT_ROLES = new Set<string>(Object.values(CYOA_INPUT_ROLES));
 
 function getCyoaSubChoiceGroup(
     choice: CyoaChoiceBaseConfig
@@ -202,9 +207,14 @@ function validateCyoaSubChoiceGroup(
 }
 
 export function validateCyoaRows(
-    rows: CyoaChoiceRowConfig[],
+    rowsInput: unknown,
     isKnownImagePath: (imagePath: string) => boolean
 ): DataValidationResult {
+    if (!isCyoaRowArray(rowsInput)) {
+        return result(['Invalid CYOA row configs']);
+    }
+
+    const rows = rowsInput as unknown as CyoaChoiceRowConfig[];
     if (rows.length === 0) return success();
 
     const errors: string[] = [];
@@ -222,6 +232,7 @@ export function validateCyoaRows(
     ]));
     const choiceIdSet = new Set(choiceIds);
     const inputIds = rows.flatMap(row => row.input ? [row.input.id] : []);
+    const inputRoles = rows.flatMap(row => row.input?.role ? [String(row.input.role)] : []);
 
     errors.push(...collectDuplicateErrors(rowIds, 'CYOA row id'));
     errors.push(...collectDuplicateErrors(subChoiceGroupIds, 'CYOA sub-choice group id'));
@@ -230,6 +241,7 @@ export function validateCyoaRows(
     });
     errors.push(...collectDuplicateErrors(choiceIds, 'CYOA choice id'));
     errors.push(...collectDuplicateErrors(inputIds, 'CYOA input id'));
+    errors.push(...collectDuplicateErrors(inputRoles, 'CYOA input role'));
 
     rows.forEach(row => {
         if (row.description !== undefined && typeof row.description !== 'string') {
@@ -253,6 +265,14 @@ export function validateCyoaRows(
         }
         if (row.input && (row.choices?.length ?? 0) > 0) {
             errors.push(`CYOA row cannot mix input and choices: ${row.id}`);
+        }
+        if (row.input?.role !== undefined && !VALID_CYOA_INPUT_ROLES.has(String(row.input.role))) {
+            errors.push(formatValidationError(
+                'Unknown',
+                'CYOA input role',
+                row.id,
+                String(row.input.role)
+            ));
         }
         if (row.input && (row.requiredCount ?? 0) > MAX_INPUT_REQUIRED_COUNT) {
             errors.push(formatValidationError(
@@ -307,4 +327,30 @@ export function validateCyoaRows(
     });
 
     return result(errors);
+}
+
+function isCyoaRowArray(value: unknown): value is Record<string, unknown>[] {
+    if (!isPlainObjectArray(value)) return false;
+
+    return value.every(row =>
+        (row.input === undefined || isPlainObject(row.input)) &&
+        (row.choices === undefined || (
+            isPlainObjectArray(row.choices) && row.choices.every(isSafeCyoaChoiceContainer)
+        )) &&
+        isSafeVisibilityCondition(row.visibleWhen)
+    );
+}
+
+function isSafeCyoaChoiceContainer(choice: Record<string, unknown>): boolean {
+    const group = choice.subChoiceGroup;
+    return group === undefined || !isPlainObject(group) ||
+        group.choices === undefined || isPlainObjectArray(group.choices);
+}
+
+function isSafeVisibilityCondition(value: unknown): boolean {
+    if (value === undefined) return true;
+    if (!isPlainObject(value)) return false;
+
+    return (value.anyChoiceSelected === undefined || Array.isArray(value.anyChoiceSelected)) &&
+        (value.allChoicesSelected === undefined || Array.isArray(value.allChoicesSelected));
 }

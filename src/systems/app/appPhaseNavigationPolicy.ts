@@ -14,7 +14,6 @@ export interface AppPhaseNavigationPolicyInput {
     phase: AppPhase;
     canSubmitRegistration: boolean;
     hasEnteredRegistrationReviewPhase: boolean;
-    nodeCompositionOnlyBuild?: boolean;
 }
 
 export interface AppPhaseNavigationPolicy {
@@ -46,7 +45,6 @@ export function resolveAppPhaseNavigationPolicy({
     phase,
     canSubmitRegistration,
     hasEnteredRegistrationReviewPhase,
-    nodeCompositionOnlyBuild = false,
 }: AppPhaseNavigationPolicyInput): AppPhaseNavigationPolicy {
     const previousPhase = getPreviousAppPhase(phase);
     const nextPhase = getNextAppPhase(phase);
@@ -65,7 +63,7 @@ export function resolveAppPhaseNavigationPolicy({
         canReviewRegistration,
         isNextDisabled,
         nextAction,
-        shouldRenderNavigation: !nodeCompositionOnlyBuild && Boolean(previousPhase || nextPhase),
+        shouldRenderNavigation: Boolean(previousPhase || nextPhase),
     };
 }
 

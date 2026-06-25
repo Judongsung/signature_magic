@@ -1,18 +1,8 @@
 import { APP_PHASES, type AppPhase } from '../constants/gameConfigs';
 import { getNextAppPhase, getPreviousAppPhase } from '../systems/app/appPhaseNavigation';
 
-function getInitialAppPhase(): AppPhase {
-    let initialPhase: AppPhase = APP_PHASES.INTRO_DIALOGUE;
-
-    if (__NODE_COMPOSITION_ONLY_BUILD__) {
-        initialPhase = APP_PHASES.NODE_COMPOSITION;
-    }
-
-    return initialPhase;
-}
-
 class AppStore {
-    phase = $state<AppPhase>(getInitialAppPhase());
+    phase = $state<AppPhase>(APP_PHASES.INTRO_DIALOGUE);
 
     setPhase(phase: AppPhase): void {
         this.phase = phase;

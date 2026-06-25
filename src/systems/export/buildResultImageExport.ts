@@ -1,6 +1,10 @@
 import { getViewportForBounds } from '@xyflow/svelte';
 import { MAGIC_GRAPH_RESULT_PREVIEW_CONFIG } from '../../constants/graphConfigs';
 import type { MagicGraphResultPreviewModel } from '../graph/presentation/magicGraphResultPreview';
+import {
+    BUILD_RESULT_EXPORT_ROLES,
+    buildResultExportRoleSelector,
+} from './buildResultExportContract';
 
 export const BUILD_RESULT_IMAGE_EXPORT_CONFIG = {
     LOGICAL_WIDTH_PX: 900,
@@ -15,10 +19,12 @@ export const BUILD_RESULT_IMAGE_EXPORT_CONFIG = {
 
 const EXPORT_DOM_SELECTORS = {
     TOOLTIP: '[role="tooltip"]',
-    GRAPH_PREVIEW: '.graph-result-preview',
-    GRAPH_VIEWPORT: '.svelte-flow__viewport',
-    COMPOSITION_STAGE_FRAME: '.composition-stage-frame',
+    GRAPH_PREVIEW: buildResultExportRoleSelector(BUILD_RESULT_EXPORT_ROLES.GRAPH_PREVIEW),
+    COMPOSITION_STAGE_FRAME: buildResultExportRoleSelector(
+        BUILD_RESULT_EXPORT_ROLES.COMPOSITION_STAGE_FRAME
+    ),
 } as const;
+const SVELTE_FLOW_VIEWPORT_SELECTOR = '.svelte-flow__viewport';
 
 export interface BuildResultGraphViewport {
     x: number;
@@ -105,7 +111,7 @@ function normalizeClonedGraphViewport(
     preview: MagicGraphResultPreviewModel
 ): void {
     const graphPreview = clone.querySelector<HTMLElement>(EXPORT_DOM_SELECTORS.GRAPH_PREVIEW);
-    const graphViewport = graphPreview?.querySelector<HTMLElement>(EXPORT_DOM_SELECTORS.GRAPH_VIEWPORT);
+    const graphViewport = graphPreview?.querySelector<HTMLElement>(SVELTE_FLOW_VIEWPORT_SELECTOR);
     if (!graphPreview || !graphViewport) return;
 
     const bounds = graphPreview.getBoundingClientRect();

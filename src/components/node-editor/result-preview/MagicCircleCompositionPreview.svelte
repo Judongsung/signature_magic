@@ -13,6 +13,7 @@
         type NodeCompositionTransitionLayout,
     } from '../../../systems/graph/presentation/nodeCompositionTransitionLayout';
     import type { CirclePath } from '../../../types/magic';
+    import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
     import MagicCircleSvg from '../magic-circle/MagicCircleSvg.svelte';
 
     const CIRCLE_START_INDEX = 1;
@@ -124,6 +125,7 @@
     {#if centralCircle}
         <div
             class="composition-stage-frame"
+            data-build-export-role={BUILD_RESULT_EXPORT_ROLES.COMPOSITION_STAGE_FRAME}
             use:fitCompositionStage
         >
             <div class="composition-stage">

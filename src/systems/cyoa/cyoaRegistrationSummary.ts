@@ -4,6 +4,7 @@ import type {
     CyoaRowSelections,
     CyoaRowVisibility,
 } from '../../types/cyoa';
+import { CYOA_INPUT_ROLES } from '../../constants/gameConfigs';
 
 export interface CyoaRegistrationSummaryInputItem {
     id: string;
@@ -37,8 +38,6 @@ interface BuildCyoaRegistrationSummaryOptions {
     selectedChoiceIds: CyoaRowSelections;
     inputValues: CyoaInputValues;
 }
-
-const SIGNATURE_INPUT_ID_PARTS = ['name'];
 
 export function isCyoaRegistrationRequiredRow(row: CyoaChoiceRowData): boolean {
     return row.selectable && row.requiredCount > 0;
@@ -128,9 +127,10 @@ export function buildCyoaRegistrationSummary({
             requiredMissing,
         }];
     });
-    const signatureName = inputItems.find(item =>
-        SIGNATURE_INPUT_ID_PARTS.some(idPart => item.id.toLowerCase().includes(idPart))
-    )?.value ?? '';
+    const signatureInputId = summaryRows.find(
+        row => row.input?.role === CYOA_INPUT_ROLES.SIGNATURE_NAME
+    )?.input?.id;
+    const signatureName = inputItems.find(item => item.id === signatureInputId)?.value ?? '';
 
     return {
         inputItems,

@@ -3,6 +3,7 @@ import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
 import { MAGIC_STAR_FIELD_CONFIG } from '../../../constants/graphConfigs';
+import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
 import { installResizeObserverStub } from '../../../test-utils/domApis';
 import {
     createTestMagicEdge,
@@ -71,6 +72,9 @@ describe('MagicGraphResultPreview', () => {
         });
         expect(target.querySelectorAll('.magic-graph-canvas-star'))
             .toHaveLength(MAGIC_STAR_FIELD_CONFIG.COUNT);
+        expect(target.querySelector(
+            `[data-build-export-role="${BUILD_RESULT_EXPORT_ROLES.GRAPH_PREVIEW}"]`
+        )).not.toBeNull();
         expect(target.querySelector('.graph-result-image')).toBeNull();
         expect(target.querySelector('.graph-capture-stage')).toBeNull();
     });

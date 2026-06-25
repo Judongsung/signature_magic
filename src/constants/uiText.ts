@@ -17,7 +17,7 @@ export const NODE_RESULT_DIALOGUE_SCREEN_TEXT = {
 export const UI_BUTTON_TEXT = {
     DEV_SKIP_TO_NODE_COMPOSITION: 'DEV: 비술 조합실',
     REVIEW_REGISTRATION: '등록 결과',
-    SUBMIT_REGISTRATION: '등록 신청서 제출',
+    SUBMIT_REGISTRATION: '서류 제출',
     COMPLETE_REQUIRED_FIELDS_TOOLTIP: '빠진 부분을 채워 주세요.',
 } as const;
 
@@ -43,10 +43,6 @@ export const DEV_PHASE_NAVIGATION_TEXT = {
         [APP_PHASES.NODE_COMPOSITION]: '노드 조합',
         [APP_PHASES.NODE_RESULT_DIALOGUE]: '평가 결과',
     } satisfies Record<AppPhase, string>,
-} as const;
-
-export const CYOA_BUILD_PLACEHOLDER_TEXT = {
-    NODE_COMPOSITION_ONLY: 'node composition only build',
 } as const;
 
 // CYOA 접수와 등록 결과 문구

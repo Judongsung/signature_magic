@@ -1,6 +1,7 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import { EMPTY_MAGIC_STATS, type CirclePath, type MagicType } from '../../../types/magic';
+import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
 import MagicCircleCompositionPreview from './MagicCircleCompositionPreview.svelte';
 
 function circle(id: string, magicType: MagicType): CirclePath {
@@ -32,6 +33,9 @@ describe('MagicCircleCompositionPreview', () => {
 
         expect(html).toContain('composition-central-circle');
         expect(html).toContain('composition-stage-frame');
+        expect(html).toContain(
+            `data-build-export-role="${BUILD_RESULT_EXPORT_ROLES.COMPOSITION_STAGE_FRAME}"`
+        );
         expect(html).toContain('composition-polygon-vertex');
         expect(html).toContain('--composition-stage-size:');
         expect(html.match(/data-animation-mode="static"/g)).toHaveLength(2);

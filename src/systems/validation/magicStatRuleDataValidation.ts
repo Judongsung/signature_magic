@@ -10,6 +10,7 @@ import {
 } from '../graph/calculation/magicStatRules';
 import {
     isFiniteNumber,
+    isPlainObject,
     result,
     type DataValidationResult,
 } from './commonValidation';
@@ -42,7 +43,12 @@ function validateMagicStatRuleConfig(statKey: string, rule: MagicStatRuleConfig 
     return errors;
 }
 
-export function validateMagicStatRuleConfigs(statRules: MagicStatRulesConfig): DataValidationResult {
+export function validateMagicStatRuleConfigs(statRulesInput: unknown): DataValidationResult {
+    if (!isPlainObject(statRulesInput)) {
+        return result(['Invalid magic stat rule configs']);
+    }
+
+    const statRules = statRulesInput as MagicStatRulesConfig;
     const errors: string[] = [];
 
     Object.keys(statRules).forEach(statKey => {

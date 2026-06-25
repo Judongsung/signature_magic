@@ -1,5 +1,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
+import { CYOA_INPUT_ROLES } from '../../constants/gameConfigs';
 import { UI_BUTTON_TEXT } from '../../constants/uiText';
 import type { CyoaChoiceRowData } from '../../types/cyoa';
 import RegistrationSummary from './RegistrationSummary.svelte';
@@ -16,6 +17,7 @@ const rows: CyoaChoiceRowData[] = [
         input: {
             id: 'name-input',
             label: 'Name',
+            role: CYOA_INPUT_ROLES.SIGNATURE_NAME,
         },
         choices: [],
     },

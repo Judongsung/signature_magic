@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CYOA_INPUT_ROLES } from '../../constants/gameConfigs';
 import type { CyoaChoiceRowData } from '../../types/cyoa';
 import {
     buildCyoaRegistrationSummary,
@@ -17,6 +18,7 @@ const rows: CyoaChoiceRowData[] = [
         input: {
             id: 'name-input',
             label: 'Name',
+            role: CYOA_INPUT_ROLES.SIGNATURE_NAME,
         },
         choices: [],
     },
@@ -119,6 +121,33 @@ describe('cyoaRegistrationSummary', () => {
             },
         ]);
         expect(summary.signatureName).toBe(summary.inputItems[0].value);
+    });
+
+    it('selects the signature by role instead of matching the input id', () => {
+        const roleRows: CyoaChoiceRowData[] = [
+            {
+                ...rows[0],
+                id: 'display-name-row',
+                input: { id: 'display-name', label: 'Display name' },
+            },
+            {
+                ...rows[0],
+                id: 'signature-row',
+                input: {
+                    id: 'sigil-owner',
+                    label: 'Signature',
+                    role: CYOA_INPUT_ROLES.SIGNATURE_NAME,
+                },
+            },
+        ];
+        const summary = buildCyoaRegistrationSummary({
+            rows: roleRows,
+            visibleRowIds: { 'display-name-row': true, 'signature-row': true },
+            selectedChoiceIds: {},
+            inputValues: { 'display-name': 'Wrong', 'sigil-owner': 'Arin' },
+        });
+
+        expect(summary.signatureName).toBe('Arin');
     });
 
     it('builds parent and sub-choice paths and reports a missing required sub-choice', () => {

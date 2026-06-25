@@ -4,14 +4,26 @@ import { isGlyphKind, type GlyphShape } from '../graph/presentation/magicGlyphSh
 import {
     collectDuplicateErrors,
     isFiniteNumber,
+    isNonEmptyString,
+    isPlainObject,
+    isPlainObjectArray,
     result,
     type DataValidationResult,
 } from './commonValidation';
 
 export function validateMagicGlyphs(
-    glyphs: MagicGlyphConfig[],
-    magicTypes: MagicTypeConfig[]
+    glyphsInput: unknown,
+    magicTypesInput: unknown
 ): DataValidationResult {
+    if (!isMagicGlyphArray(glyphsInput)) {
+        return result(['Invalid magic glyph configs']);
+    }
+    if (!isPlainObjectArray(magicTypesInput)) {
+        return result(['Invalid magic type configs for glyphs']);
+    }
+
+    const glyphs = glyphsInput as unknown as MagicGlyphConfig[];
+    const magicTypes = magicTypesInput as unknown as MagicTypeConfig[];
     const errors: string[] = [];
     const magicTypeIds = new Set(magicTypes.map(magicType => magicType.type));
     const glyphTypeIds = glyphs.map(glyph => glyph.magicType);
@@ -46,8 +58,13 @@ export function validateMagicGlyphs(
 }
 
 export function validateMagicGlyphShapes(
-    shapes: Record<string, GlyphShape>
+    shapesInput: unknown
 ): DataValidationResult {
+    if (!isMagicGlyphShapeRecord(shapesInput)) {
+        return result(['Invalid magic glyph shapes']);
+    }
+
+    const shapes = shapesInput as Record<string, GlyphShape>;
     const errors: string[] = [];
     const entries = Object.entries(shapes);
 
@@ -65,7 +82,7 @@ export function validateMagicGlyphShapes(
         }
 
         paths.forEach((path, index) => {
-            if (!path.d.trim()) {
+            if (!isNonEmptyString(path.d)) {
                 errors.push(`Invalid magic glyph path: ${kind} -> ${index}`);
             }
         });
@@ -84,4 +101,21 @@ export function validateMagicGlyphShapes(
     });
 
     return result(errors);
+}
+
+function isMagicGlyphArray(value: unknown): value is Record<string, unknown>[] {
+    return isPlainObjectArray(value) && value.every(glyph =>
+        glyph.runeKinds === undefined || Array.isArray(glyph.runeKinds)
+    );
+}
+
+function isMagicGlyphShapeRecord(value: unknown): value is Record<string, GlyphShape> {
+    if (!isPlainObject(value)) return false;
+
+    return Object.values(value).every(shape =>
+        isPlainObject(shape) &&
+        (shape.paths === undefined || isPlainObjectArray(shape.paths)) &&
+        (shape.circles === undefined || isPlainObjectArray(shape.circles)) &&
+        (shape.rects === undefined || isPlainObjectArray(shape.rects))
+    );
 }

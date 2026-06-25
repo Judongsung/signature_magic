@@ -8,6 +8,10 @@ import {
     exportBuildResultImage,
     resolveBuildResultGraphViewport,
 } from './buildResultImageExport';
+import {
+    BUILD_RESULT_EXPORT_ROLES,
+    buildResultExportRoleSelector,
+} from './buildResultExportContract';
 
 const { domToBlobMock } = vi.hoisted(() => ({
     domToBlobMock: vi.fn(),
@@ -74,7 +78,13 @@ describe('buildResultImageExport', () => {
             <section class="registration-summary">Registration</section>
             <div class="summary-supplemental">
                 <span role="tooltip">Hidden help</span>
-                <div class="composition-stage-frame" style="--composition-scale: 0.5"></div>
+                <div
+                    data-build-export-role="${BUILD_RESULT_EXPORT_ROLES.COMPOSITION_STAGE_FRAME}"
+                    style="--composition-scale: 0.5"
+                ></div>
+                <div data-build-export-role="${BUILD_RESULT_EXPORT_ROLES.GRAPH_PREVIEW}">
+                    <div class="svelte-flow__viewport"></div>
+                </div>
             </div>
         `;
         document.body.append(target);
@@ -85,18 +95,33 @@ describe('buildResultImageExport', () => {
             capturedOptions = options;
             return new Blob(['png'], { type: 'image/png' });
         });
+        vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+            x: 0,
+            y: 0,
+            top: 0,
+            right: 864,
+            bottom: 480,
+            left: 0,
+            width: 864,
+            height: 480,
+            toJSON: () => ({}),
+        });
 
         await exportBuildResultImage(
             target,
-            buildMagicGraphResultPreview([], []),
+            buildMagicGraphResultPreview([createTestMagicNode('export-node')], []),
             new Date(2026, 5, 22, 14, 3, 4)
         );
 
         expect(capturedClone).not.toBe(target);
         expect(capturedClone?.textContent).toContain('Registration');
         expect(capturedClone?.querySelector('[role="tooltip"]')).toBeNull();
-        expect(capturedClone?.querySelector<HTMLElement>('.composition-stage-frame')
+        expect(capturedClone?.querySelector<HTMLElement>(buildResultExportRoleSelector(
+            BUILD_RESULT_EXPORT_ROLES.COMPOSITION_STAGE_FRAME
+        ))
             ?.style.getPropertyValue('--composition-scale')).toBe('1');
+        expect(capturedClone?.querySelector<HTMLElement>('.svelte-flow__viewport')
+            ?.style.transform).toMatch(/^translate\(.+\) scale\(.+\)$/);
         expect(capturedOptions).toMatchObject({
             width: BUILD_RESULT_IMAGE_EXPORT_CONFIG.LOGICAL_WIDTH_PX,
             scale: BUILD_RESULT_IMAGE_EXPORT_CONFIG.SCALE,

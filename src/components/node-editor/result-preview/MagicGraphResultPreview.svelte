@@ -15,6 +15,7 @@
     import {
         buildMagicGraphResultPreview,
     } from '../../../systems/graph/presentation/magicGraphResultPreview';
+    import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
     import type { MagicNode } from '../../../types/magic';
     import MagicGraphCanvasBackground from '../MagicGraphCanvasBackground.svelte';
     import CustomEdge from '../editor/CustomEdge.svelte';
@@ -36,6 +37,7 @@
 
 <div
     class="graph-result-preview"
+    data-build-export-role={BUILD_RESULT_EXPORT_ROLES.GRAPH_PREVIEW}
     aria-label={CYOA_REGISTRATION_RESULT_TEXT.GRAPH_ARIA_LABEL}
     style:--graph-result-aspect-ratio={`${preview.aspectRatio}`}
 >

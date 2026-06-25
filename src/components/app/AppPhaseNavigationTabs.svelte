@@ -43,7 +43,6 @@
         phase: appStore.phase,
         canSubmitRegistration,
         hasEnteredRegistrationReviewPhase,
-        nodeCompositionOnlyBuild: __NODE_COMPOSITION_ONLY_BUILD__,
     }));
     const nextLabel = $derived(
         navigationPolicy.nextPhase ? nextPhaseLabels[appStore.phase] : undefined

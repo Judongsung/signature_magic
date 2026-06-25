@@ -11,6 +11,7 @@ import {
     formatValidationError,
     isFiniteNumber,
     isPlainObject,
+    isPlainObjectArray,
     result,
     success,
     type DataValidationResult,
@@ -194,9 +195,14 @@ function validateCyoaDialogueLine(
 }
 
 export function validateCyoaDialogueScripts(
-    scripts: CyoaDialogueScriptConfig[],
+    scriptsInput: unknown,
     isKnownImagePath: (imagePath: string) => boolean
 ): DataValidationResult {
+    if (!isCyoaDialogueScriptArray(scriptsInput)) {
+        return result(['Invalid CYOA dialogue script configs']);
+    }
+
+    const scripts = scriptsInput as unknown as CyoaDialogueScriptConfig[];
     if (scripts.length === 0) return success();
 
     const errors: string[] = [];
@@ -315,4 +321,32 @@ export function validateCyoaDialogueScripts(
     });
 
     return result(errors);
+}
+
+function isCyoaDialogueScriptArray(value: unknown): value is Record<string, unknown>[] {
+    if (!isPlainObjectArray(value)) return false;
+
+    return value.every(script =>
+        (script.options === undefined || isSafeDialogueOptions(script.options)) &&
+        (script.optionRows === undefined || (
+            isPlainObjectArray(script.optionRows) && script.optionRows.every(row =>
+                isSafeDialogueOptions(row.options) && isSafeVisibilityCondition(row.visibleWhen)
+            )
+        )) &&
+        (script.resultLines === undefined || isPlainObjectArray(script.resultLines))
+    );
+}
+
+function isSafeDialogueOptions(value: unknown): boolean {
+    return isPlainObjectArray(value) && value.every(option =>
+        typeof option.playerLine === 'string'
+    );
+}
+
+function isSafeVisibilityCondition(value: unknown): boolean {
+    if (value === undefined) return true;
+    if (!isPlainObject(value)) return false;
+
+    return (value.anyChoiceSelected === undefined || Array.isArray(value.anyChoiceSelected)) &&
+        (value.allChoicesSelected === undefined || Array.isArray(value.allChoicesSelected));
 }
