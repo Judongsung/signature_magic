@@ -523,9 +523,9 @@ describe('dataValidation', () => {
     it('reports invalid magic glyph data', () => {
         expect(validateMagicGlyphs(
             [
-                { magicType: 'ignition', kind: 'flame', baseCount: 12 },
-                { magicType: 'ignition', kind: 'unknown', runeKinds: ['missing-rune'], baseCount: 0 },
-                { magicType: 'missing', kind: 'seal', baseCount: 1 },
+                { magicType: 'ignition', baseCount: 12 },
+                { magicType: 'ignition', runeKinds: ['missing-rune'], baseCount: 0 },
+                { magicType: 'missing', baseCount: 1 },
             ] as MagicGlyphConfig[],
             [
                 { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'desc' },
@@ -536,7 +536,6 @@ describe('dataValidation', () => {
             errors: [
                 'Duplicate magic glyph config: ignition',
                 'Missing magic glyph config: stream',
-                'Unknown magic glyph kind: ignition -> unknown',
                 'Unknown magic rune kind: ignition -> 0 -> missing-rune',
                 'Invalid magic glyph baseCount: ignition -> 0',
                 'Unknown magic glyph type: missing',

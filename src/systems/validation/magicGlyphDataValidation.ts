@@ -41,9 +41,6 @@ export function validateMagicGlyphs(
         if (!magicTypeIds.has(glyph.magicType)) {
             errors.push(`Unknown magic glyph type: ${glyph.magicType}`);
         }
-        if (!isGlyphKind(glyph.kind)) {
-            errors.push(`Unknown magic glyph kind: ${glyph.magicType} -> ${glyph.kind}`);
-        }
         glyph.runeKinds?.forEach((kind, index) => {
             if (!isGlyphKind(kind)) {
                 errors.push(`Unknown magic rune kind: ${glyph.magicType} -> ${index} -> ${kind}`);

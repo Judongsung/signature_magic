@@ -2,6 +2,7 @@
 import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/magicCircleConfigs';
 import { buildMagicCircleRenderModels } from './magicCircleRenderer';
 import { EMPTY_MAGIC_STATS, type CirclePath, type MagicNode, type MagicType } from '../../../types/magic';
+import { DEFAULT_MAGIC_GLYPH_CONFIG } from './magicGlyphRegistry';
 
 function node(id: string, magicType: MagicType): MagicNode {
     return {
@@ -43,7 +44,11 @@ describe('buildMagicCircleRenderModels', () => {
             (MAGIC_CIRCLE_RENDERING_CONFIG.INNER_RADIUS + MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_RADIUS) / 2,
             MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_RADIUS,
         ]);
-        expect(model.bands.map(band => band.kind)).toEqual(['flame', 'wave', 'stone']);
+        expect(model.bands.map(band => band.marks[0].kind)).toEqual([
+            'rune-ember',
+            'rune-mirror',
+            'rune-hold',
+        ]);
         expect(model.bands.map(band => band.marks.length)).toEqual([
             12,
             16 + MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_INDEX_COUNT_STEP,
@@ -61,7 +66,12 @@ describe('buildMagicCircleRenderModels', () => {
             ]),
         ]);
 
-        expect(model.bands.map(band => band.kind)).toEqual(['arrow', 'split', 'merge', 'seal']);
+        expect(model.bands.map(band => band.marks[0].kind)).toEqual([
+            'rune-gale',
+            'rune-cut',
+            'rune-cycle',
+            'rune-root',
+        ]);
         expect(model.bands.map(band => band.spinDirection)).toEqual(['normal', 'reverse', 'normal', 'reverse']);
     });
 
@@ -76,6 +86,19 @@ describe('buildMagicCircleRenderModels', () => {
             'rune-force',
             'rune-bind',
         ]);
+    });
+
+    it('uses the default glyph sequence when a node has no matching glyph config', () => {
+        const [model] = buildMagicCircleRenderModels(
+            [circle([node('unknown', 'unknown')])],
+            undefined,
+            new Map()
+        );
+
+        expect(model.bands[0].marks.slice(0, 4).map(mark => mark.kind)).toEqual(
+            DEFAULT_MAGIC_GLYPH_CONFIG.runeKinds.slice(0, 4)
+        );
+        expect(model.bands[0].marks).toHaveLength(DEFAULT_MAGIC_GLYPH_CONFIG.baseCount);
     });
 
     it('creates a node-count star polygon for multi-node circles', () => {

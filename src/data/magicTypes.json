@@ -84,6 +84,15 @@
         "stats": { "castingTime": 2, "instability": 2, "power": 2, "range": 1, "manaCost": 2, "duration": 2 }
     },
     {
+        "type": "harmony",
+        "label": "순리",
+        "icon": "✚",
+        "color": "#6ab04c",
+        "category": "basic",
+        "description": "회복과 생장처럼 자연스러운 순환이 이어지도록 돕는 기초 속성입니다.",
+        "stats": { "castingTime": 2, "instability": 0, "power": 2, "range": 1, "manaCost": 3, "duration": 5 }
+    },
+    {
         "type": "coordinate",
         "label": "지정",
         "icon": "⊙",
@@ -136,6 +145,15 @@
         "category": "action",
         "description": "윤곽과 형태를 원하는 모양으로 빚는다.",
         "stats": { "castingTime": 2, "instability": 1.5, "power": 1, "range": 1, "manaCost": 4, "duration": 3 }
+    },
+    {
+        "type": "imbue",
+        "label": "부여",
+        "icon": "⊕",
+        "color": "#d4ac0d",
+        "category": "action",
+        "description": "대상이나 술식에 특정 효과를 깃들게 한다.",
+        "stats": { "castingTime": 2, "instability": 1.5, "power": 1, "range": 1, "manaCost": 3, "duration": 4 }
     },
     {
         "type": "diffuse",
@@ -234,6 +252,15 @@
         "category": "control",
         "description": "앞선 효과가 가진 방향이나 작용을 반대로 뒤집는다.",
         "stats": { "castingTime": 2.5, "instability": 4, "power": 0, "range": 1, "manaCost": 3, "duration": 1 }
+    },
+    {
+        "type": "repel",
+        "label": "반발",
+        "icon": "⊘",
+        "color": "#c0392b",
+        "category": "control",
+        "description": "마나의 흐름을 밀어내거나 충돌시켜 순환을 방해한다.",
+        "stats": { "castingTime": 1.5, "instability": 4, "power": 2, "range": 1, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "split",

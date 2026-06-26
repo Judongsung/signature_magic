@@ -1,6 +1,10 @@
 ﻿import type { CirclePath, MagicStats, MagicType } from '../../../types/magic';
 import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/magicCircleConfigs';
-import { magicGlyphMap, type MagicGlyphConfig } from './magicGlyphRegistry';
+import {
+    DEFAULT_MAGIC_GLYPH_CONFIG,
+    magicGlyphMap,
+    type MagicGlyphConfig,
+} from './magicGlyphRegistry';
 import type { GlyphKind } from './magicGlyphShapes';
 import {
     GRAPH_PERFORMANCE_OPERATION_IDS,
@@ -34,7 +38,6 @@ export interface GlyphMarkLayout {
 export interface GlyphBandLayout {
     id: string;
     node: CirclePath['nodes'][number];
-    kind: GlyphKind;
     spinDuration: number;
     spinDirection: SpinDirection;
     marks: GlyphMarkLayout[];
@@ -201,10 +204,7 @@ function buildGlyphBand(
     glyphs: ReadonlyMap<MagicType, MagicGlyphConfig>,
     lightweight: boolean
 ): GlyphBandLayout {
-    const definition = glyphs.get(node.data.magicType);
-    if (!definition) {
-        throw new Error(`Missing magic glyph config: ${node.data.magicType}`);
-    }
+    const definition = glyphs.get(node.data.magicType) ?? DEFAULT_MAGIC_GLYPH_CONFIG;
 
     const fullCount = definition.baseCount
         + Math.min(index, MAGIC_CIRCLE_RENDERING_CONFIG.GLYPH_INDEX_COUNT_STEP_LIMIT)
@@ -216,7 +216,6 @@ function buildGlyphBand(
     return {
         id: `${circleId}-band-${node.id}`,
         node,
-        kind: definition.kind,
         spinDuration: MAGIC_CIRCLE_RENDERING_CONFIG.BASE_SPIN_SECONDS + index * MAGIC_CIRCLE_RENDERING_CONFIG.SPIN_STEP_SECONDS,
         spinDirection: index % 2 === 0 ? 'normal' : 'reverse',
         marks: glyphMarks(definition, count, bandRadius(total, index, options), index, options.center),
@@ -273,8 +272,9 @@ function glyphMarks(
 }
 
 function glyphMarkKind(definition: MagicGlyphConfig, index: number, bandIndex: number): GlyphKind {
-    const sequence = definition.runeKinds;
-    if (!sequence || sequence.length === 0) return definition.kind;
+    const sequence = definition.runeKinds?.length
+        ? definition.runeKinds
+        : DEFAULT_MAGIC_GLYPH_CONFIG.runeKinds;
 
     // runeKinds는 밴드마다 시작 위치를 밀어, 한 문양 반복보다 문장처럼 보이게 한다.
     return sequence[(index + bandIndex) % sequence.length];
