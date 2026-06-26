@@ -63,6 +63,15 @@
         "stats": { "castingTime": 2, "instability": 3, "power": 5, "range": 0.8, "manaCost": 3, "duration": 1 }
     },
     {
+        "type": "harmony",
+        "label": "순리",
+        "icon": "✚",
+        "color": "#6ab04c",
+        "category": "basic",
+        "description": "회복과 생장처럼 자연스러운 순환이 이어지도록 돕는 기초 속성입니다.",
+        "stats": { "castingTime": 2, "instability": 0, "power": 2, "range": 1, "manaCost": 3, "duration": 5 }
+    },
+    {
         "type": "custom",
         "label": "커스텀",
         "icon": "◈",
@@ -82,15 +91,6 @@
             ]
         },
         "stats": { "castingTime": 2, "instability": 2, "power": 2, "range": 1, "manaCost": 2, "duration": 2 }
-    },
-    {
-        "type": "harmony",
-        "label": "순리",
-        "icon": "✚",
-        "color": "#6ab04c",
-        "category": "basic",
-        "description": "회복과 생장처럼 자연스러운 순환이 이어지도록 돕는 기초 속성입니다.",
-        "stats": { "castingTime": 2, "instability": 0, "power": 2, "range": 1, "manaCost": 3, "duration": 5 }
     },
     {
         "type": "coordinate",
