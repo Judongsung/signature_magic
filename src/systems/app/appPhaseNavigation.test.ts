@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { APP_PHASES } from '../../constants/gameConfigs';
+import { APP_PHASES } from '../../constants/appPhaseConfigs';
 import { getNextAppPhase, getPreviousAppPhase } from './appPhaseNavigation';
 import {
     APP_PHASE_NAVIGATION_NEXT_ACTIONS,

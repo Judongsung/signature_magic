@@ -1,9 +1,14 @@
-import {
-    APP_PHASES,
-    CYOA_DIALOGUE_SCRIPT_IDS,
-    type AppPhase,
-    type CyoaDialogueScriptId,
-} from './gameConfigs';
+import { CYOA_DIALOGUE_SCRIPT_IDS, type CyoaDialogueScriptId } from './cyoaConfigs';
+
+export const APP_PHASES = {
+    INTRO_DIALOGUE: 1,
+    CYOA: 2,
+    NODE_INTRO_DIALOGUE: 3,
+    NODE_COMPOSITION: 4,
+    NODE_RESULT_DIALOGUE: 5,
+} as const;
+
+export type AppPhase = (typeof APP_PHASES)[keyof typeof APP_PHASES];
 
 export const APP_PHASE_SCREEN_KINDS = {
     DIALOGUE: 'dialogue',
@@ -14,52 +19,42 @@ export const APP_PHASE_SCREEN_KINDS = {
 type AppPhaseScreenKind =
     (typeof APP_PHASE_SCREEN_KINDS)[keyof typeof APP_PHASE_SCREEN_KINDS];
 
-interface BaseAppPhaseConfig {
-    phase: AppPhase;
-    screen: AppPhaseScreenKind;
-}
-
-interface DialogueAppPhaseConfig extends BaseAppPhaseConfig {
+interface DialogueAppPhaseConfig {
     screen: typeof APP_PHASE_SCREEN_KINDS.DIALOGUE;
     dialogueScriptId: CyoaDialogueScriptId;
     usesGraphResultContext?: boolean;
 }
 
-interface StandardAppPhaseConfig extends BaseAppPhaseConfig {
+interface StandardAppPhaseConfig {
     screen: Exclude<AppPhaseScreenKind, typeof APP_PHASE_SCREEN_KINDS.DIALOGUE>;
 }
 
 export type AppPhaseConfig = DialogueAppPhaseConfig | StandardAppPhaseConfig;
 
-export const APP_PHASE_CONFIGS: AppPhaseConfig[] = [
-    {
-        phase: APP_PHASES.INTRO_DIALOGUE,
+export const APP_PHASE_CONFIGS = {
+    [APP_PHASES.INTRO_DIALOGUE]: {
         screen: APP_PHASE_SCREEN_KINDS.DIALOGUE,
         dialogueScriptId: CYOA_DIALOGUE_SCRIPT_IDS.GUILD_RECEPTION,
     },
-    {
-        phase: APP_PHASES.CYOA,
+    [APP_PHASES.CYOA]: {
         screen: APP_PHASE_SCREEN_KINDS.CYOA,
     },
-    {
-        phase: APP_PHASES.NODE_INTRO_DIALOGUE,
+    [APP_PHASES.NODE_INTRO_DIALOGUE]: {
         screen: APP_PHASE_SCREEN_KINDS.DIALOGUE,
         dialogueScriptId: CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_INTRO,
     },
-    {
-        phase: APP_PHASES.NODE_COMPOSITION,
+    [APP_PHASES.NODE_COMPOSITION]: {
         screen: APP_PHASE_SCREEN_KINDS.NODE_COMPOSITION,
     },
-    {
-        phase: APP_PHASES.NODE_RESULT_DIALOGUE,
+    [APP_PHASES.NODE_RESULT_DIALOGUE]: {
         screen: APP_PHASE_SCREEN_KINDS.DIALOGUE,
         dialogueScriptId: CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_RESULT,
         usesGraphResultContext: true,
     },
-];
+} satisfies Record<AppPhase, AppPhaseConfig>;
 
-export const APP_PHASE_ORDER: AppPhase[] = APP_PHASE_CONFIGS.map(config => config.phase);
+export const APP_PHASE_ORDER: AppPhase[] = Object.values(APP_PHASES);
 
-export function getAppPhaseConfig(phase: AppPhase): AppPhaseConfig | undefined {
-    return APP_PHASE_CONFIGS.find(config => config.phase === phase);
+export function getAppPhaseConfig(phase: AppPhase): AppPhaseConfig {
+    return APP_PHASE_CONFIGS[phase];
 }

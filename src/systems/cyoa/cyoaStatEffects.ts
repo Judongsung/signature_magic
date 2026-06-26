@@ -1,12 +1,11 @@
 import type { CyoaChoiceRowData, CyoaRowSelections } from '../../types/cyoa';
 import type { MagicStatEffectBundle, MagicStatEffectConfig } from '../../types/magic';
+import {
+    createEmptyMagicStatEffectBundle,
+    MAGIC_STAT_EFFECT_PHASE,
+} from '../graph/calculation/magicStatEffectBundles';
 
-export function createEmptyCyoaStatEffects(): MagicStatEffectBundle {
-    return {
-        nodeEffects: [],
-        finalEffects: [],
-    };
-}
+export const createEmptyCyoaStatEffects = createEmptyMagicStatEffectBundle;
 
 export function mapCyoaStatEffectsByChoiceId(
     rows: readonly CyoaChoiceRowData[]
@@ -41,7 +40,7 @@ export function calculateCyoaStatEffects(
 
         effects.forEach(effect => {
             // node 효과는 원/합산 계산 전에, final 효과는 전체 그래프 합산 후 적용한다.
-            if (effect.phase === 'node') {
+            if (effect.phase === MAGIC_STAT_EFFECT_PHASE.NODE) {
                 result.nodeEffects.push(effect);
                 return;
             }

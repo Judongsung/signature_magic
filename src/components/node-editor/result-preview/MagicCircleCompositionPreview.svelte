@@ -5,18 +5,12 @@
     } from '../../../constants/magicCircleConfigs';
     import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
     import {
-        buildMagicCircleRenderModels,
-        type MagicCircleRenderModel,
-    } from '../../../systems/graph/presentation/magicCircleRenderer';
-    import {
-        buildNodeCompositionTransitionLayout,
-        type NodeCompositionTransitionLayout,
-    } from '../../../systems/graph/presentation/nodeCompositionTransitionLayout';
+        buildMagicCircleCompositionScene,
+    } from '../../../systems/graph/presentation/magicCircleCompositionScene';
     import type { CirclePath } from '../../../types/magic';
     import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
     import MagicCircleSvg from '../magic-circle/MagicCircleSvg.svelte';
 
-    const CIRCLE_START_INDEX = 1;
     const COMPOSITION_STAGE_PADDING_PX = 24;
     const DEFAULT_COMPOSITION_SCALE = 1;
     const COMPOSITION_PREVIEW_LAYOUT_CONFIG = {
@@ -27,53 +21,19 @@
         POLYGON_START_ANGLE_DEGREES: NODE_COMPOSITION_TRANSITION_CONFIG.POLYGON_START_ANGLE_DEGREES,
     };
 
-    interface CompositionCircleInstance {
-        circle: MagicCircleRenderModel;
-        index: number;
-        opacity: number;
-        vertexX: string;
-        vertexY: string;
-    }
-
-    interface CompositionScene {
-        circles: CompositionCircleInstance[];
-        layout: NodeCompositionTransitionLayout;
-    }
-
     let {
         circles,
     }: {
         circles: CirclePath[];
     } = $props();
 
-    const compositionScene = $derived(buildCompositionScene(circles));
-    const compositionCircles = $derived(compositionScene.circles);
+    const compositionScene = $derived(buildMagicCircleCompositionScene(
+        circles,
+        COMPOSITION_PREVIEW_LAYOUT_CONFIG
+    ));
     const compositionLayout = $derived(compositionScene.layout);
-    const centralCircle = $derived(compositionCircles[0]);
-    const polygonCircles = $derived(compositionCircles.slice(CIRCLE_START_INDEX));
-
-    function buildCompositionScene(sourceCircles: CirclePath[]): CompositionScene {
-        const renderModels = buildMagicCircleRenderModels(sourceCircles)
-            .slice(0, NODE_COMPOSITION_TRANSITION_CONFIG.MAX_CIRCLE_INSTANCES);
-        const vertexCount = Math.max(renderModels.length - CIRCLE_START_INDEX, 0);
-        const layout = buildNodeCompositionTransitionLayout(
-            vertexCount,
-            COMPOSITION_PREVIEW_LAYOUT_CONFIG
-        );
-        const circles = renderModels.map((circle, index) => {
-            const vertex = layout.vertices[index - CIRCLE_START_INDEX];
-
-            return {
-                circle,
-                index,
-                opacity: vertex?.opacity ?? 1,
-                vertexX: vertex?.offsetX ?? '0px',
-                vertexY: vertex?.offsetY ?? '0px',
-            };
-        });
-
-        return { circles, layout };
-    }
+    const centralCircle = $derived(compositionScene.centralCircle);
+    const polygonCircles = $derived(compositionScene.polygonCircles);
 
     function fitCompositionStage(frameElement: HTMLDivElement) {
         const stageElement = frameElement.querySelector<HTMLDivElement>('.composition-stage');

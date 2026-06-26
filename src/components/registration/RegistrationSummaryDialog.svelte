@@ -10,11 +10,7 @@
     import { exportBuildResultImage } from '../../systems/export/buildResultImageExport';
     import { buildMagicGraphResultPreview } from '../../systems/graph/presentation/magicGraphResultPreview';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
-    import {
-        activateDialogFocus,
-        closeDialogOnEscape,
-        trapDialogFocus,
-    } from '../shared/dialogFocus';
+    import { dialogFocus } from '../shared/dialogFocus';
     import RegistrationSummary from './RegistrationSummary.svelte';
 
     const dialogId = $props.id();
@@ -34,29 +30,11 @@
         enableExport?: boolean;
     } = $props();
 
-    let dialogElement: HTMLElement;
-
-    $effect(() => {
-        if (!dialogElement) return;
-
-        return activateDialogFocus(dialogElement);
-    });
-
-    function handleWindowKeydown(event: KeyboardEvent) {
-        closeDialogOnEscape(event, onClose);
-    }
-
-    function handleDialogKeydown(event: KeyboardEvent) {
-        trapDialogFocus(event, dialogElement);
-    }
-
     async function exportRegistrationResult(element: HTMLElement) {
         const graphPreview = buildMagicGraphResultPreview(graphStore.nodes, graphStore.edges);
         await exportBuildResultImage(element, graphPreview);
     }
 </script>
-
-<svelte:window onkeydown={handleWindowKeydown} />
 
 <div class="summary-dialog-overlay">
     <button
@@ -71,8 +49,7 @@
         aria-modal="true"
         aria-labelledby={dialogTitleId}
         tabindex="-1"
-        bind:this={dialogElement}
-        onkeydown={handleDialogKeydown}
+        use:dialogFocus={{ onClose }}
     >
         {#if showSubmitGuidance}
             <div class="dialog-speech dialog-speech-top">
@@ -92,7 +69,7 @@
             backLabel={showSubmitGuidance
                 ? CYOA_REGISTRATION_SUMMARY_TEXT.DEFAULT_BACK_LABEL
                 : CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_LABEL}
-            submitDisabled={!choiceStore.canContinue}
+            submitDisabled={!choiceStore.canSubmitRegistration}
             {supplementalContent}
         >
             {#snippet actionLeadIn()}

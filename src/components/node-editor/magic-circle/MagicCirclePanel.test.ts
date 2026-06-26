@@ -7,19 +7,19 @@ import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
 } from '../../../test-utils/graphFixtures';
-import MagicCircleGenerator from './MagicCircleGenerator.svelte';
+import MagicCirclePanel from './MagicCirclePanel.svelte';
 
 function resetGraphStore(): void {
     resetGraphStoreFixture();
 }
 
-describe('MagicCircleGenerator', () => {
+describe('MagicCirclePanel', () => {
     beforeEach(() => {
         resetGraphStore();
     });
 
     it('renders an empty hint before graph nodes exist', () => {
-        const { html } = render(MagicCircleGenerator);
+        const { html } = render(MagicCirclePanel);
 
         expect(html).toContain('hint');
         expect(html).not.toContain('total-stats');
@@ -34,7 +34,7 @@ describe('MagicCircleGenerator', () => {
             ],
         });
 
-        const { html } = render(MagicCircleGenerator);
+        const { html } = render(MagicCirclePanel);
 
         expect(html).toContain('count-number');
         expect(html).toContain('total-stats');
@@ -50,7 +50,7 @@ describe('MagicCircleGenerator', () => {
     it('passes the requested animation mode to circle cards', () => {
         createSingleNodeCircleFixture();
 
-        const { html } = render(MagicCircleGenerator, {
+        const { html } = render(MagicCirclePanel, {
             props: { animationMode: MAGIC_CIRCLE_ANIMATION_MODES.LOOP },
         });
 
@@ -67,7 +67,7 @@ describe('MagicCircleGenerator', () => {
             finalEffects: [],
         });
 
-        const { html } = render(MagicCircleGenerator);
+        const { html } = render(MagicCirclePanel);
 
         expect((html.match(/stat-adjustment/g) ?? [])).toHaveLength(2);
         expect((html.match(/\(\+1\)/g) ?? [])).toHaveLength(2);

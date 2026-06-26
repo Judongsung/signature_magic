@@ -2,7 +2,7 @@
     import { APP_PHASE_ORDER } from '../../constants/appPhaseConfigs';
     import { DEV_PHASE_NAVIGATION_TEXT } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
-    import type { AppPhase } from '../../constants/gameConfigs';
+    import type { AppPhase } from '../../constants/appPhaseConfigs';
 
     function moveToPhase(phase: AppPhase) {
         appStore.setPhase(phase);

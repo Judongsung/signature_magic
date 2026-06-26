@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CYOA_INPUT_ROLES } from '../../constants/gameConfigs';
+import { CYOA_INPUT_ROLES } from '../../constants/cyoaConfigs';
 import type { CyoaChoiceRowData } from '../../types/cyoa';
 import {
     buildCyoaRegistrationSummary,

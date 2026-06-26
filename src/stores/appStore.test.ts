@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { APP_PHASES } from '../constants/gameConfigs';
+import { APP_PHASES } from '../constants/appPhaseConfigs';
 import { appStore } from './appStore.svelte';
 
 describe('appStore', () => {

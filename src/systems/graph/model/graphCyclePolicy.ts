@@ -1,5 +1,5 @@
 import type { Edge } from '@xyflow/svelte';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/nodeEditorConfigs';
 import type { MagicGraphNode } from '../../../types/magic';
 import { buildOutEdgeMap } from '../topology/graphTopology';
 import { canReach, type ReachabilityCache } from '../topology/graphTraversal';

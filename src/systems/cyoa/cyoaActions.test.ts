@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { CyoaChoiceRowData } from '../../types/cyoa';
 import {
-    canContinueCyoa,
+    canSubmitCyoaRegistration,
     clearInactiveCyoaSubChoiceSelections,
+    createInitialCyoaSelections,
     createInitialInputValues,
     createInitialRowVisibility,
     mapCyoaChoiceConfig,
@@ -52,6 +53,24 @@ const rows: CyoaChoiceRowData[] = [
     },
 ];
 
+function createLockedRegionRows(): CyoaChoiceRowData[] {
+    return mapCyoaRows([
+        {
+            id: 'region',
+            title: 'Region',
+            selectionMode: 'multi',
+            requiredCount: 1,
+            maxSelectedCount: 2,
+            lockedChoiceIds: ['region-empire-center'],
+            choices: [
+                { id: 'region-empire-center', imageAlt: '', title: 'Empire Center' },
+                { id: 'region-university-city', imageAlt: '', title: 'University City' },
+                { id: 'region-eastern-desert', imageAlt: '', title: 'Eastern Desert' },
+            ],
+        },
+    ], () => undefined);
+}
+
 describe('cyoaActions', () => {
     it('maps choices through the configured image resolver', () => {
         expect(mapCyoaChoiceConfig(
@@ -100,6 +119,7 @@ describe('cyoaActions', () => {
                 id: 'layout',
                 title: 'Layout',
                 description: 'Choose a layout.',
+                npcDescription: 'NPC explains the layout.',
                 choices: [
                     { id: 'a', imageAlt: '', title: '', description: '', width: '1/2' },
                     {
@@ -118,6 +138,7 @@ describe('cyoaActions', () => {
 
         expect(mapped[0].layoutColumns).toBe(4);
         expect(mapped[0].description).toBe('Choose a layout.');
+        expect(mapped[0].npcDescription).toBe('NPC explains the layout.');
         expect(mapped[0].choices.map(choice => choice.layoutSpan)).toEqual([2, 1, 1]);
         expect(mapped[0].choices[1]).toMatchObject({
             imageSize: 'large',
@@ -158,6 +179,17 @@ describe('cyoaActions', () => {
         });
     });
 
+    it('maps row selection policy for locked and maximum selections', () => {
+        const [mapped] = createLockedRegionRows();
+
+        expect(mapped).toMatchObject({
+            requiredCount: 1,
+            maxSelectedCount: 2,
+            lockedChoiceIds: ['region-empire-center'],
+            selectionMode: 'multi',
+        });
+    });
+
     it('creates initial row visibility from row config data and visibility conditions', () => {
         expect(createInitialRowVisibility(rows)).toEqual({
             focus: true,
@@ -181,11 +213,30 @@ describe('cyoaActions', () => {
         expect(createInitialInputValues(inputRows)).toEqual({ name: 'Aurin' });
     });
 
+    it('creates initial selections from locked choices', () => {
+        expect(createInitialCyoaSelections(createLockedRegionRows())).toEqual({
+            region: ['region-empire-center'],
+        });
+    });
+
     it('opens rows through row visibility conditions', () => {
         expect(resolveCyoaRowVisibility(rows, { focus: ['focus-region'] })).toEqual({
             focus: true,
             region: true,
             catalyst: false,
+        });
+    });
+
+    it('matches visibility conditions against selected choices from any selection group', () => {
+        const conditionalRows = [
+            {
+                ...rows[2],
+                visibleWhen: { choiceSelected: 'region-frontier' },
+            },
+        ];
+
+        expect(resolveCyoaRowVisibility(conditionalRows, { region: ['region-frontier'] })).toEqual({
+            catalyst: true,
         });
     });
 
@@ -254,12 +305,41 @@ describe('cyoaActions', () => {
         )).toEqual({ focus: ['focus-catalyst'] });
     });
 
+    it('keeps locked choices selected while allowing one replaceable optional choice', () => {
+        const [regionRow] = createLockedRegionRows();
+        const initialSelections = createInitialCyoaSelections([regionRow]);
+
+        expect(toggleCyoaChoiceSelection(
+            regionRow,
+            initialSelections,
+            'region-empire-center'
+        )).toEqual({ region: ['region-empire-center'] });
+
+        expect(toggleCyoaChoiceSelection(
+            regionRow,
+            initialSelections,
+            'region-university-city'
+        )).toEqual({ region: ['region-empire-center', 'region-university-city'] });
+
+        expect(toggleCyoaChoiceSelection(
+            regionRow,
+            { region: ['region-empire-center', 'region-university-city'] },
+            'region-eastern-desert'
+        )).toEqual({ region: ['region-empire-center', 'region-eastern-desert'] });
+
+        expect(toggleCyoaChoiceSelection(
+            regionRow,
+            { region: ['region-empire-center', 'region-eastern-desert'] },
+            'region-eastern-desert'
+        )).toEqual({ region: ['region-empire-center'] });
+    });
+
     it('requires every required selectable row before continuing regardless of visibility', () => {
-        expect(canContinueCyoa(
+        expect(canSubmitCyoaRegistration(
             rows,
             { region: ['region-frontier'] }
         )).toBe(false);
-        expect(canContinueCyoa(
+        expect(canSubmitCyoaRegistration(
             rows,
             { region: ['region-frontier'], catalyst: ['catalyst-staff'] }
         )).toBe(true);
@@ -276,8 +356,8 @@ describe('cyoaActions', () => {
             },
         ];
 
-        expect(canContinueCyoa(inputRows, {}, {})).toBe(false);
-        expect(canContinueCyoa(inputRows, {}, { name: 'Aurin' })).toBe(true);
+        expect(canSubmitCyoaRegistration(inputRows, {}, {})).toBe(false);
+        expect(canSubmitCyoaRegistration(inputRows, {}, { name: 'Aurin' })).toBe(true);
     });
 
     it('supports minimum selection counts on multi-select rows', () => {
@@ -288,8 +368,17 @@ describe('cyoaActions', () => {
             },
         ];
 
-        expect(canContinueCyoa(multiRows, { focus: ['focus-region'] })).toBe(false);
-        expect(canContinueCyoa(multiRows, { focus: ['focus-region', 'focus-catalyst'] })).toBe(true);
+        expect(canSubmitCyoaRegistration(multiRows, { focus: ['focus-region'] })).toBe(false);
+        expect(canSubmitCyoaRegistration(multiRows, { focus: ['focus-region', 'focus-catalyst'] })).toBe(true);
+    });
+
+    it('treats locked default selections as satisfying required row counts', () => {
+        const lockedRegionRows = createLockedRegionRows();
+
+        expect(canSubmitCyoaRegistration(
+            lockedRegionRows,
+            createInitialCyoaSelections(lockedRegionRows)
+        )).toBe(true);
     });
 
     it('requires only active required sub-choice groups', () => {
@@ -316,12 +405,12 @@ describe('cyoaActions', () => {
             },
         ], () => undefined);
 
-        expect(canContinueCyoa(nestedRows, { affiliation: ['academy'] })).toBe(false);
-        expect(canContinueCyoa(nestedRows, {
+        expect(canSubmitCyoaRegistration(nestedRows, { affiliation: ['academy'] })).toBe(false);
+        expect(canSubmitCyoaRegistration(nestedRows, {
             affiliation: ['academy'],
             'academy-detail': ['tower'],
         })).toBe(true);
-        expect(canContinueCyoa(nestedRows, { affiliation: ['independent'] })).toBe(true);
+        expect(canSubmitCyoaRegistration(nestedRows, { affiliation: ['independent'] })).toBe(true);
     });
 
     it('allows active optional sub-choice groups without a selection', () => {
@@ -347,7 +436,7 @@ describe('cyoaActions', () => {
             },
         ], () => undefined);
 
-        expect(canContinueCyoa(nestedRows, { affiliation: ['academy'] })).toBe(true);
+        expect(canSubmitCyoaRegistration(nestedRows, { affiliation: ['academy'] })).toBe(true);
     });
 
     it('clears sub-choice state when its parent becomes inactive', () => {

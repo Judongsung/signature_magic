@@ -1,4 +1,5 @@
-import { APP_PHASES, type AppPhase, type MagicNodeCategory } from './gameConfigs';
+import { APP_PHASES, type AppPhase } from './appPhaseConfigs';
+import type { MagicNodeCategory } from './nodeEditorConfigs';
 import type { MagicStatKey } from '../types/magic';
 
 // 앱 단계와 전역 내비게이션 문구
@@ -65,6 +66,7 @@ export const CYOA_REGISTRATION_SUMMARY_TEXT = {
     EMPTY_VALUE_LABEL: '미기재',
     EMPTY_SELECTION_LABEL: '미선택',
     SELECTION_PATH_SEPARATOR: ' > ',
+    SELECTION_LIST_SEPARATOR: ', ',
     REQUIRED_NOTICE_LABEL: '필수 사항',
     SIGNATURE_LABEL: '신청자 서명',
     DEFAULT_BACK_LABEL: '선택 수정',

@@ -7,21 +7,21 @@
 }
 
 :root {
-    /* ── Mage Guild Theme Palette ────────────────────────────────────────── */
+    /* ── 마법 길드 테마 팔레트 ───────────────────────────────────────────── */
     --font-primary: 'Source Han Serif K', Georgia, 'Times New Roman', serif;
     --font-title: var(--font-primary);
     --font-body: var(--font-primary);
     --font-accent: var(--font-primary);
     
-    /* Document Colors */
-    --guild-desk-bg: #090807; /* Dark oak desk */
-    --guild-parchment: #f4edd9; /* Vintage creamy paper */
+    /* 문서 색상 */
+    --guild-desk-bg: #090807; /* 짙은 오크 책상 */
+    --guild-parchment: #f4edd9; /* 오래된 크림색 종이 */
     --guild-parchment-shadow: rgba(22, 18, 14, 0.16);
-    --guild-ink-black: #1f1a14; /* Dark iron gall ink */
-    --guild-ink-muted: #5e5140; /* Faded ink */
-    --guild-ink-seal: #882222; /* Red-brown wax/stamp ink */
-    --guild-leather: #3c2a1c; /* Antique leather binding */
-    --guild-brass: #8d734a; /* Antique brass metal */
+    --guild-ink-black: #1f1a14; /* 짙은 철 담즙 잉크 */
+    --guild-ink-muted: #5e5140; /* 바랜 잉크 */
+    --guild-ink-seal: #882222; /* 적갈색 밀랍/도장 잉크 */
+    --guild-leather: #3c2a1c; /* 오래된 가죽 제본 */
+    --guild-brass: #8d734a; /* 오래된 황동 금속 */
     --guild-brass-light: #bca075;
 
     /* CYOA 문서/선택지 표면 토큰 */
@@ -30,9 +30,24 @@
     --guild-text-title: #382819;
     --guild-text-label: #3b2c1d;
     --guild-text-muted: #6b5a45;
+    --guild-text-eyebrow: #7d4d2d;
+    --guild-text-speaker-title: #7a6a52;
+    --guild-text-dialogue-title: #2f2418;
+    --guild-text-dialogue-body: #4d3c28;
+    --guild-surface-border-faint: rgba(103, 77, 48, 0.16);
     --guild-surface-border-subtle: rgba(115, 88, 53, 0.22);
+    --guild-surface-border-panel: rgba(111, 86, 50, 0.22);
+    --guild-surface-border-panel-strong: rgba(111, 86, 50, 0.26);
     --guild-surface-border-control: rgba(103, 77, 48, 0.28);
     --guild-surface-border-hover: rgba(103, 77, 48, 0.44);
+    --guild-surface-dialog-bg:
+        linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(246, 239, 225, 0.98));
+    --guild-surface-dialog-header-bg:
+        linear-gradient(180deg, rgba(255, 253, 247, 0.82), rgba(246, 239, 225, 0.68));
+    --guild-surface-registration-bg:
+        linear-gradient(180deg, rgba(255, 253, 247, 0.84), rgba(246, 239, 225, 0.92));
+    --guild-surface-dialogue-bg:
+        linear-gradient(180deg, rgba(255, 253, 247, 0.9), rgba(244, 236, 220, 0.96));
     --guild-surface-card-bg:
         linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(244, 236, 219, 0.98)),
         repeating-linear-gradient(0deg, rgba(130, 95, 55, 0.035) 0 1px, transparent 1px 12px);
@@ -95,7 +110,7 @@
     --guild-action-secondary-shadow: 0 5px 14px rgba(44, 34, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.62);
     --guild-action-secondary-hover-shadow: 0 7px 16px rgba(44, 34, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
-    /* Node editor 테마 토큰 */
+    /* 노드 에디터 테마 토큰 */
     --node-editor-transition-fast: 0.16s ease;
     --node-editor-transition-medium: 0.24s ease;
     --node-editor-radius-sm: 6px;
@@ -260,7 +275,7 @@
     --node-editor-node-selected-opacity: 1;
     --node-editor-hovered-node-z-index: 1000;
     
-    /* Custom Paper Shadows */
+    /* 종이 그림자 */
     --paper-shadow: 
         0 4px 6px -1px rgba(0, 0, 0, 0.15), 
         0 2px 4px -1px rgba(0, 0, 0, 0.1),
@@ -268,7 +283,7 @@
     --paper-inset-shadow: inset 0 0 40px rgba(184, 153, 114, 0.15);
 }
 
-/* Reset default margins */
+/* 기본 여백 초기화 */
 body {
     margin: 0;
     padding: 0;
@@ -347,7 +362,7 @@ textarea {
     box-shadow: var(--node-editor-danger-shadow);
 }
 
-/* Custom Scrollbar for vintage guild theme */
+/* 빈티지 길드 테마 스크롤바 */
 ::-webkit-scrollbar {
     width: 10px;
     height: 10px;

@@ -1,9 +1,4 @@
-import {
-    CYOA_CHOICE_IMAGE_PLACEMENTS,
-    CYOA_CHOICE_IMAGE_SIZES,
-    CYOA_DIALOGUE_TEXT_VARIANTS,
-    CYOA_SELECTION_MODES,
-} from '../../constants/gameConfigs';
+import { CYOA_CHOICE_IMAGE_PLACEMENTS, CYOA_CHOICE_IMAGE_SIZES, CYOA_DIALOGUE_TEXT_VARIANTS, CYOA_SELECTION_MODES } from '../../constants/cyoaConfigs';
 import type { CyoaRowVisibilityCondition } from '../../types/cyoa';
 import { isKnownStringValue } from './commonValidation';
 

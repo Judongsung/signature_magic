@@ -1,10 +1,7 @@
 <script lang="ts">
-    import { untrack } from 'svelte';
-    import {
-        MAGIC_NODE_EDITOR_BEHAVIORS,
-        MAGIC_NODE_EDITOR_CONTROLS,
-        MAGIC_REPEAT_CONFIG,
-    } from '../../../constants/gameConfigs';
+    import { MAGIC_NODE_EDITOR_CONTROLS, MAGIC_REPEAT_CONFIG } from '../../../constants/nodeEditorConfigs';
+import { untrack } from 'svelte';
+    import { MAGIC_NODE_EDITOR_BEHAVIORS } from '../../../constants/nodeEditorConfigs';
     import { MAGIC_NODE_CATEGORY_LABELS, NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
     import {
@@ -20,11 +17,7 @@
         MagicNodeStepperEditorFieldConfig,
         MagicTypeConfig,
     } from '../../../types/magic';
-    import {
-        activateDialogFocus,
-        closeDialogOnEscape,
-        trapDialogFocus,
-    } from '../../shared/dialogFocus';
+    import { dialogFocus } from '../../shared/dialogFocus';
     import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
 
     const dialogId = $props.id();
@@ -52,24 +45,9 @@
     const applicableNodeStatEffects = $derived(
         node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM ? [] : nodeStatEffects
     );
-    let dialogElement: HTMLElement;
     let draftSettings = $state<MagicNodeSettings>(untrack(() => Object.fromEntries(
         fields.map(field => [field.key, getMagicNodeEditorFieldDraftValue(field, node.data.settings)])
     )));
-
-    $effect(() => {
-        if (!dialogElement) return;
-
-        return activateDialogFocus(dialogElement);
-    });
-
-    function handleWindowKeydown(event: KeyboardEvent) {
-        closeDialogOnEscape(event, onClose);
-    }
-
-    function handleDialogKeydown(event: KeyboardEvent) {
-        trapDialogFocus(event, dialogElement);
-    }
 
     function saveSettings(event: SubmitEvent) {
         event.preventDefault();
@@ -103,8 +81,6 @@
     }
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} />
-
 <div class="node-details-overlay">
     <button
         type="button"
@@ -120,8 +96,7 @@
         aria-labelledby={dialogTitleId}
         aria-describedby={dialogDescriptionId}
         tabindex="-1"
-        bind:this={dialogElement}
-        onkeydown={handleDialogKeydown}
+        use:dialogFocus={{ onClose }}
     >
         <header class="node-details-header" style:--node-color={config.color}>
             <span class="node-details-icon" aria-hidden="true">{config.icon}</span>

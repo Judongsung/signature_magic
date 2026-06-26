@@ -56,7 +56,7 @@
         height: var(--character-image-size);
         margin: 0;
         overflow: hidden;
-        border: 1px solid rgba(103, 77, 48, 0.22);
+        border: 1px solid var(--guild-surface-image-border);
         border-radius: 8px;
         background: linear-gradient(180deg, rgba(239, 226, 199, 0.72), rgba(214, 192, 156, 0.78));
         box-shadow:
@@ -81,9 +81,9 @@
         justify-content: center;
         gap: 8px;
         padding: 14px 18px;
-        border: 1px solid rgba(103, 77, 48, 0.28);
+        border: 1px solid var(--guild-surface-border-control);
         border-radius: 8px;
-        background: linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(246, 239, 225, 0.98));
+        background: var(--guild-surface-dialog-bg);
         box-shadow:
             0 10px 24px rgba(86, 61, 35, 0.16),
             inset 0 1px 0 rgba(255, 255, 255, 0.72);
@@ -102,7 +102,7 @@
     }
 
     .speech-panel::before {
-        background: rgba(103, 77, 48, 0.28);
+        background: var(--guild-surface-border-control);
         transform: translateX(-1px);
     }
 
@@ -124,7 +124,7 @@
     }
 
     .speaker-name {
-        color: #7d4d2d;
+        color: var(--guild-text-eyebrow);
         font-family: var(--font-title);
         font-size: 12px;
         font-weight: 900;
@@ -132,13 +132,13 @@
     }
 
     .speaker-title {
-        color: #7a6a52;
+        color: var(--guild-text-speaker-title);
         font-size: 11px;
         font-weight: 700;
     }
 
     .speech-message {
-        color: #4d3c28;
+        color: var(--guild-text-dialogue-body);
         font-family: var(--font-body);
         font-size: 15px;
         font-weight: 650;

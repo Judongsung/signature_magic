@@ -1,6 +1,6 @@
 <script lang="ts">
     import veraChibiImageSrc from '../../assets/images/vera_chibi.png';
-    import type { AppPhase } from '../../constants/gameConfigs';
+    import type { AppPhase } from '../../constants/appPhaseConfigs';
     import {
         APP_PHASE_NAVIGATION_TEXT,
         CYOA_GUIDE_SPEECH_TEXT,
@@ -101,7 +101,7 @@
 
 {#if navigationPolicy.shouldRenderNavigation}
     <nav
-        class="app-phase-navigation-tabs"
+        class="app-phase-navigation-bar"
         aria-label={APP_PHASE_NAVIGATION_TEXT.ARIA_LABEL}
     >
         {#if navigationPolicy.previousPhase}
@@ -177,7 +177,7 @@
 {/if}
 
 <style>
-    .app-phase-navigation-tabs {
+    .app-phase-navigation-bar {
         position: fixed;
         right: 0;
         bottom: 0;
@@ -232,7 +232,7 @@
         min-width: 116px;
         min-height: 42px;
         padding: 0 16px;
-        border: 1px solid rgba(103, 77, 48, 0.36);
+        border: 1px solid var(--guild-surface-border-hover);
         border-radius: 4px;
         background: linear-gradient(180deg, #6f4d32, #4d3320);
         color: #fff8ec;
@@ -288,7 +288,7 @@
     }
 
     @media (max-width: 720px) {
-        .app-phase-navigation-tabs {
+        .app-phase-navigation-bar {
             gap: 8px;
             padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
         }

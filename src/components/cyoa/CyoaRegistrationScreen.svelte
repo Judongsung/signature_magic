@@ -52,6 +52,8 @@
                     onSelect={(choiceId) => handleChoiceSelect(row, choiceId)}
                     onSubChoiceSelect={handleSubChoiceSelect}
                     onInputValueChange={handleInputValueChange}
+                    npcImageSrc={veraChibiImageSrc}
+                    npcImageAlt={CYOA_GUIDE_SPEECH_TEXT.IMAGE_ALT}
                 />
             {/if}
         {/each}
@@ -81,10 +83,9 @@
         flex-direction: column;
         gap: 24px;
         padding: 30px;
-        border: 1px solid rgba(111, 86, 50, 0.22);
+        border: 1px solid var(--guild-surface-border-panel);
         border-radius: 8px;
-        background:
-            linear-gradient(180deg, rgba(255, 253, 247, 0.84), rgba(246, 239, 225, 0.92));
+        background: var(--guild-surface-registration-bg);
         box-shadow:
             0 18px 44px rgba(86, 61, 35, 0.16),
             inset 0 1px 0 rgba(255, 255, 255, 0.72);
@@ -105,7 +106,7 @@
 
     .eyebrow {
         margin: 0 0 10px;
-        color: #7d4d2d;
+        color: var(--guild-text-eyebrow);
         font-family: var(--font-title);
         font-size: 12px;
         font-weight: 800;
@@ -114,7 +115,7 @@
 
     h1 {
         margin: 0;
-        color: #2f2418;
+        color: var(--guild-text-dialogue-title);
         font-family: var(--font-title);
         font-size: 38px;
         line-height: 1.2;

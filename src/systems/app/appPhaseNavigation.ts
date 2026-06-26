@@ -1,4 +1,4 @@
-import { type AppPhase } from '../../constants/gameConfigs';
+import type { AppPhase } from '../../constants/appPhaseConfigs';
 import { APP_PHASE_ORDER } from '../../constants/appPhaseConfigs';
 
 function getAppPhaseOffset(currentPhase: AppPhase, offset: number): AppPhase | undefined {

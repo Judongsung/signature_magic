@@ -1,14 +1,14 @@
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it } from 'vitest';
-import { APP_PHASES } from '../../constants/gameConfigs';
+import { APP_PHASES } from '../../constants/appPhaseConfigs';
 import {
     APP_PHASE_NAVIGATION_TEXT,
     UI_BUTTON_TEXT,
 } from '../../constants/uiText';
 import { appStore } from '../../stores/appStore.svelte';
-import AppPhaseNavigationTabs from './AppPhaseNavigationTabs.svelte';
+import AppPhaseNavigationBar from './AppPhaseNavigationBar.svelte';
 
-describe('AppPhaseNavigationTabs', () => {
+describe('AppPhaseNavigationBar', () => {
     afterEach(() => {
         appStore.setPhase(APP_PHASES.INTRO_DIALOGUE);
     });
@@ -16,7 +16,7 @@ describe('AppPhaseNavigationTabs', () => {
     it('renders only the next tab on the first phase', () => {
         appStore.setPhase(APP_PHASES.INTRO_DIALOGUE);
 
-        const { html } = render(AppPhaseNavigationTabs);
+        const { html } = render(AppPhaseNavigationBar);
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.ARIA_LABEL);
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.INTRO_DIALOGUE]);
@@ -27,7 +27,7 @@ describe('AppPhaseNavigationTabs', () => {
     it('renders previous and disabled next tabs on the incomplete CYOA phase', () => {
         appStore.setPhase(APP_PHASES.CYOA);
 
-        const { html } = render(AppPhaseNavigationTabs, {
+        const { html } = render(AppPhaseNavigationBar, {
             props: {
                 canSubmitRegistration: false,
             },
@@ -46,7 +46,7 @@ describe('AppPhaseNavigationTabs', () => {
     it('renders an enabled next tab on the complete CYOA phase', () => {
         appStore.setPhase(APP_PHASES.CYOA);
 
-        const { html } = render(AppPhaseNavigationTabs, {
+        const { html } = render(AppPhaseNavigationBar, {
             props: {
                 canSubmitRegistration: true,
             },
@@ -62,7 +62,7 @@ describe('AppPhaseNavigationTabs', () => {
     it('renders the result dialogue next tab on the node composition phase', () => {
         appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
 
-        const { html } = render(AppPhaseNavigationTabs);
+        const { html } = render(AppPhaseNavigationBar);
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
         expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
@@ -72,7 +72,7 @@ describe('AppPhaseNavigationTabs', () => {
     it('renders only the previous tab on the final phase', () => {
         appStore.setPhase(APP_PHASES.NODE_RESULT_DIALOGUE);
 
-        const { html } = render(AppPhaseNavigationTabs);
+        const { html } = render(AppPhaseNavigationBar);
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
         expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);

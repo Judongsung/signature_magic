@@ -1,5 +1,8 @@
-import { APP_PHASE_ORDER } from '../../constants/appPhaseConfigs';
-import { APP_PHASES, type AppPhase } from '../../constants/gameConfigs';
+import {
+    APP_PHASE_ORDER,
+    APP_PHASES,
+    type AppPhase,
+} from '../../constants/appPhaseConfigs';
 import { getNextAppPhase, getPreviousAppPhase } from './appPhaseNavigation';
 
 export const APP_PHASE_NAVIGATION_NEXT_ACTIONS = {

@@ -1,5 +1,5 @@
 import type { Edge } from '@xyflow/svelte';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/nodeEditorConfigs';
 import type { MagicGraphNode, MagicTypeConfig } from '../../../types/magic';
 import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
 import {

@@ -16,6 +16,9 @@ import {
     measureGraphOperation,
 } from '../systems/graph/diagnostics/graphPerformance';
 import {
+    createEmptyMagicStatEffectBundle,
+} from '../systems/graph/calculation/magicStatEffectBundles';
+import {
     createMagicGraphFromPreset,
     createMagicGraphPresetSnapshot,
     hasUserMagicGraphContent,
@@ -33,10 +36,6 @@ import type {
 } from '../types/magic';
 import { EMPTY_MAGIC_SIGNATURE_METADATA } from '../types/magic';
 
-const EMPTY_EXTERNAL_STAT_EFFECTS: MagicStatEffectBundle = {
-    nodeEffects: [],
-    finalEffects: [],
-};
 const CONNECTION_VALIDATION_CACHE_KEY_SEPARATOR = '|';
 
 interface ConnectionValidationCache {
@@ -49,7 +48,7 @@ interface ConnectionValidationCache {
 class GraphStore {
     nodes = $state.raw<MagicNode[]>(createInitialSystemNodes());
     edges = $state.raw<Edge[]>([]);
-    externalStatEffects = $state.raw<MagicStatEffectBundle>(EMPTY_EXTERNAL_STAT_EFFECTS);
+    externalStatEffects = $state.raw(createEmptyMagicStatEffectBundle());
     signatureMetadata = $state.raw<MagicSignatureMetadata>(createEmptySignatureMetadata());
     private topologySyncScheduled = false;
     private connectionValidationCache: ConnectionValidationCache | undefined;

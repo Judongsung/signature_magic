@@ -7,6 +7,10 @@ const FOCUSABLE_DIALOG_ELEMENT_SELECTOR = [
     '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+export interface DialogFocusActionOptions {
+    onClose: () => void;
+}
+
 function isVisibleFocusableElement(element: HTMLElement): boolean {
     return !element.hidden && element.tabIndex >= 0;
 }
@@ -73,4 +77,34 @@ export function trapDialogFocus(event: KeyboardEvent, dialogElement: HTMLElement
         event.preventDefault();
         firstFocusableElement.focus();
     }
+}
+
+export function dialogFocus(
+    dialogElement: HTMLElement,
+    { onClose }: DialogFocusActionOptions
+) {
+    let closeDialog = onClose;
+    const restoreFocus = activateDialogFocus(dialogElement);
+
+    function handleWindowKeydown(event: KeyboardEvent) {
+        closeDialogOnEscape(event, closeDialog);
+    }
+
+    function handleDialogKeydown(event: KeyboardEvent) {
+        trapDialogFocus(event, dialogElement);
+    }
+
+    window.addEventListener('keydown', handleWindowKeydown);
+    dialogElement.addEventListener('keydown', handleDialogKeydown);
+
+    return {
+        update(options: DialogFocusActionOptions) {
+            closeDialog = options.onClose;
+        },
+        destroy() {
+            window.removeEventListener('keydown', handleWindowKeydown);
+            dialogElement.removeEventListener('keydown', handleDialogKeydown);
+            restoreFocus();
+        },
+    };
 }

@@ -2,7 +2,7 @@
 import { mount, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import type { MagicNodeCategory } from '../../../constants/gameConfigs';
+import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
 import {
     MAGIC_NODE_CATEGORY_LABELS,
     NODE_EDITOR_TEXT,

@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
     import {
         SvelteFlow,
         Controls,
@@ -20,7 +20,7 @@
         DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES,
         EDITOR_CANVAS,
         type MagicNodeCategory,
-    } from '../../../constants/gameConfigs';
+    } from '../../../constants/nodeEditorConfigs';
     import {
         GRAPH_EDGE_TYPES,
         GRAPH_NODE_TYPES,

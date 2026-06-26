@@ -1,12 +1,8 @@
 ﻿import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import {
-    GRAPH_EDGE_TYPES,
-    GRAPH_NODE_TYPES,
-    MAGIC_NODE_HANDLE_CONFIG,
-    MAGIC_NODE_KINDS,
-} from '../../../constants/graphConfigs';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
+    GRAPH_EDGE_TYPES, GRAPH_NODE_TYPES, MAGIC_NODE_HANDLE_CONFIG, MAGIC_NODE_KINDS, } from '../../../constants/graphConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/nodeEditorConfigs';
 import {
     createEdge,
     createEdgeUpdate,

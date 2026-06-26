@@ -1,5 +1,5 @@
 ﻿import magicTypesData from '../../../data/magicTypes.json';
-import type { MagicNodeCategory } from '../../../constants/gameConfigs';
+import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
 import type { MagicType, MagicTypeConfig } from '../../../types/magic';
 import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 

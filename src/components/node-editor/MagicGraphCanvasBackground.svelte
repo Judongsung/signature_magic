@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { EDITOR_CANVAS } from '../../constants/gameConfigs';
+    import { EDITOR_CANVAS } from '../../constants/nodeEditorConfigs';
     import { MAGIC_STAR_FIELD_CONFIG } from '../../constants/graphConfigs';
     import { createStarField } from '../../systems/graph/presentation/starField';
 

@@ -1,7 +1,8 @@
 import cyoaRowsData from '../data/cyoaRows.json';
 import {
-    canContinueCyoa,
+    canSubmitCyoaRegistration,
     clearInactiveCyoaSubChoiceSelections,
+    createInitialCyoaSelections,
     createInitialInputValues,
     mapCyoaRows,
     resolveCyoaRowVisibility,
@@ -28,15 +29,15 @@ class ChoiceStore {
         resolveCyoaImagePath
     );
 
-    selectedChoiceIds = $state<CyoaRowSelections>({});
+    selectedChoiceIds = $state<CyoaRowSelections>(createInitialCyoaSelections(this.rows));
     inputValues = $state<CyoaInputValues>(createInitialInputValues(this.rows));
     readonly visibleRowIds: CyoaRowVisibility = $derived(
         resolveCyoaRowVisibility(this.rows, this.selectedChoiceIds)
     );
     readonly statEffectsByChoiceId = mapCyoaStatEffectsByChoiceId(this.rows);
 
-    readonly canContinue = $derived(
-        canContinueCyoa(this.rows, this.selectedChoiceIds, this.inputValues)
+    readonly canSubmitRegistration = $derived(
+        canSubmitCyoaRegistration(this.rows, this.selectedChoiceIds, this.inputValues)
     );
     readonly statEffects: MagicStatEffectBundle = $derived(
         calculateCyoaStatEffects(this.selectedChoiceIds, this.statEffectsByChoiceId)
@@ -60,7 +61,7 @@ class ChoiceStore {
     }
 
     reset(): void {
-        this.selectedChoiceIds = {};
+        this.selectedChoiceIds = createInitialCyoaSelections(this.rows);
         this.inputValues = createInitialInputValues(this.rows);
     }
 }

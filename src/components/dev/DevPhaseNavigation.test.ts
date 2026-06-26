@@ -1,6 +1,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import { APP_PHASES } from '../../constants/gameConfigs';
+import { APP_PHASES } from '../../constants/appPhaseConfigs';
 import { DEV_PHASE_NAVIGATION_TEXT } from '../../constants/uiText';
 import { appStore } from '../../stores/appStore.svelte';
 import DevPhaseNavigation from './DevPhaseNavigation.svelte';

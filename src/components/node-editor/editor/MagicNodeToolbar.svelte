@@ -1,8 +1,5 @@
 <script lang="ts">
-    import {
-        MAGIC_NODE_CATEGORIES,
-        type MagicNodeCategory,
-    } from '../../../constants/gameConfigs';
+    import { MAGIC_NODE_CATEGORIES, type MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
     import {
         MAGIC_NODE_CATEGORY_LABELS,
         NODE_EDITOR_TEXT,

@@ -1,6 +1,6 @@
 import type { Connection, Edge } from '@xyflow/svelte';
 import { expect } from 'vitest';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../constants/gameConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../constants/nodeEditorConfigs';
 import {
     GRAPH_NODE_TYPES,
     MAGIC_NODE_HANDLE_CONFIG,

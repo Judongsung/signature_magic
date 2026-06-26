@@ -1,9 +1,6 @@
 <script lang="ts">
     import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
-    import {
-        CYOA_DIALOGUE_SCRIPT_IDS,
-        type CyoaDialogueScriptId,
-    } from '../../../constants/gameConfigs';
+    import { CYOA_DIALOGUE_SCRIPT_IDS, type CyoaDialogueScriptId } from '../../../constants/cyoaConfigs';
     import { mapCyoaDialogueScripts } from '../../../systems/cyoa/cyoaDialogueScripts';
     import { resolveCyoaImagePath } from '../../../systems/cyoa/cyoaImageRegistry';
     import type { CyoaDialogueResultContext, CyoaDialogueScriptConfig } from '../../../types/cyoa';

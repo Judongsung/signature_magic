@@ -10,6 +10,7 @@
         choices,
         layoutColumns = 3,
         selectedChoiceIds = [],
+        lockedChoiceIds = [],
         subChoiceSelections = {},
         disabled = false,
         onSelect,
@@ -18,6 +19,7 @@
         choices: CyoaChoice[];
         layoutColumns?: number;
         selectedChoiceIds?: string[];
+        lockedChoiceIds?: string[];
         subChoiceSelections?: CyoaRowSelections;
         disabled?: boolean;
         onSelect?: (choiceId: string) => void;
@@ -36,6 +38,7 @@
                 {choice}
                 selected={selectedChoiceIds.includes(choice.id)}
                 disabled={disabled || choice.disabled}
+                locked={lockedChoiceIds.includes(choice.id)}
                 {onSelect}
             />
         </div>

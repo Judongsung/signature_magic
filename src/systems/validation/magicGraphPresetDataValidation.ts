@@ -1,5 +1,5 @@
 import { MAGIC_NODE_HANDLE_CONFIG } from '../../constants/graphConfigs';
-import { MAGIC_NODE_EDITOR_CONTROLS } from '../../constants/gameConfigs';
+import { MAGIC_NODE_EDITOR_CONTROLS } from '../../constants/nodeEditorConfigs';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
 import type { MagicGraphPresetConfig, MagicTypeConfig } from '../../types/magic';
 import { getMagicNodeEditorFields } from '../graph/model/magicNodeData';

@@ -1,11 +1,6 @@
+import type { MAGIC_NODE_EDITOR_CONTROLS, MagicNodeCategory, MagicNodeEditorBehavior, MagicNodeEditorPresentation } from '../constants/nodeEditorConfigs';
 import type { Node } from '@xyflow/svelte';
-import {
-    MAGIC_CONNECTION_RULE_KEYS,
-    MAGIC_NODE_EDITOR_CONTROLS,
-    type MagicNodeCategory,
-    type MagicNodeEditorBehavior,
-    type MagicNodeEditorPresentation,
-} from '../constants/gameConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
     MAGIC_STAT_BRANCH_AGGREGATIONS,

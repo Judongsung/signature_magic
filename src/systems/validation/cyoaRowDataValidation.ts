@@ -1,12 +1,9 @@
-import type {
-    CyoaChoiceBaseConfig,
-    CyoaChoiceRowConfig,
-    CyoaSubChoiceGroupConfig,
-} from '../../types/cyoa';
 import {
     CYOA_INPUT_ROLES,
     CYOA_SELECTION_MODES,
-} from '../../constants/gameConfigs';
+    CYOA_SELECTION_POLICY,
+} from '../../constants/cyoaConfigs';
+import type { CyoaChoiceBaseConfig, CyoaChoiceRowConfig, CyoaSubChoiceGroupConfig, } from '../../types/cyoa';
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
@@ -15,6 +12,7 @@ import {
 import { isValidCyoaChoiceWidth } from '../cyoa/cyoaChoiceLayout';
 import {
     collectDuplicateErrors,
+    findDuplicates,
     formatValidationError,
     formatValidationPath,
     isFiniteNumber,
@@ -30,8 +28,6 @@ import {
     isValidCyoaSelectionMode,
 } from './cyoaValidationShared';
 
-const MAX_INPUT_REQUIRED_COUNT = 1;
-const DEFAULT_REQUIRED_COUNT = 1;
 const VALID_CYOA_INPUT_ROLES = new Set<string>(Object.values(CYOA_INPUT_ROLES));
 
 function getCyoaSubChoiceGroup(
@@ -156,7 +152,7 @@ function validateCyoaSubChoiceGroup(
     isKnownImagePath: (imagePath: string) => boolean
 ): string[] {
     const errors: string[] = [];
-    const requiredCount = group.requiredCount ?? DEFAULT_REQUIRED_COUNT;
+    const requiredCount = group.requiredCount ?? CYOA_SELECTION_POLICY.DEFAULT_REQUIRED_COUNT;
     const selectionMode = group.selectionMode ?? CYOA_SELECTION_MODES.SINGLE;
     const rawChoices: unknown[] = Array.isArray(group.choices) ? group.choices : [];
 
@@ -180,7 +176,10 @@ function validateCyoaSubChoiceGroup(
     if (requiredCount > rawChoices.length) {
         errors.push(`CYOA sub-choice required count exceeds choices: ${formatValidationPath(group.id, requiredCount)}`);
     }
-    if (selectionMode === CYOA_SELECTION_MODES.SINGLE && requiredCount > MAX_INPUT_REQUIRED_COUNT) {
+    if (
+        selectionMode === CYOA_SELECTION_MODES.SINGLE &&
+        requiredCount > CYOA_SELECTION_POLICY.SINGLE_SELECT_MAX_REQUIRED_COUNT
+    ) {
         errors.push(formatValidationError(
             'Invalid',
             'CYOA single-select sub-choice required count',
@@ -244,8 +243,21 @@ export function validateCyoaRows(
     errors.push(...collectDuplicateErrors(inputRoles, 'CYOA input role'));
 
     rows.forEach(row => {
+        const rawChoices = row.choices ?? [];
+        const rowChoiceById = new Map(rawChoices.map(choice => [choice.id, choice]));
+        const lockedChoiceIds = Array.isArray(row.lockedChoiceIds) ? row.lockedChoiceIds : [];
+        const validLockedChoiceIds = lockedChoiceIds.filter((choiceId): choiceId is string =>
+            typeof choiceId === 'string'
+        );
+        const maxSelectedCount = row.maxSelectedCount;
+        const selectionMode = row.selectionMode ?? CYOA_SELECTION_MODES.SINGLE;
+        const requiredCount = row.requiredCount ?? CYOA_SELECTION_POLICY.DEFAULT_REQUIRED_COUNT;
+
         if (row.description !== undefined && typeof row.description !== 'string') {
             errors.push(formatValidationError('Invalid', 'CYOA row description', row.id));
+        }
+        if (row.npcDescription !== undefined && typeof row.npcDescription !== 'string') {
+            errors.push(formatValidationError('Invalid', 'CYOA row NPC description', row.id));
         }
         if (row.requiredCount !== undefined && (!Number.isInteger(row.requiredCount) || row.requiredCount < 0)) {
             errors.push(formatValidationError(
@@ -263,6 +275,61 @@ export function validateCyoaRows(
                 String(row.selectionMode)
             ));
         }
+        if (row.lockedChoiceIds !== undefined && !Array.isArray(row.lockedChoiceIds)) {
+            errors.push(formatValidationError('Invalid', 'CYOA locked choice ids', row.id));
+        }
+        lockedChoiceIds.forEach((choiceId, index) => {
+            if (typeof choiceId !== 'string') {
+                errors.push(formatValidationError('Invalid', 'CYOA locked choice id', row.id, index));
+                return;
+            }
+
+            const lockedChoice = rowChoiceById.get(choiceId);
+            if (!lockedChoice) {
+                errors.push(formatValidationError('Unknown', 'CYOA locked choice', row.id, choiceId));
+                return;
+            }
+            if (lockedChoice.disabled) {
+                errors.push(formatValidationError('Invalid', 'disabled CYOA locked choice', row.id, choiceId));
+            }
+        });
+        findDuplicates(validLockedChoiceIds).forEach(choiceId => {
+            errors.push(formatValidationError('Duplicate', 'CYOA locked choice id', row.id, choiceId));
+        });
+        if (maxSelectedCount !== undefined && (!Number.isInteger(maxSelectedCount) || maxSelectedCount < 0)) {
+            errors.push(formatValidationError(
+                'Invalid',
+                'CYOA max selected count',
+                row.id,
+                maxSelectedCount
+            ));
+        }
+        if (selectionMode === CYOA_SELECTION_MODES.SINGLE && maxSelectedCount !== undefined && maxSelectedCount > 1) {
+            errors.push(formatValidationError(
+                'Invalid',
+                'CYOA single-select max selected count',
+                row.id,
+                maxSelectedCount
+            ));
+        }
+        if (maxSelectedCount !== undefined && Number.isInteger(maxSelectedCount) && maxSelectedCount >= 0) {
+            if (requiredCount > maxSelectedCount) {
+                errors.push(formatValidationError(
+                    'Invalid',
+                    'CYOA required count exceeds max selected count',
+                    row.id,
+                    requiredCount
+                ));
+            }
+            if (validLockedChoiceIds.length > maxSelectedCount) {
+                errors.push(formatValidationError(
+                    'Invalid',
+                    'CYOA locked choice count exceeds max selected count',
+                    row.id,
+                    validLockedChoiceIds.length
+                ));
+            }
+        }
         if (row.input && (row.choices?.length ?? 0) > 0) {
             errors.push(`CYOA row cannot mix input and choices: ${row.id}`);
         }
@@ -274,7 +341,7 @@ export function validateCyoaRows(
                 String(row.input.role)
             ));
         }
-        if (row.input && (row.requiredCount ?? 0) > MAX_INPUT_REQUIRED_COUNT) {
+        if (row.input && (row.requiredCount ?? 0) > CYOA_SELECTION_POLICY.INPUT_REQUIRED_COUNT) {
             errors.push(formatValidationError(
                 'Invalid',
                 'CYOA input required count',

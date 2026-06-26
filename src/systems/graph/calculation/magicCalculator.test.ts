@@ -1,13 +1,14 @@
-﻿import type { Edge } from '@xyflow/svelte';
-import { describe, expect, it } from 'vitest';
-import { calculateCircles, calculateMagic, computeNodeRoles } from './magicCalculator';
-import { EMPTY_MAGIC_STATS, type MagicNode, type MagicStats, type MagicType, type MagicTypeConfig } from '../../../types/magic';
-import {
+﻿import {
     MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
-} from '../../../constants/gameConfigs';
+} from '../../../constants/nodeEditorConfigs';
+import type { Edge } from '@xyflow/svelte';
+import { describe, expect, it } from 'vitest';
+import { calculateCircles, calculateMagic, computeNodeRoles } from './magicCalculator';
+import { EMPTY_MAGIC_STATS } from '../../../types/magic';
+import type { MagicNode, MagicStats, MagicType, MagicTypeConfig } from '../../../types/magic';
 
 function node(
     id: string,

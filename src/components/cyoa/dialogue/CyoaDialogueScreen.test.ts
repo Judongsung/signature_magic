@@ -1,7 +1,7 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
-import { CYOA_DIALOGUE_SCRIPT_IDS } from '../../../constants/gameConfigs';
+import { CYOA_DIALOGUE_SCRIPT_IDS } from '../../../constants/cyoaConfigs';
 import { DIALOGUE_SCREEN_TEXT, NODE_INTRO_DIALOGUE_SCREEN_TEXT } from '../../../constants/uiText';
 import {
     matchesCyoaDialogueResultCondition,

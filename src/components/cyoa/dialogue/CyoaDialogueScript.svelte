@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { CYOA_DIALOGUE_TEXT_VARIANTS } from '../../../constants/cyoaConfigs';
+    import type { CyoaDialogueTextVariant } from '../../../constants/cyoaConfigs';
     import {
         resolveCyoaRowVisibility,
         toggleCyoaChoiceSelection,
@@ -13,10 +15,6 @@
         resolveCyoaDialogueResultLine,
     } from '../../../systems/cyoa/cyoaDialogueResultConditions';
     import { normalizeCyoaDialogueLine } from '../../../systems/cyoa/cyoaDialogueText';
-    import {
-        CYOA_DIALOGUE_TEXT_VARIANTS,
-        type CyoaDialogueTextVariant,
-    } from '../../../constants/gameConfigs';
     import type {
         CyoaChoiceRowData,
         CyoaDialogueResultContext,
@@ -135,10 +133,9 @@
         align-items: start;
         gap: 28px;
         padding: 20px;
-        border: 1px solid rgba(111, 86, 50, 0.26);
+        border: 1px solid var(--guild-surface-border-panel-strong);
         border-radius: 8px;
-        background:
-            linear-gradient(180deg, rgba(255, 253, 247, 0.9), rgba(244, 236, 220, 0.96));
+        background: var(--guild-surface-dialogue-bg);
         box-shadow:
             0 16px 36px rgba(86, 61, 35, 0.14),
             inset 0 1px 0 rgba(255, 255, 255, 0.72);
@@ -154,9 +151,9 @@
         align-self: start;
         margin: 0;
         overflow: hidden;
-        border: 1px solid rgba(103, 77, 48, 0.28);
+        border: 1px solid var(--guild-surface-border-control);
         border-radius: 8px;
-        background: rgba(230, 219, 198, 0.72);
+        background: var(--guild-surface-image-bg);
         box-shadow: inset 0 0 18px rgba(93, 68, 38, 0.12);
     }
 
@@ -190,7 +187,7 @@
     }
 
     .speaker-name {
-        color: #7d4d2d;
+        color: var(--guild-text-eyebrow);
         font-family: var(--font-title);
         font-size: 13px;
         font-weight: 900;
@@ -198,13 +195,13 @@
     }
 
     .speaker-title {
-        color: #7a6a52;
+        color: var(--guild-text-speaker-title);
         font-size: 12px;
         font-weight: 700;
     }
 
     h2 {
-        color: #2f2418;
+        color: var(--guild-text-dialogue-title);
         font-family: var(--font-title);
         font-size: 26px;
         font-weight: 800;
@@ -213,7 +210,7 @@
 
     .npc-line {
         max-width: 680px;
-        color: #4d3c28;
+        color: var(--guild-text-dialogue-body);
         font-family: var(--font-body);
         font-size: 18px;
         font-weight: 650;

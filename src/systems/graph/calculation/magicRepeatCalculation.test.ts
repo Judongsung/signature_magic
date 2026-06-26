@@ -1,11 +1,11 @@
-import type { Edge } from '@xyflow/svelte';
-import { describe, expect, it } from 'vitest';
 import {
     MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
-} from '../../../constants/gameConfigs';
+} from '../../../constants/nodeEditorConfigs';
+import type { Edge } from '@xyflow/svelte';
+import { describe, expect, it } from 'vitest';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 import { buildMagicGraphAnalysis } from './magicGraphAnalysis';
 import { buildMagicNodeExecutionCounts } from './magicRepeatCalculation';

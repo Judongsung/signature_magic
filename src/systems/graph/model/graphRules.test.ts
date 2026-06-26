@@ -2,14 +2,10 @@
 import { describe, expect, it } from 'vitest';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 import {
-    GRAPH_NODE_TYPES,
-    MAGIC_NODE_HANDLE_CONFIG,
-} from '../../../constants/graphConfigs';
+    GRAPH_NODE_TYPES, MAGIC_NODE_HANDLE_CONFIG, } from '../../../constants/graphConfigs';
 import {
-    SYSTEM_MAGIC_NODE_CONFIGS,
-    SYSTEM_MAGIC_TYPE_CONFIGS,
-} from '../../../constants/systemMagicNodeConfigs';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/gameConfigs';
+    SYSTEM_MAGIC_NODE_CONFIGS, SYSTEM_MAGIC_TYPE_CONFIGS, } from '../../../constants/systemMagicNodeConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/nodeEditorConfigs';
 import {
     filterEdgesReplacedByConnection,
     hasCycleDFS,

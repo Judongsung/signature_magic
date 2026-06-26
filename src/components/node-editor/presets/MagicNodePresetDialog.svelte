@@ -4,11 +4,7 @@
         type MagicGraphPresetOption,
     } from '../../../systems/graph/presets/magicGraphPresets';
     import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
-    import {
-        activateDialogFocus,
-        closeDialogOnEscape,
-        trapDialogFocus,
-    } from '../../shared/dialogFocus';
+    import { dialogFocus } from '../../shared/dialogFocus';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
 
     const dialogId = $props.id();
@@ -41,7 +37,6 @@
         onClose: () => void;
     } = $props();
 
-    let dialogElement: HTMLElement;
     let presetName = $state(NODE_EDITOR_TEXT.PRESET_DEFAULT_NAME);
     const builtInPresetOptions = $derived(
         presetOptions.filter(option => option.source === MAGIC_GRAPH_PRESET_SOURCES.BUILT_IN)
@@ -50,20 +45,6 @@
         presetOptions.filter(option => option.source === MAGIC_GRAPH_PRESET_SOURCES.USER)
     );
     const canSubmitSave = $derived(canSavePreset && presetName.trim().length > 0);
-
-    $effect(() => {
-        if (!dialogElement) return;
-
-        return activateDialogFocus(dialogElement);
-    });
-
-    function handleWindowKeydown(event: KeyboardEvent) {
-        closeDialogOnEscape(event, onClose);
-    }
-
-    function handleDialogKeydown(event: KeyboardEvent) {
-        trapDialogFocus(event, dialogElement);
-    }
 
     function loadPreset() {
         if (!canLoadPreset) return;
@@ -85,8 +66,6 @@
     }
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} />
-
 <div class="preset-dialog-overlay">
     <button
         type="button"
@@ -100,8 +79,7 @@
         aria-modal="true"
         aria-labelledby={dialogTitleId}
         tabindex="-1"
-        bind:this={dialogElement}
-        onkeydown={handleDialogKeydown}
+        use:dialogFocus={{ onClose }}
     >
         <header class="preset-dialog-header">
             <div>

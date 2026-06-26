@@ -27,11 +27,7 @@ import {
     buildMagicNodeExecutionCounts,
     type MagicNodeExecutionCounts,
 } from './magicRepeatCalculation';
-
-const EMPTY_MAGIC_STAT_EFFECTS: MagicStatEffectBundle = {
-    nodeEffects: [],
-    finalEffects: [],
-};
+import { createEmptyMagicStatEffectBundle } from './magicStatEffectBundles';
 
 const SINGLE_PREDECESSOR_COUNT = 1;
 
@@ -41,7 +37,7 @@ export function calculateMagic(
     nodes: MagicNode[],
     edges: Edge[],
     magicTypes: readonly MagicTypeConfig[] = [],
-    statEffects: MagicStatEffectBundle = EMPTY_MAGIC_STAT_EFFECTS
+    statEffects: MagicStatEffectBundle = createEmptyMagicStatEffectBundle()
 ): MagicCalculationResult {
     return measureGraphOperation(
         GRAPH_PERFORMANCE_OPERATION_IDS.CALCULATE_MAGIC,

@@ -1,4 +1,4 @@
-import { MAGIC_REPEAT_CONFIG } from '../../../constants/gameConfigs';
+import { MAGIC_REPEAT_CONFIG } from '../../../constants/nodeEditorConfigs';
 import type { MagicTypeConfig } from '../../../types/magic';
 import { resolveMagicNodeCycleRepeatCount } from '../model/magicNodeData';
 import type { MagicGraphAnalysis } from './magicGraphAnalysis';

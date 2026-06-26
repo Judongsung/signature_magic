@@ -4,6 +4,7 @@
         CyoaRowSelections,
         CyoaSubChoiceGroupData,
     } from '../../../types/cyoa';
+    import CharacterSpeechBubble from '../../shared/CharacterSpeechBubble.svelte';
     import CyoaChoiceRow from './CyoaChoiceRow.svelte';
     import CyoaTextInputRow from './CyoaTextInputRow.svelte';
 
@@ -15,6 +16,8 @@
         onSelect,
         onSubChoiceSelect,
         onInputValueChange,
+        npcImageSrc,
+        npcImageAlt,
     }: {
         row: CyoaChoiceRowData;
         selectedChoiceIds?: string[];
@@ -23,6 +26,8 @@
         onSelect?: (choiceId: string) => void;
         onSubChoiceSelect?: (group: CyoaSubChoiceGroupData, choiceId: string) => void;
         onInputValueChange?: (inputId: string, value: string) => void;
+        npcImageSrc?: string;
+        npcImageAlt?: string;
     } = $props();
 </script>
 
@@ -33,6 +38,13 @@
             <p class="row-description">{row.description}</p>
         {/if}
     </div>
+    {#if row.npcDescription && npcImageSrc && npcImageAlt !== undefined}
+        <CharacterSpeechBubble
+            imageSrc={npcImageSrc}
+            imageAlt={npcImageAlt}
+            message={row.npcDescription}
+        />
+    {/if}
     {#if row.input}
         <CyoaTextInputRow
             input={row.input}
@@ -44,6 +56,7 @@
             choices={row.choices}
             layoutColumns={row.layoutColumns}
             {selectedChoiceIds}
+            lockedChoiceIds={row.lockedChoiceIds}
             subChoiceSelections={allSelectedChoiceIds}
             {onSelect}
             {onSubChoiceSelect}
@@ -57,7 +70,7 @@
         flex-direction: column;
         gap: 14px;
         padding: 20px 0 0;
-        border-top: 1px solid rgba(103, 77, 48, 0.16);
+        border-top: 1px solid var(--guild-surface-border-faint);
         background: transparent;
         box-shadow: none;
         position: relative;

@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
+import type { AppPhase } from '../../constants/appPhaseConfigs';
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { APP_PHASES, type AppPhase } from '../../constants/gameConfigs';
+import { APP_PHASES } from '../../constants/appPhaseConfigs';
 import {
     APP_PHASE_NAVIGATION_TEXT,
     CYOA_REGISTRATION_RESULT_TEXT,
@@ -16,7 +17,7 @@ import {
 } from '../../test-utils/componentQueries';
 import { installResizeObserverStub } from '../../test-utils/domApis';
 import { resetGraphStoreFixture } from '../../test-utils/graphFixtures';
-import AppPhaseNavigationTabs from './AppPhaseNavigationTabs.svelte';
+import AppPhaseNavigationBar from './AppPhaseNavigationBar.svelte';
 
 type NavigationProps = {
     canSubmitRegistration?: boolean;
@@ -45,7 +46,7 @@ function mountTabs(props: NavigationProps = {}) {
     const target = document.createElement('div');
     document.body.append(target);
 
-    mountedTabs = mount(AppPhaseNavigationTabs, {
+    mountedTabs = mount(AppPhaseNavigationBar, {
         target,
         props,
     });
@@ -68,7 +69,7 @@ afterEach(async () => {
     resetGraphStoreFixture();
 });
 
-describe('AppPhaseNavigationTabs interaction', () => {
+describe('AppPhaseNavigationBar interaction', () => {
     beforeEach(() => {
         installResizeObserverStub();
         resetGraphStoreFixture();

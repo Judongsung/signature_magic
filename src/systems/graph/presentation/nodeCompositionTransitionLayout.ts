@@ -9,7 +9,7 @@ interface CssClampSize {
     maxPx: number;
 }
 
-interface NodeCompositionTransitionConfig {
+export interface NodeCompositionTransitionConfig {
     CENTRAL_CIRCLE_SIZE: CssClampSize;
     VERTEX_CIRCLE_SIZE: CssClampSize;
     VERTEX_CIRCLE_OPACITY: number;

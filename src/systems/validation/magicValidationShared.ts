@@ -1,7 +1,4 @@
-import {
-    MAGIC_CONNECTION_RULE_KEYS,
-    type MagicNodeCategory,
-} from '../../constants/gameConfigs';
+import { MAGIC_CONNECTION_RULE_KEYS, type MagicNodeCategory } from '../../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_KEYS,
     type MagicNodeConnectionRules,

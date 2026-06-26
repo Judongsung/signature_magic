@@ -1,8 +1,5 @@
 <script lang="ts">
-    import {
-        CYOA_CHOICE_IMAGE_PLACEMENTS,
-        CYOA_CHOICE_IMAGE_SIZES,
-    } from '../../../constants/gameConfigs';
+    import { CYOA_CHOICE_IMAGE_PLACEMENTS, CYOA_CHOICE_IMAGE_SIZES } from '../../../constants/cyoaConfigs';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import type { CyoaChoice } from '../../../types/cyoa';
 
@@ -12,6 +9,7 @@
         choice,
         selected = false,
         disabled = false,
+        locked = false,
         subChoice = false,
         ariaLabel,
         onSelect,
@@ -19,13 +17,14 @@
         choice: CyoaChoice;
         selected?: boolean;
         disabled?: boolean;
+        locked?: boolean;
         subChoice?: boolean;
         ariaLabel?: string;
         onSelect?: (choiceId: string) => void;
     } = $props();
 
     function selectChoice() {
-        if (disabled) return;
+        if (disabled || locked) return;
         onSelect?.(choice.id);
     }
 
@@ -40,10 +39,12 @@
     class:without-image={!choice.imageSrc}
     class:without-description={!choice.description}
     class:selected
+    class:locked
     class:sub-choice={subChoice}
     {disabled}
     aria-label={ariaLabel}
     aria-pressed={selected}
+    aria-disabled={locked ? 'true' : undefined}
     aria-describedby={choice.tooltip ? tooltipId : undefined}
     onclick={selectChoice}
 >
@@ -133,7 +134,7 @@
         min-height: 64px;
     }
 
-    .choice-card:hover:not(:disabled) {
+    .choice-card:hover:not(:disabled):not(.locked) {
         transform: translateY(-1px);
         border-color: var(--guild-surface-border-hover);
         background: var(--guild-surface-card-hover-bg);
@@ -155,7 +156,7 @@
         color: var(--guild-selection-text);
     }
 
-    .choice-card.selected:hover:not(:disabled) {
+    .choice-card.selected:hover:not(:disabled):not(.locked) {
         border-color: var(--guild-selection-border-hover);
         background: var(--guild-selection-hover-bg);
         box-shadow: var(--guild-selection-hover-shadow);
@@ -167,7 +168,7 @@
         box-shadow: var(--guild-sub-choice-shadow);
     }
 
-    .choice-card.sub-choice:hover:not(:disabled) {
+    .choice-card.sub-choice:hover:not(:disabled):not(.locked) {
         border-color: var(--guild-sub-choice-border-hover);
         background: var(--guild-sub-choice-hover-bg);
     }
@@ -177,7 +178,7 @@
         background: var(--guild-sub-choice-selected-bg);
     }
 
-    .choice-card.sub-choice.selected:hover:not(:disabled) {
+    .choice-card.sub-choice.selected:hover:not(:disabled):not(.locked) {
         border-color: var(--guild-selection-border-hover);
         background: var(--guild-selection-hover-bg);
         box-shadow: var(--guild-selection-hover-shadow);
@@ -187,6 +188,10 @@
         cursor: not-allowed;
         opacity: 0.35;
         filter: grayscale(1);
+    }
+
+    .choice-card.locked {
+        cursor: default;
     }
 
     .image-frame {
@@ -215,7 +220,7 @@
         transition: filter 0.18s ease, opacity 0.18s ease;
     }
 
-    .choice-card:hover:not(:disabled) .image-frame img {
+    .choice-card:hover:not(:disabled):not(.locked) .image-frame img {
         opacity: 1;
         filter: saturate(1) contrast(1.04) brightness(1.04);
     }
@@ -235,6 +240,7 @@
         font-size: 19px;
         font-weight: 800;
         line-height: 1.25;
+        text-align: center;
         transition: color 0.18s ease;
     }
 

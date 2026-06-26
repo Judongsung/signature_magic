@@ -6,7 +6,7 @@
     import { getMagicTypeConfig } from '../../systems/graph/registry/magicTypeRegistry';
     import type { MagicGraphPresetConfig, MagicNodeSettings } from '../../types/magic';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
-    import MagicCircleGenerator from './magic-circle/MagicCircleGenerator.svelte';
+    import MagicCirclePanel from './magic-circle/MagicCirclePanel.svelte';
     import NodeCompositionPaneLayout from './NodeCompositionPaneLayout.svelte';
     import MagicNodeEditor from './editor/MagicNodeEditor.svelte';
     import MagicNodeDetailsDialog from './editor/MagicNodeDetailsDialog.svelte';
@@ -61,7 +61,7 @@
 {/snippet}
 
 {#snippet previewPane()}
-    <MagicCircleGenerator animationMode={MAGIC_CIRCLE_ANIMATION_MODES.STATIC} />
+    <MagicCirclePanel animationMode={MAGIC_CIRCLE_ANIMATION_MODES.STATIC} />
 {/snippet}
 
 <main class="node-composition-screen">

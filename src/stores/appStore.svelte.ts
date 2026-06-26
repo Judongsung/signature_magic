@@ -1,4 +1,4 @@
-import { APP_PHASES, type AppPhase } from '../constants/gameConfigs';
+import { APP_PHASES, type AppPhase } from '../constants/appPhaseConfigs';
 import { getNextAppPhase, getPreviousAppPhase } from '../systems/app/appPhaseNavigation';
 
 class AppStore {

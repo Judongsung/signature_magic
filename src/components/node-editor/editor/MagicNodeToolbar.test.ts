@@ -1,6 +1,6 @@
 ﻿import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import type { MagicNodeCategory } from '../../../constants/gameConfigs';
+import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
 import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
 import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type { MagicTypeConfig } from '../../../types/magic';

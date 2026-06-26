@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CYOA_DIALOGUE_TEXT_VARIANTS } from '../../constants/gameConfigs';
+import { CYOA_DIALOGUE_TEXT_VARIANTS } from '../../constants/cyoaConfigs';
 import {
     getCyoaDialogueLineText,
     normalizeCyoaDialogueLine,

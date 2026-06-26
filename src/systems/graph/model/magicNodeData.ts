@@ -4,7 +4,7 @@ import {
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
     MAGIC_REPEAT_CONFIG,
-} from '../../../constants/gameConfigs';
+} from '../../../constants/nodeEditorConfigs';
 import {
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_KINDS,

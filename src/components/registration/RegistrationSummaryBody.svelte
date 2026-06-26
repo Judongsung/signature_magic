@@ -2,6 +2,7 @@
     import { CYOA_REGISTRATION_SUMMARY_TEXT } from '../../constants/uiText';
     import type {
         CyoaRegistrationSummaryChoiceItem,
+        CyoaRegistrationSummaryChoicePath,
         CyoaRegistrationSummaryInputItem,
     } from '../../systems/cyoa/cyoaRegistrationSummary';
 
@@ -12,6 +13,19 @@
         inputItems: CyoaRegistrationSummaryInputItem[];
         choiceItems: CyoaRegistrationSummaryChoiceItem[];
     } = $props();
+
+    function formatChoiceSelection(selection: CyoaRegistrationSummaryChoicePath): string {
+        const titlePath = selection.titles.join(
+            CYOA_REGISTRATION_SUMMARY_TEXT.SELECTION_PATH_SEPARATOR
+        );
+
+        return selection.requiredMissing
+            ? [
+                titlePath,
+                CYOA_REGISTRATION_SUMMARY_TEXT.REQUIRED_NOTICE_LABEL,
+            ].join(CYOA_REGISTRATION_SUMMARY_TEXT.SELECTION_PATH_SEPARATOR)
+            : titlePath;
+    }
 </script>
 
 <div class="summary-body">
@@ -45,21 +59,21 @@
                     <h4>{item.title}</h4>
                     <div class="choice-field">
                         {#if item.selections.length > 0}
-                            <ul>
-                                {#each item.selections as selection}
-                                    <li>
-                                        <span
-                                            class="choice-title"
-                                            class:required-missing={selection.requiredMissing}
-                                        >
-                                            {selection.titles.join(CYOA_REGISTRATION_SUMMARY_TEXT.SELECTION_PATH_SEPARATOR)}
-                                            {#if selection.requiredMissing}
-                                                {CYOA_REGISTRATION_SUMMARY_TEXT.SELECTION_PATH_SEPARATOR}{CYOA_REGISTRATION_SUMMARY_TEXT.REQUIRED_NOTICE_LABEL}
-                                            {/if}
+                            <p class="choice-selection">
+                                {#each item.selections as selection, selectionIndex}
+                                    {#if selectionIndex > 0}
+                                        <span aria-hidden="true">
+                                            {CYOA_REGISTRATION_SUMMARY_TEXT.SELECTION_LIST_SEPARATOR}
                                         </span>
-                                    </li>
+                                    {/if}
+                                    <span
+                                        class="choice-title"
+                                        class:required-missing={selection.requiredMissing}
+                                    >
+                                        {formatChoiceSelection(selection)}
+                                    </span>
                                 {/each}
-                            </ul>
+                            </p>
                         {:else}
                             <p class:required-missing={item.requiredMissing} class="empty-selection">
                                 {item.requiredMissing
@@ -93,8 +107,7 @@
     h4,
     p,
     dl,
-    dd,
-    ul {
+    dd {
         margin: 0;
     }
 
@@ -163,17 +176,10 @@
         padding: 0 0 6px;
     }
 
-    ul {
+    .choice-selection {
         width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px 18px;
-        padding: 0;
-        list-style: none;
-    }
-
-    li {
-        min-width: 0;
+        color: var(--guild-ink-black);
+        line-height: 1.35;
     }
 
     .choice-title {

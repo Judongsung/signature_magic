@@ -7,18 +7,13 @@
     import { MAGIC_STAR_FIELD_CONFIG } from '../../../constants/graphConfigs';
     import type { CirclePath } from '../../../types/magic';
     import {
-        buildMagicCircleRenderModels,
-        type MagicCircleRenderModel,
-    } from '../../../systems/graph/presentation/magicCircleRenderer';
-    import {
-        buildNodeCompositionTransitionLayout,
-        type NodeCompositionTransitionLayout,
-    } from '../../../systems/graph/presentation/nodeCompositionTransitionLayout';
+        buildMagicCircleCompositionScene,
+        type MagicCircleCompositionSceneCircle,
+    } from '../../../systems/graph/presentation/magicCircleCompositionScene';
     import { createStarField } from '../../../systems/graph/presentation/starField';
     import MagicCircleSvg from '../magic-circle/MagicCircleSvg.svelte';
 
     const REDUCED_MOTION_MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
-    const CIRCLE_START_INDEX = 1;
     const transitionStars = createStarField(MAGIC_STAR_FIELD_CONFIG, {
         width: 100,
         height: 100,
@@ -29,21 +24,6 @@
         + NODE_COMPOSITION_TRANSITION_CONFIG.FLASH_DURATION_MS;
     const flashDelayMs = NODE_COMPOSITION_TRANSITION_CONFIG.FILL_DURATION_MS
         + NODE_COMPOSITION_TRANSITION_CONFIG.SPIN_DURATION_MS;
-
-    interface TransitionCircleInstance {
-        circle: MagicCircleRenderModel;
-        index: number;
-        vertexIndex: number;
-        staggerMs: number;
-        opacity: number;
-        vertexX: string;
-        vertexY: string;
-    }
-
-    interface TransitionScene {
-        circles: TransitionCircleInstance[];
-        layout: NodeCompositionTransitionLayout;
-    }
 
     let {
         circles,
@@ -57,11 +37,10 @@
     let completionTimer: ReturnType<typeof setTimeout> | undefined;
     let didComplete = false;
 
-    const transitionScene = $derived(buildTransitionScene(circles));
-    const transitionCircles = $derived(transitionScene.circles);
+    const transitionScene = $derived(buildMagicCircleCompositionScene(circles));
     const transitionLayout = $derived(transitionScene.layout);
-    const centralCircle = $derived(transitionCircles[0]);
-    const polygonCircles = $derived(transitionCircles.slice(CIRCLE_START_INDEX));
+    const centralCircle = $derived(transitionScene.centralCircle);
+    const polygonCircles = $derived(transitionScene.polygonCircles);
     const centralAnimationMode = $derived(
         isReducedMotion
             ? MAGIC_CIRCLE_ANIMATION_MODES.STATIC
@@ -73,34 +52,8 @@
             : MAGIC_CIRCLE_ANIMATION_MODES.LOOP
     );
 
-    function buildTransitionScene(sourceCircles: CirclePath[]): TransitionScene {
-        const renderModels = buildMagicCircleRenderModels(sourceCircles);
-        if (renderModels.length === 0) {
-            return {
-                circles: [],
-                layout: buildNodeCompositionTransitionLayout(0),
-            };
-        }
-
-        const cappedModels = renderModels.slice(0, NODE_COMPOSITION_TRANSITION_CONFIG.MAX_CIRCLE_INSTANCES);
-        const vertexCount = Math.max(cappedModels.length - CIRCLE_START_INDEX, 0);
-        const layout = buildNodeCompositionTransitionLayout(vertexCount);
-        const circles = cappedModels.map((circle, index) => {
-            const vertexIndex = index - CIRCLE_START_INDEX;
-            const vertex = vertexIndex >= 0 ? layout.vertices[vertexIndex] : undefined;
-
-            return {
-                circle,
-                index,
-                vertexIndex,
-                staggerMs: index * NODE_COMPOSITION_TRANSITION_CONFIG.CIRCLE_STAGGER_MS,
-                opacity: vertex?.opacity ?? 1,
-                vertexX: vertex?.offsetX ?? '0px',
-                vertexY: vertex?.offsetY ?? '0px',
-            };
-        });
-
-        return { circles, layout };
+    function getCircleStaggerMs(circle: MagicCircleCompositionSceneCircle): number {
+        return circle.index * NODE_COMPOSITION_TRANSITION_CONFIG.CIRCLE_STAGGER_MS;
     }
 
     function prefersReducedMotion(): boolean {
@@ -163,7 +116,7 @@
         {#if centralCircle}
             <div
                 class="central-circle"
-                style:--circle-stagger={`${centralCircle.staggerMs}ms`}
+                style:--circle-stagger={`${getCircleStaggerMs(centralCircle)}ms`}
                 style:--circle-opacity={`${centralCircle.opacity}`}
             >
                 <MagicCircleSvg
@@ -180,7 +133,7 @@
                     class="polygon-vertex"
                     style:--vertex-x={item.vertexX}
                     style:--vertex-y={item.vertexY}
-                    style:--circle-stagger={`${item.staggerMs}ms`}
+                    style:--circle-stagger={`${getCircleStaggerMs(item)}ms`}
                 >
                     <div class="polygon-counter-rotation">
                         <div

@@ -4,7 +4,7 @@ import {
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
     type MagicNodeCategory,
-} from '../../constants/gameConfigs';
+} from '../../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_KEYS,
     type MagicNodeConnectionRules,

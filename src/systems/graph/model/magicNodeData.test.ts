@@ -1,5 +1,6 @@
+import { MAGIC_NODE_EDITOR_PRESENTATIONS } from '../../../constants/nodeEditorConfigs';
 import { describe, expect, it } from 'vitest';
-import { MAGIC_NODE_EDITOR_CONTROLS, MAGIC_NODE_EDITOR_PRESENTATIONS } from '../../../constants/gameConfigs';
+import { MAGIC_NODE_EDITOR_CONTROLS } from '../../../constants/nodeEditorConfigs';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 import {
     getMagicNodeEditorFields,

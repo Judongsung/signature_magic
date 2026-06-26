@@ -11,7 +11,7 @@
         type DirectAppPhaseTransitionRequest,
         type NodeCompositionTransitionPlan,
     } from './systems/app/appPhaseTransition';
-    import AppPhaseNavigationTabs from './components/app/AppPhaseNavigationTabs.svelte';
+    import AppPhaseNavigationBar from './components/app/AppPhaseNavigationBar.svelte';
     import CyoaRegistrationScreen from './components/cyoa/CyoaRegistrationScreen.svelte';
     import CyoaDialogueScreen from './components/cyoa/dialogue/CyoaDialogueScreen.svelte';
     import NodeCompositionScreen from './components/node-editor/NodeCompositionScreen.svelte';
@@ -95,7 +95,7 @@
     />
 {/if}
 
-<AppPhaseNavigationTabs
-    canSubmitRegistration={choiceStore.canContinue}
+<AppPhaseNavigationBar
+    canSubmitRegistration={choiceStore.canSubmitRegistration}
     onDirectNextPhaseRequest={handleDirectNextPhaseRequest}
 />

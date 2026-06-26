@@ -1,3 +1,9 @@
+import {
+    CYOA_CHOICE_IMAGE_PLACEMENTS,
+    CYOA_CHOICE_IMAGE_SIZES,
+    CYOA_SELECTION_MODES,
+    CYOA_SELECTION_POLICY,
+} from '../../constants/cyoaConfigs';
 import type {
     CyoaChoice,
     CyoaChoiceBaseConfig,
@@ -12,20 +18,30 @@ import type {
     CyoaSubChoiceGroupData,
 } from '../../types/cyoa';
 import {
-    CYOA_CHOICE_IMAGE_PLACEMENTS,
-    CYOA_CHOICE_IMAGE_SIZES,
-    CYOA_SELECTION_MODES,
-} from '../../constants/gameConfigs';
-import {
     DEFAULT_CYOA_CHOICE_WIDTH,
     parseCyoaChoiceWidth,
     resolveCyoaLayoutColumns,
 } from './cyoaChoiceLayout';
 
-const DEFAULT_REQUIRED_COUNT = 1;
-const INPUT_REQUIRED_COUNT = 1;
-
 type CyoaSelectionGroup = CyoaChoiceRowData | CyoaSubChoiceGroupData;
+
+function dedupeChoiceIds(choiceIds: readonly string[]): string[] {
+    return [...new Set(choiceIds)];
+}
+
+function getLockedChoiceIds(row: CyoaSelectionGroup): string[] {
+    return 'lockedChoiceIds' in row ? row.lockedChoiceIds ?? [] : [];
+}
+
+function getEffectiveRowSelectionIds(
+    row: CyoaSelectionGroup,
+    selectedChoiceIds: CyoaRowSelections
+): string[] {
+    return dedupeChoiceIds([
+        ...getLockedChoiceIds(row),
+        ...(selectedChoiceIds[row.id] ?? []),
+    ]);
+}
 
 function mapCyoaChoiceBaseConfig(
     choice: CyoaChoiceBaseConfig,
@@ -59,7 +75,7 @@ function mapCyoaSubChoiceGroupConfig(
     return {
         id: group.id,
         title: group.title,
-        requiredCount: group.requiredCount ?? DEFAULT_REQUIRED_COUNT,
+        requiredCount: group.requiredCount ?? CYOA_SELECTION_POLICY.DEFAULT_REQUIRED_COUNT,
         selectionMode: group.selectionMode ?? CYOA_SELECTION_MODES.SINGLE,
         choices: group.choices.map(choice => mapCyoaChoiceBaseConfig(
             choice,
@@ -98,9 +114,12 @@ export function mapCyoaRowConfig(
         id: row.id,
         title: row.title,
         description: row.description,
+        npcDescription: row.npcDescription,
         visible: row.visible ?? true,
         selectable: row.selectable ?? true,
-        requiredCount: row.requiredCount ?? DEFAULT_REQUIRED_COUNT,
+        requiredCount: row.requiredCount ?? CYOA_SELECTION_POLICY.DEFAULT_REQUIRED_COUNT,
+        maxSelectedCount: row.maxSelectedCount,
+        lockedChoiceIds: dedupeChoiceIds(row.lockedChoiceIds ?? []),
         visibleWhen: row.visibleWhen,
         selectionMode: row.selectionMode ?? CYOA_SELECTION_MODES.SINGLE,
         layoutColumns,
@@ -128,25 +147,33 @@ export function createInitialInputValues(rows: CyoaChoiceRowData[]): CyoaInputVa
     );
 }
 
-function isChoiceSelected(selectedChoiceIds: CyoaRowSelections, choiceId: string): boolean {
-    return Object.values(selectedChoiceIds).some(rowSelections => rowSelections.includes(choiceId));
+export function createInitialCyoaSelections(rows: CyoaChoiceRowData[]): CyoaRowSelections {
+    return Object.fromEntries(
+        rows
+            .filter(row => getLockedChoiceIds(row).length > 0)
+            .map(row => [row.id, getLockedChoiceIds(row)])
+    );
 }
 
-function isRowVisible(row: CyoaChoiceRowData, selectedChoiceIds: CyoaRowSelections): boolean {
+function createSelectedCyoaChoiceIdSet(selectedChoiceIds: CyoaRowSelections): ReadonlySet<string> {
+    return new Set(Object.values(selectedChoiceIds).flat());
+}
+
+function isRowVisible(row: CyoaChoiceRowData, selectedChoiceIdSet: ReadonlySet<string>): boolean {
     const condition = row.visibleWhen;
     if (!condition) return row.visible;
 
-    if (condition.choiceSelected && !isChoiceSelected(selectedChoiceIds, condition.choiceSelected)) {
+    if (condition.choiceSelected && !selectedChoiceIdSet.has(condition.choiceSelected)) {
         return false;
     }
 
     if (condition.anyChoiceSelected?.length) {
-        const anySelected = condition.anyChoiceSelected.some(choiceId => isChoiceSelected(selectedChoiceIds, choiceId));
+        const anySelected = condition.anyChoiceSelected.some(choiceId => selectedChoiceIdSet.has(choiceId));
         if (!anySelected) return false;
     }
 
     if (condition.allChoicesSelected?.length) {
-        const allSelected = condition.allChoicesSelected.every(choiceId => isChoiceSelected(selectedChoiceIds, choiceId));
+        const allSelected = condition.allChoicesSelected.every(choiceId => selectedChoiceIdSet.has(choiceId));
         if (!allSelected) return false;
     }
 
@@ -157,10 +184,11 @@ export function resolveCyoaRowVisibility(
     rows: CyoaChoiceRowData[],
     selectedChoiceIds: CyoaRowSelections
 ): CyoaRowVisibility {
-    return Object.fromEntries(rows.map(row => [row.id, isRowVisible(row, selectedChoiceIds)]));
+    const selectedChoiceIdSet = createSelectedCyoaChoiceIdSet(selectedChoiceIds);
+    return Object.fromEntries(rows.map(row => [row.id, isRowVisible(row, selectedChoiceIdSet)]));
 }
 
-export function canContinueCyoa(
+export function canSubmitCyoaRegistration(
     rows: CyoaChoiceRowData[],
     selectedChoiceIds: CyoaRowSelections,
     inputValues: CyoaInputValues = {}
@@ -170,11 +198,11 @@ export function canContinueCyoa(
         .every(row => {
             // visibleWhen은 표시 여부만 제어한다. 숨겨진 행도 requiredCount가 있으면 진행을 막을 수 있다.
             if (row.input) {
-                return row.requiredCount <= INPUT_REQUIRED_COUNT
+                return row.requiredCount <= CYOA_SELECTION_POLICY.INPUT_REQUIRED_COUNT
                     && (inputValues[row.input.id]?.trim().length ?? 0) > 0;
             }
 
-            return (selectedChoiceIds[row.id]?.length ?? 0) >= row.requiredCount;
+            return getEffectiveRowSelectionIds(row, selectedChoiceIds).length >= row.requiredCount;
         });
 
     if (!requiredRowsComplete) return false;
@@ -189,7 +217,7 @@ export function getActiveCyoaSubChoiceGroups(
     selectedChoiceIds: CyoaRowSelections
 ): CyoaSubChoiceGroupData[] {
     return rows.flatMap(row => {
-        const selectedIds = selectedChoiceIds[row.id] ?? [];
+        const selectedIds = getEffectiveRowSelectionIds(row, selectedChoiceIds);
 
         return row.choices.flatMap(choice =>
             selectedIds.includes(choice.id) && choice.subChoiceGroup
@@ -222,18 +250,54 @@ export function toggleCyoaChoiceSelection(
 ): CyoaRowSelections {
     if ('selectable' in row && !row.selectable) return selectedChoiceIds;
 
-    const rowSelections = selectedChoiceIds[row.id] ?? [];
+    const lockedChoiceIds = getLockedChoiceIds(row);
+    if (lockedChoiceIds.includes(choiceId)) return selectedChoiceIds;
+
+    const rowSelections = getEffectiveRowSelectionIds(row, selectedChoiceIds);
     const isSelected = rowSelections.includes(choiceId);
+    const maxSelectedCount = 'maxSelectedCount' in row ? row.maxSelectedCount : undefined;
     const nextRowSelections = row.selectionMode === CYOA_SELECTION_MODES.MULTI
-        ? isSelected
-            ? rowSelections.filter(id => id !== choiceId)
-            : [...rowSelections, choiceId]
-        : isSelected
-            ? []
-            : [choiceId];
+        ? toggleMultiCyoaChoiceSelection(
+            rowSelections,
+            lockedChoiceIds,
+            choiceId,
+            isSelected,
+            maxSelectedCount
+        )
+        : lockedChoiceIds.length > 0
+            ? rowSelections
+            : isSelected
+                ? []
+                : [choiceId];
 
     return {
         ...selectedChoiceIds,
         [row.id]: nextRowSelections,
     };
+}
+
+function toggleMultiCyoaChoiceSelection(
+    rowSelections: string[],
+    lockedChoiceIds: readonly string[],
+    choiceId: string,
+    isSelected: boolean,
+    maxSelectedCount?: number
+): string[] {
+    if (isSelected) return rowSelections.filter(id => id !== choiceId);
+
+    const lockedChoiceIdSet = new Set(lockedChoiceIds);
+    const unlockedSelections = rowSelections.filter(id => !lockedChoiceIdSet.has(id));
+    if (maxSelectedCount === undefined) {
+        return [...rowSelections, choiceId];
+    }
+
+    const unlockedCapacity = Math.max(0, maxSelectedCount - lockedChoiceIds.length);
+    const nextUnlockedSelections = unlockedCapacity <= 0
+        ? []
+        : [
+            ...unlockedSelections.slice(Math.max(0, unlockedSelections.length - unlockedCapacity + 1)),
+            choiceId,
+        ];
+
+    return [...lockedChoiceIds, ...nextUnlockedSelections];
 }

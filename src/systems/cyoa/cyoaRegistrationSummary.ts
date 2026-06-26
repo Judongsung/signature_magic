@@ -1,10 +1,5 @@
-import type {
-    CyoaChoiceRowData,
-    CyoaInputValues,
-    CyoaRowSelections,
-    CyoaRowVisibility,
-} from '../../types/cyoa';
-import { CYOA_INPUT_ROLES } from '../../constants/gameConfigs';
+import type { CyoaChoiceRowData, CyoaInputValues, CyoaRowSelections, CyoaRowVisibility, } from '../../types/cyoa';
+import { CYOA_INPUT_ROLES } from '../../constants/cyoaConfigs';
 
 export interface CyoaRegistrationSummaryInputItem {
     id: string;

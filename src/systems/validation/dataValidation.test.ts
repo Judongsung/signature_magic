@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { CYOA_DIALOGUE_TEXT_VARIANTS } from '../../constants/cyoaConfigs';
 import {
-    CYOA_DIALOGUE_TEXT_VARIANTS,
     MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_CATEGORIES,
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
-} from '../../constants/gameConfigs';
+} from '../../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
     MAGIC_STAT_SCALING_OPERATIONS,
@@ -325,6 +325,112 @@ describe('dataValidation', () => {
         )).toEqual({ valid: true, errors: [] });
     });
 
+    it('validates CYOA locked choice selection policies', () => {
+        expect(validateCyoaRows([
+            {
+                id: 'region',
+                title: 'Region',
+                selectionMode: 'multi',
+                requiredCount: 1,
+                maxSelectedCount: 2,
+                lockedChoiceIds: ['region-empire-center'],
+                choices: [
+                    { id: 'region-empire-center', imageAlt: '', title: 'Empire Center' },
+                    { id: 'region-university-city', imageAlt: '', title: 'University City' },
+                ],
+            },
+        ], isKnownCyoaImagePath)).toEqual({ valid: true, errors: [] });
+    });
+
+    it('reports invalid CYOA locked choice selection policies', () => {
+        const validation = validateCyoaRows([
+            {
+                id: 'unknown-locked',
+                title: 'Unknown locked',
+                lockedChoiceIds: ['missing'],
+                choices: [{ id: 'known', imageAlt: '', title: 'Known' }],
+            },
+            {
+                id: 'duplicate-locked',
+                title: 'Duplicate locked',
+                selectionMode: 'multi',
+                maxSelectedCount: 3,
+                lockedChoiceIds: ['known', 'known'],
+                choices: [{ id: 'known', imageAlt: '', title: 'Known' }],
+            },
+            {
+                id: 'disabled-locked',
+                title: 'Disabled locked',
+                lockedChoiceIds: ['disabled'],
+                choices: [{ id: 'disabled', imageAlt: '', title: 'Disabled', disabled: true }],
+            },
+            {
+                id: 'bad-max',
+                title: 'Bad max',
+                maxSelectedCount: -1,
+                choices: [{ id: 'known', imageAlt: '', title: 'Known' }],
+            },
+            {
+                id: 'required-over-max',
+                title: 'Required over max',
+                selectionMode: 'multi',
+                requiredCount: 2,
+                maxSelectedCount: 1,
+                choices: [
+                    { id: 'a', imageAlt: '', title: 'A' },
+                    { id: 'b', imageAlt: '', title: 'B' },
+                ],
+            },
+            {
+                id: 'locked-over-max',
+                title: 'Locked over max',
+                selectionMode: 'multi',
+                maxSelectedCount: 1,
+                lockedChoiceIds: ['a', 'b'],
+                choices: [
+                    { id: 'a', imageAlt: '', title: 'A' },
+                    { id: 'b', imageAlt: '', title: 'B' },
+                ],
+            },
+            {
+                id: 'single-over-max',
+                title: 'Single over max',
+                selectionMode: 'single',
+                maxSelectedCount: 2,
+                choices: [
+                    { id: 'a', imageAlt: '', title: 'A' },
+                    { id: 'b', imageAlt: '', title: 'B' },
+                ],
+            },
+            {
+                id: 'bad-locked-shape',
+                title: 'Bad locked shape',
+                requiredCount: 0,
+                lockedChoiceIds: {},
+                choices: [],
+            },
+            {
+                id: 'bad-locked-id',
+                title: 'Bad locked id',
+                requiredCount: 0,
+                lockedChoiceIds: [123],
+                choices: [],
+            },
+        ] as unknown as CyoaChoiceRowConfig[], isKnownCyoaImagePath);
+
+        expect(validation.errors).toEqual(expect.arrayContaining([
+            'Unknown CYOA locked choice: unknown-locked -> missing',
+            'Duplicate CYOA locked choice id: duplicate-locked -> known',
+            'Invalid disabled CYOA locked choice: disabled-locked -> disabled',
+            'Invalid CYOA max selected count: bad-max -> -1',
+            'Invalid CYOA required count exceeds max selected count: required-over-max -> 2',
+            'Invalid CYOA locked choice count exceeds max selected count: locked-over-max -> 2',
+            'Invalid CYOA single-select max selected count: single-over-max -> 2',
+            'Invalid CYOA locked choice ids: bad-locked-shape',
+            'Invalid CYOA locked choice id: bad-locked-id -> 0',
+        ]));
+    });
+
     it('reports invalid nested CYOA choice groups', () => {
         const validation = validateCyoaRows([
             {
@@ -511,6 +617,21 @@ describe('dataValidation', () => {
                 'Unknown CYOA stat effect key: open-missing -> 2 -> unknown',
                 'Invalid CYOA stat effect value: open-missing -> 3 -> power',
             ],
+        });
+    });
+
+    it('reports invalid CYOA row NPC description', () => {
+        expect(validateCyoaRows(
+            [{
+                id: 'region',
+                title: 'Region',
+                npcDescription: 123,
+                choices: [],
+            }] as unknown as CyoaChoiceRowConfig[],
+            isKnownCyoaImagePath
+        )).toEqual({
+            valid: false,
+            errors: ['Invalid CYOA row NPC description: region'],
         });
     });
 

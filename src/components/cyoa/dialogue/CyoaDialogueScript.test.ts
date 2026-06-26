@@ -1,6 +1,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import { CYOA_DIALOGUE_TEXT_VARIANTS } from '../../../constants/gameConfigs';
+import { CYOA_DIALOGUE_TEXT_VARIANTS } from '../../../constants/cyoaConfigs';
 import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
 import { mapCyoaDialogueScripts } from '../../../systems/cyoa/cyoaDialogueScripts';
 import { resolveCyoaImagePath } from '../../../systems/cyoa/cyoaImageRegistry';

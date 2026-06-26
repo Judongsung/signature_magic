@@ -86,7 +86,7 @@
         "choices": [
             {
                 "id": "gender-male",
-                "imagePath": "../assets/images/temp.webp",
+                "imagePath": "../assets/images/gender/male.webp",
                 "imageAlt": "남성",
                 "title": "남성",
                 "description": "",
@@ -94,7 +94,7 @@
             },
             {
                 "id": "gender-female",
-                "imagePath": "../assets/images/temp.webp",
+                "imagePath": "../assets/images/gender/female.webp",
                 "imageAlt": "여성",
                 "title": "여성",
                 "description": "",
@@ -208,7 +208,7 @@
             },
             {
                 "id": "affiliation-adventurer-guild",
-                "imagePath": "../assets/images/temp.webp",
+                "imagePath": "../assets/images/affiliation/advguild.jpg",
                 "imageAlt": "모험가 길드",
                 "title": "모험가 길드",
                 "description": "모험가 길드에서 토벌, 호위, 탐사 등의 의뢰를 수행한다. 길드를 통해 일거리와 동료를 구하고, 현장에 필요한 정보와 지원을 받을 수 있다. 많은 지역에서 모험가 길드는 마법사 길드와 업무 협약을 맺어 긴밀하게 협력한다.",
@@ -263,19 +263,11 @@
                 "width": "1/3"
             },
             {
-                "id": "class-battlemage",
-                "statEffects": [
-                    {
-                        "phase": "node",
-                        "operation": "multiply",
-                        "stat": "castingTime",
-                        "value": 0.9
-                    }
-                ],
-                "imagePath": "../assets/images/class/battlemage.webp",
-                "imageAlt": "전투 마법사",
-                "title": "전투 마법사",
-                "description": "대인 전투를 업으로 삼는 마법사이다. 빠른 시전 속도와 허를 찌르는 전술로 상대의 빈틈을 노리며, 더 높은 경지의 마법사라도 이들을 상대로 승리를 장담할 수 없다.\n\n마법의 시전 시간이 감소한다.",
+                "id": "class-priest",
+                "imagePath": "../assets/images/class/priest.webp",
+                "imageAlt": "사제",
+                "title": "사제",
+                "description": "자신이 받드는 신격의 계율을 따르며 종교적 제례를 집전하는 성직자이다. 학술적인 계산 대신 철저한 믿음과 교리를 매개로 마력을 순환시키며, 교단의 이념과 가르침을 세상에 전파하는 대행자이다.",
                 "width": "1/3"
             },
             {
@@ -307,11 +299,19 @@
                 "width": "1/3"
             },
             {
-                "id": "class-priest",
-                "imagePath": "../assets/images/class/priest.webp",
-                "imageAlt": "사제",
-                "title": "사제",
-                "description": "자신이 받드는 신격의 계율을 따르며 종교적 제례를 집전하는 성직자이다. 학술적인 계산 대신 철저한 믿음과 교리를 매개로 마력을 순환시키며, 교단의 이념과 가르침을 세상에 전파하는 대행자이다.",
+                "id": "class-battlemage",
+                "statEffects": [
+                    {
+                        "phase": "node",
+                        "operation": "multiply",
+                        "stat": "castingTime",
+                        "value": 0.9
+                    }
+                ],
+                "imagePath": "../assets/images/class/battlemage.webp",
+                "imageAlt": "전투 마법사",
+                "title": "전투 마법사",
+                "description": "대인 전투를 업으로 삼는 마법사이다. 빠른 시전 속도와 허를 찌르는 전술로 상대의 빈틈을 노리며, 더 높은 경지의 마법사라도 이들을 상대로 승리를 장담할 수 없다.\n\n마법의 시전 시간이 감소한다.",
                 "width": "1/3"
             },
             {
@@ -323,19 +323,19 @@
                 "width": "1/3"
             },
             {
-                "id": "class-merchant-craftsman",
-                "imagePath": "../assets/images/class/merchant.webp",
-                "imageAlt": "상공인",
-                "title": "상공인",
-                "description": "개인 상점이나 공방을 운영하는 사업주부터 농업, 광업, 제조업 등 다양한 생업 현장에서 땀 흘리는 노동자까지 아우르는 이들이다. 거창한 학술적 계산이나 전투용 술식 대신, 각자의 산업 분야에서 작업의 효율을 높이고 생산성을 극대화하기 위해 실용적인 마법과 기술을 활용한다.",
-                "width": "1/3"
-            },
-            {
                 "id": "class-alchemist",
                 "imagePath": "../assets/images/class/alchemist.webp",
                 "imageAlt": "연금술사",
                 "title": "연금술사",
                 "description": "다양한 천연 재료를 분석하여 마법적인 촉매와 시약을 정제해내는 이들이다. 시전자가 까다로운 마력 조율 과정을 줄이고 술식을 더 안정적으로 이끌어낼 수 있도록 우수한 약제를 가공하며, 이들의 비약과 결과물은 전장과 일상 속에서 폭넓게 활용된다.",
+                "width": "1/3"
+            },
+            {
+                "id": "class-merchant-craftsman",
+                "imagePath": "../assets/images/class/merchant.webp",
+                "imageAlt": "상공인",
+                "title": "상공인",
+                "description": "개인 상점이나 공방을 운영하는 사업주부터 농업, 광업, 제조업 등 다양한 생업 현장에서 땀 흘리는 노동자까지 아우르는 이들이다. 거창한 학술적 계산이나 전투용 술식 대신, 각자의 산업 분야에서 작업의 효율을 높이고 생산성을 극대화하기 위해 실용적인 마법과 기술을 활용한다.",
                 "width": "1/3"
             }
         ],
@@ -344,7 +344,13 @@
     {
         "id": "region",
         "title": "활동지",
-        "description": "활동지를 적어주시면 그 지역 마법사 길드에 정보가 공유되어서 행정 처리가 빨라질거에요.",
+        "npcDescription": "다음 행선지를 적어주시면 그 지역 마법사 길드에 정보가 공유되어서 행정 처리가 빨라질거에요.",
+        "selectionMode": "multi",
+        "requiredCount": 1,
+        "maxSelectedCount": 2,
+        "lockedChoiceIds": [
+            "region-empire-center"
+        ],
         "choices": [
             {
                 "id": "region-empire-center",
@@ -367,7 +373,7 @@
                 "imagePath": "../assets/images/region/east.webp",
                 "imageAlt": "동부의 건조한 사막",
                 "title": "동부 사막",
-                "description": "고대 유적과 메마른 마력이 잠든 척박한 황무지이다. 동대륙과 서대륙을 잇는 오랜 관문으로 두 대륙의 마법 문화가 뒤섞여 발전한 역사적 교역지이다. 특히 사막 밑에는 과거 번성했던 신비 시대 마법사들의 이국적인 공방 유적들이 고스란히 파묻혀 있다.\n\n모래바람을 뚫고 이 파묻힌 공방들을 발굴하여 고대의 융합 술식과 촉매를 손에 넣으려는 학자들과 모험가들의 발길이 끊이지 않는다.",
+                "description": "고대 유적과 메마른 마력이 잠든 척박한 황무지이다. 동대륙과 서대륙을 잇는 오랜 관문으로 두 대륙의 마법 문화가 뒤섞여 발전한 역사적 교역지이다. 특히 사막 밑에는 고대 신비 시대 마법사들의 불가해한 공방 유적들이 고스란히 파묻혀 있다.\n\n모래바람을 뚫고 이 파묻힌 공방들을 발굴하여 고대의 마법 지식과 촉매를 손에 넣으려는 학자들과 모험가들의 발길이 끊이지 않는다.",
                 "width": "1/3"
             },
             {
@@ -375,7 +381,7 @@
                 "imagePath": "../assets/images/region/snowland.webp",
                 "imageAlt": "대륙 북부 설원",
                 "title": "북부 설원",
-                "description": "사시사철 눈이 덮인 척박한 설원이다. 대전쟁에서 패한 마족이 너머에 은거하며 한때 대륙을 지키는 명예로운 최전방이었으나, 세월이 흘러 위협은 잊히고 지원마저 끊겨 방치되었다. 가혹한 고립 속에서 이곳의 마법사들은 오직 생존을 위한 힘과 극단의 효율만을 연마했다.\n\n침묵과 한기만이 감도는 경계에서, 오직 생존을 위해 단련된 매섭고 혹독한 실전 마법의 정수가 살아 숨 쉰다.",
+                "description": "사시사철 눈이 덮인 척박한 설원이다. 대전쟁에서 패한 마족이 너머에 은거하며 한때 대륙을 지키는 명예로운 최전방이었으나, 세월이 흘러 위협은 잊히고 지원마저 끊겨 방치되었다. 그럼에도 이곳의 전사들은 여전히 대륙의 평화를 수호한다는 자부심을 품고 있다. \n\n가혹한 고립, 침묵과 한기만이 감도는 경계 속에서 이곳의 마법사들은 오로지 생존을 위한 힘과 극단의 효율만을 연마하여 매섭고 혹독한 실전 마법의 정수가 살아 숨쉰다.",
                 "width": "1/3"
             },
             {
@@ -399,11 +405,10 @@
                 "imagePath": "../assets/images/region/holy.webp",
                 "imageAlt": "성도 라우티나스",
                 "title": "성도 라우티나스",
-                "description": "대륙 남서쪽에 위치한, 여신 라우티나를 섬기는 라우티나 성교회의 총본산이자 성스러운 신앙의 도시이다. 과거 대전쟁에서 마왕을 타도한 용사와 성녀를 배출하여 대륙의 구심점이 되었던 영광스러운 역사를 지녔다. 영웅들이 남긴 기적의 자취를 보존하고 여신의 은총을 기리기 위해, 오늘날까지 기도와 찬송으로 술식을 발현시키는 독특한 의식 마법의 전통을 수호하고 있다.\n\n대성당들의 웅장한 대리석 벽면마다 위대한 용사 일행의 역사적 성업이 조각되어 있으며, 규율에 따라 고도로 정제된 신성 마법이 상시 흐르는 성역이다.",
+                "description": "대륙 남서쪽에 위치한, 여신 라우티나를 섬기는 라우티나 성교회의 총본산이자 성스러운 신앙의 도시이다. 과거 대전쟁에서 마왕을 타도한 용사와 성녀를 배출하여 대륙의 구심점이 되었던 영광스러운 역사를 지녔다. 영웅들이 남긴 기적의 자취를 보존하고 여신의 은총을 기리기 위해, 오늘날까지 기도와 찬송으로 술식을 발현시키는 독특한 의식 마법의 전통을 수호하고 있다.\n\n도시 곳곳에서 축복을 내리는 여신의 모습과 용사 일행의 위업을 묘사한 조각과 형형색색의 유리벽면을 쉽게 찾아볼 수 있다.",
                 "width": "1/3"
             }
-        ],
-        "requiredCount": 1
+        ]
     },
     {
         "id": "catalyst",

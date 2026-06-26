@@ -1,3 +1,4 @@
+import { CYOA_SELECTION_MODES } from '../../constants/cyoaConfigs';
 import type {
     CyoaDialogueOptionConfig,
     CyoaDialogueOptionData,
@@ -6,7 +7,6 @@ import type {
     CyoaDialogueScriptConfig,
     CyoaDialogueScriptData,
 } from '../../types/cyoa';
-import { CYOA_SELECTION_MODES } from '../../constants/gameConfigs';
 import { getCyoaDialogueLineText } from './cyoaDialogueText';
 
 const DEFAULT_DIALOGUE_LAYOUT_COLUMNS = 3;
@@ -55,6 +55,7 @@ function mapCyoaDialogueOptionRowConfig(
         visible: row.visible ?? true,
         selectable: true,
         requiredCount: 0,
+        lockedChoiceIds: [],
         visibleWhen: row.visibleWhen,
         resultWhen: row.resultWhen,
         selectionMode: row.selectionMode ?? CYOA_SELECTION_MODES.SINGLE,

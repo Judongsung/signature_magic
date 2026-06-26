@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { APP_PHASES } from './constants/gameConfigs';
+import { APP_PHASES } from './constants/appPhaseConfigs';
 import {
     APP_PHASE_NAVIGATION_TEXT,
     NODE_COMPOSITION_SIGNATURE_TEXT,

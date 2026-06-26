@@ -2,11 +2,7 @@
     import luarnChibiImageSrc from '../../../assets/images/luarn_chibi.png';
     import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../../constants/uiText';
     import type { MagicSignatureMetadata } from '../../../types/magic';
-    import {
-        activateDialogFocus,
-        closeDialogOnEscape,
-        trapDialogFocus,
-    } from '../../shared/dialogFocus';
+    import { dialogFocus } from '../../shared/dialogFocus';
     import CharacterSpeechBubble from '../../shared/CharacterSpeechBubble.svelte';
 
     const dialogId = $props.id();
@@ -24,24 +20,9 @@
         onClose: () => void;
     } = $props();
 
-    let dialogElement: HTMLElement;
     let signatureName = $state('');
     let signatureDescription = $state('');
     const canSubmit = $derived(signatureName.trim().length > 0);
-
-    $effect(() => {
-        if (!dialogElement) return;
-
-        return activateDialogFocus(dialogElement);
-    });
-
-    function handleWindowKeydown(event: KeyboardEvent) {
-        closeDialogOnEscape(event, onClose);
-    }
-
-    function handleDialogKeydown(event: KeyboardEvent) {
-        trapDialogFocus(event, dialogElement);
-    }
 
     function submitSignature(event: SubmitEvent) {
         event.preventDefault();
@@ -53,8 +34,6 @@
         });
     }
 </script>
-
-<svelte:window onkeydown={handleWindowKeydown} />
 
 <div class="signature-dialog-overlay">
     <button
@@ -71,8 +50,7 @@
         aria-labelledby={dialogTitleId}
         aria-describedby={dialogDescriptionId}
         tabindex="-1"
-        bind:this={dialogElement}
-        onkeydown={handleDialogKeydown}
+        use:dialogFocus={{ onClose }}
     >
         <div class="signature-dialog-speech signature-dialog-speech-top">
             <CharacterSpeechBubble
@@ -216,8 +194,7 @@
         overflow-y: auto;
         border: 1px solid var(--guild-surface-border-subtle);
         border-radius: 8px;
-        background:
-            linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(246, 239, 225, 0.98));
+        background: var(--guild-surface-dialog-bg);
         box-shadow:
             0 18px 44px rgba(86, 61, 35, 0.18),
             inset 0 1px 0 rgba(255, 255, 255, 0.72);
@@ -234,14 +211,13 @@
         display: flex;
         align-items: flex-start;
         padding: 18px 20px 16px;
-        border-bottom: 1px solid rgba(103, 77, 48, 0.16);
-        background:
-            linear-gradient(180deg, rgba(255, 253, 247, 0.82), rgba(246, 239, 225, 0.68));
+        border-bottom: 1px solid var(--guild-surface-border-faint);
+        background: var(--guild-surface-dialog-header-bg);
     }
 
     .signature-dialog-eyebrow {
         margin: 0 0 5px;
-        color: #7d4d2d;
+        color: var(--guild-text-eyebrow);
         font-family: var(--font-title);
         font-size: 10px;
         font-weight: 800;

@@ -1,10 +1,4 @@
-import type {
-    CyoaChoiceImagePlacement,
-    CyoaChoiceImageSize,
-    CyoaDialogueTextVariant,
-    CyoaInputRole,
-    CyoaSelectionMode,
-} from '../constants/gameConfigs';
+import type { CyoaChoiceImagePlacement, CyoaChoiceImageSize, CyoaDialogueTextVariant, CyoaInputRole, CyoaSelectionMode } from '../constants/cyoaConfigs';
 import type { MagicStatEffectConfig, MagicStatKey, MagicStats } from './magic';
 
 export interface CyoaRowVisibilityCondition {
@@ -21,9 +15,8 @@ export interface CyoaTextInputConfig {
     defaultValue?: string;
 }
 
-export interface CyoaChoiceBaseConfig {
+export interface CyoaChoiceCommon {
     id: string;
-    imagePath?: string;
     imageAlt: string;
     imageSize?: CyoaChoiceImageSize;
     imagePlacement?: CyoaChoiceImagePlacement;
@@ -35,70 +28,68 @@ export interface CyoaChoiceBaseConfig {
     statEffects?: MagicStatEffectConfig[];
 }
 
+export interface CyoaChoiceBaseConfig extends CyoaChoiceCommon {
+    imagePath?: string;
+}
+
 export type CyoaSubChoiceConfig = CyoaChoiceBaseConfig;
 
-export interface CyoaSubChoiceGroupConfig {
+export interface CyoaSubChoiceGroupCommon<TChoice> {
     id: string;
     title: string;
+    choices: TChoice[];
+}
+
+export interface CyoaSubChoiceGroupConfig extends CyoaSubChoiceGroupCommon<CyoaSubChoiceConfig> {
     requiredCount?: number;
     selectionMode?: CyoaSelectionMode;
-    choices: CyoaSubChoiceConfig[];
 }
 
 export interface CyoaChoiceConfig extends CyoaChoiceBaseConfig {
     subChoiceGroup?: CyoaSubChoiceGroupConfig;
 }
 
-export interface CyoaChoiceRowConfig {
+export interface CyoaChoiceRowCommon {
     id: string;
     title: string;
     description?: string;
+    npcDescription?: string;
+    visibleWhen?: CyoaRowVisibilityCondition;
+}
+
+export interface CyoaChoiceRowConfig extends CyoaChoiceRowCommon {
     visible?: boolean;
     selectable?: boolean;
     requiredCount?: number;
-    visibleWhen?: CyoaRowVisibilityCondition;
+    maxSelectedCount?: number;
+    lockedChoiceIds?: string[];
     selectionMode?: CyoaSelectionMode;
     input?: CyoaTextInputConfig;
     choices?: CyoaChoiceConfig[];
 }
 
-export interface CyoaChoiceBase {
-    id: string;
+export interface CyoaChoiceBase extends CyoaChoiceCommon {
     imageSrc?: string;
-    imageAlt: string;
-    imageSize?: CyoaChoiceImageSize;
-    imagePlacement?: CyoaChoiceImagePlacement;
-    title: string;
-    description?: string;
-    tooltip?: string;
-    width?: string;
     layoutSpan?: number;
-    disabled?: boolean;
-    statEffects?: MagicStatEffectConfig[];
 }
 
 export type CyoaSubChoice = CyoaChoiceBase;
 
-export interface CyoaSubChoiceGroupData {
-    id: string;
-    title: string;
+export interface CyoaSubChoiceGroupData extends CyoaSubChoiceGroupCommon<CyoaSubChoice> {
     requiredCount: number;
     selectionMode: CyoaSelectionMode;
-    choices: CyoaSubChoice[];
 }
 
 export interface CyoaChoice extends CyoaChoiceBase {
     subChoiceGroup?: CyoaSubChoiceGroupData;
 }
 
-export interface CyoaChoiceRowData {
-    id: string;
-    title: string;
-    description?: string;
+export interface CyoaChoiceRowData extends CyoaChoiceRowCommon {
     visible: boolean;
     selectable: boolean;
     requiredCount: number;
-    visibleWhen?: CyoaRowVisibilityCondition;
+    maxSelectedCount?: number;
+    lockedChoiceIds?: string[];
     selectionMode: CyoaSelectionMode;
     layoutColumns: number;
     input?: CyoaTextInputConfig;
@@ -148,15 +139,18 @@ export interface CyoaDialogueOptionRowConfig extends Pick<
     options: CyoaDialogueOptionConfig[];
 }
 
-export interface CyoaDialogueScriptConfig {
+export interface CyoaDialogueScriptCommon {
     id: string;
     title: string;
     npcName: string;
     npcTitle: string;
-    imagePath?: string;
     imageAlt: string;
     defaultNpcLine: CyoaDialogueLine;
     resultLines?: CyoaDialogueResultLineConfig[];
+}
+
+export interface CyoaDialogueScriptConfig extends CyoaDialogueScriptCommon {
+    imagePath?: string;
     options?: CyoaDialogueOptionConfig[];
     optionRows?: CyoaDialogueOptionRowConfig[];
 }
@@ -171,7 +165,7 @@ export interface CyoaDialogueOptionRowData extends CyoaChoiceRowData {
     options: CyoaDialogueOptionData[];
 }
 
-export interface CyoaDialogueScriptData extends Omit<CyoaDialogueScriptConfig, 'imagePath' | 'options' | 'optionRows'> {
+export interface CyoaDialogueScriptData extends CyoaDialogueScriptCommon {
     imageSrc?: string;
     options: CyoaDialogueOptionData[];
     optionRows: CyoaDialogueOptionRowData[];
