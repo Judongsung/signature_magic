@@ -34,7 +34,7 @@ describe('AppPhaseNavigationBar', () => {
         });
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
-        expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
+        expect(html).not.toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.CYOA]);
         expect(html).toContain('disabled');
         expect(html).toContain('app-phase-next-disabled-tooltip');
@@ -54,7 +54,7 @@ describe('AppPhaseNavigationBar', () => {
         });
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
-        expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
+        expect(html).not.toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.CYOA]);
         expect(html).not.toContain('disabled');
         expect(html).not.toContain('app-phase-next-disabled-tooltip');
@@ -66,7 +66,7 @@ describe('AppPhaseNavigationBar', () => {
         const { html } = render(AppPhaseNavigationBar);
 
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
-        expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
+        expect(html).not.toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]);
         expect(html).toContain('disabled');
         expect(html).toContain(UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP);
@@ -88,7 +88,7 @@ describe('AppPhaseNavigationBar', () => {
         expect(html).not.toContain(UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP);
     });
 
-    it('renders only the previous tab on the final phase', () => {
+    it('renders the registration review and previous tabs on the final phase', () => {
         appStore.setPhase(APP_PHASES.NODE_RESULT_DIALOGUE);
 
         const { html } = render(AppPhaseNavigationBar);

@@ -117,8 +117,8 @@ describe('AppPhaseNavigationBar interaction', () => {
     });
 
     it('opens review-only dialog and closes it from the internal close action', async () => {
-        appStore.setPhase(APP_PHASES.CYOA);
-        const target = mountTabs({ canSubmitRegistration: false });
+        appStore.setPhase(APP_PHASES.NODE_RESULT_DIALOGUE);
+        const target = mountTabs();
         await tick();
 
         getButtonByText(target, UI_BUTTON_TEXT.REVIEW_REGISTRATION).click();
@@ -135,7 +135,21 @@ describe('AppPhaseNavigationBar interaction', () => {
         await tick();
 
         expect(queryDialogElement(target)).toBeNull();
-        expect(appStore.phase).toBe(APP_PHASES.CYOA);
+        expect(appStore.phase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
+    });
+
+    it('hides registration review after returning from the final phase', async () => {
+        appStore.setPhase(APP_PHASES.NODE_RESULT_DIALOGUE);
+        const target = mountTabs();
+        await tick();
+
+        expect(target.textContent).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
+
+        getButtonByText(target, APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL).click();
+        await tick();
+
+        expect(appStore.phase).toBe(APP_PHASES.NODE_COMPOSITION);
+        expect(target.textContent).not.toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
     });
 
     it('lets node composition next navigation be handled by an external transition', async () => {

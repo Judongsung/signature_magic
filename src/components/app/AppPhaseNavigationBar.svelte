@@ -11,7 +11,6 @@
         APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS,
         APP_PHASE_NAVIGATION_NEXT_ACTIONS,
         resolveAppPhaseNavigationPolicy,
-        resolveRegistrationReviewAccess,
     } from '../../systems/app/appPhaseNavigationPolicy';
     import type { DirectAppPhaseTransitionRequest } from '../../systems/app/appPhaseTransition';
     import RegistrationResultDetails from '../registration/RegistrationResultDetails.svelte';
@@ -39,25 +38,15 @@
     } = $props();
 
     let registrationDialogMode = $state<RegistrationDialogMode | undefined>();
-    let hasEnteredRegistrationReviewPhase = $state(
-        resolveRegistrationReviewAccess(appStore.phase, false)
-    );
 
     const navigationPolicy = $derived(resolveAppPhaseNavigationPolicy({
         phase: appStore.phase,
         canSubmitRegistration,
         canCompleteNodeComposition,
-        hasEnteredRegistrationReviewPhase,
     }));
     const nextLabel = $derived(
         navigationPolicy.nextPhase ? nextPhaseLabels[appStore.phase] : undefined
     );
-
-    $effect(() => {
-        if (resolveRegistrationReviewAccess(appStore.phase, false)) {
-            hasEnteredRegistrationReviewPhase = true;
-        }
-    });
 
     function moveToPreviousPhase() {
         appStore.moveToPreviousPhase();

@@ -6,7 +6,6 @@ import {
     APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS,
     APP_PHASE_NAVIGATION_NEXT_ACTIONS,
     resolveAppPhaseNavigationPolicy,
-    resolveRegistrationReviewAccess,
 } from './appPhaseNavigationPolicy';
 
 describe('appPhaseNavigation', () => {
@@ -28,11 +27,26 @@ describe('appPhaseNavigation', () => {
 });
 
 describe('appPhaseNavigationPolicy', () => {
-    it('opens registration review after entering the registration review phase', () => {
-        expect(resolveRegistrationReviewAccess(APP_PHASES.INTRO_DIALOGUE, false)).toBe(false);
-        expect(resolveRegistrationReviewAccess(APP_PHASES.CYOA, false)).toBe(true);
-        expect(resolveRegistrationReviewAccess(APP_PHASES.NODE_COMPOSITION, false)).toBe(true);
-        expect(resolveRegistrationReviewAccess(APP_PHASES.INTRO_DIALOGUE, true)).toBe(true);
+    it('exposes registration review only on the final phase', () => {
+        const cyoaPolicy = resolveAppPhaseNavigationPolicy({
+            phase: APP_PHASES.CYOA,
+            canSubmitRegistration: true,
+            canCompleteNodeComposition: false,
+        });
+        const nodeCompositionPolicy = resolveAppPhaseNavigationPolicy({
+            phase: APP_PHASES.NODE_COMPOSITION,
+            canSubmitRegistration: true,
+            canCompleteNodeComposition: true,
+        });
+        const finalPolicy = resolveAppPhaseNavigationPolicy({
+            phase: APP_PHASES.NODE_RESULT_DIALOGUE,
+            canSubmitRegistration: true,
+            canCompleteNodeComposition: true,
+        });
+
+        expect(cyoaPolicy.canReviewRegistration).toBe(false);
+        expect(nodeCompositionPolicy.canReviewRegistration).toBe(false);
+        expect(finalPolicy.canReviewRegistration).toBe(true);
     });
 
     it('disables the registration submit next action until registration can be submitted', () => {
@@ -40,12 +54,11 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.CYOA,
             canSubmitRegistration: false,
             canCompleteNodeComposition: false,
-            hasEnteredRegistrationReviewPhase: true,
         });
 
         expect(policy.previousPhase).toBe(APP_PHASES.INTRO_DIALOGUE);
         expect(policy.nextPhase).toBe(APP_PHASES.NODE_INTRO_DIALOGUE);
-        expect(policy.canReviewRegistration).toBe(true);
+        expect(policy.canReviewRegistration).toBe(false);
         expect(policy.isNextDisabled).toBe(true);
         expect(policy.nextDisabledFeedback).toEqual({
             message: UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP,
@@ -60,7 +73,6 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.CYOA,
             canSubmitRegistration: true,
             canCompleteNodeComposition: false,
-            hasEnteredRegistrationReviewPhase: true,
         });
 
         expect(policy.isNextDisabled).toBe(false);
@@ -75,7 +87,6 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.NODE_COMPOSITION,
             canSubmitRegistration: false,
             canCompleteNodeComposition: false,
-            hasEnteredRegistrationReviewPhase: true,
         });
 
         expect(policy.nextPhase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
@@ -92,7 +103,6 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.NODE_COMPOSITION,
             canSubmitRegistration: false,
             canCompleteNodeComposition: true,
-            hasEnteredRegistrationReviewPhase: true,
         });
 
         expect(policy.nextPhase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
@@ -106,10 +116,10 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.NODE_RESULT_DIALOGUE,
             canSubmitRegistration: true,
             canCompleteNodeComposition: false,
-            hasEnteredRegistrationReviewPhase: true,
         });
 
         expect(policy.nextPhase).toBeUndefined();
+        expect(policy.canReviewRegistration).toBe(true);
         expect(policy.nextAction).toBeUndefined();
         expect(policy.shouldRenderNavigation).toBe(true);
     });

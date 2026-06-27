@@ -1,5 +1,4 @@
 import {
-    APP_PHASE_ORDER,
     APP_PHASES,
     type AppPhase,
 } from '../../constants/appPhaseConfigs';
@@ -31,7 +30,6 @@ export interface AppPhaseNavigationPolicyInput {
     phase: AppPhase;
     canSubmitRegistration: boolean;
     canCompleteNodeComposition: boolean;
-    hasEnteredRegistrationReviewPhase: boolean;
 }
 
 export interface AppPhaseNavigationPolicy {
@@ -44,7 +42,6 @@ export interface AppPhaseNavigationPolicy {
     shouldRenderNavigation: boolean;
 }
 
-const FIRST_REGISTRATION_REVIEW_PHASE_INDEX = APP_PHASE_ORDER.indexOf(APP_PHASES.CYOA);
 type NextDisabledFeedbackResolver = (
     input: AppPhaseNavigationPolicyInput
 ) => AppPhaseNavigationDisabledFeedback | undefined;
@@ -66,25 +63,10 @@ const NEXT_DISABLED_FEEDBACK_RESOLVERS: Partial<Record<AppPhase, NextDisabledFee
             },
 };
 
-export function isRegistrationReviewPhase(phase: AppPhase): boolean {
-    const phaseIndex = APP_PHASE_ORDER.indexOf(phase);
-
-    return FIRST_REGISTRATION_REVIEW_PHASE_INDEX >= 0
-        && phaseIndex >= FIRST_REGISTRATION_REVIEW_PHASE_INDEX;
-}
-
-export function resolveRegistrationReviewAccess(
-    phase: AppPhase,
-    hasEnteredRegistrationReviewPhase: boolean
-): boolean {
-    return hasEnteredRegistrationReviewPhase || isRegistrationReviewPhase(phase);
-}
-
 export function resolveAppPhaseNavigationPolicy({
     phase,
     canSubmitRegistration,
     canCompleteNodeComposition,
-    hasEnteredRegistrationReviewPhase,
 }: AppPhaseNavigationPolicyInput): AppPhaseNavigationPolicy {
     const previousPhase = getPreviousAppPhase(phase);
     const nextPhase = getNextAppPhase(phase);
@@ -93,14 +75,10 @@ export function resolveAppPhaseNavigationPolicy({
         phase,
         canSubmitRegistration,
         canCompleteNodeComposition,
-        hasEnteredRegistrationReviewPhase,
     };
     const nextDisabledFeedback = NEXT_DISABLED_FEEDBACK_RESOLVERS[phase]?.(input);
     const isNextDisabled = nextDisabledFeedback !== undefined;
-    const canReviewRegistration = resolveRegistrationReviewAccess(
-        phase,
-        hasEnteredRegistrationReviewPhase
-    );
+    const canReviewRegistration = phase === APP_PHASES.NODE_RESULT_DIALOGUE;
 
     const nextAction = resolveNextAction(isRegistrationSubmitPhase, isNextDisabled, nextPhase);
 
