@@ -1,5 +1,9 @@
 <script lang="ts">
-    import { MAGIC_NODE_CATEGORIES, type MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
+    import {
+        MAGIC_EDITOR_GUIDE_PATH,
+        MAGIC_NODE_CATEGORIES,
+        type MagicNodeCategory,
+    } from '../../../constants/nodeEditorConfigs';
     import {
         MAGIC_NODE_CATEGORY_LABELS,
         NODE_EDITOR_TEXT,
@@ -11,6 +15,11 @@
     } from '../../../types/magic';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
+
+    const toolbarId = $props.id();
+    const presetTooltipId = `${toolbarId}-preset-tooltip`;
+    const clearTooltipId = `${toolbarId}-clear-tooltip`;
+    const guideTooltipId = `${toolbarId}-guide-tooltip`;
 
     let {
         activeCategoryIds,
@@ -78,22 +87,50 @@
     <div class="toolbar-divider"></div>
 
     <button
-        class="node-editor-action-btn node-editor-action-btn--primary action-btn"
+        class="node-editor-action-btn node-editor-action-btn--primary action-btn tooltip-host action-tooltip-host"
         type="button"
+        aria-describedby={presetTooltipId}
         onclick={onOpenPresetDialog}
     >
         {NODE_EDITOR_TEXT.PRESET_OPEN}
+        <DescriptionTooltip
+            id={presetTooltipId}
+            description={NODE_EDITOR_TEXT.PRESET_OPEN_TOOLTIP}
+            placement="bottom"
+        />
     </button>
 
     <div class="toolbar-divider"></div>
 
     <button
-        class="node-editor-action-btn node-editor-action-btn--danger action-btn"
+        class="node-editor-action-btn node-editor-action-btn--danger action-btn tooltip-host action-tooltip-host"
         type="button"
+        aria-describedby={clearTooltipId}
         onclick={onClear}
     >
         {NODE_EDITOR_TEXT.CLEAR_ALL}
+        <DescriptionTooltip
+            id={clearTooltipId}
+            description={NODE_EDITOR_TEXT.CLEAR_ALL_TOOLTIP}
+            placement="bottom"
+        />
     </button>
+
+    <a
+        class="node-editor-action-btn node-editor-action-btn--secondary action-btn guide-link tooltip-host action-tooltip-host"
+        href={MAGIC_EDITOR_GUIDE_PATH}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={NODE_EDITOR_TEXT.GUIDE_OPEN_ARIA_LABEL}
+        aria-describedby={guideTooltipId}
+    >
+        {NODE_EDITOR_TEXT.GUIDE_OPEN}
+        <DescriptionTooltip
+            id={guideTooltipId}
+            description={NODE_EDITOR_TEXT.GUIDE_OPEN_TOOLTIP}
+            placement="bottom"
+        />
+    </a>
 
     <div class="toolbar-hint">
         {NODE_EDITOR_TEXT.TOOLBAR_HINT}
@@ -230,6 +267,18 @@
     .action-btn {
         padding: 6px 13px;
         font-weight: 600;
+    }
+
+    .action-tooltip-host {
+        position: relative;
+    }
+
+    .guide-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        white-space: nowrap;
     }
 
     .toolbar-hint {

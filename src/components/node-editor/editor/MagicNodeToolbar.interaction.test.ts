@@ -2,7 +2,10 @@
 import { mount, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
+import {
+    MAGIC_EDITOR_GUIDE_PATH,
+    type MagicNodeCategory,
+} from '../../../constants/nodeEditorConfigs';
 import {
     MAGIC_NODE_CATEGORY_LABELS,
     NODE_EDITOR_TEXT,
@@ -128,5 +131,35 @@ describe('MagicNodeToolbar interaction', () => {
         getButtonContainingText(target, NODE_EDITOR_TEXT.PRESET_OPEN).click();
 
         expect(props.onOpenPresetDialog).toHaveBeenCalledTimes(1);
+    });
+
+    it('places the guide link immediately after the clear button', () => {
+        const { target } = mountToolbar();
+        const guideLink = target.querySelector<HTMLAnchorElement>(
+            `a[href="${MAGIC_EDITOR_GUIDE_PATH}"]`
+        );
+        const clearButton = getButtonContainingText(target, NODE_EDITOR_TEXT.CLEAR_ALL);
+
+        expect(guideLink).not.toBeNull();
+        expect(guideLink?.target).toBe('_blank');
+        expect(guideLink?.rel).toBe('noopener noreferrer');
+        expect(clearButton.nextElementSibling).toBe(guideLink);
+    });
+
+    it('associates every toolbar action with a shared description tooltip', () => {
+        const { target } = mountToolbar();
+        const actions = [
+            getButtonContainingText(target, NODE_EDITOR_TEXT.PRESET_OPEN),
+            getButtonContainingText(target, NODE_EDITOR_TEXT.CLEAR_ALL),
+            target.querySelector<HTMLAnchorElement>(`a[href="${MAGIC_EDITOR_GUIDE_PATH}"]`),
+        ];
+
+        actions.forEach(action => {
+            const tooltipId = action?.getAttribute('aria-describedby');
+            const tooltip = tooltipId ? document.getElementById(tooltipId) : null;
+
+            expect(tooltipId).toBeTruthy();
+            expect(tooltip?.getAttribute('role')).toBe('tooltip');
+        });
     });
 });

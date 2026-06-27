@@ -22,6 +22,8 @@ export type MagicNodeCategory = (typeof MAGIC_NODE_CATEGORIES)[number];
 
 export const DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES: MagicNodeCategory[] = ['basic'];
 
+export const MAGIC_EDITOR_GUIDE_PATH = './magic-editor-guide.html';
+
 export const MAGIC_CONNECTION_RULE_KEYS = {
     ALLOW_CYCLE_FROM_OUTPUT: 'allowCycleFromOutput',
 } as const;

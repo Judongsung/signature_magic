@@ -1,6 +1,9 @@
 ﻿import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
+import {
+    MAGIC_EDITOR_GUIDE_PATH,
+    type MagicNodeCategory,
+} from '../../../constants/nodeEditorConfigs';
 import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
 import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type { MagicTypeConfig } from '../../../types/magic';
@@ -64,12 +67,30 @@ describe('MagicNodeToolbar', () => {
 
     it('renders a single preset dialog action without inline preset controls', () => {
         const { html } = render(MagicNodeToolbar, { props });
+        const presetActionMatches = html.match(/>프리셋(?=\s|<)/g) ?? [];
 
-        expect(html).toContain(`>${'프리셋'}</button>`);
+        expect(presetActionMatches).toHaveLength(1);
         expect(html).not.toContain('<select');
         expect(html).not.toContain('기본 프리셋');
         expect(html).not.toContain('내 프리셋');
         expect(html).not.toContain('현재 조합 저장');
+    });
+
+    it('renders the guide as a safe new-tab link', () => {
+        const { html } = render(MagicNodeToolbar, { props });
+
+        expect(html).toContain(`href="${MAGIC_EDITOR_GUIDE_PATH}"`);
+        expect(html).toContain('target="_blank"');
+        expect(html).toContain('rel="noopener noreferrer"');
+        expect(html).toContain(NODE_EDITOR_TEXT.GUIDE_OPEN_ARIA_LABEL);
+    });
+
+    it('renders shared descriptions for all toolbar actions', () => {
+        const { html } = render(MagicNodeToolbar, { props });
+
+        expect(html).toContain(NODE_EDITOR_TEXT.PRESET_OPEN_TOOLTIP);
+        expect(html).toContain(NODE_EDITOR_TEXT.CLEAR_ALL_TOOLTIP);
+        expect(html).toContain(NODE_EDITOR_TEXT.GUIDE_OPEN_TOOLTIP);
     });
 
     it('renders an empty category state when no magic types are visible', () => {
@@ -79,10 +100,11 @@ describe('MagicNodeToolbar', () => {
                 visibleMagicTypes: [],
             },
         });
+        const presetActionMatches = html.match(/>프리셋(?=\s|<)/g) ?? [];
 
         expect(html).toContain('toolbar-empty');
         expect(html).not.toContain('drag-btn tooltip-host');
-        expect(html).toContain(`>${'프리셋'}</button>`);
+        expect(presetActionMatches).toHaveLength(1);
     });
 
     it('does not expose fixed system node types in category palettes', () => {
