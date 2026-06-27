@@ -182,12 +182,12 @@ export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
 
 export const MAGIC_STAT_CALCULATION_DESCRIPTIONS = {
     circle: {
-        castingTime: '서클의 시전 시간을 합산하며, 유한 반복 구간은 지정 횟수만큼 반영합니다.',
+        castingTime: '서클의 시전 시간을 합합니다.',
         instability: '물리 노드의 불안정성 합계에 1.15^(노드 수 - 1)을 곱하며 반복 횟수는 적용하지 않습니다.',
-        power: '서클의 출력 값을 합산하며, 유한 반복 구간은 지정 횟수만큼 반영합니다.',
-        range: '서클의 범위 값을 곱하며, 유한 반복 구간은 지정 횟수만큼 반복해 곱합니다.',
-        manaCost: '서클의 마나 소모를 합산하며, 유한 반복 구간은 지정 횟수만큼 반영합니다.',
-        duration: '서클의 지속 시간을 합산하며, 유한 반복 구간은 지정 횟수만큼 반영합니다.',
+        power: '서클의 출력 값을 합합니다.',
+        range: '서클의 범위 값을 곱합니다.',
+        manaCost: '서클의 마나 소모를 합합니다.',
+        duration: '서클의 지속 시간을 합합니다.',
     },
     total: {
         castingTime: '직렬 경로와 유한 반복의 시전 시간을 합산하고, 분기에서는 가장 오래 걸리는 경로를 사용합니다.',

@@ -25,7 +25,7 @@ export const SYSTEM_MAGIC_NODE_CONFIGS = {
         icon: '⟡',
         color: '#ff8b6f',
         category: 'basic',
-        description: '마법의 최종 출력입니다.',
+        description: '마법을 발현합니다.',
         position: { x: -40, y: -280 },
         role: { isRoot: false, isLeaf: true },
         handleCounts: { inputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT, outputHandleCount: 0 },

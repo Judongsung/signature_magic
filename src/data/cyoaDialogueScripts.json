@@ -202,6 +202,15 @@
         "npcTitle": "시그니처 기록 담당자",
         "imagePath": "../assets/images/luarn.webp",
         "imageAlt": "루아른 오라이어",
+        "defaultNpcLine": "시연 결과를 확인해볼게요."
+    },
+    {
+        "id": "node-composition-result-dev",
+        "title": "시그니처 마법 평가",
+        "npcName": "루아른 오라이어",
+        "npcTitle": "시그니처 기록 담당자",
+        "imagePath": "../assets/images/luarn.webp",
+        "imageAlt": "루아른 오라이어",
         "defaultNpcLine": "시연 결과를 확인해볼게요. 마법진이 제대로 형성됐는지부터 보죠.",
         "resultLines": [
             {

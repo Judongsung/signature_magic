@@ -132,8 +132,8 @@
                         {
                             "id": "affiliation-bureau-imperial-knights",
                             "imagePath": "../assets/images/affiliation/imperial_guard.webp",
-                            "imageAlt": "제국 정예 마법기사단",
-                            "title": "제국 정예 마법기사단",
+                            "imageAlt": "황실 기사단",
+                            "title": "황실 기사단",
                             "description": "제국 황실 직속의 비호를 받으며 국가의 핵심 권력을 보좌하는 최정예 무력 집단이다. 대륙 최강의 위상을 자랑하며 가문의 영예와 막강한 재정 지원을 받지만, 황제의 명령에 절대 복종하고 국가를 수호해야 하는 무거운 의무를 진다.",
                             "width": "1/3"
                         }
