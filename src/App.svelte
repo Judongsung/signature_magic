@@ -97,5 +97,6 @@
 
 <AppPhaseNavigationBar
     canSubmitRegistration={choiceStore.canSubmitRegistration}
+    canCompleteNodeComposition={graphStore.circles.length > 0}
     onDirectNextPhaseRequest={handleDirectNextPhaseRequest}
 />

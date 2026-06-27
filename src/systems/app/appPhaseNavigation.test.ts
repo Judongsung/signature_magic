@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { APP_PHASES } from '../../constants/appPhaseConfigs';
+import { UI_BUTTON_TEXT } from '../../constants/uiText';
 import { getNextAppPhase, getPreviousAppPhase } from './appPhaseNavigation';
 import {
+    APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS,
     APP_PHASE_NAVIGATION_NEXT_ACTIONS,
     resolveAppPhaseNavigationPolicy,
     resolveRegistrationReviewAccess,
@@ -37,6 +39,7 @@ describe('appPhaseNavigationPolicy', () => {
         const policy = resolveAppPhaseNavigationPolicy({
             phase: APP_PHASES.CYOA,
             canSubmitRegistration: false,
+            canCompleteNodeComposition: false,
             hasEnteredRegistrationReviewPhase: true,
         });
 
@@ -44,6 +47,10 @@ describe('appPhaseNavigationPolicy', () => {
         expect(policy.nextPhase).toBe(APP_PHASES.NODE_INTRO_DIALOGUE);
         expect(policy.canReviewRegistration).toBe(true);
         expect(policy.isNextDisabled).toBe(true);
+        expect(policy.nextDisabledFeedback).toEqual({
+            message: UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP,
+            presentation: APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS.CHARACTER_SPEECH,
+        });
         expect(policy.nextAction).toBeUndefined();
         expect(policy.shouldRenderNavigation).toBe(true);
     });
@@ -52,24 +59,45 @@ describe('appPhaseNavigationPolicy', () => {
         const policy = resolveAppPhaseNavigationPolicy({
             phase: APP_PHASES.CYOA,
             canSubmitRegistration: true,
+            canCompleteNodeComposition: false,
             hasEnteredRegistrationReviewPhase: true,
         });
 
         expect(policy.isNextDisabled).toBe(false);
+        expect(policy.nextDisabledFeedback).toBeUndefined();
         expect(policy.nextAction).toBe(
             APP_PHASE_NAVIGATION_NEXT_ACTIONS.OPEN_REGISTRATION_SUBMIT_DIALOG
         );
     });
 
-    it('uses direct phase movement outside the registration submit phase', () => {
+    it('disables node composition navigation until a circle exists', () => {
         const policy = resolveAppPhaseNavigationPolicy({
             phase: APP_PHASES.NODE_COMPOSITION,
             canSubmitRegistration: false,
+            canCompleteNodeComposition: false,
+            hasEnteredRegistrationReviewPhase: true,
+        });
+
+        expect(policy.nextPhase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
+        expect(policy.isNextDisabled).toBe(true);
+        expect(policy.nextDisabledFeedback).toEqual({
+            message: UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP,
+            presentation: APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS.TOOLTIP,
+        });
+        expect(policy.nextAction).toBeUndefined();
+    });
+
+    it('uses direct phase movement when node composition has a circle', () => {
+        const policy = resolveAppPhaseNavigationPolicy({
+            phase: APP_PHASES.NODE_COMPOSITION,
+            canSubmitRegistration: false,
+            canCompleteNodeComposition: true,
             hasEnteredRegistrationReviewPhase: true,
         });
 
         expect(policy.nextPhase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
         expect(policy.isNextDisabled).toBe(false);
+        expect(policy.nextDisabledFeedback).toBeUndefined();
         expect(policy.nextAction).toBe(APP_PHASE_NAVIGATION_NEXT_ACTIONS.MOVE_TO_NEXT_PHASE);
     });
 
@@ -77,6 +105,7 @@ describe('appPhaseNavigationPolicy', () => {
         const policy = resolveAppPhaseNavigationPolicy({
             phase: APP_PHASES.NODE_RESULT_DIALOGUE,
             canSubmitRegistration: true,
+            canCompleteNodeComposition: false,
             hasEnteredRegistrationReviewPhase: true,
         });
 

@@ -41,6 +41,7 @@ describe('AppPhaseNavigationBar', () => {
         expect(html).toContain(UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP);
         expect(html).toContain('character-speech-bubble');
         expect(html).toContain('vera_chibi');
+        expect(html).not.toContain('description-tooltip');
     });
 
     it('renders an enabled next tab on the complete CYOA phase', () => {
@@ -59,7 +60,7 @@ describe('AppPhaseNavigationBar', () => {
         expect(html).not.toContain('app-phase-next-disabled-tooltip');
     });
 
-    it('renders the result dialogue next tab on the node composition phase', () => {
+    it('renders a disabled next tab when node composition has no circles', () => {
         appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
 
         const { html } = render(AppPhaseNavigationBar);
@@ -67,6 +68,24 @@ describe('AppPhaseNavigationBar', () => {
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL);
         expect(html).toContain(UI_BUTTON_TEXT.REVIEW_REGISTRATION);
         expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]);
+        expect(html).toContain('disabled');
+        expect(html).toContain(UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP);
+        expect(html).toContain('description-tooltip');
+        expect(html).not.toContain('character-speech-bubble');
+    });
+
+    it('renders an enabled next tab when node composition has a circle', () => {
+        appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
+
+        const { html } = render(AppPhaseNavigationBar, {
+            props: {
+                canCompleteNodeComposition: true,
+            },
+        });
+
+        expect(html).toContain(APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]);
+        expect(html).not.toContain('disabled');
+        expect(html).not.toContain(UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP);
     });
 
     it('renders only the previous tab on the final phase', () => {

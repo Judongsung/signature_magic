@@ -20,6 +20,7 @@ export const UI_BUTTON_TEXT = {
     REVIEW_REGISTRATION: '등록 결과',
     SUBMIT_REGISTRATION: '서류 제출',
     COMPLETE_REQUIRED_FIELDS_TOOLTIP: '빠진 부분을 채워 주세요.',
+    CREATE_MAGIC_CIRCLE_TOOLTIP: '서클을 하나 이상 만들어 주세요.',
 } as const;
 
 export const APP_PHASE_NAVIGATION_TEXT = {
@@ -94,8 +95,8 @@ export const CYOA_REGISTRATION_RESULT_TEXT = {
     CIRCLES_ARIA_LABEL: '생성된 서클',
     TOTAL_STATS_TITLE: '최종 스탯',
     TOTAL_STATS_ARIA_LABEL: '최종 마법 스탯',
-    EMPTY_GRAPH: '표시할 그래프가 없습니다.',
-    EMPTY_CIRCLES: '노드를 연결하면 서클이 표시됩니다.',
+    EMPTY_GRAPH: '표시할 마법이 없습니다.',
+    EMPTY_CIRCLES: '단위 마법을 연결하면 서클이 표시됩니다.',
     EMPTY_STATS: '서클이 생성되면 최종 스탯이 표시됩니다.',
 } as const;
 
@@ -128,8 +129,8 @@ export const NODE_EDITOR_TEXT = {
     LEAF_BADGE: 'END',
     CYCLE_BADGE: 'CYCLE',
     NODE_STATS_ARIA_LABEL: '마법 스탯',
-    NODE_DETAILS_DIALOG_TITLE: '노드 정보',
-    NODE_DETAILS_DIALOG_CLOSE_ARIA_LABEL: '노드 정보 닫기',
+    NODE_DETAILS_DIALOG_TITLE: '단위 마법 정보',
+    NODE_DETAILS_DIALOG_CLOSE_ARIA_LABEL: '단위 마법 정보 닫기',
     NODE_DETAILS_CATEGORY_LABEL: '카테고리',
     NODE_DETAILS_DESCRIPTION_LABEL: '설명',
     NODE_DETAILS_STATS_LABEL: '기본 스탯',

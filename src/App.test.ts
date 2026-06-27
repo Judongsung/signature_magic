@@ -71,6 +71,24 @@ afterEach(async () => {
 });
 
 describe('App node composition transition gate', () => {
+    it('disables next navigation while no circle exists', async () => {
+        const target = mountApp();
+        await tick();
+
+        const nextButton = getButtonByText(
+            target,
+            APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]
+        );
+
+        expect(nextButton.disabled).toBe(true);
+
+        nextButton.click();
+        await tick();
+
+        expect(queryDialogElement(target)).toBeNull();
+        expect(appStore.phase).toBe(APP_PHASES.NODE_COMPOSITION);
+    });
+
     it('opens signature dialog before starting the transition overlay', async () => {
         createSingleNodeCircleFixture();
         const target = mountApp();

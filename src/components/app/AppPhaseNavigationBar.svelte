@@ -8,6 +8,7 @@
     } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
     import {
+        APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS,
         APP_PHASE_NAVIGATION_NEXT_ACTIONS,
         resolveAppPhaseNavigationPolicy,
         resolveRegistrationReviewAccess,
@@ -16,6 +17,7 @@
     import RegistrationResultDetails from '../registration/RegistrationResultDetails.svelte';
     import RegistrationSummaryDialog from '../registration/RegistrationSummaryDialog.svelte';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
+    import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
 
     const nextDisabledTooltipId = 'app-phase-next-disabled-tooltip';
     const nextPhaseLabels: Partial<Record<AppPhase, string>> = APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS;
@@ -28,9 +30,11 @@
 
     let {
         canSubmitRegistration = false,
+        canCompleteNodeComposition = false,
         onDirectNextPhaseRequest,
     }: {
         canSubmitRegistration?: boolean;
+        canCompleteNodeComposition?: boolean;
         onDirectNextPhaseRequest?: (request: DirectAppPhaseTransitionRequest) => boolean;
     } = $props();
 
@@ -42,6 +46,7 @@
     const navigationPolicy = $derived(resolveAppPhaseNavigationPolicy({
         phase: appStore.phase,
         canSubmitRegistration,
+        canCompleteNodeComposition,
         hasEnteredRegistrationReviewPhase,
     }));
     const nextLabel = $derived(
@@ -142,7 +147,7 @@
                         >
                             {nextLabel}
                         </button>
-                        {#if navigationPolicy.isNextDisabled}
+                        {#if navigationPolicy.nextDisabledFeedback?.presentation === APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS.CHARACTER_SPEECH}
                             <span
                                 id={nextDisabledTooltipId}
                                 class="next-disabled-speech-tooltip"
@@ -151,9 +156,14 @@
                                 <CharacterSpeechBubble
                                     imageSrc={veraChibiImageSrc}
                                     imageAlt={CYOA_GUIDE_SPEECH_TEXT.IMAGE_ALT}
-                                    message={UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP}
+                                    message={navigationPolicy.nextDisabledFeedback.message}
                                 />
                             </span>
+                        {:else if navigationPolicy.nextDisabledFeedback}
+                            <DescriptionTooltip
+                                id={nextDisabledTooltipId}
+                                description={navigationPolicy.nextDisabledFeedback.message}
+                            />
                         {/if}
                     </span>
                 {/if}
