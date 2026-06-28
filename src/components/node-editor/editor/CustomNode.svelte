@@ -160,6 +160,9 @@
             <MagicNodeTooltipStats
                 stats={nodeConfig.stats}
                 {nodeStatEffects}
+                magicType={nodeConfig.type}
+                nodeCategory={nodeConfig.category}
+                nodeStatBounds={nodeConfig.statBounds}
             />
         </DescriptionTooltip>
     {/if}

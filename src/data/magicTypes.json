@@ -215,7 +215,10 @@
         "color": "#85c1e9",
         "category": "extension",
         "description": "출력을 낮추고 효과의 범위를 넓게 퍼트린다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": -2, "range": 10, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 2, "instability": 2, "power": -2, "range": 10, "manaCost": 3, "duration": 1 },
+        "statBounds": {
+            "power": { "minimum": null }
+        }
     },
     {
         "type": "amplify",
@@ -233,7 +236,10 @@
         "color": "#58d68d",
         "category": "control",
         "description": "불안정성을 제어한다.",
-        "stats": { "castingTime": 3.5, "instability": -4, "power": 0, "range": 1, "manaCost": 2, "duration": 1 }
+        "stats": { "castingTime": 3.5, "instability": -4, "power": 0, "range": 1, "manaCost": 2, "duration": 1 },
+        "statBounds": {
+            "instability": { "minimum": null }
+        }
     },
     {
         "type": "compress",

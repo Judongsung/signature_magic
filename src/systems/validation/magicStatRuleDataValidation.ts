@@ -39,6 +39,27 @@ function validateMagicStatRuleConfig(statKey: string, rule: MagicStatRuleConfig 
     ) {
         errors.push(`Invalid magic stat scaling factor: ${statKey} -> ${rule.scaling.factor}`);
     }
+    if (rule.bounds !== undefined && !isPlainObject(rule.bounds)) {
+        errors.push(`Invalid magic stat bounds: ${statKey}`);
+        return errors;
+    }
+
+    const minimum = rule.bounds?.minimum;
+    const maximum = rule.bounds?.maximum;
+
+    if (minimum !== undefined && !isFiniteNumber(minimum)) {
+        errors.push(`Invalid magic stat minimum: ${statKey} -> ${minimum}`);
+    }
+    if (maximum !== undefined && !isFiniteNumber(maximum)) {
+        errors.push(`Invalid magic stat maximum: ${statKey} -> ${maximum}`);
+    }
+    if (
+        isFiniteNumber(minimum) &&
+        isFiniteNumber(maximum) &&
+        minimum > maximum
+    ) {
+        errors.push(`Invalid magic stat bounds order: ${statKey} -> ${minimum} -> ${maximum}`);
+    }
 
     return errors;
 }

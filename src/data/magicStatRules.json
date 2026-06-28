@@ -3,36 +3,42 @@
         "nodeAggregation": "sum",
         "serialAggregation": "sum",
         "branchAggregation": "max",
-        "scaling": { "operation": "none" }
+        "scaling": { "operation": "none" },
+        "bounds": { "minimum": 0 }
     },
     "instability": {
         "nodeAggregation": "sum",
         "serialAggregation": "sum",
         "branchAggregation": "sum",
-        "scaling": { "operation": "exponentialByNodeCount", "factor": 1.15 }
+        "scaling": { "operation": "exponentialByNodeCount", "factor": 1.15 },
+        "bounds": { "minimum": 0 }
     },
     "power": {
         "nodeAggregation": "sum",
         "serialAggregation": "sum",
         "branchAggregation": "sum",
-        "scaling": { "operation": "none" }
+        "scaling": { "operation": "none" },
+        "bounds": { "minimum": 0 }
     },
     "range": {
         "nodeAggregation": "multiply",
         "serialAggregation": "multiply",
         "branchAggregation": "max",
-        "scaling": { "operation": "none" }
+        "scaling": { "operation": "none" },
+        "bounds": { "minimum": 0 }
     },
     "manaCost": {
         "nodeAggregation": "sum",
         "serialAggregation": "sum",
         "branchAggregation": "sum",
-        "scaling": { "operation": "none" }
+        "scaling": { "operation": "none" },
+        "bounds": { "minimum": 0 }
     },
     "duration": {
         "nodeAggregation": "sum",
         "serialAggregation": "sum",
         "branchAggregation": "max",
-        "scaling": { "operation": "none" }
+        "scaling": { "operation": "none" },
+        "bounds": { "minimum": 0 }
     }
 }

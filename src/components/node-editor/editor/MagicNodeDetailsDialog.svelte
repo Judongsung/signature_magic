@@ -123,6 +123,9 @@ import { untrack } from 'svelte';
                 <MagicNodeTooltipStats
                     stats={config.stats}
                     nodeStatEffects={applicableNodeStatEffects}
+                    magicType={config.type}
+                    nodeCategory={config.category}
+                    nodeStatBounds={config.statBounds}
                 />
             </section>
 

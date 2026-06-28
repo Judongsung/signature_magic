@@ -13,6 +13,7 @@ import {
 import { MAGIC_CIRCLE_ID_PREFIX } from '../../../constants/graphConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
+import { clampMagicStats } from './magicStatRules';
 import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
 import { filterCalculableMagicGraph } from '../model/systemMagicNodes';
 import {
@@ -85,9 +86,11 @@ function calculateMagicNow(
         analysis,
         nodeExecutionCounts
     );
-    const adjustedTotalStats = applyMagicStatEffectsToStats(
-        applyCircleInstabilityToTotalStats(totalStats, circles),
-        statEffects.finalEffects
+    const adjustedTotalStats = clampMagicStats(
+        applyMagicStatEffectsToStats(
+            applyCircleInstabilityToTotalStats(totalStats, circles),
+            statEffects.finalEffects
+        )
     );
     const baselineTotalStats = calculateBaselineTotalStats(
         calculableGraph.nodes,

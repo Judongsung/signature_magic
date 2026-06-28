@@ -56,13 +56,27 @@ describe('MagicNodeToolbar', () => {
             props: {
                 ...props,
                 nodeStatEffects: [
-                    { phase: 'node', operation: 'add', stat: 'castingTime', value: 1 },
+                    {
+                        phase: 'node',
+                        operation: 'add',
+                        stat: 'castingTime',
+                        value: 10,
+                        nodeTarget: { categories: ['action'] },
+                    },
+                    {
+                        phase: 'node',
+                        operation: 'add',
+                        stat: 'castingTime',
+                        value: 1,
+                        nodeTarget: { magicTypes: ['ignition'] },
+                    },
                 ],
             },
         });
 
         expect(html).toContain('2');
         expect(html).toContain('(+1)');
+        expect(html).not.toContain('(+11)');
     });
 
     it('renders a single preset dialog action without inline preset controls', () => {

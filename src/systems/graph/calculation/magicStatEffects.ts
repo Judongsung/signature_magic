@@ -4,9 +4,11 @@ import {
     type MagicStatEffectOperation,
     type MagicStatKey,
     type MagicStats,
+    type MagicType,
 } from '../../../types/magic';
+import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
 
-const MAGIC_STAT_EFFECT_OPERATION_IDS = {
+export const MAGIC_STAT_EFFECT_OPERATION_IDS = {
     ADD: 'add',
     MULTIPLY: 'multiply',
 } as const satisfies Record<string, MagicStatEffectOperation>;
@@ -17,6 +19,33 @@ interface MagicStatEffectAggregate {
 }
 
 export type MagicStatEffectSummary = Record<MagicStatKey, MagicStatEffectAggregate>;
+
+export interface MagicStatEffectNodeContext {
+    category: MagicNodeCategory;
+    magicType: MagicType;
+}
+
+export function isMagicStatEffectApplicableToNode(
+    effect: MagicStatEffectConfig,
+    nodeContext?: MagicStatEffectNodeContext
+): boolean {
+    if (!effect.nodeTarget) return true;
+    if (!nodeContext) return false;
+
+    const categoryMatches = effect.nodeTarget.categories === undefined
+        || effect.nodeTarget.categories.includes(nodeContext.category);
+    const magicTypeMatches = effect.nodeTarget.magicTypes === undefined
+        || effect.nodeTarget.magicTypes.includes(nodeContext.magicType);
+
+    return categoryMatches && magicTypeMatches;
+}
+
+export function filterMagicStatEffectsForNode(
+    effects: readonly MagicStatEffectConfig[],
+    nodeContext?: MagicStatEffectNodeContext
+): MagicStatEffectConfig[] {
+    return effects.filter(effect => isMagicStatEffectApplicableToNode(effect, nodeContext));
+}
 
 export function buildMagicStatEffectSummary(
     effects: readonly MagicStatEffectConfig[] = []

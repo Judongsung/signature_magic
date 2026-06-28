@@ -32,11 +32,17 @@ export const MAGIC_STAT_EFFECT_OPERATIONS = ['add', 'multiply'] as const;
 
 export type MagicStatEffectOperation = (typeof MAGIC_STAT_EFFECT_OPERATIONS)[number];
 
+export interface MagicStatEffectNodeTarget {
+    categories?: readonly MagicNodeCategory[];
+    magicTypes?: readonly MagicType[];
+}
+
 export interface MagicStatEffectConfig {
     phase: MagicStatEffectPhase;
     operation: MagicStatEffectOperation;
     stat: MagicStatKey;
     value: number;
+    nodeTarget?: MagicStatEffectNodeTarget;
 }
 
 export interface MagicStatEffectBundle {
@@ -58,11 +64,25 @@ export interface MagicStatScalingConfig {
     factor?: number;
 }
 
+export interface MagicStatBoundsConfig {
+    minimum?: number;
+    maximum?: number;
+}
+
+export interface MagicStatBoundsOverrideConfig {
+    minimum?: number | null;
+    maximum?: number | null;
+}
+
+export type MagicNodeStatBoundsConfig =
+    Partial<Record<MagicStatKey, MagicStatBoundsOverrideConfig>>;
+
 export interface MagicStatRuleConfig {
     nodeAggregation: MagicStatAggregationOperation;
     serialAggregation: MagicStatAggregationOperation;
     branchAggregation: MagicStatAggregationOperation;
     scaling: MagicStatScalingConfig;
+    bounds?: MagicStatBoundsConfig;
 }
 
 export type MagicStatRulesConfig = Partial<Record<MagicStatKey, MagicStatRuleConfig>>;
@@ -147,6 +167,7 @@ export interface MagicTypeConfig {
     connectionRules?: MagicNodeConnectionRules;
     instanceEditor?: MagicNodeInstanceEditorConfig;
     stats?: MagicStatsConfig;
+    statBounds?: MagicNodeStatBoundsConfig;
     statRules?: MagicNodeStatRulesConfig;
 }
 

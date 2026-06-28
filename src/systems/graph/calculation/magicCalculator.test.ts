@@ -737,6 +737,68 @@ describe('calculateMagic', () => {
         });
     });
 
+    it('repeats category-targeted node costs after applying the node effect', () => {
+        const nodes = [
+            node('emit', 'emit'),
+            node('repeat', 'repeat', { repeatCount: '3' }),
+        ];
+        const edges = [
+            edge('emit', 'repeat'),
+            edge('repeat', 'emit'),
+        ];
+        const magicTypes = [
+            {
+                type: 'emit',
+                label: 'Emit',
+                icon: '',
+                color: '',
+                category: 'action',
+                description: 'Emit magic.',
+                stats: { manaCost: 1 },
+            },
+            {
+                type: 'repeat',
+                label: 'Repeat',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Repeat magic.',
+                instanceEditor: {
+                    fields: [{
+                        key: 'repeatCount',
+                        label: 'Count',
+                        control: MAGIC_NODE_EDITOR_CONTROLS.STEPPER,
+                        min: 0,
+                        max: 99,
+                        step: 1,
+                        defaultValue: 0,
+                        presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX,
+                        behavior: MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT,
+                    }],
+                },
+                stats: {},
+                connectionRules: {
+                    [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true,
+                },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, edges, magicTypes, {
+            nodeEffects: [{
+                phase: 'node',
+                operation: 'add',
+                stat: 'manaCost',
+                value: -1,
+                nodeTarget: { categories: ['action'] },
+            }],
+            finalEffects: [],
+        });
+
+        expect(result.circles[0].stats.manaCost).toBe(0);
+        expect(result.totalStats.manaCost).toBe(0);
+        expect(result.totalStatAdjustments.manaCost).toBe(-3);
+    });
+
     it('calculates infinite and disconnected repeats once', () => {
         const repeatType = {
             type: 'repeat',
@@ -836,6 +898,161 @@ describe('calculateMagic', () => {
             manaCost: 2,
             duration: 2,
         });
+    });
+
+    it('applies category and magic-type node targets to matching nodes only', () => {
+        const nodes = [
+            node('emit-a', 'emit'),
+            node('emit-b', 'emit'),
+            node('move', 'move'),
+            node('basic', 'ignition'),
+        ];
+        const edges = [
+            edge('emit-a', 'emit-b'),
+            edge('emit-b', 'move'),
+            edge('move', 'basic'),
+        ];
+        const magicTypes = [
+            {
+                type: 'emit',
+                label: 'Emit',
+                icon: '',
+                color: '',
+                category: 'action',
+                description: 'Emit magic.',
+                stats: { power: 1, manaCost: 1 },
+            },
+            {
+                type: 'move',
+                label: 'Move',
+                icon: '',
+                color: '',
+                category: 'action',
+                description: 'Move magic.',
+                stats: { power: 1, manaCost: 1 },
+            },
+            {
+                type: 'ignition',
+                label: 'Ignition',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Ignition magic.',
+                stats: { power: 1, manaCost: 1 },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, edges, magicTypes, {
+            nodeEffects: [
+                {
+                    phase: 'node',
+                    operation: 'add',
+                    stat: 'manaCost',
+                    value: -1,
+                    nodeTarget: { categories: ['action'] },
+                },
+                {
+                    phase: 'node',
+                    operation: 'add',
+                    stat: 'power',
+                    value: 2,
+                    nodeTarget: {
+                        categories: ['action'],
+                        magicTypes: ['emit'],
+                    },
+                },
+            ],
+            finalEffects: [],
+        });
+
+        expect(result.totalStats.manaCost).toBe(1);
+        expect(result.totalStats.power).toBe(8);
+        expect(result.circles[0].stats.manaCost).toBe(1);
+        expect(result.circles[0].stats.power).toBe(8);
+    });
+
+    it('keeps node and final effect results within stat bounds', () => {
+        const nodes = [node('a', 'test')];
+        const magicTypes = [
+            {
+                type: 'test',
+                label: 'Test',
+                icon: '',
+                color: '',
+                category: 'action',
+                description: 'Test magic.',
+                stats: {
+                    castingTime: 0,
+                    instability: 0,
+                    power: 1,
+                    range: 1,
+                    manaCost: 0,
+                    duration: 1,
+                },
+            },
+        ] as MagicTypeConfig[];
+
+        const result = calculateMagic(nodes, [], magicTypes, {
+            nodeEffects: [
+                {
+                    phase: 'node',
+                    operation: 'add',
+                    stat: 'manaCost',
+                    value: -1,
+                    nodeTarget: { categories: ['action'] },
+                },
+            ],
+            finalEffects: [
+                { phase: 'final', operation: 'add', stat: 'power', value: -10 },
+            ],
+        });
+
+        expect(result.circles[0].stats.manaCost).toBe(0);
+        expect(result.totalStats.manaCost).toBe(0);
+        expect(result.totalStats.power).toBe(0);
+        expect(result.totalStatAdjustments.manaCost).toBe(0);
+        expect(result.totalStatAdjustments.power).toBe(-1);
+    });
+
+    it('allows node-specific bounds to preserve negative stat contributions', () => {
+        const magicTypes = [
+            {
+                type: 'ignition',
+                label: 'Ignition',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Ignition magic.',
+                stats: { instability: 5 },
+            },
+            {
+                type: 'stabilize',
+                label: 'Stabilize',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Stabilize magic.',
+                stats: { instability: -4 },
+                statBounds: {
+                    instability: { minimum: null },
+                },
+            },
+        ] as MagicTypeConfig[];
+        const stabilized = calculateMagic(
+            [node('a', 'ignition'), node('b', 'stabilize')],
+            [edge('a', 'b')],
+            magicTypes
+        );
+        const stabilizationOnly = calculateMagic(
+            [node('b', 'stabilize')],
+            [],
+            magicTypes
+        );
+
+        expect(stabilized.circles[0].stats.instability).toBeCloseTo(1.15);
+        expect(stabilized.totalStats.instability).toBeCloseTo(1.15);
+        expect(stabilizationOnly.circles[0].stats.instability).toBe(0);
+        expect(stabilizationOnly.totalStats.instability).toBe(0);
     });
 
     it('applies final stat effects to total stats without changing circle stats', () => {

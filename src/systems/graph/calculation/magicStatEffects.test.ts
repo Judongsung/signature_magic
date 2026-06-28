@@ -4,6 +4,7 @@ import {
     applyMagicStatEffects,
     applyMagicStatEffectsToStats,
     buildMagicStatEffectSummary,
+    filterMagicStatEffectsForNode,
 } from './magicStatEffects';
 
 describe('magicStatEffects', () => {
@@ -53,5 +54,49 @@ describe('magicStatEffects', () => {
             manaCost: 4,
             duration: 6,
         });
+    });
+
+    it('filters node effects by category and magic type', () => {
+        const effects = [
+            { phase: 'node', operation: 'add', stat: 'power', value: 1 },
+            {
+                phase: 'node',
+                operation: 'add',
+                stat: 'power',
+                value: 2,
+                nodeTarget: { categories: ['action'] },
+            },
+            {
+                phase: 'node',
+                operation: 'add',
+                stat: 'power',
+                value: 4,
+                nodeTarget: { magicTypes: ['emit'] },
+            },
+            {
+                phase: 'node',
+                operation: 'add',
+                stat: 'power',
+                value: 8,
+                nodeTarget: {
+                    categories: ['action'],
+                    magicTypes: ['emit'],
+                },
+            },
+        ] as const;
+
+        expect(filterMagicStatEffectsForNode(effects, {
+            category: 'action',
+            magicType: 'emit',
+        }).map(effect => effect.value)).toEqual([1, 2, 4, 8]);
+        expect(filterMagicStatEffectsForNode(effects, {
+            category: 'action',
+            magicType: 'move',
+        }).map(effect => effect.value)).toEqual([1, 2]);
+        expect(filterMagicStatEffectsForNode(effects, {
+            category: 'basic',
+            magicType: 'emit',
+        }).map(effect => effect.value)).toEqual([1, 4]);
+        expect(filterMagicStatEffectsForNode(effects).map(effect => effect.value)).toEqual([1]);
     });
 });

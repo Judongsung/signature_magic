@@ -1,6 +1,10 @@
 import { APP_PHASES, type AppPhase } from './appPhaseConfigs';
 import type { MagicNodeCategory } from './nodeEditorConfigs';
-import type { MagicStatKey } from '../types/magic';
+import type {
+    MagicStatEffectOperation,
+    MagicStatEffectPhase,
+    MagicStatKey,
+} from '../types/magic';
 
 // 앱 단계와 전역 내비게이션 문구
 export const DIALOGUE_SCREEN_TEXT = {
@@ -56,6 +60,21 @@ export const CYOA_SCREEN_TEXT = {
     EYEBROW: 'GUILD RECEPTION DESK',
     TITLE: '길드 등록 접수',
     DESCRIPTION: '빈 칸을 빠짐 없이 채워 넣어 주세요.',
+} as const;
+
+export const CYOA_STAT_EFFECT_TEXT = {
+    ARIA_LABEL: '스탯 효과',
+    PHASE_LABELS: {
+        node: '노드',
+        final: '최종',
+    } satisfies Record<MagicStatEffectPhase, string>,
+    OPERATION_SYMBOLS: {
+        add: '+',
+        multiply: '×',
+    } satisfies Record<MagicStatEffectOperation, string>,
+    NEGATIVE_SIGN: '−',
+    TARGET_LABEL_SEPARATOR: ' · ',
+    TARGET_GROUP_SEPARATOR: ' / ',
 } as const;
 
 export const CYOA_REGISTRATION_SUMMARY_TEXT = {

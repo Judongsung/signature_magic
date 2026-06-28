@@ -36,6 +36,8 @@ import {
 } from './dataValidation';
 
 const stats = { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 };
+const magicTypeIds = new Set(magicTypesData.map(magicType => magicType.type));
+const isKnownMagicType = (magicType: string): boolean => magicTypeIds.has(magicType);
 
 describe('dataValidation', () => {
     it('validates configured magic types against category config', () => {
@@ -43,6 +45,51 @@ describe('dataValidation', () => {
             magicTypesData,
             MAGIC_NODE_CATEGORIES
         )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('reports invalid magic node stat bound overrides', () => {
+        expect(validateMagicTypes([{
+            type: 'bounded',
+            label: 'Bounded',
+            icon: '',
+            color: '#fff',
+            category: 'basic',
+            description: 'Bounded magic.',
+            stats,
+            statBounds: {
+                unknown: { minimum: 0 },
+                power: {
+                    minimum: 'low',
+                    maximum: Number.POSITIVE_INFINITY,
+                    extra: true,
+                },
+                instability: { minimum: 2, maximum: 1 },
+                duration: [],
+            },
+        }] as unknown as MagicTypeConfig[], MAGIC_NODE_CATEGORIES)).toEqual({
+            valid: false,
+            errors: [
+                'Unknown magic node stat bounds key: bounded -> unknown',
+                'Unknown magic node stat bound key: bounded -> power -> extra',
+                'Invalid magic node stat minimum: bounded -> power -> low',
+                'Invalid magic node stat maximum: bounded -> power -> Infinity',
+                'Invalid magic node stat bounds order: bounded -> instability -> 2 -> 1',
+                'Invalid magic node stat bounds: bounded -> duration',
+            ],
+        });
+    });
+
+    it('disables default node minimums for negative contribution nodes', () => {
+        const magicTypesById = new Map(
+            (magicTypesData as MagicTypeConfig[]).map(magicType => [magicType.type, magicType])
+        );
+
+        expect(magicTypesById.get('stabilize')?.statBounds).toEqual({
+            instability: { minimum: null },
+        });
+        expect(magicTypesById.get('disperse')?.statBounds).toEqual({
+            power: { minimum: null },
+        });
     });
 
     it('validates system magic types with zero connection limits', () => {
@@ -108,6 +155,27 @@ describe('dataValidation', () => {
                 'Invalid magic stat scaling operation: range -> curve',
                 'Missing magic stat rule config: manaCost',
                 'Missing magic stat rule config: duration',
+            ],
+        });
+    });
+
+    it('validates magic stat minimum and maximum bounds', () => {
+        expect(validateMagicStatRuleConfigs({
+            ...magicStatRulesData,
+            power: {
+                ...magicStatRulesData.power,
+                bounds: { minimum: 2, maximum: 1 },
+            },
+            range: {
+                ...magicStatRulesData.range,
+                bounds: { minimum: Number.NaN, maximum: Number.POSITIVE_INFINITY },
+            },
+        })).toEqual({
+            valid: false,
+            errors: [
+                'Invalid magic stat bounds order: power -> 2 -> 1',
+                'Invalid magic stat minimum: range -> NaN',
+                'Invalid magic stat maximum: range -> Infinity',
             ],
         });
     });
@@ -321,8 +389,94 @@ describe('dataValidation', () => {
     it('validates configured CYOA rows against visibility conditions and image registries', () => {
         expect(validateCyoaRows(
             cyoaRowsData,
-            isKnownCyoaImagePath
+            isKnownCyoaImagePath,
+            isKnownMagicType
         )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('validates CYOA stat effect node targets', () => {
+        expect(validateCyoaRows([{
+            id: 'targeted-effects',
+            title: 'Targeted effects',
+            choices: [{
+                id: 'targeted',
+                imageAlt: '',
+                title: 'Targeted',
+                statEffects: [{
+                    phase: 'node',
+                    operation: 'add',
+                    stat: 'power',
+                    value: 1,
+                    nodeTarget: {
+                        categories: ['action'],
+                        magicTypes: ['emit'],
+                    },
+                }],
+            }],
+        }], isKnownCyoaImagePath, isKnownMagicType)).toEqual({
+            valid: true,
+            errors: [],
+        });
+    });
+
+    it('reports invalid CYOA stat effect node targets', () => {
+        expect(validateCyoaRows([{
+            id: 'targeted-effects',
+            title: 'Targeted effects',
+            choices: [{
+                id: 'targeted',
+                imageAlt: '',
+                title: 'Targeted',
+                statEffects: [
+                    {
+                        phase: 'final',
+                        operation: 'add',
+                        stat: 'power',
+                        value: 1,
+                        nodeTarget: { categories: ['action'] },
+                    },
+                    {
+                        phase: 'node',
+                        operation: 'add',
+                        stat: 'power',
+                        value: 1,
+                        nodeTarget: {},
+                    },
+                    {
+                        phase: 'node',
+                        operation: 'add',
+                        stat: 'power',
+                        value: 1,
+                        nodeTarget: { categories: [] },
+                    },
+                    {
+                        phase: 'node',
+                        operation: 'add',
+                        stat: 'power',
+                        value: 1,
+                        nodeTarget: { categories: ['missing', 'action', 'action'] },
+                    },
+                    {
+                        phase: 'node',
+                        operation: 'add',
+                        stat: 'power',
+                        value: 1,
+                        nodeTarget: { magicTypes: ['missing', 'emit', 'emit'] },
+                    },
+                ],
+            }],
+        }] as CyoaChoiceRowConfig[], isKnownCyoaImagePath, isKnownMagicType)).toEqual({
+            valid: false,
+            errors: [
+                'Invalid CYOA final stat effect node target: targeted -> 0',
+                'Empty CYOA stat effect node target: targeted -> 1',
+                'Invalid CYOA stat effect node categories: targeted -> 2',
+                'Unknown CYOA stat effect node category: targeted -> 3 -> missing',
+                'Duplicate CYOA stat effect node category: targeted -> 3 -> action',
+                'Unknown CYOA stat effect node magic type: targeted -> 4 -> missing',
+                'Duplicate CYOA stat effect node magic type: targeted -> 4 -> emit',
+            ],
+        });
     });
 
     it('validates CYOA locked choice selection policies', () => {

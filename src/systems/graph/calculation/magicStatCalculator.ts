@@ -13,6 +13,7 @@ import { MAGIC_STAT_RULES, type MagicStatScope } from './magicStatRules';
 import {
     applyMagicStatEffectSummary,
     buildMagicStatEffectSummary,
+    filterMagicStatEffectsForNode,
     type MagicStatEffectSummary,
 } from './magicStatEffects';
 import type { GraphTopology } from '../topology/graphTopology';
@@ -34,7 +35,8 @@ export function buildMagicTypeMap(
 }
 
 interface MagicStatCalculationContext {
-    nodeStatEffectSummary: MagicStatEffectSummary;
+    nodeStatEffects: readonly MagicStatEffectConfig[];
+    nodeStatEffectSummariesByMagicType: Map<string, MagicStatEffectSummary>;
     nodeStatsById: Map<string, MagicStats>;
     nodeExecutionCounts: MagicNodeExecutionCounts;
 }
@@ -53,7 +55,8 @@ export function calculateMagicStats(
         ? analysis ?? buildMagicGraphAnalysis(nodes, edges, magicTypes)
         : undefined;
     const context: MagicStatCalculationContext = {
-        nodeStatEffectSummary: buildMagicStatEffectSummary(nodeStatEffects),
+        nodeStatEffects,
+        nodeStatEffectSummariesByMagicType: new Map(),
         nodeStatsById: new Map(),
         nodeExecutionCounts,
     };
@@ -63,13 +66,14 @@ export function calculateMagicStats(
             ? calculateGraphStat(statKey, graphAnalysis!, magicTypes, context)
             : calculateFlatStat(statKey, nodes, edges, magicTypes, scope, context);
 
-        result[statKey] = MAGIC_STAT_RULES[statKey].scaleFinalValue(value, {
+        const scaledValue = MAGIC_STAT_RULES[statKey].scaleFinalValue(value, {
             statKey,
             scope,
             nodes,
             edges,
             magicTypes,
         });
+        result[statKey] = MAGIC_STAT_RULES[statKey].clampValue(scaledValue);
     });
 
     return result;
@@ -290,14 +294,20 @@ function readNodeStats(
     const cached = context.nodeStatsById.get(node.id);
     if (cached) return cached;
 
-    const rawStats = magicTypes.get(node.data.magicType)?.stats;
+    const magicType = magicTypes.get(node.data.magicType);
+    const rawStats = magicType?.stats;
+    const nodeStatEffectSummary = getNodeStatEffectSummary(magicType, context);
     const executionCount = context.nodeExecutionCounts.get(node.id) ?? DEFAULT_NODE_EXECUTION_COUNT;
     const stats = Object.fromEntries(
         MAGIC_STAT_KEYS.map(statKey => {
-            const value = applyMagicStatEffectSummary(
+            const adjustedValue = applyMagicStatEffectSummary(
                 rawStats?.[statKey] ?? 0,
                 statKey,
-                context.nodeStatEffectSummary
+                nodeStatEffectSummary
+            );
+            const value = MAGIC_STAT_RULES[statKey].clampNodeValue(
+                adjustedValue,
+                magicType?.statBounds
             );
 
             return [
@@ -311,6 +321,29 @@ function readNodeStats(
 
     context.nodeStatsById.set(node.id, stats);
     return stats;
+}
+
+function getNodeStatEffectSummary(
+    magicType: MagicTypeConfig | undefined,
+    context: MagicStatCalculationContext
+): MagicStatEffectSummary {
+    const cacheKey = magicType?.type ?? '';
+    const cached = context.nodeStatEffectSummariesByMagicType.get(cacheKey);
+    if (cached) return cached;
+
+    const applicableEffects = filterMagicStatEffectsForNode(
+        context.nodeStatEffects,
+        magicType
+            ? {
+                category: magicType.category,
+                magicType: magicType.type,
+            }
+            : undefined
+    );
+    const summary = buildMagicStatEffectSummary(applicableEffects);
+
+    context.nodeStatEffectSummariesByMagicType.set(cacheKey, summary);
+    return summary;
 }
 
 function readBranchAggregation(

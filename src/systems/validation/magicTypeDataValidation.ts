@@ -37,6 +37,7 @@ const MAGIC_NODE_EDITOR_PRESENTATION_SET: ReadonlySet<string> =
     new Set(Object.values(MAGIC_NODE_EDITOR_PRESENTATIONS));
 const MAGIC_NODE_EDITOR_BEHAVIOR_SET: ReadonlySet<string> =
     new Set(Object.values(MAGIC_NODE_EDITOR_BEHAVIORS));
+const MAGIC_STAT_BOUND_OVERRIDE_KEYS = new Set(['minimum', 'maximum']);
 
 function validateMagicConnectionRules(
     type: string,
@@ -69,6 +70,49 @@ function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): 
             ? []
             : [`Invalid magic type stat: ${type} -> ${key}`];
     });
+}
+
+function validateMagicNodeStatBounds(type: string, statBounds: unknown): string[] {
+    if (statBounds === undefined) return [];
+    if (!isPlainObject(statBounds)) {
+        return [`Invalid magic node stat bounds: ${type}`];
+    }
+
+    const errors: string[] = [];
+
+    Object.entries(statBounds).forEach(([statKey, bounds]) => {
+        if (!MAGIC_STAT_KEY_SET.has(statKey)) {
+            errors.push(`Unknown magic node stat bounds key: ${type} -> ${statKey}`);
+            return;
+        }
+        if (!isPlainObject(bounds)) {
+            errors.push(`Invalid magic node stat bounds: ${type} -> ${statKey}`);
+            return;
+        }
+
+        Object.keys(bounds).forEach(key => {
+            if (!MAGIC_STAT_BOUND_OVERRIDE_KEYS.has(key)) {
+                errors.push(`Unknown magic node stat bound key: ${type} -> ${statKey} -> ${key}`);
+            }
+        });
+
+        const { minimum, maximum } = bounds;
+        if (minimum !== undefined && minimum !== null && !isFiniteNumber(minimum)) {
+            errors.push(`Invalid magic node stat minimum: ${type} -> ${statKey} -> ${minimum}`);
+        }
+        if (maximum !== undefined && maximum !== null && !isFiniteNumber(maximum)) {
+            errors.push(`Invalid magic node stat maximum: ${type} -> ${statKey} -> ${maximum}`);
+        }
+        if (
+            isFiniteNumber(minimum) &&
+            isFiniteNumber(maximum) &&
+            minimum > maximum
+        ) {
+            errors.push(`Invalid magic node stat bounds order: ${type} -> ${statKey} -> ${minimum} -> ${maximum}`);
+        }
+    });
+
+    return errors;
 }
 
 function validateMagicNodeInstanceEditor(
@@ -238,6 +282,7 @@ function validateMagicTypeConfigs(
         errors.push(...validateMagicConnectionRules(magicType.type, magicType.connectionRules));
         errors.push(...validateMagicNodeInstanceEditor(magicType.type, magicType.instanceEditor));
         errors.push(...validateMagicStats(magicType.type, magicType.stats));
+        errors.push(...validateMagicNodeStatBounds(magicType.type, magicType.statBounds));
         errors.push(...validateMagicNodeStatRules(magicType.type, magicType.statRules));
     });
 

@@ -12,11 +12,15 @@ import {
     MAGIC_STAT_KEYS,
     type MagicGraphNode,
     type MagicStatAggregationOperation,
+    type MagicStatBoundsConfig,
+    type MagicStatBoundsOverrideConfig,
     type MagicStatBranchAggregation,
     type MagicStatKey,
     type MagicStatRuleConfig,
     type MagicStatRulesConfig,
     type MagicStatScalingConfig,
+    type MagicNodeStatBoundsConfig,
+    type MagicStats,
     type MagicTypeConfig,
 } from '../../../types/magic';
 
@@ -37,6 +41,8 @@ export interface MagicStatRule {
     repeatSerialValue(value: number, count: number): number;
     combineBranchValues(values: number[], aggregation: MagicStatBranchAggregation | undefined, context: MagicStatRuleContext): number;
     scaleFinalValue(value: number, context: MagicStatRuleContext): number;
+    clampValue(value: number): number;
+    clampNodeValue(value: number, nodeStatBounds?: MagicNodeStatBoundsConfig): number;
 }
 
 const FIRST_NODE_SCALING_EXPONENT_OFFSET = 1;
@@ -109,7 +115,38 @@ function buildScaleFinalValue(config: MagicStatScalingConfig): MagicStatRule['sc
     return value => value;
 }
 
-function buildMagicStatRule(config: MagicStatRuleConfig): MagicStatRule {
+export function clampMagicStatValue(
+    value: number,
+    bounds?: MagicStatBoundsConfig
+): number {
+    const minimum = bounds?.minimum ?? Number.NEGATIVE_INFINITY;
+    const maximum = bounds?.maximum ?? Number.POSITIVE_INFINITY;
+
+    return Math.min(maximum, Math.max(minimum, value));
+}
+
+export function resolveMagicStatBounds(
+    defaultBounds: MagicStatBoundsConfig | undefined,
+    overrideBounds: MagicStatBoundsOverrideConfig | undefined
+): MagicStatBoundsConfig | undefined {
+    if (!overrideBounds) return defaultBounds;
+
+    const minimum = overrideBounds.minimum === null
+        ? undefined
+        : overrideBounds.minimum ?? defaultBounds?.minimum;
+    const maximum = overrideBounds.maximum === null
+        ? undefined
+        : overrideBounds.maximum ?? defaultBounds?.maximum;
+
+    return minimum === undefined && maximum === undefined
+        ? undefined
+        : { minimum, maximum };
+}
+
+function buildMagicStatRule(
+    statKey: MagicStatKey,
+    config: MagicStatRuleConfig
+): MagicStatRule {
     return {
         serialIdentity: serialIdentityValues[config.serialAggregation],
         combineNodeValues: nodeAggregationOperations[config.nodeAggregation],
@@ -118,6 +155,11 @@ function buildMagicStatRule(config: MagicStatRuleConfig): MagicStatRule {
         combineBranchValues: (values, aggregation) =>
             nodeAggregationOperations[aggregation ?? config.branchAggregation](values),
         scaleFinalValue: buildScaleFinalValue(config.scaling),
+        clampValue: value => clampMagicStatValue(value, config.bounds),
+        clampNodeValue: (value, nodeStatBounds) => clampMagicStatValue(
+            value,
+            resolveMagicStatBounds(config.bounds, nodeStatBounds?.[statKey])
+        ),
     };
 }
 
@@ -128,12 +170,19 @@ function buildMagicStatRules(configs: MagicStatRulesConfig): Record<MagicStatKey
             throw new Error(`Missing magic stat rule config: ${statKey}`);
         }
 
-        return [statKey, buildMagicStatRule(config)];
+        return [statKey, buildMagicStatRule(statKey, config)];
     })) as Record<MagicStatKey, MagicStatRule>;
 }
 
 export const MAGIC_STAT_RULES: Record<MagicStatKey, MagicStatRule> =
     buildMagicStatRules(magicStatRulesData as MagicStatRulesConfig);
+
+export function clampMagicStats(stats: MagicStats): MagicStats {
+    return Object.fromEntries(MAGIC_STAT_KEYS.map(statKey => [
+        statKey,
+        MAGIC_STAT_RULES[statKey].clampValue(stats[statKey]),
+    ])) as MagicStats;
+}
 
 export function hasMagicStatRuleForEveryKey(): boolean {
     return MAGIC_STAT_KEYS.every(key => Boolean(MAGIC_STAT_RULES[key]));

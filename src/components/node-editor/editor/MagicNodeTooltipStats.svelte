@@ -3,10 +3,17 @@
     import {
         EMPTY_MAGIC_STATS,
         MAGIC_STAT_KEYS,
+        type MagicNodeStatBoundsConfig,
         type MagicStatEffectConfig,
         type MagicStatsConfig,
+        type MagicType,
     } from '../../../types/magic';
-    import { applyMagicStatEffects } from '../../../systems/graph/calculation/magicStatEffects';
+    import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
+    import {
+        applyMagicStatEffects,
+        filterMagicStatEffectsForNode,
+    } from '../../../systems/graph/calculation/magicStatEffects';
+    import { MAGIC_STAT_RULES } from '../../../systems/graph/calculation/magicStatRules';
     import {
         formatMagicStat,
         formatMagicStatAdjustment,
@@ -15,14 +22,32 @@
     let {
         stats,
         nodeStatEffects = [],
+        magicType,
+        nodeCategory,
+        nodeStatBounds,
     }: {
         stats?: MagicStatsConfig;
         nodeStatEffects?: readonly MagicStatEffectConfig[];
+        magicType?: MagicType;
+        nodeCategory?: MagicNodeCategory;
+        nodeStatBounds?: MagicNodeStatBoundsConfig;
     } = $props();
 
+    const applicableNodeStatEffects = $derived(filterMagicStatEffectsForNode(
+        nodeStatEffects,
+        magicType && nodeCategory
+            ? {
+                magicType,
+                category: nodeCategory,
+            }
+            : undefined
+    ));
     const tooltipStats = $derived(MAGIC_STAT_KEYS.map((statKey) => {
         const baseValue = stats?.[statKey] ?? EMPTY_MAGIC_STATS[statKey];
-        const adjustedValue = applyMagicStatEffects(baseValue, statKey, nodeStatEffects);
+        const adjustedValue = MAGIC_STAT_RULES[statKey].clampNodeValue(
+            applyMagicStatEffects(baseValue, statKey, applicableNodeStatEffects),
+            nodeStatBounds
+        );
 
         return {
             key: statKey,

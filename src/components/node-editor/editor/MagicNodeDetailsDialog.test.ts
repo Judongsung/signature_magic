@@ -89,6 +89,35 @@ describe('MagicNodeDetailsDialog', () => {
         expect(target.textContent).toContain('0.9');
     });
 
+    it('shows only stat effects targeting the current node type and category', () => {
+        const { target } = mountDialog('ignition', undefined, [
+            {
+                phase: 'node',
+                operation: 'add',
+                stat: 'power',
+                value: 10,
+                nodeTarget: { categories: ['action'] },
+            },
+            {
+                phase: 'node',
+                operation: 'add',
+                stat: 'power',
+                value: 2,
+                nodeTarget: { magicTypes: ['ignition'] },
+            },
+        ]);
+
+        expect(target.querySelector('.stat-adjustment')?.textContent).toBe('(+2)');
+        expect(target.textContent).toContain('6');
+    });
+
+    it('shows negative node contributions allowed by node-specific bounds', () => {
+        const { target } = mountDialog('stabilize');
+
+        expect(target.textContent).toContain('-4');
+        expect(target.querySelector('.stat-adjustment')).toBeNull();
+    });
+
     it('renders and saves the default caption field for a regular node', () => {
         const { target, onSave } = mountDialog('ignition', { caption: '기존 캡션' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;

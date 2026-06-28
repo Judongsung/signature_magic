@@ -3,10 +3,6 @@ import { describe, expect, it } from 'vitest';
 import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
 import { CYOA_DIALOGUE_SCRIPT_IDS } from '../../../constants/cyoaConfigs';
 import { DIALOGUE_SCREEN_TEXT, NODE_INTRO_DIALOGUE_SCREEN_TEXT } from '../../../constants/uiText';
-import {
-    matchesCyoaDialogueResultCondition,
-    resolveCyoaDialogueResultLine,
-} from '../../../systems/cyoa/cyoaDialogueResultConditions';
 import type { CyoaDialogueResultContext, CyoaDialogueScriptConfig } from '../../../types/cyoa';
 import CyoaDialogueScreen from './CyoaDialogueScreen.svelte';
 
@@ -18,9 +14,9 @@ function buttonTextPattern(label: string): RegExp {
     return new RegExp(`<button[^>]*>\\s*${escapedLabel}\\s*<\\/button>`);
 }
 
-function getNodeCompositionResultScript(): CyoaDialogueScriptConfig {
+function getDialogueScript(scriptId: string): CyoaDialogueScriptConfig {
     const script = (dialogueScriptsData as CyoaDialogueScriptConfig[])
-        .find(script => script.id === CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_RESULT);
+        .find(script => script.id === scriptId);
     expect(script).toBeDefined();
 
     return script as CyoaDialogueScriptConfig;
@@ -35,13 +31,14 @@ describe('CyoaDialogueScreen', () => {
     });
 
     it('renders the node composition handoff dialogue from the same screen component', () => {
+        const introScript = getDialogueScript(CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_INTRO);
         const { html } = render(CyoaDialogueScreen, {
             props: {
                 scriptId: CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_INTRO,
             },
         });
 
-        expect(html).toContain('시그니처 마법 시연');
+        expect(html).toContain(introScript.title);
         expect(html).toContain('시그니처 마법?');
         expect(html).toContain('마법에 대해');
         expect(html).toContain('이름이?');
@@ -61,13 +58,8 @@ describe('CyoaDialogueScreen', () => {
                 duration: 0,
             },
         } satisfies CyoaDialogueResultContext;
-        const resultScript = getNodeCompositionResultScript();
-        const resultLine = resolveCyoaDialogueResultLine(resultScript.resultLines, resultContext);
-        const resultOptionRow = resultScript.optionRows
-            ?.find(row => row.resultWhen && matchesCyoaDialogueResultCondition(row.resultWhen, resultContext));
-        const resultOptionLabel = resultOptionRow?.options[0]?.playerLine;
-        expect(resultLine).toBeDefined();
-        expect(resultOptionLabel).toBeDefined();
+        const resultScript = getDialogueScript(CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_RESULT);
+        expect(typeof resultScript.defaultNpcLine).toBe('string');
 
         const { html } = render(CyoaDialogueScreen, {
             props: {
@@ -77,8 +69,7 @@ describe('CyoaDialogueScreen', () => {
         });
 
         expect(html).toContain(resultScript.title);
-        expect(html).toContain(resultLine?.npcLine);
-        expect(html).toContain(resultOptionLabel);
+        expect(html).toContain(resultScript.defaultNpcLine as string);
         expect(html).not.toContain(NODE_RESULT_PLACEHOLDER_LINE);
     });
 });

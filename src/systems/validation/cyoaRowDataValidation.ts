@@ -3,12 +3,14 @@ import {
     CYOA_SELECTION_MODES,
     CYOA_SELECTION_POLICY,
 } from '../../constants/cyoaConfigs';
+import { MAGIC_NODE_CATEGORIES } from '../../constants/nodeEditorConfigs';
 import type { CyoaChoiceBaseConfig, CyoaChoiceRowConfig, CyoaSubChoiceGroupConfig, } from '../../types/cyoa';
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
     MAGIC_STAT_KEYS,
 } from '../../types/magic';
+import { MAGIC_STAT_EFFECT_PHASE } from '../graph/calculation/magicStatEffectBundles';
 import { isValidCyoaChoiceWidth } from '../cyoa/cyoaChoiceLayout';
 import {
     collectDuplicateErrors,
@@ -29,6 +31,10 @@ import {
 } from './cyoaValidationShared';
 
 const VALID_CYOA_INPUT_ROLES = new Set<string>(Object.values(CYOA_INPUT_ROLES));
+const VALID_MAGIC_NODE_CATEGORIES = new Set<string>(MAGIC_NODE_CATEGORIES);
+const DEFAULT_MAGIC_TYPE_CHECK = (_magicType: string): boolean => true;
+
+type MagicTypeCheck = (magicType: string) => boolean;
 
 function getCyoaSubChoiceGroup(
     choice: CyoaChoiceBaseConfig
@@ -42,7 +48,124 @@ function getCyoaSubChoices(group?: CyoaSubChoiceGroupConfig): CyoaChoiceBaseConf
     return group.choices.filter(isPlainObject) as unknown as CyoaChoiceBaseConfig[];
 }
 
-function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string[] {
+function validateCyoaNodeTarget(
+    choiceId: string,
+    effectIndex: number,
+    phase: unknown,
+    nodeTarget: unknown,
+    isKnownMagicType: MagicTypeCheck
+): string[] {
+    if (nodeTarget === undefined) return [];
+    if (!isPlainObject(nodeTarget)) {
+        return [formatValidationError(
+            'Invalid',
+            'CYOA stat effect node target',
+            choiceId,
+            effectIndex
+        )];
+    }
+
+    const errors: string[] = [];
+    const categories = nodeTarget.categories;
+    const magicTypes = nodeTarget.magicTypes;
+
+    if (phase !== MAGIC_STAT_EFFECT_PHASE.NODE) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA final stat effect node target',
+            choiceId,
+            effectIndex
+        ));
+    }
+    if (categories === undefined && magicTypes === undefined) {
+        errors.push(formatValidationError(
+            'Empty',
+            'CYOA stat effect node target',
+            choiceId,
+            effectIndex
+        ));
+    }
+
+    errors.push(...validateCyoaNodeTargetValues(
+        choiceId,
+        effectIndex,
+        'category',
+        'categories',
+        categories,
+        value => VALID_MAGIC_NODE_CATEGORIES.has(value)
+    ));
+    errors.push(...validateCyoaNodeTargetValues(
+        choiceId,
+        effectIndex,
+        'magic type',
+        'magic types',
+        magicTypes,
+        isKnownMagicType
+    ));
+
+    return errors;
+}
+
+function validateCyoaNodeTargetValues(
+    choiceId: string,
+    effectIndex: number,
+    targetKind: string,
+    targetCollectionKind: string,
+    values: unknown,
+    isKnownValue: (value: string) => boolean
+): string[] {
+    if (values === undefined) return [];
+    if (!Array.isArray(values) || values.length === 0) {
+        return [formatValidationError(
+            'Invalid',
+            `CYOA stat effect node ${targetCollectionKind}`,
+            choiceId,
+            effectIndex
+        )];
+    }
+
+    const errors: string[] = [];
+    const validValues = values.filter((value): value is string => typeof value === 'string');
+
+    values.forEach((value, valueIndex) => {
+        if (typeof value !== 'string') {
+            errors.push(formatValidationError(
+                'Invalid',
+                `CYOA stat effect node ${targetKind}`,
+                choiceId,
+                effectIndex,
+                valueIndex
+            ));
+            return;
+        }
+        if (!isKnownValue(value)) {
+            errors.push(formatValidationError(
+                'Unknown',
+                `CYOA stat effect node ${targetKind}`,
+                choiceId,
+                effectIndex,
+                value
+            ));
+        }
+    });
+    findDuplicates(validValues).forEach(value => {
+        errors.push(formatValidationError(
+            'Duplicate',
+            `CYOA stat effect node ${targetKind}`,
+            choiceId,
+            effectIndex,
+            value
+        ));
+    });
+
+    return errors;
+}
+
+function validateCyoaStatEffects(
+    choiceId: string,
+    statEffects: unknown,
+    isKnownMagicType: MagicTypeCheck
+): string[] {
     if (statEffects === undefined) return [];
     if (!Array.isArray(statEffects)) {
         return [formatValidationError('Invalid', 'CYOA stat effects', choiceId)];
@@ -59,7 +182,7 @@ function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string
             return;
         }
 
-        const { phase, operation, stat, value } = effect;
+        const { phase, operation, stat, value, nodeTarget } = effect;
 
         if (!validPhases.has(String(phase))) {
             errors.push(formatValidationError(
@@ -98,6 +221,13 @@ function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string
                 String(stat)
             ));
         }
+        errors.push(...validateCyoaNodeTarget(
+            choiceId,
+            index,
+            phase,
+            nodeTarget,
+            isKnownMagicType
+        ));
     });
 
     return errors;
@@ -105,7 +235,8 @@ function validateCyoaStatEffects(choiceId: string, statEffects: unknown): string
 
 function validateCyoaChoice(
     choice: CyoaChoiceBaseConfig,
-    isKnownImagePath: (imagePath: string) => boolean
+    isKnownImagePath: (imagePath: string) => boolean,
+    isKnownMagicType: MagicTypeCheck
 ): string[] {
     const errors: string[] = [];
 
@@ -142,14 +273,19 @@ function validateCyoaChoice(
     if (choice.width && !isValidCyoaChoiceWidth(choice.width)) {
         errors.push(formatValidationError('Invalid', 'CYOA choice width', choice.id, choice.width));
     }
-    errors.push(...validateCyoaStatEffects(choice.id, choice.statEffects));
+    errors.push(...validateCyoaStatEffects(
+        choice.id,
+        choice.statEffects,
+        isKnownMagicType
+    ));
 
     return errors;
 }
 
 function validateCyoaSubChoiceGroup(
     group: CyoaSubChoiceGroupConfig,
-    isKnownImagePath: (imagePath: string) => boolean
+    isKnownImagePath: (imagePath: string) => boolean,
+    isKnownMagicType: MagicTypeCheck
 ): string[] {
     const errors: string[] = [];
     const requiredCount = group.requiredCount ?? CYOA_SELECTION_POLICY.DEFAULT_REQUIRED_COUNT;
@@ -195,7 +331,7 @@ function validateCyoaSubChoiceGroup(
         }
 
         const choice = rawChoice as unknown as CyoaChoiceBaseConfig;
-        errors.push(...validateCyoaChoice(choice, isKnownImagePath));
+        errors.push(...validateCyoaChoice(choice, isKnownImagePath, isKnownMagicType));
 
         if ('subChoiceGroup' in choice && choice.subChoiceGroup !== undefined) {
             errors.push(formatValidationError('Invalid', 'nested CYOA sub-choice group', choice.id));
@@ -207,7 +343,8 @@ function validateCyoaSubChoiceGroup(
 
 export function validateCyoaRows(
     rowsInput: unknown,
-    isKnownImagePath: (imagePath: string) => boolean
+    isKnownImagePath: (imagePath: string) => boolean,
+    isKnownMagicType: MagicTypeCheck = DEFAULT_MAGIC_TYPE_CHECK
 ): DataValidationResult {
     if (!isCyoaRowArray(rowsInput)) {
         return result(['Invalid CYOA row configs']);
@@ -382,13 +519,17 @@ export function validateCyoaRows(
         });
 
         (row.choices ?? []).forEach(choice => {
-            errors.push(...validateCyoaChoice(choice, isKnownImagePath));
+            errors.push(...validateCyoaChoice(choice, isKnownImagePath, isKnownMagicType));
             const rawSubChoiceGroup = (choice as typeof choice & { subChoiceGroup?: unknown }).subChoiceGroup;
             const subChoiceGroup = getCyoaSubChoiceGroup(choice);
             if (rawSubChoiceGroup !== undefined && !subChoiceGroup) {
                 errors.push(formatValidationError('Invalid', 'CYOA sub-choice group', choice.id));
             } else if (subChoiceGroup) {
-                errors.push(...validateCyoaSubChoiceGroup(subChoiceGroup, isKnownImagePath));
+                errors.push(...validateCyoaSubChoiceGroup(
+                    subChoiceGroup,
+                    isKnownImagePath,
+                    isKnownMagicType
+                ));
             }
         });
     });

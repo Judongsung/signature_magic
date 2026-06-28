@@ -61,7 +61,7 @@
 
     <div class="toolbar-divider"></div>
 
-    {#each visibleMagicTypes as { type, label, icon, description, stats }}
+    {#each visibleMagicTypes as { type, label, icon, description, category, stats, statBounds }}
         <button
             class="drag-btn tooltip-host"
             type="button"
@@ -76,7 +76,13 @@
                 {description}
                 placement="bottom"
             >
-                <MagicNodeTooltipStats {stats} {nodeStatEffects} />
+                <MagicNodeTooltipStats
+                    {stats}
+                    {nodeStatEffects}
+                    magicType={type}
+                    nodeCategory={category}
+                    nodeStatBounds={statBounds}
+                />
             </DescriptionTooltip>
         </button>
     {/each}

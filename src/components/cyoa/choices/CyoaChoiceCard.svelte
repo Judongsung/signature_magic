@@ -2,6 +2,9 @@
     import { CYOA_CHOICE_IMAGE_PLACEMENTS, CYOA_CHOICE_IMAGE_SIZES } from '../../../constants/cyoaConfigs';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import type { CyoaChoice } from '../../../types/cyoa';
+    import { CYOA_STAT_EFFECT_TEXT } from '../../../constants/uiText';
+    import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
+    import { formatCyoaStatEffect } from '../../../systems/cyoa/cyoaStatEffectFormatting';
 
     const TOOLTIP_ID_SUFFIX = 'tooltip';
 
@@ -31,6 +34,12 @@
     const tooltipId = $derived(`${choice.id}-${TOOLTIP_ID_SUFFIX}`);
     const imageSize = $derived(choice.imageSize ?? CYOA_CHOICE_IMAGE_SIZES.DEFAULT);
     const imagePlacement = $derived(choice.imagePlacement ?? CYOA_CHOICE_IMAGE_PLACEMENTS.TOP);
+    const statEffectLabels = $derived(
+        choice.statEffects?.map(effect => formatCyoaStatEffect(
+            effect,
+            magicType => getMagicTypeConfig(magicType)?.label
+        )) ?? []
+    );
 </script>
 
 <button
@@ -58,6 +67,13 @@
         <span class="choice-title">{choice.title}</span>
         {#if choice.description}
             <span class="choice-description">{choice.description}</span>
+        {/if}
+        {#if statEffectLabels.length > 0}
+            <span class="choice-stat-effects" aria-label={CYOA_STAT_EFFECT_TEXT.ARIA_LABEL}>
+                {#each statEffectLabels as label}
+                    <span class="choice-stat-effect">{label}</span>
+                {/each}
+            </span>
         {/if}
     </span>
 
@@ -251,6 +267,26 @@
         line-height: 1.5;
         font-weight: 400;
         white-space: pre-line;
+    }
+
+    .choice-stat-effects {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        margin-top: 4px;
+    }
+
+    .choice-stat-effect {
+        padding: 4px 7px;
+        border: 1px solid var(--guild-selection-border);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--guild-selection-bg) 72%, transparent);
+        color: var(--guild-selection-text);
+        font-family: var(--font-body);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.25;
     }
 
     @media (max-width: 560px) {

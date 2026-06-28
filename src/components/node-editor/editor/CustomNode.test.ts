@@ -1,6 +1,7 @@
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { graphStore } from '../../../stores/graphStore.svelte';
+import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
 import type { MagicNodeData } from '../../../types/magic';
 import CustomNode from './CustomNode.svelte';
 
@@ -43,6 +44,13 @@ describe('CustomNode', () => {
         graphStore.setExternalStatEffects({
             nodeEffects: [
                 { phase: 'node', operation: 'add', stat: 'power', value: 1 },
+                {
+                    phase: 'node',
+                    operation: 'add',
+                    stat: 'power',
+                    value: 10,
+                    nodeTarget: { categories: ['action'] },
+                },
             ],
             finalEffects: [
                 { phase: 'final', operation: 'add', stat: 'power', value: 10 },
@@ -78,7 +86,7 @@ describe('CustomNode', () => {
         });
 
         expect(html).toContain('별빛 핵');
-        expect(html).toContain('정해진 분류에 없는 속성이나 개념을 대신하는 범용 기초 노드입니다.');
+        expect(html).toContain(getMagicTypeConfig('custom')!.description);
     });
 
     it('renders the default caption field for a regular node', () => {
