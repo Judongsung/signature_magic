@@ -39,6 +39,7 @@
             ? {
                 magicType,
                 category: nodeCategory,
+                stats,
             }
             : undefined
     ));

@@ -32,9 +32,18 @@ export const MAGIC_STAT_EFFECT_OPERATIONS = ['add', 'multiply'] as const;
 
 export type MagicStatEffectOperation = (typeof MAGIC_STAT_EFFECT_OPERATIONS)[number];
 
+export const MAGIC_STAT_EFFECT_VALUE_SIGNS = {
+    POSITIVE: 'positive',
+    NEGATIVE: 'negative',
+} as const;
+
+export type MagicStatEffectValueSign =
+    (typeof MAGIC_STAT_EFFECT_VALUE_SIGNS)[keyof typeof MAGIC_STAT_EFFECT_VALUE_SIGNS];
+
 export interface MagicStatEffectNodeTarget {
     categories?: readonly MagicNodeCategory[];
     magicTypes?: readonly MagicType[];
+    statValueSign?: MagicStatEffectValueSign;
 }
 
 export interface MagicStatEffectConfig {

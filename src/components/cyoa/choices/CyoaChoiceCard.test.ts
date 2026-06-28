@@ -97,6 +97,7 @@ describe('CyoaChoiceCard', () => {
                             operation: 'multiply',
                             stat: 'instability',
                             value: 0.9,
+                            nodeTarget: { statValueSign: 'positive' },
                         },
                         {
                             phase: 'node',

@@ -337,6 +337,7 @@ function getNodeStatEffectSummary(
             ? {
                 category: magicType.category,
                 magicType: magicType.type,
+                stats: magicType.stats,
             }
             : undefined
     );

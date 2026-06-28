@@ -410,6 +410,7 @@ describe('dataValidation', () => {
                     nodeTarget: {
                         categories: ['action'],
                         magicTypes: ['emit'],
+                        statValueSign: 'positive',
                     },
                 }],
             }],
@@ -463,6 +464,13 @@ describe('dataValidation', () => {
                         value: 1,
                         nodeTarget: { magicTypes: ['missing', 'emit', 'emit'] },
                     },
+                    {
+                        phase: 'node',
+                        operation: 'add',
+                        stat: 'power',
+                        value: 1,
+                        nodeTarget: { statValueSign: 'zero' },
+                    },
                 ],
             }],
         }] as CyoaChoiceRowConfig[], isKnownCyoaImagePath, isKnownMagicType)).toEqual({
@@ -475,6 +483,7 @@ describe('dataValidation', () => {
                 'Duplicate CYOA stat effect node category: targeted -> 3 -> action',
                 'Unknown CYOA stat effect node magic type: targeted -> 4 -> missing',
                 'Duplicate CYOA stat effect node magic type: targeted -> 4 -> emit',
+                'Invalid CYOA stat effect node value sign: targeted -> 5 -> zero',
             ],
         });
     });

@@ -13,6 +13,7 @@ describe('cyoaStatEffectFormatting', () => {
             operation: 'multiply',
             stat: 'instability',
             value: 0.9,
+            nodeTarget: { statValueSign: 'positive' },
         }, resolveMagicTypeLabel)).toBe('노드 불안정성 ×0.9');
         expect(formatCyoaStatEffect({
             phase: 'final',

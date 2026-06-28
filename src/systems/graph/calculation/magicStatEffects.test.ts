@@ -99,4 +99,39 @@ describe('magicStatEffects', () => {
         }).map(effect => effect.value)).toEqual([1, 4]);
         expect(filterMagicStatEffectsForNode(effects).map(effect => effect.value)).toEqual([1]);
     });
+
+    it('filters node effects by the raw stat value sign', () => {
+        const effects = [
+            {
+                phase: 'node',
+                operation: 'multiply',
+                stat: 'power',
+                value: 0.9,
+                nodeTarget: { statValueSign: 'positive' },
+            },
+            {
+                phase: 'node',
+                operation: 'multiply',
+                stat: 'power',
+                value: 1.1,
+                nodeTarget: { statValueSign: 'negative' },
+            },
+        ] as const;
+
+        expect(filterMagicStatEffectsForNode(effects, {
+            category: 'basic',
+            magicType: 'force',
+            stats: { power: 5 },
+        }).map(effect => effect.value)).toEqual([0.9]);
+        expect(filterMagicStatEffectsForNode(effects, {
+            category: 'extension',
+            magicType: 'disperse',
+            stats: { power: -2 },
+        }).map(effect => effect.value)).toEqual([1.1]);
+        expect(filterMagicStatEffectsForNode(effects, {
+            category: 'basic',
+            magicType: 'harmony',
+            stats: { power: 0 },
+        })).toEqual([]);
+    });
 });

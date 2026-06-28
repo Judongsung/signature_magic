@@ -8,6 +8,7 @@ import type { CyoaChoiceBaseConfig, CyoaChoiceRowConfig, CyoaSubChoiceGroupConfi
 import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
+    MAGIC_STAT_EFFECT_VALUE_SIGNS,
     MAGIC_STAT_KEYS,
 } from '../../types/magic';
 import { MAGIC_STAT_EFFECT_PHASE } from '../graph/calculation/magicStatEffectBundles';
@@ -32,6 +33,8 @@ import {
 
 const VALID_CYOA_INPUT_ROLES = new Set<string>(Object.values(CYOA_INPUT_ROLES));
 const VALID_MAGIC_NODE_CATEGORIES = new Set<string>(MAGIC_NODE_CATEGORIES);
+const VALID_MAGIC_STAT_EFFECT_VALUE_SIGNS =
+    new Set<string>(Object.values(MAGIC_STAT_EFFECT_VALUE_SIGNS));
 const DEFAULT_MAGIC_TYPE_CHECK = (_magicType: string): boolean => true;
 
 type MagicTypeCheck = (magicType: string) => boolean;
@@ -68,6 +71,7 @@ function validateCyoaNodeTarget(
     const errors: string[] = [];
     const categories = nodeTarget.categories;
     const magicTypes = nodeTarget.magicTypes;
+    const statValueSign = nodeTarget.statValueSign;
 
     if (phase !== MAGIC_STAT_EFFECT_PHASE.NODE) {
         errors.push(formatValidationError(
@@ -77,7 +81,11 @@ function validateCyoaNodeTarget(
             effectIndex
         ));
     }
-    if (categories === undefined && magicTypes === undefined) {
+    if (
+        categories === undefined &&
+        magicTypes === undefined &&
+        statValueSign === undefined
+    ) {
         errors.push(formatValidationError(
             'Empty',
             'CYOA stat effect node target',
@@ -102,6 +110,18 @@ function validateCyoaNodeTarget(
         magicTypes,
         isKnownMagicType
     ));
+    if (
+        statValueSign !== undefined &&
+        !VALID_MAGIC_STAT_EFFECT_VALUE_SIGNS.has(String(statValueSign))
+    ) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA stat effect node value sign',
+            choiceId,
+            effectIndex,
+            String(statValueSign)
+        ));
+    }
 
     return errors;
 }

@@ -130,7 +130,13 @@ describe('cyoaStatEffects', () => {
 
         expect(effectsByCatalystId).toEqual({
             'catalyst-staff': [
-                { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.9 },
+                {
+                    phase: 'node',
+                    operation: 'multiply',
+                    stat: 'instability',
+                    value: 0.9,
+                    nodeTarget: { statValueSign: 'positive' },
+                },
                 {
                     phase: 'node',
                     operation: 'add',
@@ -143,7 +149,13 @@ describe('cyoaStatEffects', () => {
                 { phase: 'final', operation: 'multiply', stat: 'power', value: 1.5 },
             ],
             'catalyst-book': [
-                { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.8 },
+                {
+                    phase: 'node',
+                    operation: 'multiply',
+                    stat: 'instability',
+                    value: 0.8,
+                    nodeTarget: { statValueSign: 'positive' },
+                },
             ],
             'catalyst-gem': [
                 { phase: 'final', operation: 'multiply', stat: 'power', value: 1.5 },
@@ -170,15 +182,33 @@ describe('cyoaStatEffects', () => {
         );
 
         expect(effectsByProfessionId['class-scholar']).toEqual([
-            { phase: 'node', operation: 'multiply', stat: 'instability', value: 0.9 },
+            {
+                phase: 'node',
+                operation: 'multiply',
+                stat: 'instability',
+                value: 0.9,
+                nodeTarget: { statValueSign: 'positive' },
+            },
         ]);
         expect(effectsByProfessionId['class-battlemage']).toEqual([
             { phase: 'node', operation: 'multiply', stat: 'castingTime', value: 0.7 },
-            { phase: 'node', operation: 'multiply', stat: 'power', value: 0.9 },
+            {
+                phase: 'node',
+                operation: 'multiply',
+                stat: 'power',
+                value: 0.9,
+                nodeTarget: { statValueSign: 'positive' },
+            },
         ]);
         expect(effectsByProfessionId['class-adventurer']).toEqual([
             { phase: 'final', operation: 'multiply', stat: 'instability', value: 0.9 },
-            { phase: 'node', operation: 'multiply', stat: 'power', value: 0.9 },
+            {
+                phase: 'node',
+                operation: 'multiply',
+                stat: 'power',
+                value: 0.9,
+                nodeTarget: { statValueSign: 'positive' },
+            },
         ]);
         expect(effectsByProfessionId['class-priest']).toEqual([
             {

@@ -111,8 +111,14 @@ describe('MagicNodeDetailsDialog', () => {
         expect(target.textContent).toContain('6');
     });
 
-    it('shows negative node contributions allowed by node-specific bounds', () => {
-        const { target } = mountDialog('stabilize');
+    it('shows negative contributions without applying positive-only node effects', () => {
+        const { target } = mountDialog('stabilize', undefined, [{
+            phase: 'node',
+            operation: 'multiply',
+            stat: 'instability',
+            value: 0.9,
+            nodeTarget: { statValueSign: 'positive' },
+        }]);
 
         expect(target.textContent).toContain('-4');
         expect(target.querySelector('.stat-adjustment')).toBeNull();

@@ -1,9 +1,11 @@
 import {
     MAGIC_STAT_KEYS,
+    MAGIC_STAT_EFFECT_VALUE_SIGNS,
     type MagicStatEffectConfig,
     type MagicStatEffectOperation,
     type MagicStatKey,
     type MagicStats,
+    type MagicStatsConfig,
     type MagicType,
 } from '../../../types/magic';
 import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
@@ -23,6 +25,7 @@ export type MagicStatEffectSummary = Record<MagicStatKey, MagicStatEffectAggrega
 export interface MagicStatEffectNodeContext {
     category: MagicNodeCategory;
     magicType: MagicType;
+    stats?: MagicStatsConfig;
 }
 
 export function isMagicStatEffectApplicableToNode(
@@ -36,8 +39,15 @@ export function isMagicStatEffectApplicableToNode(
         || effect.nodeTarget.categories.includes(nodeContext.category);
     const magicTypeMatches = effect.nodeTarget.magicTypes === undefined
         || effect.nodeTarget.magicTypes.includes(nodeContext.magicType);
+    const statValue = nodeContext.stats?.[effect.stat] ?? 0;
+    const statValueSignMatches = effect.nodeTarget.statValueSign === undefined
+        || (
+            effect.nodeTarget.statValueSign === MAGIC_STAT_EFFECT_VALUE_SIGNS.POSITIVE
+                ? statValue > 0
+                : statValue < 0
+        );
 
-    return categoryMatches && magicTypeMatches;
+    return categoryMatches && magicTypeMatches && statValueSignMatches;
 }
 
 export function filterMagicStatEffectsForNode(

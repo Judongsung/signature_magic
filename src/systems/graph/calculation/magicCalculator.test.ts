@@ -1055,6 +1055,76 @@ describe('calculateMagic', () => {
         expect(stabilizationOnly.totalStats.instability).toBe(0);
     });
 
+    it('applies sign-targeted reductions without weakening negative contributions', () => {
+        const magicTypes = [
+            {
+                type: 'ignition',
+                label: 'Ignition',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: 'Ignition magic.',
+                stats: { instability: 10, power: 10 },
+            },
+            {
+                type: 'stabilize',
+                label: 'Stabilize',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: 'Stabilize magic.',
+                stats: { instability: -4, power: 0 },
+                statBounds: {
+                    instability: { minimum: null },
+                },
+            },
+            {
+                type: 'disperse',
+                label: 'Disperse',
+                icon: '',
+                color: '',
+                category: 'extension',
+                description: 'Disperse magic.',
+                stats: { instability: 0, power: -2 },
+                statBounds: {
+                    power: { minimum: null },
+                },
+            },
+        ] as MagicTypeConfig[];
+        const nodes = [
+            node('a', 'ignition'),
+            node('b', 'stabilize'),
+            node('c', 'disperse'),
+        ];
+        const result = calculateMagic(nodes, [
+            edge('a', 'b'),
+            edge('b', 'c'),
+        ], magicTypes, {
+            nodeEffects: [
+                {
+                    phase: 'node',
+                    operation: 'multiply',
+                    stat: 'instability',
+                    value: 0.9,
+                    nodeTarget: { statValueSign: 'positive' },
+                },
+                {
+                    phase: 'node',
+                    operation: 'multiply',
+                    stat: 'power',
+                    value: 0.9,
+                    nodeTarget: { statValueSign: 'positive' },
+                },
+            ],
+            finalEffects: [],
+        });
+
+        expect(result.circles[0].stats.instability).toBeCloseTo(5 * (1.15 ** 2));
+        expect(result.circles[0].stats.power).toBe(7);
+        expect(result.totalStats.instability).toBeCloseTo(5 * (1.15 ** 2));
+        expect(result.totalStats.power).toBe(7);
+    });
+
     it('applies final stat effects to total stats without changing circle stats', () => {
         const nodes = [node('a', 'ignition')];
         const magicTypes = [
