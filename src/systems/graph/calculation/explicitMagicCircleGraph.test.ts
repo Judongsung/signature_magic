@@ -1,178 +1,109 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
+import magicTypesData from '../../../data/magicTypes.json';
+import {
+    MAGIC_CONTROL_PAIR_ROLES,
+} from '../../../constants/graphConfigs';
+import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
 import type { MagicTypeConfig } from '../../../types/magic';
 import {
     attachNodeToCircle,
     createMagicCircleNode,
 } from '../model/magicCircleGraph';
+import { createCircleSystemMagicNode } from '../model/circleSystemMagicNodes';
 import { analyzeExplicitMagicCircleGraph } from './explicitMagicCircleGraph';
 import { calculateMagic } from './magicCalculator';
 
-function externalPath(circleId: string): Edge[] {
-    return [
-        {
-            id: `source-${circleId}`,
-            source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-            target: circleId,
-            sourceHandle: 'output-0',
-            targetHandle: 'circle-input',
-        },
-        {
-            id: `${circleId}-output`,
-            source: circleId,
-            target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-            sourceHandle: 'circle-output',
-            targetHandle: 'input-0',
-        },
-    ];
+function connectCircles(source: string, target: string): Edge {
+    return {
+        id: `${source}-${target}`,
+        source,
+        target,
+        sourceHandle: 'circle-output',
+        targetHandle: 'circle-input',
+    };
 }
 
 describe('explicitMagicCircleGraph sequence projection', () => {
-    it('marks an empty circle invalid without projecting a sequence edge', () => {
-        const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'empty');
+    const circleSystemNodeConfig = CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS[0];
+
+    it('keeps an empty circle invalid without projecting nodes', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'empty'
+        );
+        const systemNode = createCircleSystemMagicNode(
+            circle,
+            circleSystemNodeConfig,
+            0
+        );
         const analysis = analyzeExplicitMagicCircleGraph(
-            [box],
-            externalPath(box.id)
+            [circle, systemNode],
+            []
         );
 
         expect(analysis.states[0]).toMatchObject({
-            circleId: box.id,
-            nodeIds: [],
+            circleId: circle.id,
+            nodeIds: [systemNode.id],
             isInternallyValid: false,
-            isOnOutputPath: false,
         });
+        expect(analysis.orderedCalculatedCircleIds).toEqual([]);
+        expect(analysis.projectedNodes).toEqual([]);
         expect(analysis.projectedEdges).toEqual([]);
     });
 
-    it('projects every child as one sequence ordered by sequenceIndex', () => {
-        const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'ordered');
-        const second = attachNodeToCircle(createTestMagicNode('second'), box, 1);
-        const first = attachNodeToCircle(createTestMagicNode('first'), box, 0);
-        const analysis = analyzeExplicitMagicCircleGraph(
-            [box, second, first],
-            externalPath(box.id)
+    it('calculates an isolated non-empty circle as an independent root', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'isolated'
         );
-        const internal = analysis.internalByCircleId.get(box.id)!;
+        const second = attachNodeToCircle(
+            createTestMagicNode('second'),
+            circle,
+            1
+        );
+        const first = attachNodeToCircle(
+            createTestMagicNode('first'),
+            circle,
+            0
+        );
+        const analysis = analyzeExplicitMagicCircleGraph(
+            [circle, second, first],
+            []
+        );
+        const internal = analysis.internalByCircleId.get(circle.id)!;
 
-        expect(internal.sequenceNodes.map(node => node.id)).toEqual(['first', 'second']);
-        expect(internal.projectedEdges.map(edge => [edge.source, edge.target]))
-            .toEqual([
-                [`${box.id}:start`, 'first'],
-                ['first', 'second'],
-                ['second', `${box.id}:end`],
-            ]);
+        expect(internal.sequenceNodes.map(node => node.id))
+            .toEqual(['first', 'second']);
+        expect(internal.projectedEdges.map(edge => [
+            edge.source,
+            edge.target,
+        ])).toEqual([
+            [`${circle.id}:start`, 'first'],
+            ['first', 'second'],
+            ['second', `${circle.id}:end`],
+        ]);
+        expect(analysis.orderedCalculatedCircleIds).toEqual([circle.id]);
         expect(analysis.states[0]).toMatchObject({
-            nodeIds: ['first', 'second'],
             isInternallyValid: true,
-            isOnOutputPath: true,
+            displayOrder: 1,
         });
     });
 
-    it('ignores stored internal edges and uses sequence order only', () => {
-        const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'ignore');
-        const first = attachNodeToCircle(createTestMagicNode('first'), box, 0);
-        const second = attachNodeToCircle(createTestMagicNode('second'), box, 1);
-        const staleInternalEdge: Edge = {
-            id: 'stale',
-            source: second.id,
-            target: first.id,
-            sourceHandle: 'output-0',
-            targetHandle: 'input-0',
-        };
-        const internal = analyzeExplicitMagicCircleGraph(
-            [box, first, second],
-            [...externalPath(box.id), staleInternalEdge]
-        ).internalByCircleId.get(box.id)!;
-
-        expect(internal.projectedEdges.map(edge => [edge.source, edge.target]))
-            .toContainEqual(['first', 'second']);
-        expect(internal.projectedEdges.map(edge => edge.id)).not.toContain('stale');
-    });
-
-    it('excludes an internally valid circle outside the external output path', () => {
-        const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'isolated');
-        const child = attachNodeToCircle(createTestMagicNode('child'), box, 0);
-        const analysis = analyzeExplicitMagicCircleGraph([box, child], []);
-
-        expect(analysis.states[0]).toMatchObject({
-            isInternallyValid: true,
-            isOnOutputPath: false,
-        });
-        expect(analysis.orderedOutputCircleIds).toEqual([]);
-        expect(analysis.projectedNodes).toEqual([]);
-    });
-
-    it('accepts numbered external ports in the output path projection', () => {
-        const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'ports');
-        const child = attachNodeToCircle(createTestMagicNode('child'), box, 0);
-        const edges: Edge[] = [
-            {
-                id: 'source',
-                source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-                target: box.id,
-                sourceHandle: 'output-2',
-                targetHandle: 'circle-input-2',
-            },
-            {
-                id: 'output',
-                source: box.id,
-                target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-                sourceHandle: 'circle-output-3',
-                targetHandle: 'input-3',
-            },
-        ];
-
-        expect(analyzeExplicitMagicCircleGraph(
-            [box, child],
-            edges
-        ).orderedOutputCircleIds).toEqual([box.id]);
-    });
-
-    it('orders output-path circles topologically and then by x position', () => {
-        const left = createMagicCircleNode({ x: 0, y: 0 }, () => 'left');
-        const right = createMagicCircleNode({ x: 520, y: 0 }, () => 'right');
-        const leftChild = attachNodeToCircle(createTestMagicNode('left-child'), left, 0);
-        const rightChild = attachNodeToCircle(createTestMagicNode('right-child'), right, 0);
-        const edges: Edge[] = [
-            {
-                id: 'source-left',
-                source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-                target: left.id,
-                sourceHandle: 'output-0',
-                targetHandle: 'circle-input',
-            },
-            {
-                id: 'left-right',
-                source: left.id,
-                target: right.id,
-                sourceHandle: 'circle-output',
-                targetHandle: 'circle-input',
-            },
-            {
-                id: 'right-output',
-                source: right.id,
-                target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-                sourceHandle: 'circle-output',
-                targetHandle: 'input-0',
-            },
-        ];
-
-        expect(analyzeExplicitMagicCircleGraph(
-            [right, left, rightChild, leftChild],
-            edges
-        ).states.map(state => [state.circleId, state.displayOrder]))
-            .toEqual([
-                [left.id, 1],
-                [right.id, 2],
-            ]);
-    });
-
-    it('keeps external fan-out branches as separate valid circles', () => {
-        const root = createMagicCircleNode({ x: 0, y: 0 }, () => 'root');
-        const left = createMagicCircleNode({ x: -520, y: 700 }, () => 'left');
-        const right = createMagicCircleNode({ x: 520, y: 700 }, () => 'right');
+    it('orders every valid circle topologically and then by x position', () => {
+        const root = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'root'
+        );
+        const left = createMagicCircleNode(
+            { x: -520, y: 700 },
+            () => 'left'
+        );
+        const right = createMagicCircleNode(
+            { x: 520, y: 700 },
+            () => 'right'
+        );
         const nodes = [
             root,
             left,
@@ -181,49 +112,200 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             attachNodeToCircle(createTestMagicNode('left-node'), left, 0),
             attachNodeToCircle(createTestMagicNode('right-node'), right, 0),
         ];
-        const edges: Edge[] = [
+        const edges = [
+            connectCircles(root.id, left.id),
             {
-                id: 'source-root',
-                source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-                target: root.id,
-                sourceHandle: 'output-0',
-                targetHandle: 'circle-input',
-            },
-            {
-                id: 'root-left',
-                source: root.id,
-                target: left.id,
-                sourceHandle: 'circle-output',
-                targetHandle: 'circle-input',
-            },
-            {
-                id: 'root-right',
-                source: root.id,
-                target: right.id,
+                ...connectCircles(root.id, right.id),
                 sourceHandle: 'circle-output-1',
-                targetHandle: 'circle-input',
-            },
-            {
-                id: 'left-output',
-                source: left.id,
-                target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-                sourceHandle: 'circle-output',
-                targetHandle: 'input-0',
-            },
-            {
-                id: 'right-output',
-                source: right.id,
-                target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-                sourceHandle: 'circle-output',
-                targetHandle: 'input-1',
             },
         ];
 
-        expect(analyzeExplicitMagicCircleGraph(nodes, edges).orderedOutputCircleIds)
+        const analysis = analyzeExplicitMagicCircleGraph(nodes, edges);
+        expect(analysis.orderedCalculatedCircleIds)
             .toEqual([root.id, left.id, right.id]);
+        expect(analysis.states.map(state => [
+            state.circleId,
+            state.displayOrder,
+        ])).toEqual([
+            [root.id, 1],
+            [left.id, 2],
+            [right.id, 3],
+        ]);
     });
 
-    it('preserves the existing serial stat result through virtual projection', () => {
+    it('calculates multiple disconnected valid circles', () => {
+        const first = createMagicCircleNode(
+            { x: -260, y: 0 },
+            () => 'first-root'
+        );
+        const second = createMagicCircleNode(
+            { x: 260, y: 0 },
+            () => 'second-root'
+        );
+        const result = calculateMagic(
+            [
+                first,
+                second,
+                attachNodeToCircle(
+                    createTestMagicNode('first-node'),
+                    first,
+                    0
+                ),
+                attachNodeToCircle(
+                    createTestMagicNode('second-node'),
+                    second,
+                    0
+                ),
+            ],
+            [],
+            magicTypesData as MagicTypeConfig[]
+        );
+
+        expect(result.circles.map(circle => circle.id))
+            .toEqual([first.id, second.id]);
+    });
+
+    it('projects pair end markers as zero-stat virtual anchors', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'pair'
+        );
+        const pairId = 'repeat-pair';
+        const start = attachNodeToCircle({
+            ...createTestMagicNode('repeat-start', 'repeat'),
+            data: {
+                ...createTestMagicNode('repeat-start', 'repeat').data,
+                controlPair: {
+                    id: pairId,
+                    role: MAGIC_CONTROL_PAIR_ROLES.START,
+                },
+            },
+        }, circle, 0);
+        const middle = attachNodeToCircle(
+            createTestMagicNode('middle'),
+            circle,
+            1
+        );
+        const end = attachNodeToCircle({
+            ...createTestMagicNode('repeat-end', 'repeat'),
+            data: {
+                ...createTestMagicNode('repeat-end', 'repeat').data,
+                controlPair: {
+                    id: pairId,
+                    role: MAGIC_CONTROL_PAIR_ROLES.END,
+                },
+                excludeFromStatScaling: true,
+            },
+        }, circle, 2);
+
+        const internal = analyzeExplicitMagicCircleGraph(
+            [circle, start, middle, end],
+            []
+        ).internalByCircleId.get(circle.id)!;
+
+        expect(internal.calculationNodes.map(node => node.id))
+            .toEqual([start.id, middle.id]);
+        expect(internal.projectedNodes.find(node => node.id === end.id)?.data)
+            .toMatchObject({
+                magicType: '__circle-anchor__',
+                excludeFromStatScaling: true,
+            });
+    });
+
+    it('repeats only nodes enclosed by a repeat pair', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'repeat-stats'
+        );
+        const pairId = 'repeat-stats-pair';
+        const start = attachNodeToCircle({
+            ...createTestMagicNode('repeat-start', 'repeat'),
+            data: {
+                ...createTestMagicNode('repeat-start', 'repeat').data,
+                settings: { repeatCount: '3' },
+                controlPair: {
+                    id: pairId,
+                    role: MAGIC_CONTROL_PAIR_ROLES.START,
+                },
+            },
+        }, circle, 0);
+        const content = attachNodeToCircle(
+            createTestMagicNode('content', 'ignition'),
+            circle,
+            1
+        );
+        const end = attachNodeToCircle({
+            ...createTestMagicNode('repeat-end', 'repeat'),
+            data: {
+                ...createTestMagicNode('repeat-end', 'repeat').data,
+                controlPair: {
+                    id: pairId,
+                    role: MAGIC_CONTROL_PAIR_ROLES.END,
+                },
+                excludeFromStatScaling: true,
+            },
+        }, circle, 2);
+
+        const result = calculateMagic(
+            [circle, start, content, end],
+            [],
+            magicTypesData as MagicTypeConfig[]
+        );
+
+        expect(result.circles[0].nodes.map(node => node.id))
+            .toEqual([start.id, content.id]);
+        expect(result.circles[0].stats).toMatchObject({
+            castingTime: 5,
+            power: 12,
+            manaCost: 10,
+        });
+    });
+
+    it('keeps branch pairs on the default serial calculation path', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'branch-stats'
+        );
+        const pairId = 'branch-stats-pair';
+        const start = attachNodeToCircle({
+            ...createTestMagicNode('branch-start', 'branch'),
+            data: {
+                ...createTestMagicNode('branch-start', 'branch').data,
+                settings: { caption: '대상이 움직일 때' },
+                controlPair: {
+                    id: pairId,
+                    role: MAGIC_CONTROL_PAIR_ROLES.START,
+                },
+            },
+        }, circle, 0);
+        const content = attachNodeToCircle(
+            createTestMagicNode('branch-content', 'ignition'),
+            circle,
+            1
+        );
+        const end = attachNodeToCircle({
+            ...createTestMagicNode('branch-end', 'branch'),
+            data: {
+                ...createTestMagicNode('branch-end', 'branch').data,
+                controlPair: {
+                    id: pairId,
+                    role: MAGIC_CONTROL_PAIR_ROLES.END,
+                },
+                excludeFromStatScaling: true,
+            },
+        }, circle, 2);
+        const result = calculateMagic(
+            [circle, start, content, end],
+            [],
+            magicTypesData as MagicTypeConfig[]
+        );
+
+        expect(result.circles[0].nodes.map(node => node.id))
+            .toEqual([start.id, content.id]);
+        expect(result.circles[0].stats.manaCost).toBe(5);
+    });
+
+    it('preserves serial stats without requiring system boundary nodes', () => {
         const magicTypes: MagicTypeConfig[] = [
             {
                 type: 'ignition',
@@ -268,14 +350,17 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             [{ id: 'serial', source: first.id, target: second.id }],
             magicTypes
         );
-        const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'regression');
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'regression'
+        );
         const explicit = calculateMagic(
             [
-                box,
-                attachNodeToCircle(first, box, 0),
-                attachNodeToCircle(second, box, 1),
+                circle,
+                attachNodeToCircle(first, circle, 0),
+                attachNodeToCircle(second, circle, 1),
             ],
-            externalPath(box.id),
+            [],
             magicTypes
         );
 

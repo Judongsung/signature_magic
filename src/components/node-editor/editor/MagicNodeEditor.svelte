@@ -27,6 +27,7 @@
         GRAPH_EDGE_TYPES,
         GRAPH_NODE_TYPES,
         MAGIC_CIRCLE_NODE_CONFIG,
+        MAGIC_CONTROL_PAIR_ROLES,
     } from '../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import {
@@ -37,11 +38,11 @@
     } from '../../../systems/graph/editor/editorCanvas';
     import { getMagicTypesByCategory } from '../../../systems/graph/registry/magicTypeRegistry';
     import MagicGraphCanvasBackground from '../MagicGraphCanvasBackground.svelte';
-    import CustomNode from './CustomNode.svelte';
-    import MagicCircleNode from './MagicCircleNode.svelte';
-    import CustomEdge from './CustomEdge.svelte';
+    import MagicUnitNode from './nodes/MagicUnitNode.svelte';
+    import MagicCircleNode from './nodes/MagicCircleNode.svelte';
+    import MagicGraphEdge from './nodes/MagicGraphEdge.svelte';
     import MagicNodeToolbar from './MagicNodeToolbar.svelte';
-    import { openNodeDetailsFromContextMenu } from './nodeDetailsInteraction';
+    import { openNodeDetailsFromContextMenu } from './details/nodeDetailsInteraction';
     import type {
         MagicEditorNode,
         MagicType,
@@ -57,7 +58,9 @@
         resolveMagicNodeSequenceDrop,
         type MagicNodeSequenceDrop,
     } from '../../../systems/graph/editor/magicCircleEditorInteraction';
-    import { provideNodeEditorDetails } from './nodeDetailsContext';
+    import { provideNodeEditorDetails } from './details/nodeDetailsContext';
+    import { isMagicControlPairNode } from '../../../systems/graph/model/magicControlPairs';
+    import { isCircleSystemMagicNode } from '../../../systems/graph/model/circleSystemMagicNodes';
 
     let {
         onOpenPresetDialog,
@@ -72,10 +75,10 @@
     provideNodeEditorDetails((nodeId) => onOpenNodeDetails(nodeId));
 
     const nodeTypes = {
-        [GRAPH_NODE_TYPES.MAGIC_NODE]: CustomNode,
+        [GRAPH_NODE_TYPES.MAGIC_NODE]: MagicUnitNode,
         [GRAPH_NODE_TYPES.MAGIC_CIRCLE]: MagicCircleNode,
     };
-    const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: CustomEdge };
+    const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: MagicGraphEdge };
     const snapGrid = EDITOR_CANVAS.SNAP_GRID as SnapGrid;
     const canvasExtent = EDITOR_CANVAS.EXTENT as CoordinateExtent;
     const panOnDragButtons = [...EDITOR_CANVAS.PAN_ON_DRAG_BUTTONS];
@@ -355,6 +358,13 @@
 
     const onNodeContextMenu: NodeEventWithPointer<MouseEvent, MagicEditorNode> = ({ node, event }) => {
         if (isMagicCircleNode(node)) return;
+        if (isCircleSystemMagicNode(node)) return;
+        if (
+            isMagicControlPairNode(node) &&
+            node.data.controlPair.role === MAGIC_CONTROL_PAIR_ROLES.END
+        ) {
+            return;
+        }
         openNodeDetailsFromContextMenu(node, event, onOpenNodeDetails);
     };
 

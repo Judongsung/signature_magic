@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import CustomNode from './CustomNode.svelte';
+import MagicUnitNode from './MagicUnitNode.svelte';
 
 const interactionMocks = vi.hoisted(() => ({
     openDetails: vi.fn<(nodeId: string) => void>(),
@@ -16,7 +16,7 @@ vi.mock('@xyflow/svelte', () => ({
     },
     useUpdateNodeInternals: () => interactionMocks.updateNodeInternals,
 }));
-vi.mock('./nodeDetailsContext', () => ({
+vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => interactionMocks.openDetails,
 }));
 
@@ -35,11 +35,11 @@ afterEach(async () => {
     document.body.replaceChildren();
 });
 
-describe('CustomNode interaction', () => {
+describe('MagicUnitNode interaction', () => {
     it('opens node details from the card action', async () => {
         const target = document.createElement('div');
         document.body.append(target);
-        mountedNode = mount(CustomNode, {
+        mountedNode = mount(MagicUnitNode, {
             target,
             props: {
                 id: 'node-details-target',
@@ -64,5 +64,31 @@ describe('CustomNode interaction', () => {
         expect(interactionMocks.openDetails).toHaveBeenCalledWith(
             'node-details-target'
         );
+    });
+
+    it('does not expose details from a pair end marker', () => {
+        const target = document.createElement('div');
+        document.body.append(target);
+        mountedNode = mount(MagicUnitNode, {
+            target,
+            props: {
+                id: 'repeat-end',
+                data: {
+                    magicType: 'repeat',
+                    nodeKind: 'user',
+                    sequenceIndex: 1,
+                    controlPair: {
+                        id: 'repeat-pair',
+                        role: 'end',
+                    },
+                },
+                parentId: 'circle-1',
+                draggable: true,
+                isConnectable: false,
+            },
+        });
+
+        expect(target.querySelector('.node-details-trigger')).toBeNull();
+        expect(target.querySelector('.description-tooltip')).toBeNull();
     });
 });

@@ -14,6 +14,7 @@ import {
     getCircleChildNodes,
     resolveMagicCircleRequiredHeight,
 } from '../model/magicCircleGraph';
+import { getCircleEditableSequenceNodes } from '../model/circleSystemMagicNodes';
 
 export interface MagicCircleViewModel {
     status: MagicCircleStatus;
@@ -25,11 +26,9 @@ export interface MagicCircleViewModel {
 }
 
 function resolveStatus(
-    childCount: number,
-    circleState: MagicCircleState | undefined
+    childCount: number
 ): MagicCircleStatus {
     if (childCount === 0) return MAGIC_CIRCLE_STATUSES.EMPTY;
-    if (!circleState?.isOnOutputPath) return MAGIC_CIRCLE_STATUSES.EXTERNAL;
     return MAGIC_CIRCLE_STATUSES.VALID;
 }
 
@@ -39,9 +38,10 @@ export function resolveMagicCircleViewModel(
     circleState: MagicCircleState | undefined
 ): MagicCircleViewModel {
     const childNodes = getCircleChildNodes(nodes, circle.id);
+    const editableChildNodes = getCircleEditableSequenceNodes(nodes, circle.id);
 
     return {
-        status: resolveStatus(childNodes.length, circleState),
+        status: resolveStatus(editableChildNodes.length),
         displayOrder: circleState?.displayOrder,
         minimumWidth: MAGIC_CIRCLE_NODE_CONFIG.MIN_SIZE.width,
         minimumHeight: resolveMagicCircleRequiredHeight(childNodes.length),

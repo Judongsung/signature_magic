@@ -5,7 +5,6 @@ import {
     GRAPH_NODE_TYPES,
     MAGIC_NODE_HANDLE_CONFIG,
 } from '../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
 import { graphStore } from '../stores/graphStore.svelte';
 import type { CirclePath, MagicNode, MagicType, MagicTypeConfig } from '../types/magic';
 import {
@@ -89,27 +88,7 @@ export function createSingleNodeCircleFixture(): CirclePath[] {
     graphStore.addNode('ignition');
     const userNode = getMagicUnitNodes(graphStore.nodes)
         .find(node => node.data.magicType === 'ignition');
-    const circle = getMagicCircleNodes(graphStore.nodes)[0];
     expect(userNode).toBeDefined();
-
-    const connections: Connection[] = [
-        {
-            source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-            target: circle.id,
-            sourceHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
-            targetHandle: 'circle-input',
-        },
-        {
-            source: circle.id,
-            target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-            sourceHandle: 'circle-output',
-            targetHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID,
-        },
-    ];
-    connections.forEach(connection => {
-        const preparedEdge = graphStore.prepareEdge(connection);
-        if (preparedEdge) graphStore.edges = [...graphStore.edges, preparedEdge];
-    });
 
     return graphStore.circles.map(circle => ({
         ...circle,

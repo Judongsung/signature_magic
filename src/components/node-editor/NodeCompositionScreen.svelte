@@ -13,8 +13,8 @@
     import MagicCirclePanel from './magic-circle/MagicCirclePanel.svelte';
     import NodeCompositionPaneLayout from './NodeCompositionPaneLayout.svelte';
     import MagicNodeEditor from './editor/MagicNodeEditor.svelte';
-    import MagicNodeDetailsDialog from './editor/MagicNodeDetailsDialog.svelte';
-    import MagicCircleDetailsDialog from './editor/MagicCircleDetailsDialog.svelte';
+    import MagicNodeDetailsDialog from './editor/details/MagicNodeDetailsDialog.svelte';
+    import MagicCircleDetailsDialog from './editor/details/MagicCircleDetailsDialog.svelte';
     import MagicNodePresetDialog from './presets/MagicNodePresetDialog.svelte';
     import {
         createNodeCompositionPresetController,

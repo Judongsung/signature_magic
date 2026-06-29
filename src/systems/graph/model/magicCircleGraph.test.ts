@@ -174,9 +174,10 @@ describe('magicCircleGraph sequence model', () => {
         expect(isMagicCirclePortHandleId('circle-start', 'output')).toBe(false);
     });
 
-    it('disables repeat while retaining other sequence node types', () => {
-        expect(isMagicTypeAllowedInCircleSequence('repeat')).toBe(false);
+    it('allows repeat and branch sequence node types', () => {
+        expect(isMagicTypeAllowedInCircleSequence('repeat')).toBe(true);
         expect(isMagicTypeAllowedInCircleSequence('branch')).toBe(true);
+        expect(isMagicTypeAllowedInCircleSequence('manifestation')).toBe(false);
     });
 
     it('resolves an active circle only for one selected parent group', () => {

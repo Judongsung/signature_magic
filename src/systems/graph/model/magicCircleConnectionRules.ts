@@ -3,7 +3,6 @@ import {
     GRAPH_EDGE_TYPES,
     MAGIC_EDGE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type { MagicEditorNode } from '../../../types/magic';
 import { buildOutEdgeMap } from '../topology/graphTopology';
 import { canReach } from '../topology/graphTraversal';
@@ -18,7 +17,6 @@ import {
     getMagicCircleNodes,
     isMagicCirclePortHandleId,
     isMagicCircleNode,
-    isMagicNodePortHandleId,
 } from './magicCircleGraph';
 
 function isExactDuplicate(connection: Connection, edges: readonly Edge[]): boolean {
@@ -37,26 +35,14 @@ export function isExplicitMagicCircleExternalConnection(
     const sourceHandle = connection.sourceHandle;
     const targetHandle = connection.targetHandle;
     const circleIds = new Set(getMagicCircleNodes(nodes).map(circle => circle.id));
-    const sourceIsMana = connection.source === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id;
-    const targetIsOutput = connection.target === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id;
     const sourceIsCircle = Boolean(connection.source && circleIds.has(connection.source));
     const targetIsCircle = Boolean(connection.target && circleIds.has(connection.target));
 
     return (
-        sourceIsMana &&
-        targetIsCircle &&
-        isMagicNodePortHandleId(sourceHandle, 'output') &&
-        isMagicCirclePortHandleId(targetHandle, 'input')
-    ) || (
         sourceIsCircle &&
         isMagicCirclePortHandleId(sourceHandle, 'output') &&
         targetIsCircle &&
         isMagicCirclePortHandleId(targetHandle, 'input')
-    ) || (
-        sourceIsCircle &&
-        isMagicCirclePortHandleId(sourceHandle, 'output') &&
-        targetIsOutput &&
-        isMagicNodePortHandleId(targetHandle, 'input')
     );
 }
 
@@ -111,18 +97,12 @@ export function filterExplicitEdgesReplacedByConnection(
     return edges.filter(edge => {
         const replacesSourceHandle =
             sourceNode &&
-            (
-                isMagicCircleNode(sourceNode) ||
-                sourceNode.id === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id
-            ) &&
+            isMagicCircleNode(sourceNode) &&
             edge.source === connection.source &&
             edge.sourceHandle === sourceHandle;
         const replacesTargetHandle =
             targetNode &&
-            (
-                isMagicCircleNode(targetNode) ||
-                targetNode.id === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id
-            ) &&
+            isMagicCircleNode(targetNode) &&
             edge.target === connection.target &&
             edge.targetHandle === targetHandle;
 

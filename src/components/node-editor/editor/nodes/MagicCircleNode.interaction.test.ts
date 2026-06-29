@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { graphStore } from '../../../stores/graphStore.svelte';
-import { resetGraphStoreFixture } from '../../../test-utils/graphFixtures';
-import { getMagicCircleNodes } from '../../../systems/graph/model/magicCircleGraph';
+import { graphStore } from '../../../../stores/graphStore.svelte';
+import { resetGraphStoreFixture } from '../../../../test-utils/graphFixtures';
+import { getMagicCircleNodes } from '../../../../systems/graph/model/magicCircleGraph';
 import MagicCircleNode from './MagicCircleNode.svelte';
 
 const xyflowMocks = vi.hoisted(() => ({
@@ -22,7 +22,7 @@ vi.mock('@xyflow/svelte', () => ({
     },
     useUpdateNodeInternals: () => xyflowMocks.updateNodeInternals,
 }));
-vi.mock('./nodeDetailsContext', () => ({
+vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => detailsMocks.openDetails,
 }));
 
@@ -47,6 +47,28 @@ afterEach(async () => {
 });
 
 describe('MagicCircleNode interaction', () => {
+    it('keeps the empty circle surface clickable with a default cursor', () => {
+        const [circle] = getMagicCircleNodes(graphStore.nodes);
+        const target = document.createElement('div');
+        document.body.append(target);
+        mountedCircles.push(mount(MagicCircleNode, {
+            target,
+            props: {
+                id: circle.id,
+                data: circle.data,
+                width: circle.width,
+                height: circle.height,
+            },
+        }));
+
+        const circleSurface = target.querySelector<HTMLElement>(
+            '.magic-circle-node'
+        );
+
+        expect(getComputedStyle(circleSurface!).pointerEvents).toBe('auto');
+        expect(getComputedStyle(circleSurface!).cursor).toBe('default');
+    });
+
     it('opens the circle details from the title bar action', async () => {
         const [circle] = getMagicCircleNodes(graphStore.nodes);
         const target = document.createElement('div');

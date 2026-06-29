@@ -7,20 +7,24 @@
     } from '@xyflow/svelte';
     import {
         MAGIC_CIRCLE_NODE_CONFIG,
-    } from '../../../constants/graphConfigs';
-    import {
-        MAGIC_CIRCLE_STATUS_LABELS,
-        NODE_EDITOR_TEXT,
-    } from '../../../constants/uiText';
-    import type { MagicCircleNodeData } from '../../../types/magic';
-    import { graphStore } from '../../../stores/graphStore.svelte';
-    import { resolveMagicCircleViewModel } from '../../../systems/graph/presentation/magicCirclePresentation';
-    import { resolveCirclePortLeft } from '../../../systems/graph/presentation/magicHandlePresentation';
+        MAGIC_CIRCLE_SEQUENCE_CONFIG,
+        MAGIC_CONTROL_PAIR_CONFIG,
+        MAGIC_CONTROL_PAIR_NODE_TYPES,
+    } from '../../../../constants/graphConfigs';
+    import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
+    import type { MagicCircleNodeData } from '../../../../types/magic';
+    import { graphStore } from '../../../../stores/graphStore.svelte';
+    import { resolveMagicCircleViewModel } from '../../../../systems/graph/presentation/magicCirclePresentation';
+    import { resolveCirclePortLeft } from '../../../../systems/graph/presentation/magicHandlePresentation';
+    import { resolveMagicControlPairConnectors } from '../../../../systems/graph/presentation/magicControlPairPresentation';
+    import { resolveMagicControlPairRailWidth } from '../../../../systems/graph/model/magicControlPairs';
     import {
         createNodeHandleLayoutKey,
         createNodeInternalsRefresh,
     } from './nodeInternalsRefresh';
-    import { useNodeEditorDetails } from './nodeDetailsContext';
+    import { useNodeEditorDetails } from '../details/nodeDetailsContext';
+
+    const componentInstanceId = $props.id();
 
     let {
         id,
@@ -70,6 +74,20 @@
         data.name ||
         `${NODE_EDITOR_TEXT.CIRCLE_TITLE} ${viewModel.displayOrder ?? '—'}`
     );
+    const controlPairConnectors = $derived(
+        resolveMagicControlPairConnectors(graphStore.nodes, id)
+    );
+    const controlRailWidth = $derived(
+        resolveMagicControlPairRailWidth(graphStore.nodes, id)
+    );
+    const controlCardRight = $derived(
+        width -
+        MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET -
+        controlRailWidth
+    );
+    const branchMarkerId = $derived(
+        `${componentInstanceId}-branch-arrow-${id}`
+    );
 
     $effect(() => {
         refreshNodeInternals(handleLayoutKey);
@@ -78,6 +96,26 @@
     function openCircleDetails(event: MouseEvent): void {
         event.stopPropagation();
         openDetails?.(id);
+    }
+
+    function connectorLaneX(lane: number): number {
+        return controlCardRight +
+            MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_HOOK_WIDTH +
+            lane * MAGIC_CONTROL_PAIR_CONFIG.RAIL_LANE_GAP;
+    }
+
+    function connectorPath(
+        lane: number,
+        startY: number,
+        endY: number
+    ): string {
+        const laneX = connectorLaneX(lane);
+        return [
+            `M ${controlCardRight} ${startY}`,
+            `H ${laneX}`,
+            `V ${endY}`,
+            `H ${controlCardRight}`,
+        ].join(' ');
     }
 </script>
 
@@ -89,6 +127,8 @@
     data-status={viewModel.status}
     style:width={`${width}px`}
     style:height={`${height}px`}
+    style:pointer-events={draggable ? 'auto' : 'none'}
+    style:cursor="default"
     style:--circle-port-offset={`${MAGIC_CIRCLE_NODE_CONFIG.PORT_OFFSET}px`}
 >
     <NodeResizer
@@ -101,11 +141,16 @@
     <div
         class={`circle-title ${MAGIC_CIRCLE_NODE_CONFIG.DRAG_HANDLE_CLASS}`}
     >
-        <span class="circle-title-name">{circleTitle}</span>
+        <span
+            class="circle-title-content"
+            class:has-caption={Boolean(data.caption)}
+        >
+            <span class="circle-title-name">{circleTitle}</span>
+            {#if data.caption}
+                <span class="circle-title-caption">{data.caption}</span>
+            {/if}
+        </span>
         <span class="circle-title-actions">
-            <span class="circle-status">
-                {MAGIC_CIRCLE_STATUS_LABELS[viewModel.status]}
-            </span>
             {#if draggable && openDetails}
                 <button
                     type="button"
@@ -133,6 +178,48 @@
             style={`left: ${resolveCirclePortLeft(index, viewModel.inputHandleIds.length)};`}
         />
     {/each}
+
+    {#if controlPairConnectors.length > 0}
+        <svg
+            class="control-pair-overlay"
+            width={width}
+            height={height}
+            aria-hidden="true"
+        >
+            <defs>
+                <marker
+                    id={branchMarkerId}
+                    markerWidth={MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE}
+                    markerHeight={MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE}
+                    refX={MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE}
+                    refY={MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE / 2}
+                    orient="auto"
+                >
+                    <path
+                        d={`M 0 0 L ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE} ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE / 2} L 0 ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE} z`}
+                    />
+                </marker>
+            </defs>
+            {#each controlPairConnectors as connector (connector.pairId)}
+                <path
+                    class:repeat-connector={connector.kind ===
+                        MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT}
+                    class:branch-connector={connector.kind ===
+                        MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH}
+                    class="control-pair-connector"
+                    d={connectorPath(
+                        connector.lane,
+                        connector.startY,
+                        connector.endY
+                    )}
+                    marker-end={connector.kind ===
+                        MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH
+                        ? `url(#${branchMarkerId})`
+                        : undefined}
+                />
+            {/each}
+        </svg>
+    {/if}
 
     {#if insertionIndicatorY !== undefined}
         <div
@@ -166,7 +253,6 @@
     .magic-circle-node {
         position: relative;
         box-sizing: border-box;
-        pointer-events: none;
         border: 2px solid var(--node-editor-border);
         border-radius: var(--node-editor-circle-radius);
         background: var(--node-editor-circle-surface-bg);
@@ -189,17 +275,38 @@
         opacity: 0.8;
     }
 
+    .control-pair-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        overflow: visible;
+        pointer-events: none;
+    }
+
+    .control-pair-connector {
+        fill: none;
+        stroke-width: 2;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .repeat-connector {
+        stroke: var(--node-editor-repeat-color);
+    }
+
+    .branch-connector {
+        stroke: var(--node-editor-branch-color);
+    }
+
+    .control-pair-overlay marker path {
+        fill: var(--node-editor-branch-color);
+    }
+
     .magic-circle-node[data-status='valid'] {
         border-color: color-mix(in srgb, var(--node-editor-circle-valid) 58%, var(--node-editor-border));
     }
 
-    .magic-circle-node[data-status='empty'],
-    .magic-circle-node[data-status='external'] {
+    .magic-circle-node[data-status='empty'] {
         border-style: dashed;
-    }
-
-    .magic-circle-node[data-status='external'] {
-        border-color: color-mix(in srgb, var(--node-editor-circle-external) 62%, var(--node-editor-border));
     }
 
     .magic-circle-node.active-target {
@@ -257,20 +364,35 @@
         cursor: default;
     }
 
-    .circle-status {
-        padding: 2px 6px;
-        color: var(--node-editor-muted-strong);
-        border: 1px solid var(--node-editor-border);
-        border-radius: var(--node-editor-radius-sm);
-        background: var(--node-editor-circle-status-bg);
-        font-family: var(--font-body);
-        font-size: 9px;
-        letter-spacing: 0.06em;
+    .circle-title-content {
+        min-width: 0;
+        flex: 1 1 auto;
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
     }
 
     .circle-title-name {
         min-width: 0;
+        flex: 0 1 auto;
         overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .circle-title-content.has-caption .circle-title-name {
+        max-width: 55%;
+    }
+
+    .circle-title-caption {
+        min-width: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+        opacity: 0.72;
+        font-family: var(--font-body);
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: normal;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -279,7 +401,7 @@
         flex: 0 0 auto;
         display: flex;
         align-items: center;
-        gap: 8px;
+        margin-left: 12px;
     }
 
     .circle-details-trigger {
@@ -288,7 +410,7 @@
         padding: 0;
         border: 1px solid color-mix(in srgb, var(--node-editor-circle-selected) 38%, var(--node-editor-border));
         border-radius: var(--node-editor-radius-sm);
-        background: var(--node-editor-circle-status-bg);
+        background: var(--node-editor-button-bg);
         color: var(--node-editor-text-strong);
         cursor: pointer;
         font-size: 15px;

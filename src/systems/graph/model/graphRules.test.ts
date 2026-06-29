@@ -4,7 +4,8 @@ import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 import {
     GRAPH_NODE_TYPES, MAGIC_NODE_HANDLE_CONFIG, } from '../../../constants/graphConfigs';
 import {
-    SYSTEM_MAGIC_NODE_CONFIGS, SYSTEM_MAGIC_TYPE_CONFIGS, } from '../../../constants/systemMagicNodeConfigs';
+    SYSTEM_MAGIC_TYPE_CONFIGS,
+} from '../../../constants/systemMagicNodeConfigs';
 import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/nodeEditorConfigs';
 import {
     filterEdgesReplacedByConnection,
@@ -239,19 +240,6 @@ describe('graphRules', () => {
             nodes,
             magicTypes
         )).toBe(true);
-    });
-
-    it('enforces fixed system node connection direction', () => {
-        const nodes = [
-            node(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id, SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id),
-            node(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id, SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id),
-            node('a'),
-        ];
-
-        expect(isConnectionValid(connection('a', SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id), [], nodes, magicTypes)).toBe(false);
-        expect(isConnectionValid(connection(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id, 'a'), [], nodes, magicTypes)).toBe(false);
-        expect(isConnectionValid(connection(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id, 'a'), [], nodes, magicTypes)).toBe(true);
-        expect(isConnectionValid(connection('a', SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id), [], nodes, magicTypes)).toBe(true);
     });
 
     it('removes the existing edge when a connection reuses the same handle', () => {

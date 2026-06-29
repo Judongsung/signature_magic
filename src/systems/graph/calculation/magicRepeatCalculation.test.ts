@@ -6,9 +6,17 @@ import {
 } from '../../../constants/nodeEditorConfigs';
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
+import { MAGIC_CONTROL_PAIR_ROLES } from '../../../constants/graphConfigs';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
+import {
+    attachNodeToCircle,
+    createMagicCircleNode,
+} from '../model/magicCircleGraph';
 import { buildMagicGraphAnalysis } from './magicGraphAnalysis';
-import { buildMagicNodeExecutionCounts } from './magicRepeatCalculation';
+import {
+    buildMagicControlPairExecutionCounts,
+    buildMagicNodeExecutionCounts,
+} from './magicRepeatCalculation';
 import { buildMagicTypeMap } from './magicStatCalculator';
 
 const magicTypes = buildMagicTypeMap([
@@ -39,7 +47,7 @@ const magicTypes = buildMagicTypeMap([
                     step: 1,
                     defaultValue: 0,
                     presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX,
-                    behavior: MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT,
+                    behavior: MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT,
                 },
             ],
         },
@@ -62,6 +70,24 @@ function node(id: string, magicType = 'ignition', repeatCount?: string): MagicNo
 
 function edge(source: string, target: string): Edge {
     return { id: `${source}-${target}`, source, target };
+}
+
+function marker(
+    id: string,
+    pairId: string,
+    role: 'start' | 'end',
+    repeatCount?: string
+): MagicNode {
+    return {
+        ...node(id, 'repeat', repeatCount),
+        data: {
+            ...node(id, 'repeat', repeatCount).data,
+            controlPair: { id: pairId, role },
+            ...(role === MAGIC_CONTROL_PAIR_ROLES.END
+                ? { excludeFromStatScaling: true }
+                : {}),
+        },
+    };
 }
 
 describe('magicRepeatCalculation', () => {
@@ -95,5 +121,44 @@ describe('magicRepeatCalculation', () => {
         const analysis = buildMagicGraphAnalysis(nodes, edges, magicTypes);
 
         expect(buildMagicNodeExecutionCounts(analysis, magicTypes).size).toBe(0);
+    });
+
+    it('multiplies only nodes inside nested control-pair intervals', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'paired'
+        );
+        const nodes = [
+            circle,
+            attachNodeToCircle(
+                marker('outer-start', 'outer', 'start', '3'),
+                circle,
+                0
+            ),
+            attachNodeToCircle(
+                marker('inner-start', 'inner', 'start', '2'),
+                circle,
+                1
+            ),
+            attachNodeToCircle(node('content'), circle, 2),
+            attachNodeToCircle(
+                marker('inner-end', 'inner', 'end'),
+                circle,
+                3
+            ),
+            attachNodeToCircle(
+                marker('outer-end', 'outer', 'end'),
+                circle,
+                4
+            ),
+        ];
+
+        expect(Object.fromEntries(
+            buildMagicControlPairExecutionCounts(nodes, magicTypes)
+        )).toEqual({
+            'inner-start': 3,
+            content: 6,
+            'inner-end': 3,
+        });
     });
 });

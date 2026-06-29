@@ -1,4 +1,4 @@
-import type { MagicNode } from '../../../types/magic';
+import type { MagicNode } from '../../../../types/magic';
 
 export function openNodeDetailsFromContextMenu(
     node: MagicNode,

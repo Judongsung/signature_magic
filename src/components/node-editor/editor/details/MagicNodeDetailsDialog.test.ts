@@ -1,19 +1,14 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
-import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
-import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
-import type { MagicNode, MagicStatEffectConfig } from '../../../types/magic';
+import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
+import { getMagicTypeConfig } from '../../../../systems/graph/registry/magicTypeRegistry';
+import type { MagicNode, MagicStatEffectConfig } from '../../../../types/magic';
 import MagicNodeDetailsDialog from './MagicNodeDetailsDialog.svelte';
 
 let mountedDialog: Record<string, unknown> | undefined;
 
 function node(magicType: string, settings?: Record<string, string>): MagicNode {
-    const isSystemNode = Object.values(SYSTEM_MAGIC_NODE_CONFIGS)
-        .some(config => config.id === magicType);
-
     return {
         id: `node-${magicType}`,
         type: 'magicNode',
@@ -21,7 +16,6 @@ function node(magicType: string, settings?: Record<string, string>): MagicNode {
         data: {
             magicType,
             settings,
-            nodeKind: isSystemNode ? MAGIC_NODE_KINDS.SYSTEM : undefined,
         },
     };
 }
@@ -65,21 +59,6 @@ afterEach(async () => {
 });
 
 describe('MagicNodeDetailsDialog', () => {
-    it('renders read-only information for system nodes', () => {
-        const { target } = mountDialog(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id, undefined, [
-            { phase: 'node', operation: 'add', stat: 'power', value: 1 },
-        ]);
-
-        expect(target.querySelector('[role="dialog"]')).not.toBeNull();
-        expect(target.textContent).toContain(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.label);
-        expect(target.textContent).toContain(NODE_EDITOR_TEXT.NODE_DETAILS_CATEGORY_LABEL);
-        expect(target.textContent).toContain(NODE_EDITOR_TEXT.NODE_DETAILS_DESCRIPTION_LABEL);
-        expect(target.textContent).toContain(NODE_EDITOR_TEXT.NODE_DETAILS_STATS_LABEL);
-        expect(target.querySelector('input')).toBeNull();
-        expect(target.textContent).toContain(NODE_EDITOR_TEXT.NODE_DETAILS_CLOSE);
-        expect(target.querySelector('.stat-adjustment')).toBeNull();
-    });
-
     it('shows active node stat effects in the details stats', () => {
         const { target } = mountDialog('ignition', undefined, [
             { phase: 'node', operation: 'multiply', stat: 'castingTime', value: 0.9 },
@@ -200,10 +179,8 @@ describe('MagicNodeDetailsDialog', () => {
         expect(onSave).toHaveBeenCalledWith({ displayName: '별빛 핵' });
     });
 
-    it.each([
-        'detect',
-        'branch',
-    ])('uses the default caption field for the %s node', (magicType) => {
+    it('uses the default caption field for a regular node', () => {
+        const magicType = 'detect';
         const { target, onSave } = mountDialog(magicType, { caption: '기존 캡션' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;
 
@@ -219,6 +196,19 @@ describe('MagicNodeDetailsDialog', () => {
         }));
 
         expect(onSave).toHaveBeenCalledWith({ caption: '대상이 움직일 때' });
+    });
+
+    it('uses the caption as the branch condition', () => {
+        const { target } = mountDialog('branch', {
+            caption: '대상이 움직일 때',
+        });
+        const input = target.querySelector<HTMLInputElement>(
+            'input[type="text"]'
+        )!;
+
+        expect(target.textContent).toContain('분기 조건');
+        expect(input.value).toBe('대상이 움직일 때');
+        expect(input.placeholder).toBe('분기 조건을 입력하세요.');
     });
 
     it('removes an empty caption setting', () => {

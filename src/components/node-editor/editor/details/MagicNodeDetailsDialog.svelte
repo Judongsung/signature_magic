@@ -1,24 +1,24 @@
 <script lang="ts">
-    import { MAGIC_NODE_EDITOR_CONTROLS, MAGIC_REPEAT_CONFIG } from '../../../constants/nodeEditorConfigs';
+    import { MAGIC_NODE_EDITOR_CONTROLS, MAGIC_REPEAT_CONFIG } from '../../../../constants/nodeEditorConfigs';
 import { untrack } from 'svelte';
-    import { MAGIC_NODE_EDITOR_BEHAVIORS } from '../../../constants/nodeEditorConfigs';
-    import { MAGIC_NODE_CATEGORY_LABELS, NODE_EDITOR_TEXT } from '../../../constants/uiText';
-    import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
+    import { MAGIC_NODE_EDITOR_BEHAVIORS } from '../../../../constants/nodeEditorConfigs';
+    import { MAGIC_NODE_CATEGORY_LABELS, NODE_EDITOR_TEXT } from '../../../../constants/uiText';
+    import { MAGIC_NODE_KINDS } from '../../../../constants/graphConfigs';
     import {
         getMagicNodeEditorFields,
         getMagicNodeEditorFieldDraftValue,
         normalizeMagicNodeSettings,
         resolveMagicNodeLabel,
-    } from '../../../systems/graph/model/magicNodeData';
+    } from '../../../../systems/graph/model/magicNodeData';
     import type {
         MagicNode,
         MagicNodeSettings,
         MagicStatEffectConfig,
         MagicNodeStepperEditorFieldConfig,
         MagicTypeConfig,
-    } from '../../../types/magic';
-    import { dialogFocus } from '../../shared/dialogFocus';
-    import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
+    } from '../../../../types/magic';
+    import { dialogFocus } from '../../../shared/dialogFocus';
+    import MagicNodeTooltipStats from '../MagicNodeTooltipStats.svelte';
 
     const dialogId = $props.id();
     const dialogTitleId = `${dialogId}-node-details-title`;
@@ -68,7 +68,7 @@ import { untrack } from 'svelte';
 
     function formatStepperValue(field: MagicNodeStepperEditorFieldConfig): string {
         const value = readStepperValue(field);
-        return field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT &&
+        return field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT &&
             value === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
             ? MAGIC_REPEAT_CONFIG.INFINITE_LABEL
             : String(value);

@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { MAGIC_CIRCLE_METADATA_CONFIG } from '../../../constants/nodeEditorConfigs';
-import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
-import { createMagicCircleNode } from '../../../systems/graph/model/magicCircleGraph';
-import { EMPTY_MAGIC_STATS, type CirclePath } from '../../../types/magic';
+import { MAGIC_CIRCLE_METADATA_CONFIG } from '../../../../constants/nodeEditorConfigs';
+import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
+import { createMagicCircleNode } from '../../../../systems/graph/model/magicCircleGraph';
+import { EMPTY_MAGIC_STATS, type CirclePath } from '../../../../types/magic';
 import MagicCircleDetailsDialog from './MagicCircleDetailsDialog.svelte';
 
 let mountedDialog: Record<string, unknown> | undefined;

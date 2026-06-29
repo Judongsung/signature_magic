@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
+import {
+    MAGIC_CONTROL_PAIR_ROLES,
+    MAGIC_NODE_KINDS,
+} from '../../../constants/graphConfigs';
+import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../../../constants/systemMagicNodeConfigs';
 import magicGraphPresetsData from '../../../data/magicGraphPresets.json';
 import magicTypesData from '../../../data/magicTypes.json';
 import type {
@@ -15,6 +18,7 @@ import {
     createMagicGraphPresetSnapshot,
     MAGIC_GRAPH_PRESET_SOURCES,
 } from './magicGraphPresets';
+import { isCircleSystemMagicNode } from '../model/circleSystemMagicNodes';
 import {
     deleteStoredMagicGraphPreset,
     loadStoredMagicGraphPresets,
@@ -29,19 +33,14 @@ const preset: MagicGraphPresetConfig = {
         position: { x: -240, y: -320 },
         width: 480,
         height: 640,
+        systemNodeSlots: [{
+            magicType: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
+            slotIndex: 2,
+        }],
         name: '공격 서클',
         caption: '첫 번째 단계',
     }],
-    systemNodePositions: [
-        {
-            id: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-            position: { x: -120, y: -360 },
-        },
-        {
-            id: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-            position: { x: 80, y: 420 },
-        },
-    ],
+    systemNodePositions: [],
     nodes: [
         {
             id: 'test-ignition',
@@ -56,20 +55,39 @@ const preset: MagicGraphPresetConfig = {
             sequenceIndex: 1,
         },
     ],
-    edges: [
+    edges: [],
+};
+
+const pairedPreset: MagicGraphPresetConfig = {
+    ...preset,
+    id: 'paired-preset',
+    nodes: [
         {
-            id: 'test-source-circle',
-            source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-            target: 'test-circle',
-            sourceHandle: 'output-0',
-            targetHandle: 'circle-input',
+            id: 'repeat-start',
+            magicType: 'repeat',
+            settings: { repeatCount: '3', caption: '세 번' },
+            circleId: 'test-circle',
+            sequenceIndex: 0,
+            controlPair: {
+                id: 'repeat-pair',
+                role: MAGIC_CONTROL_PAIR_ROLES.START,
+            },
         },
         {
-            id: 'test-circle-output',
-            source: 'test-circle',
-            target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-            sourceHandle: 'circle-output',
-            targetHandle: 'input-0',
+            id: 'repeat-content',
+            magicType: 'ignition',
+            circleId: 'test-circle',
+            sequenceIndex: 1,
+        },
+        {
+            id: 'repeat-end',
+            magicType: 'repeat',
+            circleId: 'test-circle',
+            sequenceIndex: 2,
+            controlPair: {
+                id: 'repeat-pair',
+                role: MAGIC_CONTROL_PAIR_ROLES.END,
+            },
         },
     ],
 };
@@ -104,43 +122,52 @@ class MemoryStorage implements Storage {
     }
 }
 
-describe('magicGraphPresets v3', () => {
-    it('restores derived sequence positions and system nodes', () => {
+describe('magicGraphPresets v6', () => {
+    it('restores sequence positions with one circle-owned manifestation', () => {
         const graph = createMagicGraphFromPreset(preset, magicTypes);
-        const userNodes = graph.nodes.filter(node => node.parentId === 'test-circle');
+        const childNodes = graph.nodes.filter(node =>
+            node.parentId === 'test-circle'
+        );
+        const editableNodes = childNodes.filter(node =>
+            !isCircleSystemMagicNode(node)
+        );
 
-        expect(graph.nodes.slice(0, 4).map(node => node.id)).toEqual([
-            SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-            SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
+        expect(graph.nodes.map(node => node.id)).toEqual([
             'test-circle',
             'test-ignition',
+            'test-stream',
+            'test-circle-manifestation',
         ]);
-        expect(userNodes.map(node => node.position)).toEqual([
+        expect(childNodes.map(node => node.position)).toEqual([
             { x: 32, y: 72 },
             { x: 32, y: 112 },
+            { x: 32, y: 152 },
         ]);
-        expect(userNodes[0].data).toMatchObject({
+        expect(editableNodes[0].data).toMatchObject({
             magicType: 'ignition',
             nodeKind: MAGIC_NODE_KINDS.USER,
             sequenceIndex: 0,
         });
-        expect(userNodes.every(node => node.connectable === false)).toBe(true);
-        expect(graph.nodes.find(node => node.id === 'test-circle')?.data)
-            .toMatchObject({
-                name: '공격 서클',
-                caption: '첫 번째 단계',
-            });
+        expect(childNodes[2].data).toMatchObject({
+            magicType: 'manifestation',
+            nodeKind: MAGIC_NODE_KINDS.SYSTEM,
+            excludeFromStatScaling: true,
+        });
+        expect(graph.nodes[0].data).toMatchObject({
+            name: '공격 서클',
+            caption: '첫 번째 단계',
+        });
     });
 
     it('keeps the built-in preset list empty', () => {
         expect(magicGraphPresetsData).toEqual([]);
     });
 
-    it('creates a calculable serial circle using only external stored edges', () => {
+    it('calculates an isolated serial circle without stored edges', () => {
         const graph = createMagicGraphFromPreset(preset, magicTypes);
         const result = calculateMagic(graph.nodes, graph.edges, magicTypes);
 
-        expect(graph.edges).toHaveLength(2);
+        expect(graph.edges).toEqual([]);
         expect(result.circles).toHaveLength(1);
         expect(result.circles[0].nodes.map(node => node.id)).toEqual([
             'test-ignition',
@@ -148,7 +175,28 @@ describe('magicGraphPresets v3', () => {
         ]);
     });
 
-    it('snapshots sequence indexes and filters stale internal edges', () => {
+    it('round-trips control pair metadata and start-only settings', () => {
+        const graph = createMagicGraphFromPreset(pairedPreset, magicTypes);
+        const end = graph.nodes.find(node => node.id === 'repeat-end')!;
+        const saved = createMagicGraphPresetSnapshot(
+            ' Paired ',
+            graph,
+            () => 'fixed'
+        );
+
+        expect(end.data).toMatchObject({
+            controlPair: {
+                id: 'repeat-pair',
+                role: MAGIC_CONTROL_PAIR_ROLES.END,
+            },
+            excludeFromStatScaling: true,
+        });
+        expect(saved && saved.nodes).toEqual(pairedPreset.nodes);
+        expect(saved && saved.circles[0].systemNodeSlots)
+            .toEqual(pairedPreset.circles[0].systemNodeSlots);
+    });
+
+    it('filters stale internal edges from snapshots', () => {
         const graph = createMagicGraphFromPreset(preset, magicTypes);
         graph.edges.push({
             id: 'stale-internal',
@@ -158,182 +206,85 @@ describe('magicGraphPresets v3', () => {
             targetHandle: 'input-0',
         });
         const saved = createMagicGraphPresetSnapshot(
-            ' Saved preset ',
+            'Saved preset',
             graph,
             () => 'fixed'
         );
 
-        expect(saved && saved.nodes.map(node => node.sequenceIndex)).toEqual([0, 1]);
-        expect(saved && saved.nodes.some(node => 'position' in node)).toBe(false);
-        expect(saved && saved.circles[0]).toMatchObject({
-            name: '공격 서클',
-            caption: '첫 번째 단계',
-        });
-        expect(saved && saved.edges).toEqual(preset.edges);
+        expect(saved && saved.nodes.map(node => node.sequenceIndex))
+            .toEqual([0, 1]);
+        expect(saved && saved.edges).toEqual([]);
     });
 
     it('does not create a user preset without a label or user node', () => {
-        expect(createMagicGraphPresetSnapshot('', { nodes: [], edges: [] })).toBe(false);
+        expect(createMagicGraphPresetSnapshot(
+            '',
+            { nodes: [], edges: [] }
+        )).toBe(false);
         expect(createMagicGraphPresetSnapshot('Empty', {
-            nodes: createMagicGraphFromPreset(preset).nodes.slice(0, 3),
+            nodes: createMagicGraphFromPreset(preset).nodes.slice(0, 1),
             edges: [],
         })).toBe(false);
     });
 
-    it('reports unknown, disabled, and broken references', () => {
+    it('reports unknown node and circle references', () => {
         const invalidPreset: MagicGraphPresetConfig = {
             ...preset,
-            nodes: [
-                {
-                    id: 'unknown',
-                    magicType: 'missing',
-                    circleId: 'test-circle',
-                    sequenceIndex: 0,
-                },
-                {
-                    id: 'repeat',
-                    magicType: 'repeat',
-                    circleId: 'test-circle',
-                    sequenceIndex: 1,
-                },
-            ],
-            edges: [
-                {
-                    id: 'bad-source',
-                    source: 'missing-source',
-                    target: 'test-circle',
-                    sourceHandle: 'output-0',
-                    targetHandle: 'circle-input',
-                },
-                {
-                    id: 'bad-target',
-                    source: 'test-circle',
-                    target: 'missing-target',
-                    sourceHandle: 'circle-output',
-                    targetHandle: 'input-0',
-                },
-            ],
+            nodes: [{
+                id: 'unknown',
+                magicType: 'missing',
+                circleId: 'missing-circle',
+                sequenceIndex: 0,
+            }],
         };
 
-        expect(collectMagicGraphPresetReferenceErrors(invalidPreset, magicTypes))
-            .toContain('Disabled magic graph preset node type: test-preset -> repeat -> repeat');
-        expect(collectMagicGraphPresetReferenceErrors(invalidPreset, magicTypes))
-            .toContain('Unknown magic graph preset edge source: test-preset -> bad-source -> missing-source');
+        expect(collectMagicGraphPresetReferenceErrors(
+            invalidPreset,
+            magicTypes
+        )).toEqual(expect.arrayContaining([
+            'Unknown magic graph preset node type: test-preset -> unknown -> missing',
+            'Unknown magic graph preset node circle: test-preset -> unknown -> missing-circle',
+        ]));
     });
 
-    it('creates stable option values by preset source', () => {
+    it('saves, loads, and deletes only v6 user presets', () => {
+        const storage = new MemoryStorage();
+        storage.setItem(
+            'beautiful-galileo.magicGraphPresets.v5',
+            JSON.stringify([preset])
+        );
+
+        expect(loadStoredMagicGraphPresets(storage)).toEqual([]);
+        expect(saveStoredMagicGraphPreset(pairedPreset, storage))
+            .toEqual([pairedPreset]);
+        expect(storage.getItem('beautiful-galileo.magicGraphPresets.v6'))
+            .not.toBeNull();
+        expect(loadStoredMagicGraphPresets(storage)).toEqual([pairedPreset]);
+        expect(deleteStoredMagicGraphPreset(pairedPreset.id, storage))
+            .toEqual([]);
+    });
+
+    it('rejects malformed stored control pairs', () => {
+        const storage = new MemoryStorage();
+        storage.setItem(
+            'beautiful-galileo.magicGraphPresets.v6',
+            JSON.stringify([{
+                ...pairedPreset,
+                nodes: pairedPreset.nodes.slice(0, 2),
+            }])
+        );
+
+        expect(loadStoredMagicGraphPresets(storage)).toEqual([]);
+    });
+
+    it('creates source-qualified preset options', () => {
         expect(createMagicGraphPresetOption(
             preset,
-            MAGIC_GRAPH_PRESET_SOURCES.BUILT_IN
+            MAGIC_GRAPH_PRESET_SOURCES.USER
         )).toMatchObject({
-            value: 'builtIn:test-preset',
+            value: 'user:test-preset',
             label: 'Test Preset',
+            source: MAGIC_GRAPH_PRESET_SOURCES.USER,
         });
-    });
-
-    it('saves, loads, and deletes v3 user presets', () => {
-        const storage = new MemoryStorage();
-
-        expect(saveStoredMagicGraphPreset(preset, storage)).toEqual([preset]);
-        expect(loadStoredMagicGraphPresets(storage)).toEqual([preset]);
-        expect(storage.getItem('beautiful-galileo.magicGraphPresets.v3'))
-            .toBe(JSON.stringify([preset]));
-        expect(deleteStoredMagicGraphPreset(preset.id, storage)).toEqual([]);
-    });
-
-    it('ignores v2 and unversioned storage without modifying them', () => {
-        const storage = new MemoryStorage();
-        storage.setItem(
-            'beautiful-galileo.magicGraphPresets.v2',
-            JSON.stringify([preset])
-        );
-        storage.setItem(
-            'beautiful-galileo.magicGraphPresets',
-            JSON.stringify([preset])
-        );
-
-        expect(loadStoredMagicGraphPresets(storage)).toEqual([]);
-        expect(storage.getItem('beautiful-galileo.magicGraphPresets.v2'))
-            .toBe(JSON.stringify([preset]));
-    });
-
-    it('rejects malformed v3 sequences and stored internal edges', () => {
-        const storage = new MemoryStorage();
-        storage.setItem(
-            'beautiful-galileo.magicGraphPresets.v3',
-            JSON.stringify([
-                {
-                    ...preset,
-                    nodes: preset.nodes.map((node, index) => ({
-                        ...node,
-                        sequenceIndex: index + 1,
-                    })),
-                },
-                {
-                    ...preset,
-                    id: 'internal-edge',
-                    edges: [{
-                        id: 'internal',
-                        source: 'test-ignition',
-                        target: 'test-stream',
-                        sourceHandle: 'output-0',
-                        targetHandle: 'input-0',
-                    }],
-                },
-            ])
-        );
-
-        expect(loadStoredMagicGraphPresets(storage)).toEqual([]);
-    });
-
-    it('preserves numbered dynamic circle ports through a round trip', () => {
-        const dynamic: MagicGraphPresetConfig = {
-            ...preset,
-            edges: [
-                { ...preset.edges[0], targetHandle: 'circle-input-2' },
-                { ...preset.edges[1], sourceHandle: 'circle-output-3' },
-            ],
-        };
-        const graph = createMagicGraphFromPreset(dynamic, magicTypes);
-        const snapshot = createMagicGraphPresetSnapshot(
-            'Dynamic',
-            graph,
-            () => 'dynamic'
-        );
-
-        expect(snapshot && snapshot.edges).toEqual(dynamic.edges);
-    });
-
-    it('preserves configurable settings without repeat nodes', () => {
-        const configurable: MagicGraphPresetConfig = {
-            ...preset,
-            nodes: [
-                {
-                    id: 'custom',
-                    magicType: 'custom',
-                    circleId: 'test-circle',
-                    settings: { displayName: '별빛 핵' },
-                    sequenceIndex: 0,
-                },
-                {
-                    id: 'detect',
-                    magicType: 'detect',
-                    circleId: 'test-circle',
-                    settings: { caption: '대상이 움직일 때' },
-                    sequenceIndex: 1,
-                },
-            ],
-        };
-        const graph = createMagicGraphFromPreset(configurable, magicTypes);
-        const snapshot = createMagicGraphPresetSnapshot(
-            'Settings',
-            graph,
-            () => 'settings'
-        );
-
-        expect(snapshot && snapshot.nodes.map(node => node.settings)).toEqual([
-            { displayName: '별빛 핵' },
-            { caption: '대상이 움직일 때' },
-        ]);
     });
 });

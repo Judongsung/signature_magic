@@ -18,9 +18,9 @@
     import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
     import type { MagicEditorNode } from '../../../types/magic';
     import MagicGraphCanvasBackground from '../MagicGraphCanvasBackground.svelte';
-    import CustomEdge from '../editor/CustomEdge.svelte';
-    import CustomNode from '../editor/CustomNode.svelte';
-    import MagicCircleNode from '../editor/MagicCircleNode.svelte';
+    import MagicGraphEdge from '../editor/nodes/MagicGraphEdge.svelte';
+    import MagicUnitNode from '../editor/nodes/MagicUnitNode.svelte';
+    import MagicCircleNode from '../editor/nodes/MagicCircleNode.svelte';
 
     let {
         nodes,
@@ -31,10 +31,10 @@
     } = $props();
 
     const nodeTypes = {
-        [GRAPH_NODE_TYPES.MAGIC_NODE]: CustomNode,
+        [GRAPH_NODE_TYPES.MAGIC_NODE]: MagicUnitNode,
         [GRAPH_NODE_TYPES.MAGIC_CIRCLE]: MagicCircleNode,
     };
-    const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: CustomEdge };
+    const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: MagicGraphEdge };
     const proOptions = { hideAttribution: true };
     const preview = $derived(buildMagicGraphResultPreview(nodes, edges));
 </script>

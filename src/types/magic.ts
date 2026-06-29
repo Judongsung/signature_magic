@@ -165,8 +165,14 @@ export type MagicNodeSettings = Record<string, string>;
 
 export type MagicNodeKind = 'user' | 'system';
 export type MagicEditorNodeKind = MagicNodeKind | 'circle';
-export type MagicCircleStatus = 'empty' | 'external' | 'valid';
+export type MagicCircleStatus = 'empty' | 'valid';
 export type MagicCirclePortDirection = 'input' | 'output';
+export type MagicControlPairRole = 'start' | 'end';
+
+export interface MagicControlPairRef {
+    id: string;
+    role: MagicControlPairRole;
+}
 
 export interface MagicTypeConfig {
     type: MagicType;
@@ -197,6 +203,7 @@ export interface MagicNodeData extends Record<string, unknown> {
     showBadges?: boolean;
     excludeFromStatScaling?: boolean;
     sequenceIndex?: number;
+    controlPair?: MagicControlPairRef;
 }
 
 export interface MagicGraphNode {
@@ -233,6 +240,12 @@ export interface MagicGraphPresetCircleConfig extends MagicCircleMetadata {
     position: { x: number; y: number };
     width: number;
     height: number;
+    systemNodeSlots: MagicGraphPresetCircleSystemNodeSlotConfig[];
+}
+
+export interface MagicGraphPresetCircleSystemNodeSlotConfig {
+    magicType: MagicType;
+    slotIndex: number;
 }
 
 export interface MagicGraphPresetNodeConfig {
@@ -241,6 +254,7 @@ export interface MagicGraphPresetNodeConfig {
     settings?: MagicNodeSettings;
     circleId: string;
     sequenceIndex: number;
+    controlPair?: MagicControlPairRef;
 }
 
 export interface MagicGraphPresetSystemNodePositionConfig {
@@ -269,7 +283,6 @@ export interface MagicCircleState {
     circleId: string;
     nodeIds: string[];
     isInternallyValid: boolean;
-    isOnOutputPath: boolean;
     displayOrder: number;
 }
 

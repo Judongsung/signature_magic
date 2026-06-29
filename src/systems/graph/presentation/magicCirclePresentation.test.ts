@@ -18,7 +18,6 @@ function state(
         circleId: 'circle-view',
         nodeIds: ['child'],
         isInternallyValid: true,
-        isOnOutputPath: true,
         displayOrder: 1,
         ...overrides,
     };
@@ -68,21 +67,15 @@ describe('magicCirclePresentation', () => {
         ]);
     });
 
-    it.each([
-        [state({ isOnOutputPath: false }), MAGIC_CIRCLE_STATUSES.EXTERNAL],
-        [state(), MAGIC_CIRCLE_STATUSES.VALID],
-    ])('resolves the simplified circle status', (
-        circleState,
-        expectedStatus
-    ) => {
+    it('resolves a non-empty circle as valid', () => {
         const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'view');
         const child = attachNodeToCircle(createTestMagicNode('child'), circle, 0);
 
         expect(resolveMagicCircleViewModel(
             circle,
             [circle, child],
-            circleState
-        ).status).toBe(expectedStatus);
+            state()
+        ).status).toBe(MAGIC_CIRCLE_STATUSES.VALID);
     });
 
     it('derives minimum height from sequence length', () => {

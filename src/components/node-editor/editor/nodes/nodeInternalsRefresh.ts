@@ -1,6 +1,8 @@
 import { tick } from 'svelte';
 
-type UpdateNodeInternals = (nodeId?: string | string[]) => void;
+type UpdateNodeInternals = (
+    nodeId?: string | string[]
+) => void;
 type NodeHandleLayoutPart = string | number | boolean | null;
 
 export function createNodeHandleLayoutKey(

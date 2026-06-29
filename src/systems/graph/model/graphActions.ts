@@ -6,7 +6,6 @@ import {
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import {
     DEFAULT_INPUT_HANDLE_ID,
     DEFAULT_OUTPUT_HANDLE_ID,
@@ -110,8 +109,8 @@ export function refreshNodeRoles(
         const handleCounts = resolveNodeHandleCounts(n, edges, magicTypes, nodes, topology, cycleContext);
         const nodeRole = isSystemMagicNode(n)
             ? {
-                isRoot: n.id === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-                isLeaf: n.id === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
+                isRoot: n.data.isRoot ?? false,
+                isLeaf: n.data.isLeaf ?? false,
             }
             : role;
         if (

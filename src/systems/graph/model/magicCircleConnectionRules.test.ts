@@ -11,7 +11,6 @@ import {
     createExplicitMagicCircleEdgeUpdate,
     isExplicitMagicCircleConnectionValid,
 } from './magicCircleConnectionRules';
-import { createInitialSystemNodes } from './systemMagicNodes';
 
 const magicTypes: MagicTypeConfig[] = [{
     type: 'ignition',
@@ -57,26 +56,27 @@ function connection(
 }
 
 describe('magicCircleConnectionRules', () => {
-    it('allows only system and circle external port combinations', () => {
-        const box = circle('circle-a');
+    it('allows only circle output to circle input connections', () => {
+        const source = circle('circle-source');
+        const box = circle('circle-target');
         const nodes: MagicEditorNode[] = [
-            ...createInitialSystemNodes(),
+            source,
             box,
             node('unit', box.id),
         ];
 
         expect(isExplicitMagicCircleConnectionValid(connection(
+            source.id,
+            box.id,
+            'circle-output',
+            'circle-input'
+        ), [], nodes, magicTypes)).toBe(true);
+        expect(isExplicitMagicCircleConnectionValid(connection(
             'system-mana-source',
             box.id,
             'output-0',
             'circle-input'
-        ), [], nodes, magicTypes)).toBe(true);
-        expect(isExplicitMagicCircleConnectionValid(connection(
-            box.id,
-            'system-final-output',
-            'circle-output',
-            'input-0'
-        ), [], nodes, magicTypes)).toBe(true);
+        ), [], nodes, magicTypes)).toBe(false);
     });
 
     it('rejects all internal and cross-circle unit edges', () => {
@@ -85,7 +85,6 @@ describe('magicCircleConnectionRules', () => {
         const firstNode = node('first', first.id);
         const secondNode = node('second', second.id);
         const nodes: MagicEditorNode[] = [
-            ...createInitialSystemNodes(),
             first,
             second,
             firstNode,
@@ -110,7 +109,6 @@ describe('magicCircleConnectionRules', () => {
         const first = circle('circle-a');
         const second = circle('circle-b');
         const nodes: MagicEditorNode[] = [
-            ...createInitialSystemNodes(),
             first,
             second,
         ];
@@ -131,32 +129,37 @@ describe('magicCircleConnectionRules', () => {
     });
 
     it('replaces only an occupied dynamic external port', () => {
-        const box = circle('circle-a');
+        const first = circle('circle-a');
+        const second = circle('circle-b');
+        const third = circle('circle-c');
+        const box = circle('circle-target');
         const nodes: MagicEditorNode[] = [
-            ...createInitialSystemNodes(),
+            first,
+            second,
+            third,
             box,
         ];
         const edges: Edge[] = [
             {
                 id: 'source-a',
-                source: 'system-mana-source',
+                source: first.id,
                 target: box.id,
-                sourceHandle: 'output-0',
+                sourceHandle: 'circle-output',
                 targetHandle: 'circle-input',
             },
             {
                 id: 'source-b',
-                source: 'system-mana-source',
+                source: second.id,
                 target: box.id,
-                sourceHandle: 'output-1',
+                sourceHandle: 'circle-output',
                 targetHandle: 'circle-input-1',
             },
         ];
         const update = createExplicitMagicCircleEdgeUpdate(
             connection(
-                'system-mana-source',
+                third.id,
                 box.id,
-                'output-2',
+                'circle-output',
                 'circle-input-1'
             ),
             edges,
@@ -167,7 +170,7 @@ describe('magicCircleConnectionRules', () => {
 
         expect(update && update.edges.map(edge => edge.id)).toEqual(['source-a']);
         expect(update && update.edge).toMatchObject({
-            sourceHandle: 'output-2',
+            sourceHandle: 'circle-output',
             targetHandle: 'circle-input-1',
         });
     });

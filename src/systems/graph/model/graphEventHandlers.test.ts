@@ -1,7 +1,10 @@
 ﻿import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
+import { MAGIC_CONTROL_PAIR_ROLES } from '../../../constants/graphConfigs';
+import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
 import { createMagicCircleNode, attachNodeToCircle } from './magicCircleGraph';
+import { createCircleSystemMagicNode } from './circleSystemMagicNodes';
 import {
     prepareGraphEdge,
     removeDeletedGraphElements,
@@ -20,6 +23,7 @@ const magicTypes = [
         connectionLimits: { maxInputs: null, maxOutputs: 1 },
     },
 ] as MagicTypeConfig[];
+const circleSystemNodeConfig = CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS[0];
 
 function node(id: string, magicType: MagicNode['data']['magicType'] = 'ignition'): MagicNode {
     return {
@@ -66,9 +70,14 @@ describe('graphEventHandlers', () => {
     it('removes a deleted circle with its children and every related edge', () => {
         const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'deleted');
         const child = attachNodeToCircle(node('child'), circle, 0);
+        const systemNode = createCircleSystemMagicNode(
+            circle,
+            circleSystemNodeConfig,
+            1
+        );
         const outside = node('outside');
         const snapshot = {
-            nodes: [circle, child, outside],
+            nodes: [circle, child, systemNode, outside],
             edges: [
                 edge('start-child', circle.id, child.id),
                 edge('child-end', child.id, circle.id),
@@ -80,6 +89,62 @@ describe('graphEventHandlers', () => {
             nodes: [outside],
             edges: [],
         });
+    });
+
+    it('ignores direct circle system node deletion requests', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'manifestation'
+        );
+        const systemNode = createCircleSystemMagicNode(
+            circle,
+            circleSystemNodeConfig,
+            0
+        );
+
+        expect(removeDeletedGraphElements(
+            { nodes: [circle, systemNode], edges: [] },
+            [systemNode],
+            []
+        ).nodes.map(item => item.id)).toEqual([circle.id, systemNode.id]);
+    });
+
+    it('deletes both control markers while preserving enclosed nodes', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'paired'
+        );
+        const start = attachNodeToCircle({
+            ...node('repeat-start', 'repeat'),
+            data: {
+                ...node('repeat-start', 'repeat').data,
+                controlPair: {
+                    id: 'repeat-pair',
+                    role: MAGIC_CONTROL_PAIR_ROLES.START,
+                },
+            },
+        }, circle, 0);
+        const middle = attachNodeToCircle(node('middle'), circle, 1);
+        const end = attachNodeToCircle({
+            ...node('repeat-end', 'repeat'),
+            data: {
+                ...node('repeat-end', 'repeat').data,
+                controlPair: {
+                    id: 'repeat-pair',
+                    role: MAGIC_CONTROL_PAIR_ROLES.END,
+                },
+                excludeFromStatScaling: true,
+            },
+        }, circle, 2);
+
+        const result = removeDeletedGraphElements(
+            { nodes: [circle, start, middle, end], edges: [] },
+            [start],
+            []
+        );
+
+        expect(result.nodes.map(item => item.id))
+            .toEqual([circle.id, middle.id]);
     });
 
     it('syncs topology by compacting handles and refreshing node roles', () => {

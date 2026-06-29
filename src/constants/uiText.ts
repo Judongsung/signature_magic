@@ -1,12 +1,10 @@
 import { APP_PHASES, type AppPhase } from './appPhaseConfigs';
 import type { MagicNodeCategory } from './nodeEditorConfigs';
 import type {
-    MagicCircleStatus,
     MagicStatEffectOperation,
     MagicStatEffectPhase,
     MagicStatKey,
 } from '../types/magic';
-import { MAGIC_CIRCLE_STATUSES } from './graphConfigs';
 
 // 앱 단계와 전역 내비게이션 문구
 export const DIALOGUE_SCREEN_TEXT = {
@@ -156,19 +154,19 @@ export const NODE_EDITOR_TEXT = {
     CIRCLE_TITLE: 'Circle',
     CIRCLE_INPUT: 'INPUT',
     CIRCLE_OUTPUT: 'OUTPUT',
-    CIRCLE_STATUS_EMPTY: 'EMPTY',
-    CIRCLE_STATUS_EXTERNAL: 'OUTPUT PATH NEEDED',
-    CIRCLE_STATUS_VALID: 'READY',
     DETAILS_BUTTON_TEXT: '…',
     DETAILS_OPEN_ARIA_LABEL: '상세정보 열기',
     CIRCLE_DETAILS_DIALOG_TITLE: '서클 정보',
     CIRCLE_DETAILS_DIALOG_CLOSE_ARIA_LABEL: '서클 정보 닫기',
     CIRCLE_DETAILS_NAME_LABEL: '서클명',
     CIRCLE_DETAILS_NAME_PLACEHOLDER: '서클 이름',
-    CIRCLE_DETAILS_CAPTION_LABEL: '캡션',
+    CIRCLE_DETAILS_CAPTION_LABEL: '메모',
     CIRCLE_DETAILS_CAPTION_PLACEHOLDER: '서클의 역할이나 특징을 입력하세요.',
     CIRCLE_DETAILS_STATS_LABEL: '서클 스탯',
     CIRCLE_DETAILS_STATS_ARIA_LABEL: '서클 계산 스탯',
+    CONTROL_REPEAT_START: '반복 시작',
+    CONTROL_REPEAT_END: '반복 끝',
+    CONTROL_BRANCH_TARGET: '분기 목적지',
     TOOLBAR_HINT: '서클을 선택한 뒤 단위 마법을 추가하세요 · 선택 후 Delete 로 제거',
     CANVAS_ARIA_LABEL: 'magic node canvas',
     ROOT_BADGE: 'START',
@@ -187,12 +185,6 @@ export const NODE_EDITOR_TEXT = {
     NODE_DETAILS_STEPPER_INFINITE_VALUE: '무한 반복',
     PANE_RESIZER_ARIA_LABEL: '마법 편집창과 서클 미리보기 크기 조절',
 } as const;
-
-export const MAGIC_CIRCLE_STATUS_LABELS = {
-    [MAGIC_CIRCLE_STATUSES.EMPTY]: NODE_EDITOR_TEXT.CIRCLE_STATUS_EMPTY,
-    [MAGIC_CIRCLE_STATUSES.EXTERNAL]: NODE_EDITOR_TEXT.CIRCLE_STATUS_EXTERNAL,
-    [MAGIC_CIRCLE_STATUSES.VALID]: NODE_EDITOR_TEXT.CIRCLE_STATUS_VALID,
-} as const satisfies Record<MagicCircleStatus, string>;
 
 export const NODE_COMPOSITION_SIGNATURE_TEXT = {
     EYEBROW: 'SIGNATURE MAGIC',

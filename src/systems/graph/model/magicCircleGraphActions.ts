@@ -1,5 +1,9 @@
 import type { Edge } from '@xyflow/svelte';
-import { MAGIC_CIRCLE_NODE_CONFIG } from '../../../constants/graphConfigs';
+import {
+    MAGIC_CIRCLE_NODE_CONFIG,
+    MAGIC_CONTROL_PAIR_CONFIG,
+    MAGIC_CONTROL_PAIR_ROLES,
+} from '../../../constants/graphConfigs';
 import type {
     MagicCircleMetadata,
     MagicCircleNode,
@@ -7,7 +11,18 @@ import type {
     MagicNode,
     MagicType,
 } from '../../../types/magic';
-import { createNode } from './graphActions';
+import { createNode, createUniqueId } from './graphActions';
+import {
+    canMoveMagicControlPairsAcrossCircles,
+    createMagicControlPairData,
+    isMagicControlPairGraphValid,
+    isMagicControlPairType,
+    resolveMagicControlPairRailWidth,
+} from './magicControlPairs';
+import {
+    isCircleSystemMagicNode,
+    normalizeCircleSystemNodeChildren,
+} from './circleSystemMagicNodes';
 import {
     createInitialMagicCircleNode,
     createMagicCircleNode,
@@ -45,10 +60,10 @@ export interface MagicCircleResize {
 
 export function createInitialMagicCircleGraph(): MagicCircleGraphSnapshot {
     return {
-        nodes: [
+        nodes: normalizeMagicCircleSequences([
             ...createInitialSystemNodes(),
             createInitialMagicCircleNode(),
-        ],
+        ]),
         edges: [],
     };
 }
@@ -60,10 +75,10 @@ export function addMagicCircle(
     const circle = createMagicCircleNode(position);
 
     return {
-        nodes: orderMagicEditorNodes([
+        nodes: normalizeMagicCircleSequences(orderMagicEditorNodes([
             ...selectOnlyCircle(nodes, undefined),
             circle,
-        ]),
+        ])),
         circleId: circle.id,
     };
 }
@@ -105,21 +120,61 @@ function replaceCircleAndChildren(
     circle: MagicCircleNode,
     orderedChildren: readonly MagicNode[]
 ): MagicEditorNode[] {
-    const childIds = new Set(orderedChildren.map(node => node.id));
-    const requiredHeight = resolveMagicCircleRequiredHeight(orderedChildren.length);
+    const normalizedChildren = normalizeCircleSystemNodeChildren(
+        circle,
+        orderedChildren
+    );
+    const childIds = new Set(normalizedChildren.map(node => node.id));
+    const discardedChildIds = new Set(
+        getCircleChildNodes(nodes, circle.id)
+            .filter(node =>
+                !childIds.has(node.id) ||
+                isCircleSystemMagicNode(node)
+            )
+            .map(node => node.id)
+    );
+    const requiredHeight = resolveMagicCircleRequiredHeight(
+        normalizedChildren.length
+    );
     const resizedCircle = circle.height >= requiredHeight
         ? circle
         : { ...circle, height: requiredHeight };
-    const laidOutChildren = orderedChildren.map((node, sequenceIndex) =>
-        layoutMagicCircleSequenceNode(node, resizedCircle, sequenceIndex)
+    const preliminarilyLaidOutChildren = normalizedChildren.map(
+        (node, sequenceIndex) =>
+            layoutMagicCircleSequenceNode(
+                node,
+                resizedCircle,
+                sequenceIndex
+            )
+    );
+    const controlRailWidth = resolveMagicControlPairRailWidth(
+        [resizedCircle, ...preliminarilyLaidOutChildren],
+        resizedCircle.id
+    );
+    const laidOutChildren = preliminarilyLaidOutChildren.map(
+        (node, sequenceIndex) =>
+            layoutMagicCircleSequenceNode(
+                node,
+                resizedCircle,
+                sequenceIndex,
+                controlRailWidth
+            )
     );
     const laidOutById = new Map(laidOutChildren.map(node => [node.id, node]));
 
-    return orderMagicEditorNodes(nodes.map(node => {
-        if (node.id === circle.id) return resizedCircle;
-        if (childIds.has(node.id)) return laidOutById.get(node.id)!;
-        return node;
-    }));
+    const replacedNodes = nodes
+        .filter(node => !discardedChildIds.has(node.id))
+        .map(node => {
+            if (node.id === circle.id) return resizedCircle;
+            if (childIds.has(node.id)) return laidOutById.get(node.id)!;
+            return node;
+        });
+    const existingIds = new Set(replacedNodes.map(node => node.id));
+    const missingChildren = laidOutChildren.filter(node =>
+        !existingIds.has(node.id)
+    );
+
+    return orderMagicEditorNodes([...replacedNodes, ...missingChildren]);
 }
 
 export function normalizeMagicCircleSequences(
@@ -149,27 +204,68 @@ export function addMagicNodeToCircle(
 
     const children = getCircleChildNodes(nodes, circle.id);
     const safeInsertionIndex = insertionIndex === undefined
-        ? children.length
+        ? resolveDefaultMagicNodeInsertionIndex(children)
         : Math.max(0, Math.min(Math.trunc(insertionIndex), children.length));
-    const node = layoutMagicCircleSequenceNode(
-        createNode(magicType, { x: 0, y: 0 }),
-        circle,
-        safeInsertionIndex
-    );
+    const addedNodes = createSequenceNodes(magicType);
     const nextChildren = [
         ...children.slice(0, safeInsertionIndex),
-        node,
+        ...addedNodes,
         ...children.slice(safeInsertionIndex),
     ];
+    const candidateNodes = replaceCircleAndChildren(
+        [...nodes, ...addedNodes],
+        circle,
+        nextChildren
+    );
+    if (!isMagicControlPairGraphValid(candidateNodes)) {
+        return { nodes: [...nodes], added: false };
+    }
 
     return {
-        nodes: replaceCircleAndChildren(
-            [...nodes, node],
-            circle,
-            nextChildren
-        ),
+        nodes: candidateNodes,
         added: true,
     };
+}
+
+function resolveDefaultMagicNodeInsertionIndex(
+    children: readonly MagicNode[]
+): number {
+    const systemNodeIndex = children.findIndex(node =>
+        isCircleSystemMagicNode(node)
+    );
+    return systemNodeIndex < 0 ? children.length : systemNodeIndex;
+}
+
+function createSequenceNodes(magicType: MagicType): MagicNode[] {
+    const start = createNode(magicType, { x: 0, y: 0 });
+    if (!isMagicControlPairType(magicType)) return [start];
+
+    const pairId = `${MAGIC_CONTROL_PAIR_CONFIG.ID_PREFIX}-${createUniqueId()}`;
+    const end = createNode(magicType, { x: 0, y: 0 });
+
+    return [
+        {
+            ...start,
+            data: {
+                ...start.data,
+                controlPair: createMagicControlPairData(
+                    pairId,
+                    MAGIC_CONTROL_PAIR_ROLES.START
+                ),
+            },
+        },
+        {
+            ...end,
+            data: {
+                ...end.data,
+                controlPair: createMagicControlPairData(
+                    pairId,
+                    MAGIC_CONTROL_PAIR_ROLES.END
+                ),
+                excludeFromStatScaling: true,
+            },
+        },
+    ];
 }
 
 function restoreSequencePositions(
@@ -208,6 +304,18 @@ export function moveMagicNodeGroup(
     const sourceCircle = circleById.get(sourceCircleId);
     const targetCircle = circleById.get(targetCircleId);
     if (!sourceCircle || !targetCircle) {
+        return restoreSequencePositions(snapshot);
+    }
+    if (
+        sourceCircleId !== targetCircleId &&
+        (
+            !canMoveMagicControlPairsAcrossCircles(snapshot.nodes, originIds) ||
+            snapshot.nodes.some(node =>
+                originIds.has(node.id) &&
+                isCircleSystemMagicNode(node)
+            )
+        )
+    ) {
         return restoreSequencePositions(snapshot);
     }
 
@@ -255,6 +363,9 @@ export function moveMagicNodeGroup(
         nextNodes.find(node => node.id === targetCircleId) as MagicCircleNode,
         targetChildren
     );
+    if (!isMagicControlPairGraphValid(nextNodes)) {
+        return restoreSequencePositions(snapshot);
+    }
 
     return {
         nodes: nextNodes,

@@ -1,84 +1,37 @@
-import type { MagicNode, MagicTypeConfig } from '../types/magic';
-import { EMPTY_MAGIC_STATS } from '../types/magic';
 import {
-    GRAPH_NODE_TYPES,
-    MAGIC_NODE_HANDLE_CONFIG,
-    MAGIC_NODE_KINDS,
-} from './graphConfigs';
+    EMPTY_MAGIC_STATS,
+    type MagicType,
+    type MagicNode,
+    type MagicTypeConfig,
+} from '../types/magic';
 
-export const SYSTEM_MAGIC_NODE_CONFIGS = {
-    MANA_SOURCE: {
-        id: 'system-mana-source',
-        label: '마나근원',
-        icon: '⊕',
-        color: '#41d6a4',
-        category: 'basic',
-        description: '서클에 마나를 공급합니다.',
-        position: { x: -40, y: -560 },
-        role: { isRoot: true, isLeaf: false },
-        handleCounts: { inputHandleCount: 0, outputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT },
-        connectionLimits: { maxInputs: 0, maxOutputs: null },
-    },
-    FINAL_OUTPUT: {
-        id: 'system-final-output',
-        label: '최종발현',
-        icon: '⟡',
-        color: '#ff8b6f',
-        category: 'basic',
-        description: '마법을 발현합니다.',
-        position: { x: -40, y: 400 },
-        role: { isRoot: false, isLeaf: true },
-        handleCounts: { inputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT, outputHandleCount: 0 },
-        connectionLimits: { maxInputs: null, maxOutputs: 0 },
-    },
+export interface CircleSystemMagicNodeConfig {
+    magicType: MagicType;
+    idSuffix: string;
+}
+
+export const CIRCLE_SYSTEM_MAGIC_NODE_TYPES = {
+    MANIFESTATION: 'manifestation',
 } as const;
 
-export const SYSTEM_MAGIC_TYPE_CONFIGS: MagicTypeConfig[] = [
+export const CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS: CircleSystemMagicNodeConfig[] = [
     {
-        type: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-        label: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.label,
-        icon: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.icon,
-        color: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.color,
-        category: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.category,
-        description: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.description,
-        connectionLimits: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.connectionLimits,
-        stats: { ...EMPTY_MAGIC_STATS },
-    },
-    {
-        type: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-        label: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.label,
-        icon: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.icon,
-        color: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.color,
-        category: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.category,
-        description: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.description,
-        connectionLimits: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.connectionLimits,
-        stats: { ...EMPTY_MAGIC_STATS },
+        magicType: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
+        idSuffix: 'manifestation',
     },
 ];
 
-export const INITIAL_SYSTEM_MAGIC_NODE_CONFIGS: MagicNode[] = [
+export const SYSTEM_MAGIC_NODE_CONFIGS = {} as const;
+export const SYSTEM_MAGIC_TYPE_CONFIGS: MagicTypeConfig[] = [
     {
-        id: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-        type: GRAPH_NODE_TYPES.MAGIC_NODE,
-        position: { ...SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.position },
-        deletable: false,
-        data: {
-            magicType: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-            nodeKind: MAGIC_NODE_KINDS.SYSTEM,
-            ...SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.role,
-            ...SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.handleCounts,
-        },
-    },
-    {
-        id: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-        type: GRAPH_NODE_TYPES.MAGIC_NODE,
-        position: { ...SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.position },
-        deletable: false,
-        data: {
-            magicType: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-            nodeKind: MAGIC_NODE_KINDS.SYSTEM,
-            ...SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.role,
-            ...SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.handleCounts,
-        },
+        type: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
+        label: '발현',
+        icon: '✧',
+        color: '#f7d774',
+        category: 'control',
+        description: '서클에서 형성된 마법을 다른 서클에 전파하거나 최종 발현한다.',
+        connectionLimits: { maxInputs: 0, maxOutputs: 0 },
+        stats: EMPTY_MAGIC_STATS,
     },
 ];
+export const INITIAL_SYSTEM_MAGIC_NODE_CONFIGS: MagicNode[] = [];

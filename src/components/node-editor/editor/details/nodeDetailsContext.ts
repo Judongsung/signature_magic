@@ -1,6 +1,8 @@
 import { getContext, setContext } from 'svelte';
 
-export type OpenNodeEditorDetails = (nodeId: string) => void;
+export type OpenNodeEditorDetails = (
+    nodeId: string
+) => void;
 
 const NODE_DETAILS_CONTEXT_KEY = Symbol('node-editor-details');
 

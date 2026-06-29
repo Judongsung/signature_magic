@@ -9,7 +9,7 @@ import {
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
+import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type {
     MagicEditorNode,
     MagicNode,
@@ -23,8 +23,7 @@ import { readMagicTypeConfig, type MagicTypeLookup } from './magicTypeLookup';
 import { isMagicCircleNode } from './magicCircleGraph';
 
 const SYSTEM_MAGIC_TYPE_IDS = new Set<string>([
-    SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-    SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
+    ...SYSTEM_MAGIC_TYPE_CONFIGS.map(config => config.type),
 ]);
 
 export function createUserMagicNodeData(
@@ -130,12 +129,12 @@ export function getMagicNodeEditorFieldDraftValue(
         : '';
 }
 
-export function resolveMagicNodeCycleRepeatCount(
+export function resolveMagicNodeRepeatCount(
     data: MagicNode['data'],
     config: MagicTypeConfig | undefined
 ): number | undefined {
     const field = getMagicNodeEditorFields(config).find(
-        candidate => candidate.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT
+        candidate => candidate.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT
     );
     if (!field || field.control !== MAGIC_NODE_EDITOR_CONTROLS.STEPPER) return undefined;
 

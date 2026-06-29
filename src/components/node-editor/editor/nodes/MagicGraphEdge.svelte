@@ -1,14 +1,14 @@
 <script lang="ts">
     /**
-     * CustomEdge.svelte
+     * MagicGraphEdge.svelte
      *
      * - getStraightPath로 직선 경로를 그립니다.
      * - 화살표(polygon)를 target 끝에 배치합니다.
      * - selected prop을 받아 색상·두께·선택 강조를 변경합니다.
     */
     import { getStraightPath, type EdgeProps } from '@xyflow/svelte';
-    import { EDITOR_CANVAS } from '../../../constants/nodeEditorConfigs';
-    import { MAGIC_EDGE_RENDERING_CONFIG } from '../../../constants/graphConfigs';
+    import { EDITOR_CANVAS } from '../../../../constants/nodeEditorConfigs';
+    import { MAGIC_EDGE_RENDERING_CONFIG } from '../../../../constants/graphConfigs';
 
     let {
         id,

@@ -11,7 +11,10 @@ import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
     MAGIC_STAT_SCALING_OPERATIONS,
 } from '../../constants/magicStatConfigs';
-import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
+import {
+    CIRCLE_SYSTEM_MAGIC_NODE_TYPES,
+    SYSTEM_MAGIC_TYPE_CONFIGS,
+} from '../../constants/systemMagicNodeConfigs';
 import cyoaDialogueScriptsData from '../../data/cyoaDialogueScripts.json';
 import cyoaRowsData from '../../data/cyoaRows.json';
 import magicGlyphsData from '../../data/magicGlyphs.json';
@@ -38,6 +41,10 @@ import {
 const stats = { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 };
 const magicTypeIds = new Set(magicTypesData.map(magicType => magicType.type));
 const isKnownMagicType = (magicType: string): boolean => magicTypeIds.has(magicType);
+const manifestationSlot = (slotIndex: number) => [{
+    magicType: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
+    slotIndex,
+}];
 
 describe('dataValidation', () => {
     it('validates configured magic types against category config', () => {
@@ -210,7 +217,7 @@ describe('dataValidation', () => {
                                 label: 'Name',
                                 control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
                                 presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL,
-                                behavior: MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT,
+                                behavior: MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT,
                             },
                             {
                                 key: '',
@@ -252,8 +259,8 @@ describe('dataValidation', () => {
                 'Invalid magic node editor maxLength: ignition -> 0 -> 0',
                 'Invalid magic node editor placeholder: ignition -> 0',
                 'Unknown magic node editor presentation: ignition -> 0 -> tooltip',
-                'Invalid cycle repeat count control: ignition -> 1',
-                'Invalid cycle repeat count presentation: ignition -> 1',
+                'Invalid repeat count control: ignition -> 1',
+                'Invalid repeat count presentation: ignition -> 1',
                 'Invalid magic node editor field key: ignition -> 2',
                 'Invalid magic node editor stepper min: ignition -> 3 -> 1.5',
                 'Invalid magic node editor stepper max: ignition -> 3 -> 1',
@@ -279,6 +286,7 @@ describe('dataValidation', () => {
                             position: { x: 0, y: 0 },
                             width: 480,
                             height: 640,
+                            systemNodeSlots: manifestationSlot(0),
                         },
                     ],
                     systemNodePositions: [
@@ -322,7 +330,6 @@ describe('dataValidation', () => {
                 'Duplicate magic graph preset node id: bad-preset: node-a',
                 'Invalid magic graph preset node type: bad-preset -> node-a',
                 'Invalid magic graph preset node sequence: bad-preset -> node-a',
-                'Reserved magic graph preset node id: bad-preset -> system-mana-source',
                 'Duplicate magic graph preset edge id: bad-preset: edge-a',
                 'Invalid magic graph preset external edge: bad-preset -> edge-a',
                 'Unknown magic graph preset node type: bad-preset -> node-a -> missing',
@@ -343,6 +350,7 @@ describe('dataValidation', () => {
                             position: { x: 0, y: 0 },
                             width: 480,
                             height: 640,
+                            systemNodeSlots: manifestationSlot(2),
                         },
                     ],
                     nodes: [
@@ -392,6 +400,7 @@ describe('dataValidation', () => {
                             position: { x: 0, y: 0 },
                             width: 480,
                             height: 640,
+                            systemNodeSlots: manifestationSlot(1),
                         },
                     ],
                     nodes: [
@@ -410,6 +419,47 @@ describe('dataValidation', () => {
         )).toEqual({ valid: true, errors: [] });
     });
 
+    it('accepts a valid v6 repeat pair with start-only settings', () => {
+        expect(validateMagicGraphPresets(
+            [{
+                id: 'paired-preset',
+                label: 'Paired preset',
+                circles: [{
+                    id: 'circle-a',
+                    position: { x: 0, y: 0 },
+                    width: 480,
+                    height: 640,
+                    systemNodeSlots: manifestationSlot(2),
+                }],
+                nodes: [
+                    {
+                        id: 'repeat-start',
+                        magicType: 'repeat',
+                        circleId: 'circle-a',
+                        sequenceIndex: 0,
+                        settings: { repeatCount: '3' },
+                        controlPair: {
+                            id: 'repeat-pair',
+                            role: 'start',
+                        },
+                    },
+                    {
+                        id: 'repeat-end',
+                        magicType: 'repeat',
+                        circleId: 'circle-a',
+                        sequenceIndex: 1,
+                        controlPair: {
+                            id: 'repeat-pair',
+                            role: 'end',
+                        },
+                    },
+                ],
+                edges: [],
+            }],
+            magicTypesData
+        )).toEqual({ valid: true, errors: [] });
+    });
+
     it('accepts indexed dynamic circle input and output handles', () => {
         expect(validateMagicGraphPresets(
             [{
@@ -420,22 +470,22 @@ describe('dataValidation', () => {
                     position: { x: 0, y: 0 },
                     width: 480,
                     height: 640,
+                    systemNodeSlots: manifestationSlot(0),
+                }, {
+                    id: 'circle-b',
+                    position: { x: 520, y: 0 },
+                    width: 480,
+                    height: 640,
+                    systemNodeSlots: manifestationSlot(0),
                 }],
                 nodes: [],
                 edges: [
                     {
                         id: 'source-circle',
-                        source: 'system-mana-source',
-                        target: 'circle-a',
-                        sourceHandle: 'output-2',
-                        targetHandle: 'circle-input-2',
-                    },
-                    {
-                        id: 'circle-output',
                         source: 'circle-a',
-                        target: 'system-final-output',
+                        target: 'circle-b',
                         sourceHandle: 'circle-output-3',
-                        targetHandle: 'input-3',
+                        targetHandle: 'circle-input-2',
                     },
                 ],
             }],

@@ -127,8 +127,9 @@
     --node-editor-aurora: #56b8e8;
     --node-editor-lilac: #b996ff;
     --node-editor-circle-valid: #5bc4b0;
-    --node-editor-circle-external: #8eb7ff;
     --node-editor-circle-selected: #5ab8e8;
+    --node-editor-repeat-color: #f8c471;
+    --node-editor-branch-color: #f4d03f;
     --node-editor-circle-selected-text: #04111a;
     --node-editor-circle-radius: 8px;
     --node-editor-circle-title-height: 38px;
@@ -138,7 +139,6 @@
         linear-gradient(180deg, rgba(6, 10, 24, 0.55), rgba(3, 5, 14, 0.62));
     --node-editor-circle-selected-title-bg:
         linear-gradient(135deg, rgba(90, 184, 232, 0.90), rgba(192, 232, 248, 0.85));
-    --node-editor-circle-status-bg: rgba(4, 7, 16, 0.92);
     --node-editor-circle-selected-shadow:
         0 0 0 1px rgba(90, 184, 232, 0.44),
         0 0 30px rgba(90, 184, 232, 0.24),

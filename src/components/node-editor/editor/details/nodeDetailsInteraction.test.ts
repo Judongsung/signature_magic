@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { MagicNode } from '../../../types/magic';
+import type { MagicNode } from '../../../../types/magic';
 import { openNodeDetailsFromContextMenu } from './nodeDetailsInteraction';
 
 const node: MagicNode = {

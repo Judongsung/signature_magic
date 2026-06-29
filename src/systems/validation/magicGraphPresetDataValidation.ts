@@ -1,17 +1,21 @@
 import {
     MAGIC_CIRCLE_NODE_CONFIG,
+    MAGIC_CONTROL_PAIR_NODE_TYPES,
+    MAGIC_CONTROL_PAIR_ROLES,
     MAGIC_NODE_HANDLE_CONFIG,
 } from '../../constants/graphConfigs';
 import {
     MAGIC_CIRCLE_METADATA_CONFIG,
     MAGIC_NODE_EDITOR_CONTROLS,
 } from '../../constants/nodeEditorConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../constants/systemMagicNodeConfigs';
+import {
+    CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
+    INITIAL_SYSTEM_MAGIC_NODE_CONFIGS,
+} from '../../constants/systemMagicNodeConfigs';
 import type { MagicGraphPresetConfig, MagicTypeConfig } from '../../types/magic';
 import { getMagicNodeEditorFields } from '../graph/model/magicNodeData';
 import {
     isMagicCirclePortHandleId,
-    isMagicNodePortHandleId,
     resolveMagicCircleRequiredHeight,
 } from '../graph/model/magicCircleGraph';
 import { collectMagicGraphPresetReferenceErrors } from '../graph/presets/magicGraphPresets';
@@ -27,8 +31,7 @@ import {
 
 const HANDLE_ID_PATTERN = /^\w+-\d+$/;
 const SYSTEM_NODE_IDS = new Set<string>([
-    SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-    SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
+    ...INITIAL_SYSTEM_MAGIC_NODE_CONFIGS.map(node => node.id),
 ]);
 
 export function validateMagicGraphPresets(
@@ -106,11 +109,21 @@ function validatePresetCircles(preset: MagicGraphPresetConfig): string[] {
         if (
             !isFiniteNumber(circle.height) ||
             circle.height < resolveMagicCircleRequiredHeight(
-                preset.nodes.filter(node => node.circleId === circle.id).length
+                preset.nodes.filter(node => node.circleId === circle.id).length +
+                    CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS.length
             )
         ) {
             errors.push(`Invalid magic graph preset circle height: ${preset.id} -> ${circle.id}`);
         }
+        const editableNodeCount = preset.nodes.filter(node =>
+            node.circleId === circle.id
+        ).length;
+        errors.push(...validatePresetCircleSystemNodeSlots(
+            preset.id,
+            circle.id,
+            circle.systemNodeSlots,
+            editableNodeCount
+        ));
         if (
             circle.name !== undefined &&
             (
@@ -130,6 +143,50 @@ function validatePresetCircles(preset: MagicGraphPresetConfig): string[] {
             errors.push(`Invalid magic graph preset circle caption: ${preset.id} -> ${circle.id}`);
         }
     });
+
+    return errors;
+}
+
+function validatePresetCircleSystemNodeSlots(
+    presetId: string,
+    circleId: string,
+    slots: MagicGraphPresetConfig['circles'][number]['systemNodeSlots'],
+    editableNodeCount: number
+): string[] {
+    const errors: string[] = [];
+    if (!Array.isArray(slots)) {
+        return [`Invalid magic graph preset system node slots: ${presetId} -> ${circleId}`];
+    }
+
+    const expectedMagicTypes = new Set(
+        CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS.map(config => config.magicType)
+    );
+    const actualMagicTypes = new Set<string>();
+
+    slots.forEach(slot => {
+        if (
+            !slot ||
+            typeof slot !== 'object' ||
+            !isNonEmptyString(slot.magicType) ||
+            !expectedMagicTypes.has(slot.magicType) ||
+            actualMagicTypes.has(slot.magicType) ||
+            !Number.isInteger(slot.slotIndex) ||
+            slot.slotIndex < 0 ||
+            slot.slotIndex > editableNodeCount
+        ) {
+            errors.push(`Invalid magic graph preset system node slot: ${presetId} -> ${circleId}`);
+            return;
+        }
+
+        actualMagicTypes.add(slot.magicType);
+    });
+
+    if (
+        slots.length !== expectedMagicTypes.size ||
+        actualMagicTypes.size !== expectedMagicTypes.size
+    ) {
+        errors.push(`Missing magic graph preset system node slot: ${presetId} -> ${circleId}`);
+    }
 
     return errors;
 }
@@ -203,6 +260,16 @@ function validatePresetNodes(
             errors.push(`Invalid magic graph preset node sequence: ${preset.id} -> ${node.id}`);
         }
         errors.push(...validatePresetNodeSettings(preset.id, node, magicTypes));
+        if (node.controlPair !== undefined && (
+            !isPlainObject(node.controlPair) ||
+            !isNonEmptyString(node.controlPair.id) ||
+            (
+                node.controlPair.role !== MAGIC_CONTROL_PAIR_ROLES.START &&
+                node.controlPair.role !== MAGIC_CONTROL_PAIR_ROLES.END
+            )
+        )) {
+            errors.push(`Invalid magic graph preset control pair: ${preset.id} -> ${node.id}`);
+        }
     });
 
     preset.circles.forEach(circle => {
@@ -213,6 +280,95 @@ function validatePresetNodes(
         sequence.forEach((sequenceIndex, expectedIndex) => {
             if (sequenceIndex !== expectedIndex) {
                 errors.push(`Non-contiguous magic graph preset sequence: ${preset.id} -> ${circle.id}`);
+            }
+        });
+    });
+
+    errors.push(...validatePresetControlPairs(preset));
+
+    return errors;
+}
+
+function validatePresetControlPairs(
+    preset: MagicGraphPresetConfig
+): string[] {
+    const errors: string[] = [];
+    const specialTypes = new Set<string>(
+        Object.values(MAGIC_CONTROL_PAIR_NODE_TYPES)
+    );
+    const specialNodes = preset.nodes.filter(node =>
+        specialTypes.has(node.magicType)
+    );
+
+    preset.nodes.forEach(node => {
+        if (specialTypes.has(node.magicType) !== Boolean(node.controlPair)) {
+            errors.push(`Invalid magic graph preset paired node: ${preset.id} -> ${node.id}`);
+        }
+    });
+
+    const pairIds = new Set(
+        specialNodes.flatMap(node =>
+            node.controlPair ? [node.controlPair.id] : []
+        )
+    );
+    const repeatIntervals: Array<{
+        circleId: string;
+        start: number;
+        end: number;
+    }> = [];
+
+    pairIds.forEach(pairId => {
+        const pairNodes = specialNodes.filter(node =>
+            node.controlPair?.id === pairId
+        );
+        const start = pairNodes.find(node =>
+            node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.START
+        );
+        const end = pairNodes.find(node =>
+            node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.END
+        );
+        if (
+            pairNodes.length !== 2 ||
+            !start ||
+            !end ||
+            start.magicType !== end.magicType ||
+            start.circleId !== end.circleId ||
+            end.settings !== undefined
+        ) {
+            errors.push(`Invalid magic graph preset pair structure: ${preset.id} -> ${pairId}`);
+            return;
+        }
+        if (
+            start.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT &&
+            start.sequenceIndex >= end.sequenceIndex
+        ) {
+            errors.push(`Invalid magic graph preset pair structure: ${preset.id} -> ${pairId}`);
+            return;
+        }
+        if (start.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT) {
+            repeatIntervals.push({
+                circleId: start.circleId,
+                start: start.sequenceIndex,
+                end: end.sequenceIndex,
+            });
+        }
+    });
+
+    repeatIntervals.forEach((left, index) => {
+        repeatIntervals.slice(index + 1).forEach(right => {
+            const crosses = left.circleId === right.circleId && (
+                (
+                    left.start < right.start &&
+                    right.start < left.end &&
+                    left.end < right.end
+                ) || (
+                    right.start < left.start &&
+                    left.start < right.end &&
+                    right.end < left.end
+                )
+            );
+            if (crosses) {
+                errors.push(`Crossed magic graph preset repeat pairs: ${preset.id}`);
             }
         });
     });
@@ -299,26 +455,14 @@ function isValidExternalPresetEdge(
     preset: MagicGraphPresetConfig
 ): boolean {
     const circleIds = new Set(preset.circles.map(circle => circle.id));
-    const sourceIsMana = edge.source === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id;
-    const targetIsOutput = edge.target === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id;
     const sourceIsCircle = circleIds.has(edge.source);
     const targetIsCircle = circleIds.has(edge.target);
 
     return (
-        sourceIsMana &&
-        targetIsCircle &&
-        isMagicNodePortHandleId(edge.sourceHandle, 'output') &&
-        isMagicCirclePortHandleId(edge.targetHandle, 'input')
-    ) || (
         sourceIsCircle &&
         targetIsCircle &&
         isMagicCirclePortHandleId(edge.sourceHandle, 'output') &&
         isMagicCirclePortHandleId(edge.targetHandle, 'input')
-    ) || (
-        sourceIsCircle &&
-        targetIsOutput &&
-        isMagicCirclePortHandleId(edge.sourceHandle, 'output') &&
-        isMagicNodePortHandleId(edge.targetHandle, 'input')
     );
 }
 

@@ -12,6 +12,10 @@ import {
     updateMagicCircleMetadata,
     type MagicNodeSequenceOrigin,
 } from './magicCircleGraphActions';
+import {
+    getCircleEditableSequenceNodes,
+    isCircleSystemMagicNode,
+} from './circleSystemMagicNodes';
 
 function fixture() {
     const first = createMagicCircleNode({ x: 0, y: 0 }, () => 'first');
@@ -84,9 +88,11 @@ describe('magicCircleGraphActions', () => {
         );
 
         expect(result.added).toBe(true);
-        expect(getCircleChildNodes(result.nodes, box.id)
+        expect(getCircleEditableSequenceNodes(result.nodes, box.id)
             .map(node => node.data.sequenceIndex)
         ).toEqual([0, 1]);
+        expect(getCircleChildNodes(result.nodes, box.id).at(-1)?.data.magicType)
+            .toBe('manifestation');
     });
 
     it('inserts a dropped toolbar node between existing sequence nodes', () => {
@@ -101,20 +107,104 @@ describe('magicCircleGraphActions', () => {
         );
         const children = getCircleChildNodes(result.nodes, box.id);
 
-        expect(children.map(node => node.data.magicType)).toEqual([
+        expect(getCircleEditableSequenceNodes(result.nodes, box.id)
+            .map(node => node.data.magicType)
+        ).toEqual([
             'ignition',
             'stream',
             'ignition',
         ]);
-        expect(children.map(node => node.position.y)).toEqual([72, 112, 152]);
+        expect(children.map(node => node.position.y))
+            .toEqual([72, 112, 152, 192]);
     });
 
-    it('rejects repeat addition at the action boundary', () => {
+    it('adds repeat start and end markers as one pair', () => {
         const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'box');
-        expect(addMagicNodeToCircle([box], 'repeat', box.id)).toEqual({
-            nodes: [box],
-            added: false,
-        });
+        const result = addMagicNodeToCircle([box], 'repeat', box.id);
+        const children = getCircleEditableSequenceNodes(result.nodes, box.id);
+
+        expect(result.added).toBe(true);
+        expect(children).toHaveLength(2);
+        expect(children.map(node => node.data.controlPair?.role))
+            .toEqual(['start', 'end']);
+        expect(children[0].data.controlPair?.id)
+            .toBe(children[1].data.controlPair?.id);
+        expect(children[0].style)
+            .toContain('--node-editor-node-width: 388px');
+    });
+
+    it('restores a marker moved past its partner', () => {
+        const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'box');
+        const added = addMagicNodeToCircle([box], 'repeat', box.id);
+        const [start] = getCircleEditableSequenceNodes(added.nodes, box.id);
+        const result = moveMagicNodeGroup(
+            { nodes: added.nodes, edges: [] },
+            [{
+                nodeId: start.id,
+                circleId: box.id,
+                sequenceIndex: 0,
+            }],
+            box.id,
+            1
+        );
+
+        expect(result.moved).toBe(false);
+        expect(getCircleEditableSequenceNodes(result.nodes, box.id)
+            .map(node => node.data.controlPair?.role)
+        ).toEqual(['start', 'end']);
+    });
+
+    it('requires both markers when moving a pair across circles', () => {
+        const source = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'source'
+        );
+        const target = createMagicCircleNode(
+            { x: 520, y: 0 },
+            () => 'target'
+        );
+        const added = addMagicNodeToCircle(
+            [source, target],
+            'branch',
+            source.id
+        );
+        const [start, end] = getCircleEditableSequenceNodes(
+            added.nodes,
+            source.id
+        );
+        const startOrigin = {
+            nodeId: start.id,
+            circleId: source.id,
+            sequenceIndex: 0,
+        };
+        const endOrigin = {
+            nodeId: end.id,
+            circleId: source.id,
+            sequenceIndex: 1,
+        };
+
+        expect(moveMagicNodeGroup(
+            { nodes: added.nodes, edges: [] },
+            [startOrigin],
+            target.id,
+            0
+        ).moved).toBe(false);
+
+        const moved = moveMagicNodeGroup(
+            { nodes: added.nodes, edges: [] },
+            [startOrigin, endOrigin],
+            target.id,
+            0
+        );
+        expect(moved.moved).toBe(true);
+        expect(getCircleEditableSequenceNodes(moved.nodes, source.id))
+            .toEqual([]);
+        expect(getCircleChildNodes(moved.nodes, source.id).some(
+            node => isCircleSystemMagicNode(node)
+        )).toBe(true);
+        expect(getCircleEditableSequenceNodes(moved.nodes, target.id)
+            .map(node => node.data.controlPair?.role)
+        ).toEqual(['start', 'end']);
     });
 
     it('moves a selected block between circles at an insertion index', () => {
@@ -134,9 +224,9 @@ describe('magicCircleGraphActions', () => {
         );
 
         expect(result.moved).toBe(true);
-        expect(getCircleChildNodes(result.nodes, second.id).map(node => node.id))
+        expect(getCircleEditableSequenceNodes(result.nodes, second.id).map(node => node.id))
             .toEqual([firstNode.id, secondNode.id, targetNode.id]);
-        expect(getCircleChildNodes(result.nodes, second.id)
+        expect(getCircleEditableSequenceNodes(result.nodes, second.id)
             .map(node => node.data.sequenceIndex)
         ).toEqual([0, 1, 2]);
         expect(result.edges).toEqual([]);
@@ -157,8 +247,46 @@ describe('magicCircleGraphActions', () => {
             0
         );
 
-        expect(getCircleChildNodes(result.nodes, box.id).map(node => node.id))
+        expect(getCircleEditableSequenceNodes(result.nodes, box.id).map(node => node.id))
             .toEqual(['b', 'd', 'a', 'c']);
+    });
+
+    it('allows circle system node reordering only inside its own circle', () => {
+        const source = createMagicCircleNode({ x: 0, y: 0 }, () => 'source');
+        const target = createMagicCircleNode({ x: 520, y: 0 }, () => 'target');
+        const first = attachNodeToCircle(createTestMagicNode('first'), source, 0);
+        const normalized = addMagicNodeToCircle(
+            [source, target, first],
+            'stream',
+            source.id
+        ).nodes;
+        const systemNode = getCircleChildNodes(normalized, source.id)
+            .find(node => isCircleSystemMagicNode(node))!;
+
+        const sameCircleMove = moveMagicNodeGroup(
+            { nodes: normalized, edges: [] },
+            [{
+                nodeId: systemNode.id,
+                circleId: source.id,
+                sequenceIndex: systemNode.data.sequenceIndex ?? 0,
+            }],
+            source.id,
+            0
+        );
+        expect(sameCircleMove.moved).toBe(true);
+        expect(getCircleChildNodes(sameCircleMove.nodes, source.id)[0].id)
+            .toBe(systemNode.id);
+
+        expect(moveMagicNodeGroup(
+            { nodes: normalized, edges: [] },
+            [{
+                nodeId: systemNode.id,
+                circleId: source.id,
+                sequenceIndex: systemNode.data.sequenceIndex ?? 0,
+            }],
+            target.id,
+            0
+        ).moved).toBe(false);
     });
 
     it('restores normalized positions when the group has mixed source circles', () => {
@@ -197,7 +325,7 @@ describe('magicCircleGraphActions', () => {
         );
         const resizedCircle = resized.find(node => node.id === box.id);
 
-        expect(resizedCircle).toMatchObject({ width: 600, height: 440 });
+        expect(resizedCircle).toMatchObject({ width: 600, height: 480 });
         expect(getCircleChildNodes(resized, box.id)[0].style)
             .toContain('--node-editor-node-width: 536px');
     });

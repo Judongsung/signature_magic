@@ -27,6 +27,7 @@ import {
 } from '../diagnostics/graphPerformance';
 import {
     buildMagicNodeExecutionCounts,
+    buildMagicControlPairExecutionCounts,
     type MagicNodeExecutionCounts,
 } from './magicRepeatCalculation';
 import { createEmptyMagicStatEffectBundle } from './magicStatEffectBundles';
@@ -73,8 +74,8 @@ function calculateExplicitMagicNow(
         explicitAnalysis.projectedEdges,
         magicTypeMap
     );
-    const nodeExecutionCounts = buildMagicNodeExecutionCounts(
-        projectedAnalysis,
+    const nodeExecutionCounts = buildMagicControlPairExecutionCounts(
+        nodes,
         magicTypeMap
     );
     const calculatedCircles = calculateExplicitCircles(
@@ -195,19 +196,21 @@ function calculateExplicitCircles(
     nodeStatEffects: readonly MagicStatEffectConfig[],
     nodeExecutionCounts: MagicNodeExecutionCounts
 ): CalculatedCirclePath[] {
-    return analysis.orderedOutputCircleIds.map(circleId => {
+    return analysis.orderedCalculatedCircleIds.map(circleId => {
         const internal = analysis.internalByCircleId.get(circleId)!;
-        const sequenceNodeIds = new Set(internal.sequenceNodes.map(node => node.id));
+        const calculationNodeIds = new Set(
+            internal.calculationNodes.map(node => node.id)
+        );
         const statEdges = internal.projectedEdges.filter(edge =>
-            sequenceNodeIds.has(edge.source) &&
-            sequenceNodeIds.has(edge.target)
+            calculationNodeIds.has(edge.source) &&
+            calculationNodeIds.has(edge.target)
         );
 
         return {
             id: circleId,
-            nodes: internal.sequenceNodes,
+            nodes: internal.calculationNodes,
             stats: calculateMagicStats(
-                internal.sequenceNodes,
+                internal.calculationNodes,
                 statEdges,
                 magicTypeMap,
                 'circle',

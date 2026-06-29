@@ -1,15 +1,15 @@
 <script lang="ts">
     import { untrack } from 'svelte';
-    import { MAGIC_CIRCLE_METADATA_CONFIG } from '../../../constants/nodeEditorConfigs';
-    import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
+    import { MAGIC_CIRCLE_METADATA_CONFIG } from '../../../../constants/nodeEditorConfigs';
+    import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
     import {
         EMPTY_MAGIC_STATS,
         type CirclePath,
         type MagicCircleMetadata,
         type MagicCircleNode,
-    } from '../../../types/magic';
-    import { dialogFocus } from '../../shared/dialogFocus';
-    import MagicStatsGrid from '../magic-circle/MagicStatsGrid.svelte';
+    } from '../../../../types/magic';
+    import { dialogFocus } from '../../../shared/dialogFocus';
+    import MagicStatsGrid from '../../magic-circle/MagicStatsGrid.svelte';
 
     const dialogId = $props.id();
     const dialogTitleId = `${dialogId}-circle-details-title`;

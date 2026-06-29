@@ -21,7 +21,7 @@ export const EDITOR_CANVAS = {
 } as const;
 
 export const MAGIC_NODE_CATEGORIES = ['basic', 'action', 'control', 'extension'] as const;
-export const MAGIC_SEQUENCE_DISABLED_NODE_TYPES = ['repeat'] as const;
+export const MAGIC_SEQUENCE_DISABLED_NODE_TYPES = [] as const;
 
 export type MagicNodeCategory = (typeof MAGIC_NODE_CATEGORIES)[number];
 
@@ -51,7 +51,7 @@ export type MagicNodeEditorPresentation =
     (typeof MAGIC_NODE_EDITOR_PRESENTATIONS)[keyof typeof MAGIC_NODE_EDITOR_PRESENTATIONS];
 
 export const MAGIC_NODE_EDITOR_BEHAVIORS = {
-    CYCLE_REPEAT_COUNT: 'cycleRepeatCount',
+    REPEAT_COUNT: 'repeatCount',
 } as const;
 
 export type MagicNodeEditorBehavior =

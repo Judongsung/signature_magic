@@ -6,7 +6,7 @@ import {
     getMagicNodeEditorFields,
     normalizeMagicNodeSettings,
     resolveMagicNodeCaption,
-    resolveMagicNodeCycleRepeatCount,
+    resolveMagicNodeRepeatCount,
     resolveMagicNodeLabel,
     updateMagicNodeSettings,
 } from './magicNodeData';
@@ -108,7 +108,7 @@ describe('magicNodeData', () => {
             caption: '  되풀이  ',
         })).toEqual({ repeatCount: '99', caption: '되풀이' });
         expect(normalizeMagicNodeSettings(repeatType, { repeatCount: '0' })).toBeUndefined();
-        expect(resolveMagicNodeCycleRepeatCount(repeatNode.data, repeatType)).toBe(3);
+        expect(resolveMagicNodeRepeatCount(repeatNode.data, repeatType)).toBe(3);
         expect(resolveMagicNodeLabel(repeatNode.data, repeatType)).toBe('반복 ×3');
         expect(resolveMagicNodeLabel({ magicType: 'repeat' }, repeatType)).toBe('반복 ∞');
     });

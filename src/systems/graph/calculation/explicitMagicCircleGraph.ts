@@ -1,8 +1,8 @@
 import type { Edge } from '@xyflow/svelte';
 import {
+    MAGIC_CONTROL_PAIR_ROLES,
     MAGIC_EDGE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type {
     MagicCircleNode,
     MagicCircleState,
@@ -14,6 +14,11 @@ import {
     getMagicCircleNodes,
     isMagicCirclePortHandleId,
 } from '../model/magicCircleGraph';
+import {
+    isMagicControlPairGraphValid,
+    isMagicControlPairNode,
+} from '../model/magicControlPairs';
+import { isCircleSystemMagicNode } from '../model/circleSystemMagicNodes';
 
 const VIRTUAL_ANCHOR_MAGIC_TYPE = '__circle-anchor__';
 const VIRTUAL_START_SUFFIX = 'start';
@@ -22,6 +27,7 @@ const VIRTUAL_END_SUFFIX = 'end';
 export interface CircleInternalAnalysis {
     circle: MagicCircleNode;
     sequenceNodes: MagicNode[];
+    calculationNodes: MagicNode[];
     projectedNodes: MagicNode[];
     projectedEdges: Edge[];
     isInternallyValid: boolean;
@@ -33,7 +39,7 @@ export interface ExplicitMagicCircleGraphAnalysis {
     internalByCircleId: ReadonlyMap<string, CircleInternalAnalysis>;
     projectedNodes: MagicNode[];
     projectedEdges: Edge[];
-    orderedOutputCircleIds: string[];
+    orderedCalculatedCircleIds: string[];
 }
 
 function startAnchorId(circleId: string): string {
@@ -57,35 +63,12 @@ function createVirtualAnchor(id: string): MagicNode {
 
 function addAdjacency(
     outEdges: Map<string, string[]>,
-    inEdges: Map<string, string[]>,
     source: string,
     target: string
 ): void {
     const targets = outEdges.get(source) ?? [];
     targets.push(target);
     outEdges.set(source, targets);
-
-    const sources = inEdges.get(target) ?? [];
-    sources.push(source);
-    inEdges.set(target, sources);
-}
-
-function collectReachable(
-    adjacency: ReadonlyMap<string, readonly string[]>,
-    starts: readonly string[]
-): Set<string> {
-    const reachable = new Set<string>();
-    const queue = [...starts];
-
-    for (let index = 0; index < queue.length; index += 1) {
-        const nodeId = queue[index];
-        if (reachable.has(nodeId)) continue;
-
-        reachable.add(nodeId);
-        (adjacency.get(nodeId) ?? []).forEach(nextId => queue.push(nextId));
-    }
-
-    return reachable;
 }
 
 function analyzeCircleInternals(
@@ -93,6 +76,9 @@ function analyzeCircleInternals(
     nodes: readonly MagicEditorNode[]
 ): CircleInternalAnalysis {
     const childNodes = getCircleChildNodes(nodes, circle.id);
+    const calculationSequenceNodes = childNodes.filter(node =>
+        !isCircleSystemMagicNode(node)
+    );
     const startId = startAnchorId(circle.id);
     const endId = endAnchorId(circle.id);
     const sequenceIds = [
@@ -111,13 +97,23 @@ function analyzeCircleInternals(
     return {
         circle,
         sequenceNodes: childNodes,
+        calculationNodes: calculationSequenceNodes
+            .filter(node =>
+                node.data.controlPair?.role !== MAGIC_CONTROL_PAIR_ROLES.END
+            ),
         projectedNodes: [
             createVirtualAnchor(startId),
-            ...childNodes,
+            ...childNodes.map(node =>
+                isMagicControlPairNode(node) &&
+                node.data.controlPair.role === MAGIC_CONTROL_PAIR_ROLES.END
+                    ? createVirtualAnchor(node.id)
+                    : node
+            ),
             createVirtualAnchor(endId),
         ],
         projectedEdges,
-        isInternallyValid: childNodes.length > 0,
+        isInternallyValid: calculationSequenceNodes.length > 0 &&
+            isMagicControlPairGraphValid([circle, ...childNodes]),
     };
 }
 
@@ -127,16 +123,6 @@ function externalEdgeEndpoints(
 ): { source: string; target: string } | undefined {
     const sourceCircle = circleById.get(edge.source);
     const targetCircle = circleById.get(edge.target);
-    const isSourceSystem = edge.source === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id;
-    const isTargetSystem = edge.target === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id;
-
-    if (
-        isSourceSystem &&
-        targetCircle &&
-        isMagicCirclePortHandleId(edge.targetHandle, 'input')
-    ) {
-        return { source: edge.source, target: targetCircle.id };
-    }
     if (
         sourceCircle &&
         isMagicCirclePortHandleId(edge.sourceHandle, 'output') &&
@@ -145,27 +131,15 @@ function externalEdgeEndpoints(
     ) {
         return { source: sourceCircle.id, target: targetCircle.id };
     }
-    if (
-        sourceCircle &&
-        isMagicCirclePortHandleId(edge.sourceHandle, 'output') &&
-        isTargetSystem
-    ) {
-        return { source: sourceCircle.id, target: edge.target };
-    }
-
     return undefined;
 }
 
 function resolveCircleOrder(
     circles: readonly MagicCircleNode[],
-    outputPathCircleIds: ReadonlySet<string>,
+    calculatedCircleIds: ReadonlySet<string>,
     externalOutEdges: ReadonlyMap<string, readonly string[]>
 ): string[] {
-    const relevantIds = new Set([
-        SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-        SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-        ...outputPathCircleIds,
-    ]);
+    const relevantIds = new Set(calculatedCircleIds);
     const indegreeById = new Map(
         [...relevantIds].map(nodeId => [nodeId, 0])
     );
@@ -176,12 +150,11 @@ function resolveCircleOrder(
             indegreeById.set(targetId, (indegreeById.get(targetId) ?? 0) + 1);
         });
     });
-    const levelById = new Map<string, number>([
-        [SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id, 0],
-    ]);
+    const levelById = new Map<string, number>();
     const queue = [...indegreeById]
         .filter(([, indegree]) => indegree === 0)
         .map(([nodeId]) => nodeId);
+    queue.forEach(nodeId => levelById.set(nodeId, 0));
 
     for (let index = 0; index < queue.length; index += 1) {
         const sourceId = queue[index];
@@ -201,10 +174,12 @@ function resolveCircleOrder(
 
     return [...circles]
         .sort((left, right) => {
-            const leftOnPath = outputPathCircleIds.has(left.id);
-            const rightOnPath = outputPathCircleIds.has(right.id);
-            if (leftOnPath !== rightOnPath) return leftOnPath ? -1 : 1;
-            if (leftOnPath && rightOnPath) {
+            const leftCalculated = calculatedCircleIds.has(left.id);
+            const rightCalculated = calculatedCircleIds.has(right.id);
+            if (leftCalculated !== rightCalculated) {
+                return leftCalculated ? -1 : 1;
+            }
+            if (leftCalculated && rightCalculated) {
                 const levelDifference =
                     (levelById.get(left.id) ?? Number.POSITIVE_INFINITY) -
                     (levelById.get(right.id) ?? Number.POSITIVE_INFINITY);
@@ -229,7 +204,6 @@ export function analyzeExplicitMagicCircleGraph(
         analyzeCircleInternals(circle, nodes),
     ]));
     const externalOutEdges = new Map<string, string[]>();
-    const externalInEdges = new Map<string, string[]>();
     const externalEdges: Array<Edge & { source: string; target: string }> = [];
 
     edges.forEach(edge => {
@@ -241,26 +215,22 @@ export function analyzeExplicitMagicCircleGraph(
             internalByCircleId.get(endpoints.target)?.isInternallyValid;
         if (!sourceIsValid || !targetIsValid) return;
 
-        addAdjacency(externalOutEdges, externalInEdges, endpoints.source, endpoints.target);
+        addAdjacency(
+            externalOutEdges,
+            endpoints.source,
+            endpoints.target
+        );
         externalEdges.push({ ...edge, ...endpoints });
     });
 
-    const reachableFromSource = collectReachable(externalOutEdges, [
-        SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-    ]);
-    const canReachOutput = collectReachable(externalInEdges, [
-        SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-    ]);
-    const outputPathCircleIds = new Set(circles
+    const calculatedCircleIds = new Set(circles
         .filter(circle =>
-            internalByCircleId.get(circle.id)?.isInternallyValid &&
-            reachableFromSource.has(circle.id) &&
-            canReachOutput.has(circle.id)
+            internalByCircleId.get(circle.id)?.isInternallyValid
         )
         .map(circle => circle.id));
     const orderedCircleIds = resolveCircleOrder(
         circles,
-        outputPathCircleIds,
+        calculatedCircleIds,
         externalOutEdges
     );
     const displayOrderById = new Map(
@@ -269,14 +239,8 @@ export function analyzeExplicitMagicCircleGraph(
     const projectedNodes: MagicNode[] = [];
     const projectedEdges: Edge[] = [];
 
-    if (outputPathCircleIds.size > 0) {
-        projectedNodes.push(
-            createVirtualAnchor(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id),
-            createVirtualAnchor(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)
-        );
-    }
     orderedCircleIds.forEach(circleId => {
-        if (!outputPathCircleIds.has(circleId)) return;
+        if (!calculatedCircleIds.has(circleId)) return;
         const internal = internalByCircleId.get(circleId);
         if (!internal) return;
 
@@ -284,20 +248,15 @@ export function analyzeExplicitMagicCircleGraph(
         projectedEdges.push(...internal.projectedEdges);
     });
     externalEdges.forEach((edge, index) => {
-        const sourceOnPath = edge.source === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id ||
-            outputPathCircleIds.has(edge.source);
-        const targetOnPath = edge.target === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id ||
-            outputPathCircleIds.has(edge.target);
-        if (!sourceOnPath || !targetOnPath) return;
+        if (
+            !calculatedCircleIds.has(edge.source) ||
+            !calculatedCircleIds.has(edge.target)
+        ) return;
 
         projectedEdges.push({
             id: `${MAGIC_EDGE_ID_PREFIX}-projected-${index}`,
-            source: edge.source === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id
-                ? edge.source
-                : endAnchorId(edge.source),
-            target: edge.target === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id
-                ? edge.target
-                : startAnchorId(edge.target),
+            source: endAnchorId(edge.source),
+            target: startAnchorId(edge.target),
         });
     });
 
@@ -309,15 +268,14 @@ export function analyzeExplicitMagicCircleGraph(
                 circleId,
                 nodeIds: internal.sequenceNodes.map(node => node.id),
                 isInternallyValid: internal.isInternallyValid,
-                isOnOutputPath: outputPathCircleIds.has(circleId),
                 displayOrder: displayOrderById.get(circleId)!,
             };
         }),
         internalByCircleId,
         projectedNodes,
         projectedEdges,
-        orderedOutputCircleIds: orderedCircleIds.filter(circleId =>
-            outputPathCircleIds.has(circleId)
+        orderedCalculatedCircleIds: orderedCircleIds.filter(circleId =>
+            calculatedCircleIds.has(circleId)
         ),
     };
 }

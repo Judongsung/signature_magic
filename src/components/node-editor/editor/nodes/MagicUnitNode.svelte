@@ -2,27 +2,29 @@
     import { Handle, Position, useUpdateNodeInternals } from '@xyflow/svelte';
     import {
         type MagicNodeData,
-    } from '../../../types/magic';
+    } from '../../../../types/magic';
     import {
         MAGIC_NODE_HANDLE_CONFIG,
         MAGIC_NODE_KINDS,
         MAGIC_NODE_RENDERING_CONFIG,
-    } from '../../../constants/graphConfigs';
-    import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
-    import { graphStore } from '../../../stores/graphStore.svelte';
-    import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
+    } from '../../../../constants/graphConfigs';
+    import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
+    import { graphStore } from '../../../../stores/graphStore.svelte';
+    import { getMagicTypeConfig } from '../../../../systems/graph/registry/magicTypeRegistry';
     import {
         resolveMagicNodeCaption,
         resolveMagicNodeLabel,
-    } from '../../../systems/graph/model/magicNodeData';
-    import { resolveHandleLeft } from '../../../systems/graph/presentation/magicHandlePresentation';
-    import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
-    import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
+    } from '../../../../systems/graph/model/magicNodeData';
+    import { resolveHandleLeft } from '../../../../systems/graph/presentation/magicHandlePresentation';
+    import { resolveMagicControlPairNodePresentation } from '../../../../systems/graph/presentation/magicControlPairPresentation';
+    import { isCircleSystemMagicNodeData } from '../../../../systems/graph/model/circleSystemMagicNodes';
+    import DescriptionTooltip from '../../../shared/DescriptionTooltip.svelte';
+    import MagicNodeTooltipStats from '../MagicNodeTooltipStats.svelte';
     import {
         createNodeHandleLayoutKey,
         createNodeInternalsRefresh,
     } from './nodeInternalsRefresh';
-    import { useNodeEditorDetails } from './nodeDetailsContext';
+    import { useNodeEditorDetails } from '../details/nodeDetailsContext';
 
     let {
         id,
@@ -42,15 +44,34 @@
 
     const color = $derived(nodeConfig?.color || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_COLOR);
     const icon = $derived(nodeConfig?.icon || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_ICON);
-    const label = $derived(resolveMagicNodeLabel(data, nodeConfig));
-    const caption = $derived(resolveMagicNodeCaption(data, nodeConfig));
+    const defaultLabel = $derived(resolveMagicNodeLabel(data, nodeConfig));
+    const controlPairPresentation = $derived(
+        resolveMagicControlPairNodePresentation(
+            { data },
+            defaultLabel,
+            nodeConfig?.label
+        )
+    );
+    const label = $derived(controlPairPresentation.label);
+    const caption = $derived(
+        controlPairPresentation.isEnd
+            ? undefined
+            : resolveMagicNodeCaption(data, nodeConfig)
+    );
     const description = $derived(nodeConfig?.description || '');
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
-    const shouldShowTooltip = $derived(data.showTooltip !== false);
+    const shouldShowTooltip = $derived(
+        data.showTooltip !== false &&
+        controlPairPresentation.showTooltip
+    );
     const isSystemNode = $derived(data.nodeKind === MAGIC_NODE_KINDS.SYSTEM);
-    const isSequenceNode = $derived(!isSystemNode);
+    const isCircleSystemNode = $derived(
+        isCircleSystemMagicNodeData(data)
+    );
+    const isSequenceNode = $derived(!isSystemNode || Boolean(parentId));
+    const shouldShowSystemHandles = $derived(isSystemNode && !parentId);
     const shouldShowBadges = $derived(
-        isSystemNode && data.showBadges !== false
+        shouldShowSystemHandles && data.showBadges !== false
     );
     const isSequenceInsertionBefore = $derived(
         graphStore.sequenceDropPreview?.circleId === parentId &&
@@ -120,6 +141,7 @@
     class:sequence-node={isSequenceNode}
     class:sequence-insertion-before={isSequenceInsertionBefore}
     class:sequence-insertion-after={isSequenceInsertionAfter}
+    class:control-pair-end={controlPairPresentation.isEnd}
     aria-describedby={shouldShowTooltip ? tooltipId : undefined}
     style="--c: {color};"
 >
@@ -133,7 +155,7 @@
             {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
         </div>
     {/if}
-    {#if isSystemNode}
+    {#if shouldShowSystemHandles}
         {#each inputHandles as index}
             <Handle
                 type="target"
@@ -152,7 +174,7 @@
         {#if caption}<div class="caption">{caption}</div>{/if}
     </div>
 
-    {#if draggable && openDetails}
+    {#if draggable && openDetails && controlPairPresentation.showDetails && !isCircleSystemNode}
         <button
             type="button"
             class="node-details-trigger nodrag nopan"
@@ -169,7 +191,7 @@
         isLeaf = 아직 아무데도 연결 안 한 노드 → 하단에 END 배지 표시
         연결을 생성하면 isLeaf=false가 되어 이 배지가 사라집니다.
     -->
-    {#if isSystemNode}
+    {#if shouldShowSystemHandles}
         {#each outputHandles as index}
             <Handle
                 type="source"
@@ -266,6 +288,10 @@
     .custom-node.sequence-node::after {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
+    }
+
+    .custom-node.control-pair-end {
+        border-style: dashed;
     }
 
     .custom-node.sequence-insertion-before {

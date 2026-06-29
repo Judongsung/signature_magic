@@ -1,6 +1,7 @@
 import type {
     MagicCirclePortDirection,
     MagicCircleStatus,
+    MagicControlPairRole,
     MagicEditorNodeKind,
 } from '../types/magic';
 import { EDITOR_GRID_SIZE } from './nodeEditorConfigs';
@@ -45,9 +46,30 @@ export const MAGIC_CIRCLE_SEQUENCE_CONFIG = {
 
 export const MAGIC_CIRCLE_STATUSES = {
     EMPTY: 'empty',
-    EXTERNAL: 'external',
     VALID: 'valid',
 } as const satisfies Record<string, MagicCircleStatus>;
+
+export const MAGIC_CONTROL_PAIR_NODE_TYPES = {
+    REPEAT: 'repeat',
+    BRANCH: 'branch',
+} as const;
+
+export type MagicControlPairNodeType =
+    (typeof MAGIC_CONTROL_PAIR_NODE_TYPES)[keyof typeof MAGIC_CONTROL_PAIR_NODE_TYPES];
+
+export const MAGIC_CONTROL_PAIR_ROLES = {
+    START: 'start',
+    END: 'end',
+} as const satisfies Record<string, MagicControlPairRole>;
+
+export const MAGIC_CONTROL_PAIR_CONFIG = {
+    ID_PREFIX: 'control-pair',
+    END_ID_SUFFIX: 'end',
+    RAIL_BASE_WIDTH: 28,
+    RAIL_LANE_GAP: 12,
+    CONNECTOR_HOOK_WIDTH: 10,
+    CONNECTOR_MARKER_SIZE: 6,
+} as const;
 
 export const MAGIC_CIRCLE_PORT_CONFIG = {
     DEFAULT_VISIBLE_COUNT: 1,

@@ -2,12 +2,21 @@
 import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
 import {
     INITIAL_SYSTEM_MAGIC_NODE_CONFIGS,
-    SYSTEM_MAGIC_NODE_CONFIGS,
 } from '../../../constants/systemMagicNodeConfigs';
 import type { MagicEditorNode, MagicNode } from '../../../types/magic';
 import { isMagicCircleNode } from './magicCircleGraph';
 import { buildGraphTopology } from '../topology/graphTopology';
 import { canReach, reachableNodeIds } from '../topology/graphTraversal';
+
+const SYSTEM_NODE_IDS = new Set(
+    INITIAL_SYSTEM_MAGIC_NODE_CONFIGS.map(node => node.id)
+);
+const SYSTEM_ROOT_IDS = INITIAL_SYSTEM_MAGIC_NODE_CONFIGS
+    .filter(node => node.data.isRoot)
+    .map(node => node.id);
+const SYSTEM_OUTPUT_IDS = INITIAL_SYSTEM_MAGIC_NODE_CONFIGS
+    .filter(node => node.data.isLeaf)
+    .map(node => node.id);
 
 export function isSystemMagicNode(
     node: MagicEditorNode
@@ -15,10 +24,8 @@ export function isSystemMagicNode(
     if (isMagicCircleNode(node)) return false;
 
     return node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM ||
-        node.data.magicType === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id ||
-        node.data.magicType === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id ||
-        node.id === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id ||
-        node.id === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id;
+        SYSTEM_NODE_IDS.has(node.id) ||
+        SYSTEM_NODE_IDS.has(node.data.magicType);
 }
 
 export function createInitialSystemNodes(): MagicNode[] {
@@ -70,8 +77,13 @@ export function ensureSystemMagicNodes(nodes: MagicEditorNode[]): MagicEditorNod
 }
 
 export function isProtectedSystemConnection(connection: { source?: string | null; target?: string | null }): boolean {
-    return connection.target === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id ||
-        connection.source === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id;
+    return Boolean(
+        connection.target &&
+        SYSTEM_ROOT_IDS.includes(connection.target)
+    ) || Boolean(
+        connection.source &&
+        SYSTEM_OUTPUT_IDS.includes(connection.source)
+    );
 }
 
 export function filterCalculableMagicGraph(
@@ -80,8 +92,10 @@ export function filterCalculableMagicGraph(
 ): { nodes: MagicNode[]; edges: Edge[] } {
     const topology = buildGraphTopology(nodes, edges);
     if (
-        !topology.nodeMap.has(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id) ||
-        !topology.nodeMap.has(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)
+        SYSTEM_ROOT_IDS.length === 0 ||
+        SYSTEM_OUTPUT_IDS.length === 0 ||
+        SYSTEM_ROOT_IDS.some(nodeId => !topology.nodeMap.has(nodeId)) ||
+        SYSTEM_OUTPUT_IDS.some(nodeId => !topology.nodeMap.has(nodeId))
     ) {
         const userNodes = topology.nodes.filter(node => !isSystemMagicNode(node));
         const userNodeIds = new Set(userNodes.map(node => node.id));
@@ -91,11 +105,13 @@ export function filterCalculableMagicGraph(
         };
     }
 
-    const sourceReachableIds = reachableNodeIds(topology, [SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id]);
+    const sourceReachableIds = reachableNodeIds(topology, SYSTEM_ROOT_IDS);
     const userNodesOnOutputPath = nodes.filter(node =>
         !isSystemMagicNode(node) &&
         sourceReachableIds.has(node.id) &&
-        canReach(topology, node.id, SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)
+        SYSTEM_OUTPUT_IDS.some(outputId =>
+            canReach(topology, node.id, outputId)
+        )
     );
     const userNodeIds = new Set(userNodesOnOutputPath.map(node => node.id));
     const userEdgesOnOutputPath = topology.edges.filter(edge =>

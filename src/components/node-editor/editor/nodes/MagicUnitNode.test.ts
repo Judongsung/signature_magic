@@ -1,9 +1,9 @@
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { graphStore } from '../../../stores/graphStore.svelte';
-import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
-import type { MagicNodeData } from '../../../types/magic';
-import CustomNode from './CustomNode.svelte';
+import { graphStore } from '../../../../stores/graphStore.svelte';
+import { getMagicTypeConfig } from '../../../../systems/graph/registry/magicTypeRegistry';
+import type { MagicNodeData } from '../../../../types/magic';
+import MagicUnitNode from './MagicUnitNode.svelte';
 
 vi.mock('@xyflow/svelte', () => ({
     Handle: () => '',
@@ -13,7 +13,7 @@ vi.mock('@xyflow/svelte', () => ({
     },
     useUpdateNodeInternals: () => () => {},
 }));
-vi.mock('./nodeDetailsContext', () => ({
+vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => undefined,
 }));
 
@@ -26,7 +26,7 @@ function renderNode(
     data: Partial<MagicNodeData> = {},
     parentId?: string
 ) {
-    return render(CustomNode, {
+    return render(MagicUnitNode, {
         props: {
             id: 'node-1',
             data: {
@@ -39,7 +39,7 @@ function renderNode(
     });
 }
 
-describe('CustomNode', () => {
+describe('MagicUnitNode', () => {
     it('renders user nodes as horizontal sequence cards', () => {
         const { html } = renderNode({ nodeKind: 'user', sequenceIndex: 0 });
 
@@ -57,6 +57,22 @@ describe('CustomNode', () => {
 
         expect(html).not.toContain('sequence-node');
         expect(html).toContain('root-badge');
+    });
+
+    it('renders circle-owned system nodes as sequence cards without tooltip or badges', () => {
+        const { html } = renderNode({
+            magicType: 'manifestation',
+            nodeKind: 'system',
+            showTooltip: false,
+            showBadges: false,
+            sequenceIndex: 0,
+        }, 'circle-a');
+
+        expect(html).toContain('sequence-node');
+        expect(html).toContain('발현');
+        expect(html).not.toContain('root-badge');
+        expect(html).not.toContain('leaf-badge');
+        expect(html).not.toContain('description-tooltip');
     });
 
     it('renders insertion feedback on the adjacent sequence card', () => {
@@ -142,13 +158,29 @@ describe('CustomNode', () => {
     it('renders repeat count in the node name while preserving its caption', () => {
         const finite = renderNode({
             magicType: 'repeat',
+            controlPair: { id: 'repeat-pair', role: 'start' },
             settings: { repeatCount: '3', caption: '되풀이' },
         }).html;
-        const infinite = renderNode({ magicType: 'repeat' }).html;
+        const infinite = renderNode({
+            magicType: 'repeat',
+            controlPair: { id: 'infinite-pair', role: 'start' },
+        }).html;
 
-        expect(finite).toContain('반복 ×3');
+        expect(finite).toContain('반복 시작 ×3');
         expect(finite).toContain('되풀이');
-        expect(infinite).toContain('반복 ∞');
+        expect(infinite).toContain('반복 시작 ∞');
+    });
+
+    it('renders control-pair end markers without caption or tooltip', () => {
+        const { html } = renderNode({
+            magicType: 'branch',
+            controlPair: { id: 'branch-pair', role: 'end' },
+            settings: { caption: '표시하지 않음' },
+        });
+
+        expect(html).toContain('분기 목적지');
+        expect(html).not.toContain('표시하지 않음');
+        expect(html).not.toContain('description-tooltip');
     });
 
     it('omits the node caption when its setting is empty', () => {

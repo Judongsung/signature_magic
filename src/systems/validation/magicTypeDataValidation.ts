@@ -203,10 +203,10 @@ function validateMagicNodeInstanceEditor(
             errors.push(`Unknown magic node editor behavior: ${type} -> ${index} -> ${field.behavior}`);
         }
         if (
-            field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT &&
+            field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT &&
             field.control !== MAGIC_NODE_EDITOR_CONTROLS.STEPPER
         ) {
-            errors.push(`Invalid cycle repeat count control: ${type} -> ${index}`);
+            errors.push(`Invalid repeat count control: ${type} -> ${index}`);
         }
         if (
             field.presentation === MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX &&
@@ -215,10 +215,10 @@ function validateMagicNodeInstanceEditor(
             errors.push(`Invalid node label suffix control: ${type} -> ${index}`);
         }
         if (
-            field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.CYCLE_REPEAT_COUNT &&
+            field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT &&
             field.presentation !== MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX
         ) {
-            errors.push(`Invalid cycle repeat count presentation: ${type} -> ${index}`);
+            errors.push(`Invalid repeat count presentation: ${type} -> ${index}`);
         }
     });
 

@@ -25,6 +25,7 @@ import {
     createExplicitMagicCircleEdgeUpdate,
     isExplicitMagicCircleConnectionValid,
 } from './magicCircleConnectionRules';
+import { collectMagicControlPairDeletionIds } from './magicControlPairs';
 
 export interface GraphSnapshot {
     nodes: MagicEditorNode[];
@@ -94,14 +95,23 @@ export function removeDeletedGraphElements(
         const deletedCircleIds = new Set(
             deletedNodes.filter(isMagicCircleNode).map(node => node.id)
         );
-        const explicitlyDeletedIds = new Set(deletedNodes.map(node => node.id));
+        const deletionReferenceNodes = [
+            ...nodes,
+            ...deletedNodes.filter(deletedNode =>
+                !nodes.some(node => node.id === deletedNode.id)
+            ),
+        ];
+        const explicitlyDeletedIds = collectMagicControlPairDeletionIds(
+            deletionReferenceNodes,
+            new Set(deletedNodes.map(node => node.id))
+        );
         const ids = new Set(
             nodes
-                .filter(node =>
-                    explicitlyDeletedIds.has(node.id) ||
-                    deletedCircleIds.has(node.parentId ?? '')
-                )
-                .filter(node => !isSystemMagicNode(node))
+                .filter(node => {
+                    if (deletedCircleIds.has(node.parentId ?? '')) return true;
+                    return explicitlyDeletedIds.has(node.id) &&
+                        !isSystemMagicNode(node);
+                })
                 .map(node => node.id)
         );
         nodes = nodes.filter(node => !ids.has(node.id));

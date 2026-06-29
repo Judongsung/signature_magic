@@ -1,13 +1,13 @@
-import type { Connection, Edge } from '@xyflow/svelte';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
 import { resetGraphStoreFixture } from '../test-utils/graphFixtures';
 import type { MagicGraphPresetConfig } from '../types/magic';
 import {
     getMagicCircleNodes,
     getMagicUnitNodes,
 } from '../systems/graph/model/magicCircleGraph';
+import { isCircleSystemMagicNode } from '../systems/graph/model/circleSystemMagicNodes';
 import { isSystemMagicNode } from '../systems/graph/model/systemMagicNodes';
+import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../constants/systemMagicNodeConfigs';
 import { graphStore } from './graphStore.svelte';
 
 function userNodes() {
@@ -19,29 +19,6 @@ function circleNode() {
     return getMagicCircleNodes(graphStore.nodes)[0];
 }
 
-function appendPreparedEdge(connection: Connection): Edge {
-    const prepared = graphStore.prepareEdge(connection);
-    expect(prepared).not.toBe(false);
-    graphStore.edges = [...graphStore.edges, prepared as Edge];
-    graphStore.onEdgeConnected(connection);
-    return prepared as Edge;
-}
-
-function connectCircle(circleId = circleNode().id): void {
-    appendPreparedEdge({
-        source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-        target: circleId,
-        sourceHandle: 'output-0',
-        targetHandle: 'circle-input',
-    });
-    appendPreparedEdge({
-        source: circleId,
-        target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-        sourceHandle: 'circle-output',
-        targetHandle: 'input-0',
-    });
-}
-
 const preset: MagicGraphPresetConfig = {
     id: 'store-preset',
     label: 'Store Preset',
@@ -50,6 +27,10 @@ const preset: MagicGraphPresetConfig = {
         position: { x: -240, y: -320 },
         width: 480,
         height: 640,
+        systemNodeSlots: [{
+            magicType: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
+            slotIndex: 1,
+        }],
     }],
     nodes: [{
         id: 'preset-ignition',
@@ -57,22 +38,7 @@ const preset: MagicGraphPresetConfig = {
         circleId: 'store-circle',
         sequenceIndex: 0,
     }],
-    edges: [
-        {
-            id: 'preset-source-circle',
-            source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-            target: 'store-circle',
-            sourceHandle: 'output-0',
-            targetHandle: 'circle-input',
-        },
-        {
-            id: 'preset-circle-output',
-            source: 'store-circle',
-            target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-            sourceHandle: 'circle-output',
-            targetHandle: 'input-0',
-        },
-    ],
+    edges: [],
 };
 
 describe('graphStore sequence circles', () => {
@@ -80,10 +46,14 @@ describe('graphStore sequence circles', () => {
         resetGraphStoreFixture();
     });
 
-    it('starts with fixed system nodes and one selected empty circle', () => {
-        expect(graphStore.nodes).toHaveLength(3);
+    it('starts with one selected empty circle and one circle system node', () => {
+        expect(graphStore.nodes).toHaveLength(2);
         expect(circleNode().selected).toBe(true);
         expect(graphStore.activeCircleId).toBe(circleNode().id);
+        expect(getMagicUnitNodes(graphStore.nodes).filter(
+            node => isCircleSystemMagicNode(node)
+        )).toHaveLength(1);
+        expect(userNodes()).toEqual([]);
     });
 
     it('appends nodes to the active circle in contiguous sequence order', () => {
@@ -98,13 +68,15 @@ describe('graphStore sequence circles', () => {
         expect(userNodes().every(node => node.connectable === false)).toBe(true);
     });
 
-    it('requires an active circle and rejects repeat nodes', () => {
+    it('requires an active circle and creates repeat markers as a pair', () => {
         graphStore.selectCircle(undefined);
         expect(graphStore.addNode('ignition')).toBe(false);
 
         graphStore.selectCircle(circleNode().id);
-        expect(graphStore.addNode('repeat')).toBe(false);
-        expect(userNodes()).toEqual([]);
+        expect(graphStore.addNode('repeat')).toBe(true);
+        expect(userNodes()).toHaveLength(2);
+        expect(new Set(userNodes().map(node => node.data.controlPair?.id)).size)
+            .toBe(1);
     });
 
     it('updates circle name and caption through the circle action', () => {
@@ -187,12 +159,9 @@ describe('graphStore sequence circles', () => {
         expect(userNodes()[0].style).toContain('--node-editor-node-width: 536px');
     });
 
-    it('calculates every serial child only when its circle is on an external output path', () => {
+    it('calculates every serial child in an isolated valid circle', () => {
         graphStore.addNode('ignition');
         graphStore.addNode('stream');
-        expect(graphStore.circles).toHaveLength(0);
-
-        connectCircle();
 
         expect(graphStore.circles).toHaveLength(1);
         expect(graphStore.circles[0].nodes.map(node => node.data.magicType))
@@ -212,7 +181,7 @@ describe('graphStore sequence circles', () => {
         })).toBe(false);
     });
 
-    it('loads and snapshots the v3 sequence preset without internal edges', () => {
+    it('loads and snapshots the v6 sequence preset without internal edges', () => {
         graphStore.loadPreset(preset);
 
         expect(userNodes()[0]).toMatchObject({
@@ -221,15 +190,18 @@ describe('graphStore sequence circles', () => {
             position: { x: 32, y: 72 },
             data: { sequenceIndex: 0 },
         });
-        expect(graphStore.edges.map(edge => edge.id)).toEqual([
-            'preset-source-circle',
-            'preset-circle-output',
-        ]);
+        expect(graphStore.edges).toEqual([]);
         expect(getMagicCircleNodes(graphStore.nodes)[0].data).toMatchObject({
-            inputHandleCount: 2,
-            outputHandleCount: 2,
+            inputHandleCount: 1,
+            outputHandleCount: 1,
         });
         expect(graphStore.createPresetSnapshot('Saved')).toMatchObject({
+            circles: [{
+                systemNodeSlots: [{
+                    magicType: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
+                    slotIndex: 1,
+                }],
+            }],
             nodes: [{
                 id: 'preset-ignition',
                 circleId: 'store-circle',
@@ -240,7 +212,6 @@ describe('graphStore sequence circles', () => {
 
     it('deletes a circle with its children and external edges', () => {
         graphStore.addNode('ignition');
-        connectCircle();
         graphStore.onDelete([circleNode()], []);
 
         expect(getMagicCircleNodes(graphStore.nodes)).toEqual([]);

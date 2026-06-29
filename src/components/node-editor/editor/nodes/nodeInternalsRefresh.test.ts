@@ -10,7 +10,7 @@ async function flushRefresh(): Promise<void> {
     await Promise.resolve();
 }
 
-describe('nodeInternalsRefresh', () => {
+describe('node internals refresh', () => {
     it('creates stable and distinct keys from handle layout values', () => {
         expect(createNodeHandleLayoutKey([1, 2, null, false]))
             .toBe(createNodeHandleLayoutKey([1, 2, null, false]));
