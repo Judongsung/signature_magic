@@ -130,6 +130,13 @@
     --node-editor-circle-selected: #5ab8e8;
     --node-editor-repeat-color: #f8c471;
     --node-editor-branch-color: #f4d03f;
+    --node-editor-manifestation-border: #78d7ff;
+    --node-editor-manifestation-inner-border: rgba(154, 222, 255, 0.62);
+    --node-editor-manifestation-shadow:
+        0 0 0 1px rgba(120, 215, 255, 0.34),
+        0 0 24px rgba(85, 155, 255, 0.48),
+        inset 0 0 18px rgba(89, 185, 255, 0.14),
+        var(--node-editor-node-depth-shadow);
     --node-editor-circle-selected-text: #04111a;
     --node-editor-circle-radius: 8px;
     --node-editor-circle-title-height: 38px;

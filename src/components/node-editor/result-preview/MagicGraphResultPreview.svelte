@@ -85,7 +85,6 @@
 <style>
     .graph-result-preview {
         width: 100%;
-        min-height: 260px;
         aspect-ratio: var(--graph-result-aspect-ratio);
         position: relative;
         overflow: hidden;
@@ -128,7 +127,7 @@
 
     .graph-empty {
         height: 100%;
-        min-height: inherit;
+        min-height: 260px;
         margin: 0;
         display: grid;
         place-items: center;
@@ -139,9 +138,8 @@
     }
 
     @media (max-width: 720px) {
-        .graph-result-preview {
+        .graph-empty {
             min-height: 220px;
-            aspect-ratio: 1.2;
         }
     }
 </style>

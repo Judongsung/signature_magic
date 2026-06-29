@@ -12,7 +12,9 @@ import {
     canMoveMagicControlPairsAcrossCircles,
     collectMagicControlPairDeletionIds,
     isMagicControlPairGraphValid,
+    resolveMagicBranchPairRailWidth,
     resolveMagicControlPairLanes,
+    resolveMagicRepeatIndentDepths,
 } from './magicControlPairs';
 
 function marker(
@@ -193,5 +195,36 @@ describe('magicControlPairs', () => {
             ['later', 0],
             ['inverted', 1],
         ]);
+    });
+
+    it('derives repeat indentation independently from branch rail width', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'indent'
+        );
+        const nodes = [
+            circle,
+            ...pair(circle, 'outer', 'repeat', 0, 4),
+            ...pair(circle, 'inner', 'repeat', 1, 3),
+            attachNodeToCircle(
+                createTestMagicNode('content'),
+                circle,
+                2
+            ),
+        ];
+
+        expect([...resolveMagicRepeatIndentDepths(nodes, circle.id)])
+            .toEqual([
+                [0, 0],
+                [1, 1],
+                [2, 2],
+                [3, 1],
+                [4, 0],
+            ]);
+        expect(resolveMagicBranchPairRailWidth(nodes, circle.id)).toBe(0);
+        expect(resolveMagicBranchPairRailWidth([
+            ...nodes,
+            ...pair(circle, 'branch', 'branch', 5, 6),
+        ], circle.id)).toBe(28);
     });
 });

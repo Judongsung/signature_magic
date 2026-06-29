@@ -108,11 +108,11 @@ describe('magicCircleGraph sequence model', () => {
 
         expect(node).toMatchObject({
             parentId: circle.id,
-            position: { x: 32, y: 152 },
+            position: { x: 40, y: 160 },
             connectable: false,
             data: { showBadges: false, sequenceIndex: 2 },
         });
-        expect(node.style).toContain('--node-editor-node-width: 416px');
+        expect(node.style).toContain('--node-editor-node-width: 400px');
         expect(node.style).toContain('--node-editor-node-height: 40px');
     });
 
@@ -134,7 +134,7 @@ describe('magicCircleGraph sequence model', () => {
 
     it('calculates the minimum height from sequence length', () => {
         expect(resolveMagicCircleRequiredHeight(0)).toBe(400);
-        expect(resolveMagicCircleRequiredHeight(8)).toBe(440);
+        expect(resolveMagicCircleRequiredHeight(8)).toBe(448);
     });
 
     it('keeps circle selection separate from selected unit nodes', () => {

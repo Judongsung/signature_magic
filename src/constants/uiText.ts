@@ -246,5 +246,5 @@ export const MAGIC_NODE_CATEGORY_LABELS: Record<MagicNodeCategory, string> = {
     basic: '속성',
     action: '행동',
     control: '조절',
-    extension: '확장',
+    extension: '제어',
 };

@@ -160,7 +160,7 @@
         "label": "확산",
         "icon": "◌",
         "color": "#5dade2",
-        "category": "extension",
+        "category": "control",
         "description": "넓게 퍼트린다.",
         "stats": { "castingTime": 2, "instability": 4, "power": 1, "range": 6, "manaCost": 3, "duration": 1 }
     },
@@ -178,7 +178,7 @@
         "label": "분산",
         "icon": "✦",
         "color": "#85c1e9",
-        "category": "extension",
+        "category": "control",
         "description": "출력을 낮추고 효과의 범위를 넓게 퍼트린다.",
         "stats": { "castingTime": 2, "instability": 2, "power": -2, "range": 10, "manaCost": 3, "duration": 1 },
         "statBounds": {

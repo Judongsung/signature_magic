@@ -17,7 +17,8 @@ import {
     createMagicControlPairData,
     isMagicControlPairGraphValid,
     isMagicControlPairType,
-    resolveMagicControlPairRailWidth,
+    resolveMagicBranchPairRailWidth,
+    resolveMagicRepeatIndentDepths,
 } from './magicControlPairs';
 import {
     isCircleSystemMagicNode,
@@ -147,8 +148,16 @@ function replaceCircleAndChildren(
                 sequenceIndex
             )
     );
-    const controlRailWidth = resolveMagicControlPairRailWidth(
-        [resizedCircle, ...preliminarilyLaidOutChildren],
+    const preliminaryNodes = [
+        resizedCircle,
+        ...preliminarilyLaidOutChildren,
+    ];
+    const rightRailWidth = resolveMagicBranchPairRailWidth(
+        preliminaryNodes,
+        resizedCircle.id
+    );
+    const indentDepths = resolveMagicRepeatIndentDepths(
+        preliminaryNodes,
         resizedCircle.id
     );
     const laidOutChildren = preliminarilyLaidOutChildren.map(
@@ -157,7 +166,10 @@ function replaceCircleAndChildren(
                 node,
                 resizedCircle,
                 sequenceIndex,
-                controlRailWidth
+                {
+                    rightRailWidth,
+                    indentDepth: indentDepths.get(sequenceIndex) ?? 0,
+                }
             )
     );
     const laidOutById = new Map(laidOutChildren.map(node => [node.id, node]));

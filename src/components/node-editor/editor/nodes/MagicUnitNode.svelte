@@ -142,6 +142,7 @@
     class:sequence-insertion-before={isSequenceInsertionBefore}
     class:sequence-insertion-after={isSequenceInsertionAfter}
     class:control-pair-end={controlPairPresentation.isEnd}
+    class:circle-system-node={isCircleSystemNode}
     aria-describedby={shouldShowTooltip ? tooltipId : undefined}
     style="--c: {color};"
 >
@@ -292,6 +293,15 @@
 
     .custom-node.control-pair-end {
         border-style: dashed;
+    }
+
+    .custom-node.circle-system-node {
+        border: 2px solid var(--node-editor-manifestation-border);
+        box-shadow: var(--node-editor-manifestation-shadow);
+    }
+
+    .custom-node.circle-system-node::after {
+        border-color: var(--node-editor-manifestation-inner-border);
     }
 
     .custom-node.sequence-insertion-before {

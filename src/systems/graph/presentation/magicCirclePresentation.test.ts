@@ -88,6 +88,6 @@ describe('magicCirclePresentation', () => {
             circle,
             [circle, ...children],
             state()
-        ).minimumHeight).toBe(440);
+        ).minimumHeight).toBe(448);
     });
 });

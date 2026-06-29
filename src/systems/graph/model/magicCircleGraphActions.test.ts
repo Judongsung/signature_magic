@@ -115,7 +115,7 @@ describe('magicCircleGraphActions', () => {
             'ignition',
         ]);
         expect(children.map(node => node.position.y))
-            .toEqual([72, 112, 152, 192]);
+            .toEqual([80, 120, 160, 200]);
     });
 
     it('adds repeat start and end markers as one pair', () => {
@@ -130,7 +130,38 @@ describe('magicCircleGraphActions', () => {
         expect(children[0].data.controlPair?.id)
             .toBe(children[1].data.controlPair?.id);
         expect(children[0].style)
-            .toContain('--node-editor-node-width: 388px');
+            .toContain('--node-editor-node-width: 400px');
+    });
+
+    it('indents nested repeat contents while keeping markers at parent depth', () => {
+        const box = createMagicCircleNode({ x: 0, y: 0 }, () => 'box');
+        const outer = addMagicNodeToCircle([box], 'repeat', box.id);
+        const nested = addMagicNodeToCircle(
+            outer.nodes,
+            'repeat',
+            box.id,
+            1
+        );
+        const populated = addMagicNodeToCircle(
+            nested.nodes,
+            'ignition',
+            box.id,
+            2
+        );
+        const children = getCircleEditableSequenceNodes(
+            populated.nodes,
+            box.id
+        );
+
+        expect(children.map(node => node.position.x))
+            .toEqual([40, 70, 100, 70, 40]);
+        expect(children.map(node => node.style)).toEqual([
+            expect.stringContaining('--node-editor-node-width: 400px'),
+            expect.stringContaining('--node-editor-node-width: 370px'),
+            expect.stringContaining('--node-editor-node-width: 340px'),
+            expect.stringContaining('--node-editor-node-width: 370px'),
+            expect.stringContaining('--node-editor-node-width: 400px'),
+        ]);
     });
 
     it('restores a marker moved past its partner', () => {
@@ -310,7 +341,7 @@ describe('magicCircleGraphActions', () => {
 
         expect(result.moved).toBe(false);
         expect(result.nodes.find(node => node.id === firstNode.id)?.position)
-            .toEqual({ x: 32, y: 72 });
+            .toEqual({ x: 40, y: 80 });
     });
 
     it('expands height for long sequences and does not shrink it on resize', () => {
@@ -325,8 +356,8 @@ describe('magicCircleGraphActions', () => {
         );
         const resizedCircle = resized.find(node => node.id === box.id);
 
-        expect(resizedCircle).toMatchObject({ width: 600, height: 480 });
+        expect(resizedCircle).toMatchObject({ width: 600, height: 488 });
         expect(getCircleChildNodes(resized, box.id)[0].style)
-            .toContain('--node-editor-node-width: 536px');
+            .toContain('--node-editor-node-width: 520px');
     });
 });

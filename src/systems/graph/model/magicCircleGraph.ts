@@ -7,6 +7,7 @@ import {
     MAGIC_CIRCLE_PORT_CONFIG,
     MAGIC_CIRCLE_PORT_DIRECTIONS,
     MAGIC_CIRCLE_SEQUENCE_CONFIG,
+    MAGIC_CONTROL_PAIR_CONFIG,
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
@@ -185,21 +186,25 @@ export function isMagicTypeAllowedInCircleSequence(
 
 export function resolveMagicCircleSequenceNodeWidth(
     circle: Pick<MagicCircleNode, 'width'>,
-    controlRailWidth = 0
+    rightRailWidth = 0,
+    indentDepth = 0
 ): number {
     return Math.max(
         1,
         circle.width -
             MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET * 2 -
-            controlRailWidth
+            rightRailWidth -
+            indentDepth * MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX
     );
 }
 
 export function resolveMagicCircleSequencePosition(
-    sequenceIndex: number
+    sequenceIndex: number,
+    indentDepth = 0
 ): { x: number; y: number } {
     return {
-        x: MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET,
+        x: MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET +
+            indentDepth * MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX,
         y: MAGIC_CIRCLE_SEQUENCE_CONFIG.CONTENT_TOP +
             sequenceIndex * (
                 MAGIC_CIRCLE_SEQUENCE_CONFIG.NODE_HEIGHT +
@@ -224,10 +229,11 @@ export function resolveMagicCircleRequiredHeight(nodeCount: number): number {
 
 function createMagicCircleSequenceNodeStyle(
     circle: MagicCircleNode,
-    controlRailWidth = 0
+    rightRailWidth = 0,
+    indentDepth = 0
 ): string {
     return [
-        `--node-editor-node-width: ${resolveMagicCircleSequenceNodeWidth(circle, controlRailWidth)}px`,
+        `--node-editor-node-width: ${resolveMagicCircleSequenceNodeWidth(circle, rightRailWidth, indentDepth)}px`,
         `--node-editor-node-height: ${MAGIC_CIRCLE_SEQUENCE_CONFIG.NODE_HEIGHT}px`,
     ].join('; ');
 }
@@ -392,15 +398,30 @@ export function attachNodeToCircle(
     node: MagicNode,
     circle: MagicCircleNode,
     sequenceIndex: number,
-    controlRailWidth = 0
+    layout: {
+        rightRailWidth?: number;
+        indentDepth?: number;
+    } = {}
 ): MagicNode {
+    const {
+        rightRailWidth = 0,
+        indentDepth = 0,
+    } = layout;
+
     return {
         ...node,
         parentId: circle.id,
         extent: undefined,
         connectable: false,
-        position: resolveMagicCircleSequencePosition(sequenceIndex),
-        style: createMagicCircleSequenceNodeStyle(circle, controlRailWidth),
+        position: resolveMagicCircleSequencePosition(
+            sequenceIndex,
+            indentDepth
+        ),
+        style: createMagicCircleSequenceNodeStyle(
+            circle,
+            rightRailWidth,
+            indentDepth
+        ),
         data: {
             ...node.data,
             showBadges: false,
@@ -413,13 +434,16 @@ export function layoutMagicCircleSequenceNode(
     node: MagicNode,
     circle: MagicCircleNode,
     sequenceIndex: number,
-    controlRailWidth = 0
+    layout: {
+        rightRailWidth?: number;
+        indentDepth?: number;
+    } = {}
 ): MagicNode {
     return attachNodeToCircle(
         node,
         circle,
         sequenceIndex,
-        controlRailWidth
+        layout
     );
 }
 

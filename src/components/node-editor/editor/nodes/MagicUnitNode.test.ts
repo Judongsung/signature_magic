@@ -69,6 +69,7 @@ describe('MagicUnitNode', () => {
         }, 'circle-a');
 
         expect(html).toContain('sequence-node');
+        expect(html).toContain('circle-system-node');
         expect(html).toContain('발현');
         expect(html).not.toContain('root-badge');
         expect(html).not.toContain('leaf-badge');

@@ -41,7 +41,7 @@ function node(id: string, circleId: string): MagicNode {
         id,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         parentId: circleId,
-        position: { x: 32, y: 72 },
+        position: { x: 40, y: 80 },
         data: { magicType: 'ignition', sequenceIndex: 0 },
     };
 }

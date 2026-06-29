@@ -22,10 +22,6 @@ export interface MagicGraphResultPreviewModel {
     fitViewOptions: FitViewOptions<MagicEditorNode>;
 }
 
-function clamp(value: number, min: number, max: number): number {
-    return Math.min(max, Math.max(min, value));
-}
-
 function clonePreviewNode(node: MagicEditorNode): MagicEditorNode {
     if (isMagicCircleNode(node)) {
         return {
@@ -106,11 +102,7 @@ function calculateAspectRatio(
 ): number {
     if (bounds.width <= 0 || bounds.height <= 0) return config.DEFAULT_ASPECT_RATIO;
 
-    return clamp(
-        bounds.width / bounds.height,
-        config.MIN_ASPECT_RATIO,
-        config.MAX_ASPECT_RATIO
-    );
+    return bounds.width / bounds.height;
 }
 
 function filterPreviewEdges(edges: readonly Edge[], nodes: readonly MagicEditorNode[]): Edge[] {

@@ -17,7 +17,7 @@
     import { resolveMagicCircleViewModel } from '../../../../systems/graph/presentation/magicCirclePresentation';
     import { resolveCirclePortLeft } from '../../../../systems/graph/presentation/magicHandlePresentation';
     import { resolveMagicControlPairConnectors } from '../../../../systems/graph/presentation/magicControlPairPresentation';
-    import { resolveMagicControlPairRailWidth } from '../../../../systems/graph/model/magicControlPairs';
+    import { resolveMagicBranchPairRailWidth } from '../../../../systems/graph/model/magicControlPairs';
     import {
         createNodeHandleLayoutKey,
         createNodeInternalsRefresh,
@@ -77,13 +77,13 @@
     const controlPairConnectors = $derived(
         resolveMagicControlPairConnectors(graphStore.nodes, id)
     );
-    const controlRailWidth = $derived(
-        resolveMagicControlPairRailWidth(graphStore.nodes, id)
+    const rightRailWidth = $derived(
+        resolveMagicBranchPairRailWidth(graphStore.nodes, id)
     );
-    const controlCardRight = $derived(
+    const cardRight = $derived(
         width -
         MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET -
-        controlRailWidth
+        rightRailWidth
     );
     const branchMarkerId = $derived(
         `${componentInstanceId}-branch-arrow-${id}`
@@ -98,23 +98,42 @@
         openDetails?.(id);
     }
 
-    function connectorLaneX(lane: number): number {
-        return controlCardRight +
+    function branchConnectorLaneX(lane: number): number {
+        return cardRight +
             MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_HOOK_WIDTH +
             lane * MAGIC_CONTROL_PAIR_CONFIG.RAIL_LANE_GAP;
     }
 
     function connectorPath(
-        lane: number,
-        startY: number,
-        endY: number
+        connector: (typeof controlPairConnectors)[number]
     ): string {
-        const laneX = connectorLaneX(lane);
+        const {
+            lane,
+            side,
+            startY,
+            endY,
+        } = connector;
+        if (side === 'left') {
+            const anchorX =
+                MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET +
+                lane * MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX;
+            const railX =
+                anchorX +
+                MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX / 2;
+            return [
+                `M ${anchorX} ${startY}`,
+                `H ${railX}`,
+                `V ${endY}`,
+                `H ${anchorX}`,
+            ].join(' ');
+        }
+
+        const laneX = branchConnectorLaneX(lane);
         return [
-            `M ${controlCardRight} ${startY}`,
+            `M ${cardRight} ${startY}`,
             `H ${laneX}`,
             `V ${endY}`,
-            `H ${controlCardRight}`,
+            `H ${cardRight}`,
         ].join(' ');
     }
 </script>
@@ -207,11 +226,7 @@
                     class:branch-connector={connector.kind ===
                         MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH}
                     class="control-pair-connector"
-                    d={connectorPath(
-                        connector.lane,
-                        connector.startY,
-                        connector.endY
-                    )}
+                    d={connectorPath(connector)}
                     marker-end={connector.kind ===
                         MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH
                         ? `url(#${branchMarkerId})`

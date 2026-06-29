@@ -39,7 +39,7 @@ describe('magicCircleEditorInteraction', () => {
         }];
 
         expect(resolveMagicNodeSequenceDrop(
-            { x: 600, y: 112 },
+            { x: 600, y: 120 },
             origins,
             [source, target, moving, ...targetNodes],
             [source, target]
@@ -56,13 +56,13 @@ describe('magicCircleEditorInteraction', () => {
         );
 
         expect(resolveMagicCircleSequenceInsertion(
-            { x: 100, y: 112 },
+            { x: 100, y: 120 },
             [circle, ...nodes],
             [circle]
         )).toEqual({
             targetCircleId: circle.id,
             insertionIndex: 1,
-            indicatorY: 112,
+            indicatorY: 120,
             beforeNodeId: 'b',
             afterNodeId: undefined,
         });

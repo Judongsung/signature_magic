@@ -1,4 +1,5 @@
 ﻿import { describe, expect, it } from 'vitest';
+import { EDITOR_CANVAS } from '../../../constants/nodeEditorConfigs';
 import {
     clampPointToExtent,
     getExtentCenter,
@@ -10,7 +11,7 @@ import {
 } from './editorCanvas';
 
 const grid = [40, 40] as const;
-const extent = [[-1200, -800], [1200, 800]] as const;
+const extent = EDITOR_CANVAS.EXTENT;
 
 describe('editorCanvas', () => {
     it('snaps points to the nearest grid cell', () => {
@@ -19,9 +20,9 @@ describe('editorCanvas', () => {
     });
 
     it('clamps points to the canvas extent', () => {
-        expect(clampPointToExtent({ x: 2000, y: -1000 }, extent)).toEqual({
+        expect(clampPointToExtent({ x: 2000, y: -2000 }, extent)).toEqual({
             x: 1200,
-            y: -800,
+            y: -1600,
         });
     });
 
@@ -45,9 +46,9 @@ describe('editorCanvas', () => {
     });
 
     it('snaps then clamps drop positions', () => {
-        expect(resolveDropPosition({ x: 1191, y: 821 }, grid, extent)).toEqual({
+        expect(resolveDropPosition({ x: 1191, y: 1621 }, grid, extent)).toEqual({
             x: 1200,
-            y: 800,
+            y: 1600,
         });
     });
 

@@ -25,6 +25,20 @@ describe('magicGraphResultPreview', () => {
         expect(preview.aspectRatio).toBeCloseTo(832 / 492);
     });
 
+    it('preserves the full aspect ratio for a vertically long graph', () => {
+        const preview = buildMagicGraphResultPreview([
+            { ...createTestMagicNode('top'), position: { x: 0, y: 0 } },
+            { ...createTestMagicNode('bottom'), position: { x: 0, y: 1000 } },
+        ], []);
+
+        expect(preview.bounds).toMatchObject({
+            width: 272,
+            height: 1272,
+        });
+        expect(preview.aspectRatio).toBeCloseTo(272 / 1272);
+        expect(preview.aspectRatio).toBeLessThan(1);
+    });
+
     it('keeps system and user nodes in the read-only preview model', () => {
         const nodes = [
             createTestMagicNode('mana-source', 'manaSource', { nodeKind: 'system' }),
@@ -78,7 +92,7 @@ describe('magicGraphResultPreview', () => {
         expect(preview.nodes[1]).toMatchObject({
             id: child.id,
             parentId: circle.id,
-            position: { x: 32, y: 72 },
+            position: { x: 40, y: 80 },
         });
     });
 

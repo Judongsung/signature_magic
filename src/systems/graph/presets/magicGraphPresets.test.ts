@@ -139,9 +139,9 @@ describe('magicGraphPresets v6', () => {
             'test-circle-manifestation',
         ]);
         expect(childNodes.map(node => node.position)).toEqual([
-            { x: 32, y: 72 },
-            { x: 32, y: 112 },
-            { x: 32, y: 152 },
+            { x: 40, y: 80 },
+            { x: 40, y: 120 },
+            { x: 40, y: 160 },
         ]);
         expect(editableNodes[0].data).toMatchObject({
             magicType: 'ignition',

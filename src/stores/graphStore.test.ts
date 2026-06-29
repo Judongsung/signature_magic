@@ -62,8 +62,8 @@ describe('graphStore sequence circles', () => {
 
         expect(userNodes().map(node => node.data.sequenceIndex)).toEqual([0, 1]);
         expect(userNodes().map(node => node.position)).toEqual([
-            { x: 32, y: 72 },
-            { x: 32, y: 112 },
+            { x: 40, y: 80 },
+            { x: 40, y: 120 },
         ]);
         expect(userNodes().every(node => node.connectable === false)).toBe(true);
     });
@@ -136,7 +136,7 @@ describe('graphStore sequence circles', () => {
         graphStore.onDelete([deleted], []);
 
         expect(userNodes().map(node => node.data.sequenceIndex)).toEqual([0, 1]);
-        expect(userNodes().map(node => node.position.y)).toEqual([72, 112]);
+        expect(userNodes().map(node => node.position.y)).toEqual([80, 120]);
         expect(circleNode().height).toBe(circleHeight);
     });
 
@@ -156,7 +156,7 @@ describe('graphStore sequence circles', () => {
         graphStore.resizeCircle(circleNode().id, { width: 600, height: 100 });
 
         expect(circleNode()).toMatchObject({ width: 600, height: 400 });
-        expect(userNodes()[0].style).toContain('--node-editor-node-width: 536px');
+        expect(userNodes()[0].style).toContain('--node-editor-node-width: 520px');
     });
 
     it('calculates every serial child in an isolated valid circle', () => {
@@ -187,7 +187,7 @@ describe('graphStore sequence circles', () => {
         expect(userNodes()[0]).toMatchObject({
             id: 'preset-ignition',
             parentId: 'store-circle',
-            position: { x: 32, y: 72 },
+            position: { x: 40, y: 80 },
             data: { sequenceIndex: 0 },
         });
         expect(graphStore.edges).toEqual([]);

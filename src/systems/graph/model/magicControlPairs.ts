@@ -218,12 +218,28 @@ export function resolveMagicControlPairLanes(
     nodes: readonly MagicEditorNode[],
     circleId: string
 ): MagicControlPairLane[] {
-    const pairs = getCircleControlPairs(nodes, circleId)
-        .sort((left, right) =>
-            intervalStartIndex(left) - intervalStartIndex(right) ||
-            intervalEndIndex(left) - intervalEndIndex(right) ||
-            left.id.localeCompare(right.id)
-        );
+    return resolvePairLanes(getCircleControlPairs(nodes, circleId));
+}
+
+export function resolveMagicBranchPairLanes(
+    nodes: readonly MagicEditorNode[],
+    circleId: string
+): MagicControlPairLane[] {
+    return resolvePairLanes(
+        getCircleControlPairs(nodes, circleId).filter(pair =>
+            pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH
+        )
+    );
+}
+
+function resolvePairLanes(
+    controlPairs: readonly MagicControlPair[]
+): MagicControlPairLane[] {
+    const pairs = [...controlPairs].sort((left, right) =>
+        intervalStartIndex(left) - intervalStartIndex(right) ||
+        intervalEndIndex(left) - intervalEndIndex(right) ||
+        left.id.localeCompare(right.id)
+    );
     const laneEndIndexes: number[] = [];
 
     return pairs.map(pair => {
@@ -240,6 +256,28 @@ export function resolveMagicControlPairLanes(
     });
 }
 
+export function resolveMagicRepeatIndentDepths(
+    nodes: readonly MagicEditorNode[],
+    circleId: string
+): ReadonlyMap<number, number> {
+    const repeatPairs = getCircleControlPairs(nodes, circleId)
+        .filter(pair =>
+            pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
+        );
+    const depths = new Map<number, number>();
+
+    getCircleChildNodes(nodes, circleId).forEach(node => {
+        const sequenceIndex = readMagicCircleSequenceIndex(node);
+        const depth = repeatPairs.filter(pair =>
+            pair.startIndex < sequenceIndex &&
+            sequenceIndex < pair.endIndex
+        ).length;
+        depths.set(sequenceIndex, depth);
+    });
+
+    return depths;
+}
+
 function intervalStartIndex(
     pair: Pick<MagicControlPair, 'startIndex' | 'endIndex'>
 ): number {
@@ -252,11 +290,11 @@ function intervalEndIndex(
     return Math.max(pair.startIndex, pair.endIndex);
 }
 
-export function resolveMagicControlPairRailWidth(
+export function resolveMagicBranchPairRailWidth(
     nodes: readonly MagicEditorNode[],
     circleId: string
 ): number {
-    const lanes = resolveMagicControlPairLanes(nodes, circleId);
+    const lanes = resolveMagicBranchPairLanes(nodes, circleId);
     if (lanes.length === 0) return 0;
 
     const laneCount = Math.max(...lanes.map(item => item.lane)) + 1;
