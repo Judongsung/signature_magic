@@ -106,21 +106,21 @@
         width: max-content;
         max-width: 240px;
         padding: 8px 10px;
-        border: 1px solid #5f4a82;
+        border: 1px solid var(--shared-tooltip-border);
         border-radius: 8px;
-        background: #171321;
-        color: #efe9ff;
+        background: var(--shared-tooltip-bg);
+        color: var(--shared-tooltip-text);
         font-size: 12px;
         font-weight: 600;
         line-height: 1.45;
         text-align: left;
         white-space: normal;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.48);
+        box-shadow: var(--shared-tooltip-shadow);
         opacity: 0;
         pointer-events: none;
         transform: translate(calc(-50% + var(--tooltip-shift-x)), 4px);
         transition: opacity 0.14s ease, transform 0.14s ease;
-        z-index: 100;
+        z-index: var(--shared-tooltip-z-index);
     }
 
     .description-tooltip-text,
@@ -139,9 +139,9 @@
         top: 100%;
         width: 8px;
         height: 8px;
-        background: #171321;
-        border-right: 1px solid #5f4a82;
-        border-bottom: 1px solid #5f4a82;
+        background: var(--shared-tooltip-bg);
+        border-right: 1px solid var(--shared-tooltip-border);
+        border-bottom: 1px solid var(--shared-tooltip-border);
         transform: translate(-50%, -4px) rotate(45deg);
     }
 
@@ -158,8 +158,8 @@
         bottom: 100%;
         border-right: 0;
         border-bottom: 0;
-        border-left: 1px solid #5f4a82;
-        border-top: 1px solid #5f4a82;
+        border-left: 1px solid var(--shared-tooltip-border);
+        border-top: 1px solid var(--shared-tooltip-border);
         transform: translate(-50%, 4px) rotate(45deg);
     }
 
@@ -174,8 +174,8 @@
         bottom: auto;
         border-left: 0;
         border-top: 0;
-        border-right: 1px solid #5f4a82;
-        border-bottom: 1px solid #5f4a82;
+        border-right: 1px solid var(--shared-tooltip-border);
+        border-bottom: 1px solid var(--shared-tooltip-border);
         transform: translate(-50%, -4px) rotate(45deg);
     }
 

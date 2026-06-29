@@ -293,6 +293,16 @@ function readNodeStats(
 ): MagicStats {
     const cached = context.nodeStatsById.get(node.id);
     if (cached) return cached;
+    if (node.data.excludeFromStatScaling === true) {
+        const identityStats = Object.fromEntries(
+            MAGIC_STAT_KEYS.map(statKey => [
+                statKey,
+                MAGIC_STAT_RULES[statKey].serialIdentity,
+            ])
+        ) as MagicStats;
+        context.nodeStatsById.set(node.id, identityStats);
+        return identityStats;
+    }
 
     const magicType = magicTypes.get(node.data.magicType);
     const rawStats = magicType?.stats;

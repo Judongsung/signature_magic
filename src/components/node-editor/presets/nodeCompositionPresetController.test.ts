@@ -7,6 +7,7 @@ import {
 const builtInPreset = {
     id: 'built-in-preset',
     label: 'Built In Preset',
+    circles: [],
     nodes: [],
     edges: [],
 } satisfies MagicGraphPresetConfig;
@@ -14,6 +15,7 @@ const builtInPreset = {
 const userPreset = {
     id: 'user-preset',
     label: 'User Preset',
+    circles: [],
     nodes: [],
     edges: [],
 } satisfies MagicGraphPresetConfig;
@@ -25,6 +27,7 @@ function createGraph(hasUserContent = true) {
         createPresetSnapshot: vi.fn<(label: string) => MagicGraphPresetConfig | false>(() => ({
             id: 'saved-preset',
             label: 'Saved Preset',
+            circles: [],
             nodes: [],
             edges: [],
         })),
@@ -64,6 +67,7 @@ describe('nodeCompositionPresetController', () => {
         const saveStoredPreset = vi.fn(() => [{
             id: 'saved-preset',
             label: 'Saved Preset',
+            circles: [],
             nodes: [],
             edges: [],
         } satisfies MagicGraphPresetConfig]);
@@ -81,12 +85,14 @@ describe('nodeCompositionPresetController', () => {
         expect(saveStoredPreset).toHaveBeenCalledWith({
             id: 'saved-preset',
             label: 'Saved Preset',
+            circles: [],
             nodes: [],
             edges: [],
         });
         expect(controller.userPresets).toEqual([{
             id: 'saved-preset',
             label: 'Saved Preset',
+            circles: [],
             nodes: [],
             edges: [],
         }]);

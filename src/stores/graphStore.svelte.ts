@@ -1,16 +1,29 @@
 ﻿import { type Connection, type Edge } from '@xyflow/svelte';
-import type { OnBeforeConnect } from '@xyflow/svelte';
-import { createNode } from '../systems/graph/model/graphActions';
 import { updateMagicNodeSettings } from '../systems/graph/model/magicNodeData';
 import {
+    isGraphConnectionValid,
     prepareGraphEdge,
     removeDeletedGraphElements,
     syncGraphTopology,
 } from '../systems/graph/model/graphEventHandlers';
 import { calculateMagic } from '../systems/graph/calculation/magicCalculator';
-import { isConnectionValid } from '../systems/graph/model/graphRules';
 import { magicTypeMap, magicTypes } from '../systems/graph/registry/magicTypeRegistry';
-import { createInitialSystemNodes } from '../systems/graph/model/systemMagicNodes';
+import {
+    activateCircleForUnitSelection,
+    getMagicCircleNodes,
+    resolveSelectedUnitCircleId,
+    selectOnlyCircle,
+} from '../systems/graph/model/magicCircleGraph';
+import {
+    addMagicCircle,
+    addMagicNodeToCircle,
+    createInitialMagicCircleGraph,
+    moveMagicNodeGroup,
+    normalizeMagicCircleSequences,
+    resizeMagicCircleSequence,
+    updateMagicCircleMetadata,
+    type MagicNodeSequenceOrigin,
+} from '../systems/graph/model/magicCircleGraphActions';
 import {
     GRAPH_PERFORMANCE_OPERATION_IDS,
     measureGraphOperation,
@@ -25,10 +38,12 @@ import {
 } from '../systems/graph/presets/magicGraphPresets';
 import type {
     CirclePath,
+    MagicCircleMetadata,
+    MagicCircleState,
+    MagicEditorNode,
     MagicSignatureMetadata,
     MagicCalculationResult,
     MagicGraphPresetConfig,
-    MagicNode,
     MagicNodeSettings,
     MagicStatEffectBundle,
     MagicStats,
@@ -39,15 +54,17 @@ import { EMPTY_MAGIC_SIGNATURE_METADATA } from '../types/magic';
 const CONNECTION_VALIDATION_CACHE_KEY_SEPARATOR = '|';
 
 interface ConnectionValidationCache {
-    nodes: MagicNode[];
+    nodes: MagicEditorNode[];
     edges: Edge[];
     key: string;
     result: boolean;
 }
 
+const initialGraph = createInitialMagicCircleGraph();
+
 class GraphStore {
-    nodes = $state.raw<MagicNode[]>(createInitialSystemNodes());
-    edges = $state.raw<Edge[]>([]);
+    nodes = $state.raw<MagicEditorNode[]>(initialGraph.nodes);
+    edges = $state.raw<Edge[]>(initialGraph.edges);
     externalStatEffects = $state.raw(createEmptyMagicStatEffectBundle());
     signatureMetadata = $state.raw<MagicSignatureMetadata>(createEmptySignatureMetadata());
     private topologySyncScheduled = false;
@@ -57,9 +74,19 @@ class GraphStore {
         calculateMagic(this.nodes, this.edges, magicTypes, this.externalStatEffects)
     );
     readonly circles: CirclePath[] = $derived(this.calculation.circles);
+    readonly circleStates: MagicCircleState[] = $derived(this.calculation.circleStates);
     readonly totalStats: MagicStats = $derived(this.calculation.totalStats);
     readonly totalStatAdjustments: MagicStats = $derived(this.calculation.totalStatAdjustments);
     readonly hasUserContent: boolean = $derived(hasUserMagicGraphContent(this.nodes));
+    activeCircleId = $state<string | undefined>(
+        getMagicCircleNodes(this.nodes)[0]?.id
+    );
+    sequenceDropPreview = $state<{
+        circleId: string;
+        y: number;
+        beforeNodeId?: string;
+        afterNodeId?: string;
+    } | undefined>();
 
     setExternalStatEffects(statEffects: MagicStatEffectBundle): void {
         this.externalStatEffects = statEffects;
@@ -72,9 +99,105 @@ class GraphStore {
         };
     }
 
-    addNode(magicType: MagicType, position: { x: number; y: number }): void {
-        this.nodes = [...this.nodes, createNode(magicType, position)];
+    addCircle(position: { x: number; y: number }): string {
+        const update = addMagicCircle(this.nodes, position);
+        this.nodes = update.nodes;
+        this.activeCircleId = update.circleId;
+        return update.circleId;
+    }
+
+    selectCircle(
+        circleId: string | undefined,
+        preserveUnitSelection = false
+    ): void {
+        this.activeCircleId = circleId;
+        this.nodes = preserveUnitSelection
+            ? activateCircleForUnitSelection(this.nodes)
+            : selectOnlyCircle(this.nodes, circleId);
+    }
+
+    syncActiveCircleFromSelectedUnits(): void {
+        this.selectCircle(
+            resolveSelectedUnitCircleId(this.nodes),
+            true
+        );
+    }
+
+    addNode(
+        magicType: MagicType,
+        circleId: string | undefined = this.activeCircleId,
+        insertionIndex?: number
+    ): boolean {
+        const update = addMagicNodeToCircle(
+            this.nodes,
+            magicType,
+            circleId,
+            insertionIndex
+        );
+        if (!update.added) return false;
+
+        this.nodes = update.nodes;
         this.syncTopology();
+        return true;
+    }
+
+    moveNodeGroup(
+        origins: readonly MagicNodeSequenceOrigin[],
+        targetCircleId: string | undefined,
+        insertionIndex: number
+    ): boolean {
+        const update = moveMagicNodeGroup(
+            this.snapshot(),
+            origins,
+            targetCircleId,
+            insertionIndex
+        );
+        this.nodes = update.nodes;
+        this.edges = update.edges;
+        const originCircleIds = new Set(origins.map(origin => origin.circleId));
+        this.selectCircle(
+            update.moved
+                ? targetCircleId
+                : originCircleIds.size === 1
+                    ? origins[0]?.circleId
+                    : undefined,
+            true
+        );
+        this.syncTopology();
+        return update.moved;
+    }
+
+    resizeCircle(
+        circleId: string,
+        size: { width: number; height: number }
+    ): void {
+        this.nodes = resizeMagicCircleSequence(
+            this.nodes,
+            circleId,
+            size
+        );
+    }
+
+    updateCircleMetadata(
+        circleId: string,
+        metadata: MagicCircleMetadata
+    ): void {
+        this.nodes = updateMagicCircleMetadata(
+            this.nodes,
+            circleId,
+            metadata
+        );
+    }
+
+    setSequenceDropPreview(
+        preview: {
+            circleId: string;
+            y: number;
+            beforeNodeId?: string;
+            afterNodeId?: string;
+        } | undefined
+    ): void {
+        this.sequenceDropPreview = preview;
     }
 
     updateNodeSettings(nodeId: string, settings: MagicNodeSettings | undefined): void {
@@ -104,7 +227,11 @@ class GraphStore {
                 nodeCount: this.nodes.length,
                 edgeCount: this.edges.length,
             },
-            () => isConnectionValid(conn, this.edges, this.nodes, magicTypeMap)
+            () => isGraphConnectionValid(
+                conn,
+                this.snapshot(),
+                magicTypeMap
+            )
         );
 
         this.connectionValidationCache = {
@@ -128,24 +255,39 @@ class GraphStore {
         this.scheduleTopologySync();
     }
 
-    onDelete(deletedNodes: MagicNode[], deletedEdges: Edge[]): void {
+    onDelete(deletedNodes: MagicEditorNode[], deletedEdges: Edge[]): void {
         const next = removeDeletedGraphElements(this.snapshot(), deletedNodes, deletedEdges);
-        this.nodes = next.nodes;
+        this.nodes = normalizeMagicCircleSequences(next.nodes);
         this.edges = next.edges;
+        this.sequenceDropPreview = undefined;
+        if (
+            this.activeCircleId &&
+            !getMagicCircleNodes(this.nodes).some(circle =>
+                circle.id === this.activeCircleId
+            )
+        ) {
+            this.activeCircleId = undefined;
+        }
         this.scheduleTopologySync();
     }
 
     clear(): void {
-        this.nodes = createInitialSystemNodes();
-        this.edges = [];
+        const initial = createInitialMagicCircleGraph();
+        this.nodes = initial.nodes;
+        this.edges = initial.edges;
+        this.activeCircleId = getMagicCircleNodes(initial.nodes)[0]?.id;
+        this.sequenceDropPreview = undefined;
         this.signatureMetadata = createEmptySignatureMetadata();
     }
 
     loadPreset(preset: MagicGraphPresetConfig): void {
         const next = createMagicGraphFromPreset(preset, magicTypeMap);
+        const firstCircleId = getMagicCircleNodes(next.nodes)[0]?.id;
 
-        this.nodes = next.nodes;
+        this.nodes = selectOnlyCircle(next.nodes, firstCircleId);
         this.edges = next.edges;
+        this.activeCircleId = firstCircleId;
+        this.sequenceDropPreview = undefined;
         this.signatureMetadata = createEmptySignatureMetadata();
         this.syncTopology();
     }
@@ -172,7 +314,7 @@ class GraphStore {
         }, 0);
     }
 
-    private snapshot(): { nodes: MagicNode[]; edges: Edge[] } {
+    private snapshot(): { nodes: MagicEditorNode[]; edges: Edge[] } {
         return {
             nodes: this.nodes,
             edges: this.edges,

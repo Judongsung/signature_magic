@@ -13,6 +13,7 @@ import {
     resolveNodeHandleCounts,
 } from './graphActions';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
+import { createMagicCircleNode } from './magicCircleGraph';
 
 const magicTypes = [
     { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'basic' },
@@ -153,6 +154,31 @@ describe('graphActions', () => {
             { ...edge('a', 'merge'), id: 'second', sourceHandle: 'output-0', targetHandle: 'input-0' },
             { ...edge('b', 'merge'), id: 'third', sourceHandle: 'output-0', targetHandle: 'input-1' },
             { ...edge('split', 'c'), id: 'out-second', sourceHandle: 'output-0', targetHandle: 'input-0' },
+        ]);
+    });
+
+    it('compacts dynamic external circle ports', () => {
+        const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'ports');
+        const edges: Edge[] = [
+            {
+                id: 'input-later',
+                source: 'source',
+                target: circle.id,
+                sourceHandle: 'output-0',
+                targetHandle: 'circle-input-2',
+            },
+            {
+                id: 'output-later',
+                source: circle.id,
+                target: 'target',
+                sourceHandle: 'circle-output-3',
+                targetHandle: 'input-0',
+            },
+        ];
+
+        expect(normalizeEdgeHandles(edges, [circle])).toEqual([
+            { ...edges[0], targetHandle: 'circle-input' },
+            { ...edges[1], sourceHandle: 'circle-output' },
         ]);
     });
 

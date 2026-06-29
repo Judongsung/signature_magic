@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { MAGIC_GRAPH_RESULT_PREVIEW_CONFIG } from '../../../constants/graphConfigs';
 import { createTestMagicEdge, createTestMagicNode } from '../../../test-utils/graphFixtures';
+import {
+    attachNodeToCircle,
+    createMagicCircleNode,
+} from '../model/magicCircleGraph';
 import { buildMagicGraphResultPreview } from './magicGraphResultPreview';
 
 describe('magicGraphResultPreview', () => {
@@ -45,6 +49,37 @@ describe('magicGraphResultPreview', () => {
             node.data.showBadges === false
         )).toBe(true);
         expect(preview.edges).toHaveLength(2);
+    });
+
+    it('uses circle geometry for bounds and keeps child coordinates relative', () => {
+        const circle = createMagicCircleNode({ x: -240, y: -320 }, () => 'preview');
+        const child = attachNodeToCircle(
+            createTestMagicNode('child'),
+            circle,
+            0
+        );
+        const preview = buildMagicGraphResultPreview([circle, child], []);
+
+        expect(preview.bounds).toEqual({
+            minX: -336,
+            minY: -416,
+            maxX: 336,
+            maxY: 416,
+            width: 672,
+            height: 832,
+        });
+        expect(preview.nodes[0]).toMatchObject({
+            id: circle.id,
+            draggable: false,
+            selectable: false,
+            connectable: false,
+            selected: false,
+        });
+        expect(preview.nodes[1]).toMatchObject({
+            id: child.id,
+            parentId: circle.id,
+            position: { x: 32, y: 72 },
+        });
     });
 
     it('filters edges whose endpoints are not in the preview nodes', () => {

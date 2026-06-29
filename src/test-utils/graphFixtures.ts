@@ -8,6 +8,10 @@ import {
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
 import { graphStore } from '../stores/graphStore.svelte';
 import type { CirclePath, MagicNode, MagicType, MagicTypeConfig } from '../types/magic';
+import {
+    getMagicCircleNodes,
+    getMagicUnitNodes,
+} from '../systems/graph/model/magicCircleGraph';
 
 export const EMPTY_MAGIC_STAT_EFFECTS = {
     nodeEffects: [],
@@ -82,26 +86,30 @@ export function resetGraphStoreFixture(): void {
 }
 
 export function createSingleNodeCircleFixture(): CirclePath[] {
-    graphStore.addNode('ignition', { x: 0, y: 0 });
-    const userNode = graphStore.nodes.find(node => node.data.magicType === 'ignition');
+    graphStore.addNode('ignition');
+    const userNode = getMagicUnitNodes(graphStore.nodes)
+        .find(node => node.data.magicType === 'ignition');
+    const circle = getMagicCircleNodes(graphStore.nodes)[0];
     expect(userNode).toBeDefined();
 
-    const sourceEdge = graphStore.prepareEdge({
-        source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-        target: userNode!.id,
-        sourceHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
-        targetHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID,
-    });
-    const outputEdge = graphStore.prepareEdge({
-        source: userNode!.id,
-        target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-        sourceHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
-        targetHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID,
-    });
-    graphStore.edges = [
-        ...(sourceEdge ? [sourceEdge] : []),
-        ...(outputEdge ? [outputEdge] : []),
+    const connections: Connection[] = [
+        {
+            source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
+            target: circle.id,
+            sourceHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
+            targetHandle: 'circle-input',
+        },
+        {
+            source: circle.id,
+            target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
+            sourceHandle: 'circle-output',
+            targetHandle: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID,
+        },
     ];
+    connections.forEach(connection => {
+        const preparedEdge = graphStore.prepareEdge(connection);
+        if (preparedEdge) graphStore.edges = [...graphStore.edges, preparedEdge];
+    });
 
     return graphStore.circles.map(circle => ({
         ...circle,

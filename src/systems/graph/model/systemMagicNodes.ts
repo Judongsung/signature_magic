@@ -4,11 +4,16 @@ import {
     INITIAL_SYSTEM_MAGIC_NODE_CONFIGS,
     SYSTEM_MAGIC_NODE_CONFIGS,
 } from '../../../constants/systemMagicNodeConfigs';
-import type { MagicNode } from '../../../types/magic';
+import type { MagicEditorNode, MagicNode } from '../../../types/magic';
+import { isMagicCircleNode } from './magicCircleGraph';
 import { buildGraphTopology } from '../topology/graphTopology';
 import { canReach, reachableNodeIds } from '../topology/graphTraversal';
 
-export function isSystemMagicNode(node: Pick<MagicNode, 'id' | 'data'>): boolean {
+export function isSystemMagicNode(
+    node: MagicEditorNode
+): boolean {
+    if (isMagicCircleNode(node)) return false;
+
     return node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM ||
         node.data.magicType === SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id ||
         node.data.magicType === SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id ||
@@ -24,7 +29,7 @@ export function createInitialSystemNodes(): MagicNode[] {
     }));
 }
 
-export function ensureSystemMagicNodes(nodes: MagicNode[]): MagicNode[] {
+export function ensureSystemMagicNodes(nodes: MagicEditorNode[]): MagicEditorNode[] {
     const initialSystemNodes = createInitialSystemNodes();
     const systemNodeById = new Map(initialSystemNodes.map(node => [node.id, node]));
     const existingIds = new Set(nodes.map(node => node.id));
@@ -32,6 +37,7 @@ export function ensureSystemMagicNodes(nodes: MagicNode[]): MagicNode[] {
     let changed = missingSystemNodes.length > 0;
 
     const normalizedNodes = nodes.map(node => {
+        if (isMagicCircleNode(node)) return node;
         const systemNode = systemNodeById.get(node.id);
         if (!systemNode) return node;
 

@@ -2,6 +2,7 @@
 import {
     MAGIC_STAT_KEYS,
     type MagicNode,
+    type MagicEditorNode,
     type MagicGraphNode,
     type MagicStatEffectBundle,
     type MagicStatEffectConfig,
@@ -29,13 +30,18 @@ import {
     type MagicNodeExecutionCounts,
 } from './magicRepeatCalculation';
 import { createEmptyMagicStatEffectBundle } from './magicStatEffectBundles';
+import { getMagicCircleNodes } from '../model/magicCircleGraph';
+import {
+    analyzeExplicitMagicCircleGraph,
+    type ExplicitMagicCircleGraphAnalysis,
+} from './explicitMagicCircleGraph';
 
 const SINGLE_PREDECESSOR_COUNT = 1;
 
 type CalculatedCirclePath = Omit<CirclePath, 'statAdjustments'>;
 
 export function calculateMagic(
-    nodes: MagicNode[],
+    nodes: MagicEditorNode[],
     edges: Edge[],
     magicTypes: readonly MagicTypeConfig[] = [],
     statEffects: MagicStatEffectBundle = createEmptyMagicStatEffectBundle()
@@ -48,8 +54,80 @@ export function calculateMagic(
             nodeEffectCount: statEffects.nodeEffects.length,
             finalEffectCount: statEffects.finalEffects.length,
         },
-        () => calculateMagicNow(nodes, edges, magicTypes, statEffects)
+        () => getMagicCircleNodes(nodes).length > 0
+            ? calculateExplicitMagicNow(nodes, edges, magicTypes, statEffects)
+            : calculateMagicNow(nodes as MagicNode[], edges, magicTypes, statEffects)
     );
+}
+
+function calculateExplicitMagicNow(
+    nodes: MagicEditorNode[],
+    edges: Edge[],
+    magicTypes: readonly MagicTypeConfig[],
+    statEffects: MagicStatEffectBundle
+): MagicCalculationResult {
+    const magicTypeMap = buildMagicTypeMap(magicTypes);
+    const explicitAnalysis = analyzeExplicitMagicCircleGraph(nodes, edges);
+    const projectedAnalysis = buildMagicGraphAnalysis(
+        explicitAnalysis.projectedNodes,
+        explicitAnalysis.projectedEdges,
+        magicTypeMap
+    );
+    const nodeExecutionCounts = buildMagicNodeExecutionCounts(
+        projectedAnalysis,
+        magicTypeMap
+    );
+    const calculatedCircles = calculateExplicitCircles(
+        explicitAnalysis,
+        magicTypeMap,
+        statEffects.nodeEffects,
+        nodeExecutionCounts
+    );
+    const hasNodeEffects = statEffects.nodeEffects.length > 0;
+    const baselineCircles = hasNodeEffects
+        ? calculateExplicitCircles(
+            explicitAnalysis,
+            magicTypeMap,
+            [],
+            nodeExecutionCounts
+        )
+        : calculatedCircles;
+    const circles = attachCircleStatAdjustments(calculatedCircles, baselineCircles);
+    const totalStats = calculateMagicStats(
+        explicitAnalysis.projectedNodes,
+        explicitAnalysis.projectedEdges,
+        magicTypeMap,
+        'total',
+        statEffects.nodeEffects,
+        projectedAnalysis,
+        nodeExecutionCounts
+    );
+    const adjustedTotalStats = clampMagicStats(
+        applyMagicStatEffectsToStats(
+            applyCircleInstabilityToTotalStats(totalStats, circles),
+            statEffects.finalEffects
+        )
+    );
+    const baselineTotalStats = calculateBaselineTotalStats(
+        explicitAnalysis.projectedNodes,
+        explicitAnalysis.projectedEdges,
+        projectedAnalysis,
+        magicTypeMap,
+        nodeExecutionCounts,
+        baselineCircles,
+        totalStats,
+        hasNodeEffects
+    );
+
+    return {
+        circles,
+        circleStates: explicitAnalysis.states,
+        totalStats: adjustedTotalStats,
+        totalStatAdjustments: subtractMagicStats(
+            adjustedTotalStats,
+            baselineTotalStats
+        ),
+    };
 }
 
 function calculateMagicNow(
@@ -105,9 +183,40 @@ function calculateMagicNow(
 
     return {
         circles,
+        circleStates: [],
         totalStats: adjustedTotalStats,
         totalStatAdjustments: subtractMagicStats(adjustedTotalStats, baselineTotalStats),
     };
+}
+
+function calculateExplicitCircles(
+    analysis: ExplicitMagicCircleGraphAnalysis,
+    magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
+    nodeStatEffects: readonly MagicStatEffectConfig[],
+    nodeExecutionCounts: MagicNodeExecutionCounts
+): CalculatedCirclePath[] {
+    return analysis.orderedOutputCircleIds.map(circleId => {
+        const internal = analysis.internalByCircleId.get(circleId)!;
+        const sequenceNodeIds = new Set(internal.sequenceNodes.map(node => node.id));
+        const statEdges = internal.projectedEdges.filter(edge =>
+            sequenceNodeIds.has(edge.source) &&
+            sequenceNodeIds.has(edge.target)
+        );
+
+        return {
+            id: circleId,
+            nodes: internal.sequenceNodes,
+            stats: calculateMagicStats(
+                internal.sequenceNodes,
+                statEdges,
+                magicTypeMap,
+                'circle',
+                nodeStatEffects,
+                undefined,
+                nodeExecutionCounts
+            ),
+        };
+    });
 }
 
 function calculateBaselineTotalStats(

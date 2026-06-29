@@ -12,7 +12,7 @@
     --font-title: var(--font-primary);
     --font-body: var(--font-primary);
     --font-accent: var(--font-primary);
-    
+
     /* 문서 색상 */
     --guild-desk-bg: #090807; /* 짙은 오크 책상 */
     --guild-parchment: #f4edd9; /* 오래된 크림색 종이 */
@@ -111,6 +111,9 @@
     --guild-action-secondary-hover-shadow: 0 7px 16px rgba(44, 34, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
     /* 노드 에디터 테마 토큰 */
+    /* 마나 = 자연의 순환 / 화사한 하늘빛 마나 계열 */
+    /* 금색(gold)은 UI 구조 포인트(구분선·버튼)로 유지 */
+    /* 마나 강조(글로우·선택·엣지)는 스카이 블루 계열로 */
     --node-editor-transition-fast: 0.16s ease;
     --node-editor-transition-medium: 0.24s ease;
     --node-editor-radius-sm: 6px;
@@ -119,35 +122,61 @@
     --node-editor-obsidian: #070914;
     --node-editor-ink: #0d1020;
     --node-editor-gold: #e9c76f;
-    --node-editor-starlight: #cdeaff;
-    --node-editor-aurora: #6ed6d1;
+    /* 마나 하늘빛: 창공처럼 밝고 맑은 파란색 */
+    --node-editor-starlight: #c0e8f8;
+    --node-editor-aurora: #56b8e8;
     --node-editor-lilac: #b996ff;
+    --node-editor-circle-valid: #5bc4b0;
+    --node-editor-circle-external: #8eb7ff;
+    --node-editor-circle-selected: #5ab8e8;
+    --node-editor-circle-selected-text: #04111a;
+    --node-editor-circle-radius: 8px;
+    --node-editor-circle-title-height: 38px;
+    --node-editor-circle-title-bg:
+        linear-gradient(180deg, rgba(8, 12, 26, 0.98), rgba(4, 7, 18, 0.98));
+    --node-editor-circle-surface-bg:
+        linear-gradient(180deg, rgba(6, 10, 24, 0.55), rgba(3, 5, 14, 0.62));
+    --node-editor-circle-selected-title-bg:
+        linear-gradient(135deg, rgba(90, 184, 232, 0.90), rgba(192, 232, 248, 0.85));
+    --node-editor-circle-status-bg: rgba(4, 7, 16, 0.92);
+    --node-editor-circle-selected-shadow:
+        0 0 0 1px rgba(90, 184, 232, 0.44),
+        0 0 30px rgba(90, 184, 232, 0.24),
+        var(--node-editor-panel-shadow);
+    --node-editor-circle-rings-bg:
+        radial-gradient(circle at center, transparent 0 21%, rgba(192, 232, 248, 0.10) 21.2% 21.5%, transparent 21.7% 34%, rgba(233, 199, 111, 0.08) 34.2% 34.5%, transparent 34.7% 48%, rgba(86, 184, 232, 0.07) 48.2% 48.5%, transparent 48.7%);
+    --node-editor-tooltip-node-z-index: 3000;
+    --shared-tooltip-z-index: 100;
+    --shared-tooltip-bg: #090c16;
+    --shared-tooltip-border: #8870b5;
+    --shared-tooltip-text: #f7f2ff;
+    --shared-tooltip-shadow: 0 10px 28px rgba(0, 0, 0, 0.72);
     --node-editor-screen-bg:
-        linear-gradient(180deg, rgba(8, 10, 22, 0.98), rgba(2, 3, 10, 1));
+        linear-gradient(180deg, rgba(6, 8, 20, 0.98), rgba(2, 3, 10, 1));
     --node-editor-panel-bg:
-        linear-gradient(180deg, rgba(10, 12, 25, 0.96), rgba(5, 7, 15, 0.98));
+        linear-gradient(180deg, rgba(8, 10, 24, 0.96), rgba(4, 6, 15, 0.98));
     --node-editor-preview-bg:
-        linear-gradient(180deg, rgba(7, 10, 20, 0.98), rgba(3, 5, 12, 1));
+        linear-gradient(180deg, rgba(6, 9, 20, 0.98), rgba(3, 4, 12, 1));
     --node-editor-toolbar-bg:
-        linear-gradient(180deg, rgba(17, 18, 33, 0.96), rgba(7, 9, 19, 0.98));
+        linear-gradient(180deg, rgba(10, 13, 28, 0.96), rgba(5, 7, 18, 0.98));
     --node-editor-canvas-base-bg:
-        linear-gradient(180deg, rgba(7, 9, 18, 0.98), rgba(3, 4, 10, 1));
+        linear-gradient(180deg, rgba(6, 8, 18, 0.98), rgba(3, 4, 10, 1));
     --node-editor-canvas-bg:
-        radial-gradient(circle at center, transparent 0 23%, rgba(205, 234, 255, 0.08) 23.1% 23.22%, transparent 23.34% 35%, rgba(233, 199, 111, 0.06) 35.1% 35.22%, transparent 35.34%),
-        radial-gradient(circle at center, transparent 0 50%, rgba(110, 214, 209, 0.05) 50.1% 50.2%, transparent 50.32%),
-        repeating-linear-gradient(0deg, rgba(205, 234, 255, 0.035) 0 1px, transparent 1px 40px),
-        repeating-linear-gradient(90deg, rgba(205, 234, 255, 0.035) 0 1px, transparent 1px 40px);
+        radial-gradient(circle at center, transparent 0 23%, rgba(192, 232, 248, 0.08) 23.1% 23.22%, transparent 23.34% 35%, rgba(233, 199, 111, 0.06) 35.1% 35.22%, transparent 35.34%),
+        radial-gradient(circle at center, transparent 0 50%, rgba(86, 184, 232, 0.05) 50.1% 50.2%, transparent 50.32%),
+        repeating-linear-gradient(0deg, rgba(192, 232, 248, 0.030) 0 1px, transparent 1px 40px),
+        repeating-linear-gradient(90deg, rgba(192, 232, 248, 0.030) 0 1px, transparent 1px 40px);
     --node-editor-canvas-vignette:
         linear-gradient(90deg, rgba(2, 3, 10, 0.55), transparent 20%, transparent 80%, rgba(2, 3, 10, 0.55)),
         linear-gradient(180deg, rgba(2, 3, 10, 0.72), transparent 22%, transparent 76%, rgba(2, 3, 10, 0.72));
-    --node-editor-border: rgba(205, 234, 255, 0.14);
-    --node-editor-divider: rgba(233, 199, 111, 0.18);
-    --node-editor-divider-glow: rgba(110, 214, 209, 0.24);
+    --node-editor-border: rgba(192, 232, 248, 0.14);
+    --node-editor-divider: rgba(233, 199, 111, 0.24);
+    --node-editor-divider-glow: rgba(86, 184, 232, 0.24);
     --node-editor-pane-resizer-size: 12px;
     --node-editor-pane-resizer-line: rgba(233, 199, 111, 0.32);
-    --node-editor-pane-resizer-line-active: rgba(110, 214, 209, 0.78);
-    --node-editor-pane-resizer-bg-active: rgba(110, 214, 209, 0.08);
-    --node-editor-pane-resizer-focus-shadow: 0 0 0 2px rgba(205, 234, 255, 0.22);
+    --node-editor-pane-resizer-line-active: rgba(86, 184, 232, 0.78);
+    --node-editor-pane-resizer-bg-active: rgba(86, 184, 232, 0.08);
+    --node-editor-pane-resizer-focus-shadow: 0 0 0 2px rgba(192, 232, 248, 0.22);
     --node-editor-panel-shadow:
         1px 0 0 rgba(233, 199, 111, 0.16),
         14px 0 34px rgba(0, 0, 0, 0.42);
@@ -161,32 +190,32 @@
     --node-editor-muted: #7f8398;
     --node-editor-muted-strong: #9aa3ba;
     --node-editor-muted-soft: #6d738a;
-    --node-editor-text: #e9f4ff;
+    --node-editor-text: #ddeeff;
     --node-editor-text-strong: #fff7d6;
     --node-editor-button-bg:
-        linear-gradient(180deg, rgba(20, 24, 43, 0.94), rgba(10, 13, 27, 0.96));
-    --node-editor-button-text: #aab5ce;
-    --node-editor-button-border: rgba(205, 234, 255, 0.16);
-    --node-editor-button-hover-text: #eef8ff;
+        linear-gradient(180deg, rgba(12, 16, 34, 0.94), rgba(6, 9, 22, 0.96));
+    --node-editor-button-text: #9ab8d0;
+    --node-editor-button-border: rgba(192, 232, 248, 0.16);
+    --node-editor-button-hover-text: #d0ecff;
     --node-editor-button-hover-border: rgba(233, 199, 111, 0.42);
     --node-editor-button-active-bg:
-        linear-gradient(180deg, rgba(35, 31, 52, 0.96), rgba(16, 20, 36, 0.98));
+        linear-gradient(180deg, rgba(24, 22, 42, 0.96), rgba(10, 14, 30, 0.98));
     --node-editor-button-active-text: #fff0b8;
     --node-editor-button-active-border: rgba(233, 199, 111, 0.7);
     --node-editor-button-active-shadow:
         inset 0 0 14px rgba(233, 199, 111, 0.08),
         0 0 0 1px rgba(233, 199, 111, 0.14),
-        0 0 16px rgba(110, 214, 209, 0.14);
+        0 0 16px rgba(86, 184, 232, 0.14);
     --node-editor-action-bg:
-        linear-gradient(180deg, rgba(18, 24, 43, 0.94), rgba(8, 11, 23, 0.96));
-    --node-editor-action-text: #e6edf7;
-    --node-editor-action-border: rgba(110, 214, 209, 0.24);
+        linear-gradient(180deg, rgba(10, 15, 34, 0.94), rgba(5, 8, 20, 0.96));
+    --node-editor-action-text: #c8dff0;
+    --node-editor-action-border: rgba(86, 184, 232, 0.24);
     --node-editor-action-hover-bg:
-        linear-gradient(180deg, rgba(30, 37, 63, 0.98), rgba(12, 17, 35, 0.98));
+        linear-gradient(180deg, rgba(18, 26, 54, 0.98), rgba(8, 14, 34, 0.98));
     --node-editor-accent: var(--node-editor-gold);
     --node-editor-accent-shadow:
         0 0 0 1px rgba(233, 199, 111, 0.18),
-        0 8px 24px rgba(110, 214, 209, 0.18),
+        0 8px 24px rgba(86, 184, 232, 0.18),
         0 0 22px rgba(233, 199, 111, 0.16);
     --node-editor-danger-bg:
         linear-gradient(180deg, rgba(45, 20, 24, 0.9), rgba(23, 9, 14, 0.96));
@@ -206,11 +235,12 @@
     --node-editor-node-caption-line-height: 1.1;
     --node-editor-node-fallback-color: #a9b0bd;
     --node-editor-node-bg:
-        linear-gradient(180deg, rgba(14, 17, 31, 0.96), rgba(7, 10, 20, 0.98));
-    --node-editor-node-border: rgba(205, 234, 255, 0.18);
-    --node-editor-node-text: #eef7ff;
+        linear-gradient(180deg, rgba(10, 13, 28, 0.96), rgba(5, 8, 18, 0.98));
+    --node-editor-node-border: rgba(192, 232, 248, 0.16);
+    --node-editor-node-text: #ddeeff;
+    /* 노드 룬 구분선은 금색 유지: 단위 마법의 각인 느낌 */
     --node-editor-node-rune-bg:
-        linear-gradient(90deg, transparent, rgba(233, 199, 111, 0.3), transparent);
+        linear-gradient(90deg, transparent, rgba(233, 199, 111, 0.52), transparent);
     --node-editor-node-depth-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
     --node-editor-node-hover-shadow:
         0 0 0 1px color-mix(in srgb, var(--c) 44%, transparent),
@@ -219,65 +249,66 @@
     --node-editor-handle-bg: #050813;
     --node-editor-handle-size: 11px;
     --node-editor-handle-anchor-shadow: 0 0 0 2px rgba(5, 8, 19, 0.92);
-    --node-editor-root-badge-bg: rgba(110, 214, 209, 0.13);
-    --node-editor-root-badge-color: #8cf2e6;
+    --node-editor-root-badge-bg: rgba(86, 184, 232, 0.13);
+    --node-editor-root-badge-color: #8ae4ff;
     --node-editor-leaf-badge-bg: rgba(233, 199, 111, 0.13);
     --node-editor-leaf-badge-color: #f1d98b;
-    --node-editor-edge-color: rgba(190, 220, 255, 0.72);
+    --node-editor-edge-color: rgba(150, 210, 252, 0.72);
     --node-editor-edge-selected-color: #fff1b8;
     --node-editor-edge-glow-color: rgba(233, 199, 111, 0.36);
-    --node-editor-preview-border: rgba(205, 234, 255, 0.12);
-    --node-editor-preview-count-gradient: linear-gradient(135deg, #d8f4ff, #f3d37a 62%, #c5a3ff);
-    --node-editor-preview-label: #a2aec7;
+    --node-editor-preview-border: rgba(192, 232, 248, 0.12);
+    --node-editor-preview-count-gradient: linear-gradient(135deg, #c0e8f8, #f3d37a 62%, #c5a3ff);
+    --node-editor-preview-label: #8ab8d4;
     --node-editor-preview-empty: #7e879d;
     --node-editor-preview-section-label: #d7c489;
     --node-editor-stats-grid-width: 264px;
-    --node-editor-stats-border: rgba(205, 234, 255, 0.13);
+    --node-editor-stats-border: rgba(192, 232, 248, 0.13);
     --node-editor-stats-bg:
-        linear-gradient(180deg, rgba(14, 19, 34, 0.86), rgba(7, 10, 20, 0.92));
+        linear-gradient(180deg, rgba(10, 14, 30, 0.86), rgba(5, 8, 18, 0.92));
     --node-editor-stats-total-bg:
-        linear-gradient(180deg, rgba(23, 28, 45, 0.92), rgba(9, 13, 25, 0.96));
+        linear-gradient(180deg, rgba(14, 20, 40, 0.92), rgba(7, 11, 24, 0.96));
     --node-editor-stats-total-border: rgba(233, 199, 111, 0.25);
     --node-editor-stats-label: #8e9ab4;
     --node-editor-circle-card-bg:
-        linear-gradient(180deg, rgba(11, 14, 27, 0.7), rgba(5, 7, 16, 0.86));
-    --node-editor-circle-card-border: rgba(205, 234, 255, 0.12);
+        linear-gradient(180deg, rgba(8, 12, 26, 0.7), rgba(4, 6, 16, 0.86));
+    --node-editor-circle-card-border: rgba(192, 232, 248, 0.12);
     --node-editor-circle-card-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.02),
         0 14px 34px rgba(0, 0, 0, 0.26);
     --node-editor-circle-label: #cbb978;
     --node-editor-circle-fallback-color: #a9b0bd;
     --node-editor-circle-core-start: #fff8d4;
-    --node-editor-circle-core-mid: #79e2ff;
+    /* 마법진 핵심: 금색 코어에서 하늘빛 마나로 번지는 그라디언트 */
+    --node-editor-circle-core-mid: #56d8ff;
     --node-editor-circle-core-end: #050713;
     --node-editor-circle-bg:
-        radial-gradient(circle at center, rgba(233, 199, 111, 0.13) 0%, rgba(92, 185, 204, 0.08) 26%, rgba(8, 11, 22, 0.94) 58%, #03050d 100%),
-        repeating-radial-gradient(circle at center, rgba(205, 234, 255, 0.08) 0 1px, transparent 1px 18px),
-        #05060a;
+        radial-gradient(circle at center, rgba(233, 199, 111, 0.13) 0%, rgba(56, 168, 218, 0.08) 26%, rgba(5, 8, 20, 0.94) 58%, #03050d 100%),
+        repeating-radial-gradient(circle at center, rgba(192, 232, 248, 0.08) 0 1px, transparent 1px 18px),
+        #04060a;
     --node-editor-circle-border: rgba(233, 199, 111, 0.22);
     --node-editor-circle-shadow:
-        inset 0 0 44px rgba(110, 214, 209, 0.09),
-        inset 0 0 0 1px rgba(205, 234, 255, 0.05),
-        0 0 24px rgba(110, 214, 209, 0.12),
+        inset 0 0 44px rgba(86, 184, 232, 0.09),
+        inset 0 0 0 1px rgba(192, 232, 248, 0.05),
+        0 0 24px rgba(86, 184, 232, 0.12),
         0 18px 42px rgba(0, 0, 0, 0.36);
-    --node-editor-circle-stroke: #eff8ff;
-    --node-editor-circle-core-glow: #e2fbff;
+    --node-editor-circle-stroke: #ddeeff;
+    --node-editor-circle-core-glow: #d0f2ff;
     --node-editor-circle-core-dot: #fff4c4;
     --node-editor-selected-node-border: #fff1b8;
     --node-editor-selected-node-bg:
-        linear-gradient(180deg, rgba(32, 28, 48, 0.98), rgba(10, 15, 30, 0.99));
+        linear-gradient(180deg, rgba(18, 22, 46, 0.98), rgba(8, 12, 30, 0.99));
     --node-editor-selected-node-shadow:
         0 0 0 1px rgba(255, 241, 184, 0.92),
         0 0 0 4px rgba(233, 199, 111, 0.16),
-        0 0 30px rgba(110, 214, 209, 0.36),
+        0 0 30px rgba(86, 184, 232, 0.36),
         0 18px 34px rgba(0, 0, 0, 0.34);
     --node-editor-node-default-opacity: 0.82;
     --node-editor-node-selected-opacity: 1;
     --node-editor-hovered-node-z-index: 1000;
-    
+
     /* 종이 그림자 */
-    --paper-shadow: 
-        0 4px 6px -1px rgba(0, 0, 0, 0.15), 
+    --paper-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.15),
         0 2px 4px -1px rgba(0, 0, 0, 0.1),
         0 20px 40px -10px rgba(0, 0, 0, 0.4);
     --paper-inset-shadow: inset 0 0 40px rgba(184, 153, 114, 0.15);
@@ -368,16 +399,16 @@ textarea {
     height: 10px;
 }
 ::-webkit-scrollbar-track {
-    background: #0d0b09; 
+    background: #0d0b09;
     border-left: 1px solid #1a1512;
 }
 ::-webkit-scrollbar-thumb {
-    background: var(--guild-leather); 
+    background: var(--guild-leather);
     border: 2px solid #0d0b09;
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--guild-brass); 
+    background: var(--guild-brass);
 }
 
 /* ── 노드 선택 하이라이트 ──────────────────────────────────────────────────── */
@@ -389,8 +420,8 @@ textarea {
     opacity: var(--node-editor-node-selected-opacity);
 }
 
-.svelte-flow__node:hover,
-.svelte-flow__node:focus-within {
+.svelte-flow__node:not(.svelte-flow__node-magicCircle):hover,
+.svelte-flow__node:not(.svelte-flow__node-magicCircle):focus-within {
     z-index: var(--node-editor-hovered-node-z-index) !important;
 }
 

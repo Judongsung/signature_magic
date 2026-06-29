@@ -35,6 +35,7 @@ describe('systemMagicNodes', () => {
         ]);
         expect(nodes[0].deletable).toBe(false);
         expect(nodes[1].deletable).toBe(false);
+        expect(nodes[0].position.y).toBeLessThan(nodes[1].position.y);
     });
 
     it('normalizes existing system nodes back to their fixed contract', () => {

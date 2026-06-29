@@ -103,6 +103,7 @@ describe('MagicNodeToolbar', () => {
         const { html } = render(MagicNodeToolbar, { props });
 
         expect(html).toContain(NODE_EDITOR_TEXT.PRESET_OPEN_TOOLTIP);
+        expect(html).toContain(NODE_EDITOR_TEXT.CIRCLE_ADD_TOOLTIP);
         expect(html).toContain(NODE_EDITOR_TEXT.CLEAR_ALL_TOOLTIP);
         expect(html).toContain(NODE_EDITOR_TEXT.GUIDE_OPEN_TOOLTIP);
     });

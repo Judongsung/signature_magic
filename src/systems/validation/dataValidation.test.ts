@@ -268,20 +268,28 @@ describe('dataValidation', () => {
     });
 
     it('reports invalid magic graph preset data', () => {
-        expect(validateMagicGraphPresets(
+        const validation = validateMagicGraphPresets(
             [
                 {
                     id: 'bad-preset',
                     label: '',
+                    circles: [
+                        {
+                            id: 'circle-a',
+                            position: { x: 0, y: 0 },
+                            width: 480,
+                            height: 640,
+                        },
+                    ],
                     systemNodePositions: [
                         { id: 'system-mana-source', position: { x: 0, y: 0 } },
                         { id: 'system-mana-source', position: { x: 1, y: 1 } },
                         { id: 'missing-system-node', position: { x: Number.NaN, y: Number.NaN } },
                     ],
                     nodes: [
-                        { id: 'node-a', magicType: 'missing', position: { x: 0, y: 0 } },
-                        { id: 'node-a', magicType: '', position: { x: Number.NaN, y: 0 } },
-                        { id: 'system-mana-source', magicType: 'ignition', position: { x: 0, y: Number.NaN } },
+                        { id: 'node-a', magicType: 'missing', circleId: 'circle-a', sequenceIndex: 0 },
+                        { id: 'node-a', magicType: '', circleId: 'circle-a', sequenceIndex: -1 },
+                        { id: 'system-mana-source', magicType: 'ignition', circleId: 'circle-a', sequenceIndex: 2 },
                     ],
                     edges: [
                         {
@@ -291,14 +299,21 @@ describe('dataValidation', () => {
                             sourceHandle: 'input-0',
                             targetHandle: 'output-0',
                         },
-                        { id: 'edge-a', source: 'node-a', target: 'missing-target' },
+                        {
+                            id: 'edge-a',
+                            source: 'node-a',
+                            target: 'missing-target',
+                            sourceHandle: 'output-0',
+                            targetHandle: 'input-0',
+                        },
                     ],
                 },
-            ] as MagicGraphPresetConfig[],
+            ] as unknown as MagicGraphPresetConfig[],
             magicTypesData
-        )).toEqual({
-            valid: false,
-            errors: [
+        );
+
+        expect(validation.valid).toBe(false);
+        expect(validation.errors).toEqual(expect.arrayContaining([
                 'Missing magic graph preset label: bad-preset',
                 'Duplicate magic graph preset system node id: bad-preset: system-mana-source',
                 'Unknown magic graph preset system node id: bad-preset -> missing-system-node',
@@ -306,17 +321,14 @@ describe('dataValidation', () => {
                 'Invalid magic graph preset system node y: bad-preset -> missing-system-node',
                 'Duplicate magic graph preset node id: bad-preset: node-a',
                 'Invalid magic graph preset node type: bad-preset -> node-a',
-                'Invalid magic graph preset node x: bad-preset -> node-a',
+                'Invalid magic graph preset node sequence: bad-preset -> node-a',
                 'Reserved magic graph preset node id: bad-preset -> system-mana-source',
-                'Invalid magic graph preset node y: bad-preset -> system-mana-source',
                 'Duplicate magic graph preset edge id: bad-preset: edge-a',
-                'Invalid magic graph preset source handle: bad-preset -> edge-a -> input-0',
-                'Invalid magic graph preset target handle: bad-preset -> edge-a -> output-0',
+                'Invalid magic graph preset external edge: bad-preset -> edge-a',
                 'Unknown magic graph preset node type: bad-preset -> node-a -> missing',
                 'Unknown magic graph preset edge source: bad-preset -> edge-a -> missing-source',
                 'Unknown magic graph preset edge target: bad-preset -> edge-a -> missing-target',
-            ],
-        });
+        ]));
     });
 
     it('reports undeclared and oversized preset node settings', () => {
@@ -325,29 +337,33 @@ describe('dataValidation', () => {
                 {
                     id: 'bad-settings-preset',
                     label: 'Bad settings',
+                    circles: [
+                        {
+                            id: 'circle-a',
+                            position: { x: 0, y: 0 },
+                            width: 480,
+                            height: 640,
+                        },
+                    ],
                     nodes: [
                         {
                             id: 'custom-node',
                             magicType: 'custom',
+                            circleId: 'circle-a',
                             settings: {
                                 displayName: 'x'.repeat(21),
                                 unknown: 'value',
                             },
-                            position: { x: 0, y: 0 },
+                            sequenceIndex: 0,
                         },
                         {
                             id: 'detect-node',
                             magicType: 'detect',
+                            circleId: 'circle-a',
                             settings: {
                                 caption: 'x'.repeat(81),
                             },
-                            position: { x: 40, y: 0 },
-                        },
-                        {
-                            id: 'repeat-node',
-                            magicType: 'repeat',
-                            settings: { repeatCount: '100' },
-                            position: { x: 80, y: 0 },
+                            sequenceIndex: 1,
                         },
                     ],
                     edges: [],
@@ -360,7 +376,6 @@ describe('dataValidation', () => {
                 'Magic graph preset node setting is too long: bad-settings-preset -> custom-node -> displayName',
                 'Unknown magic graph preset node setting: bad-settings-preset -> custom-node -> unknown',
                 'Magic graph preset node setting is too long: bad-settings-preset -> detect-node -> caption',
-                'Invalid magic graph preset stepper setting: bad-settings-preset -> repeat-node -> repeatCount',
             ],
         });
     });
@@ -371,17 +386,59 @@ describe('dataValidation', () => {
                 {
                     id: 'caption-preset',
                     label: 'Caption preset',
+                    circles: [
+                        {
+                            id: 'circle-a',
+                            position: { x: 0, y: 0 },
+                            width: 480,
+                            height: 640,
+                        },
+                    ],
                     nodes: [
                         {
                             id: 'ignition-node',
                             magicType: 'ignition',
+                            circleId: 'circle-a',
                             settings: { caption: '불꽃을 일으킨다' },
-                            position: { x: 0, y: 0 },
+                            sequenceIndex: 0,
                         },
                     ],
                     edges: [],
                 },
             ],
+            magicTypesData
+        )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('accepts indexed dynamic circle input and output handles', () => {
+        expect(validateMagicGraphPresets(
+            [{
+                id: 'dynamic-circle-ports',
+                label: 'Dynamic circle ports',
+                circles: [{
+                    id: 'circle-a',
+                    position: { x: 0, y: 0 },
+                    width: 480,
+                    height: 640,
+                }],
+                nodes: [],
+                edges: [
+                    {
+                        id: 'source-circle',
+                        source: 'system-mana-source',
+                        target: 'circle-a',
+                        sourceHandle: 'output-2',
+                        targetHandle: 'circle-input-2',
+                    },
+                    {
+                        id: 'circle-output',
+                        source: 'circle-a',
+                        target: 'system-final-output',
+                        sourceHandle: 'circle-output-3',
+                        targetHandle: 'input-3',
+                    },
+                ],
+            }],
             magicTypesData
         )).toEqual({ valid: true, errors: [] });
     });

@@ -9,7 +9,9 @@
         type Connection,
         type Edge,
         type NodeEventWithPointer,
+        type NodeTargetEventWithPointer,
         type OnDelete,
+        type OnBeforeDelete,
         type CoordinateExtent,
         type SnapGrid,
     } from '@xyflow/svelte';
@@ -24,21 +26,38 @@
     import {
         GRAPH_EDGE_TYPES,
         GRAPH_NODE_TYPES,
+        MAGIC_CIRCLE_NODE_CONFIG,
     } from '../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import {
         getExtentCenter,
         resolveCenteredDropPosition,
         resolveCenteredViewport,
-        resolveDropPosition,
+        resolveNearestAvailableRectPosition,
     } from '../../../systems/graph/editor/editorCanvas';
     import { getMagicTypesByCategory } from '../../../systems/graph/registry/magicTypeRegistry';
     import MagicGraphCanvasBackground from '../MagicGraphCanvasBackground.svelte';
     import CustomNode from './CustomNode.svelte';
+    import MagicCircleNode from './MagicCircleNode.svelte';
     import CustomEdge from './CustomEdge.svelte';
     import MagicNodeToolbar from './MagicNodeToolbar.svelte';
     import { openNodeDetailsFromContextMenu } from './nodeDetailsInteraction';
-    import type { MagicNode, MagicType } from '../../../types/magic';
+    import type {
+        MagicEditorNode,
+        MagicType,
+    } from '../../../types/magic';
+    import {
+        getMagicCircleNodes,
+        isMagicTypeAllowedInCircleSequence,
+        isMagicCircleNode,
+    } from '../../../systems/graph/model/magicCircleGraph';
+    import {
+        createMagicNodeDragOrigins,
+        resolveMagicCircleSequenceInsertion,
+        resolveMagicNodeSequenceDrop,
+        type MagicNodeSequenceDrop,
+    } from '../../../systems/graph/editor/magicCircleEditorInteraction';
+    import { provideNodeEditorDetails } from './nodeDetailsContext';
 
     let {
         onOpenPresetDialog,
@@ -50,7 +69,12 @@
         interactionBlocked?: boolean;
     } = $props();
 
-    const nodeTypes = { [GRAPH_NODE_TYPES.MAGIC_NODE]: CustomNode };
+    provideNodeEditorDetails((nodeId) => onOpenNodeDetails(nodeId));
+
+    const nodeTypes = {
+        [GRAPH_NODE_TYPES.MAGIC_NODE]: CustomNode,
+        [GRAPH_NODE_TYPES.MAGIC_CIRCLE]: MagicCircleNode,
+    };
     const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: CustomEdge };
     const snapGrid = EDITOR_CANVAS.SNAP_GRID as SnapGrid;
     const canvasExtent = EDITOR_CANVAS.EXTENT as CoordinateExtent;
@@ -60,8 +84,21 @@
 
     let activeCategoryIds = $state<MagicNodeCategory[]>([...DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES]);
     let flowWrapperElement: HTMLDivElement | undefined;
+    let draggedNodeOrigins = $state(createMagicNodeDragOrigins([]));
+    let sequenceDrop = $state<MagicNodeSequenceDrop>({
+        targetCircleId: undefined,
+        insertionIndex: 0,
+        indicatorY: undefined,
+        beforeNodeId: undefined,
+        afterNodeId: undefined,
+    });
     const visibleMagicTypes = $derived(
-        getMagicTypesByCategory(activeCategoryIds),
+        getMagicTypesByCategory(activeCategoryIds)
+            .filter(config => isMagicTypeAllowedInCircleSequence(config.type)),
+    );
+    const selectedCircle = $derived(
+        getMagicCircleNodes(graphStore.nodes)
+            .find(circle => circle.id === graphStore.activeCircleId)
     );
 
     function toggleCategory(categoryId: MagicNodeCategory) {
@@ -76,22 +113,38 @@
     }
 
     function addNodeAtCanvasCenter(magicType: MagicType) {
+        if (!selectedCircle) return;
+        graphStore.addNode(magicType, selectedCircle.id);
+    }
+
+    function addCircleAtCanvasCenter() {
         const bounds = flowWrapperElement?.getBoundingClientRect();
-        const screenPosition = bounds
-            ? {
-                x: bounds.left + bounds.width / 2,
-                y: bounds.top + bounds.height / 2,
-            }
-            : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-        const flowPosition = screenToFlowPosition(screenPosition);
-        const position = resolveCenteredDropPosition(
-            flowPosition,
-            EDITOR_CANVAS.CLICK_PLACEMENT_NODE_SIZE,
+        if (!bounds) return;
+
+        const flowCenter = screenToFlowPosition({
+            x: bounds.left + bounds.width / 2,
+            y: bounds.top + bounds.height / 2,
+        });
+        const desiredPosition = resolveCenteredDropPosition(
+            flowCenter,
+            MAGIC_CIRCLE_NODE_CONFIG.DEFAULT_SIZE,
             snapGrid,
             canvasExtent
         );
+        const position = resolveNearestAvailableRectPosition(
+            desiredPosition,
+            MAGIC_CIRCLE_NODE_CONFIG.DEFAULT_SIZE,
+            getMagicCircleNodes(graphStore.nodes).map(circle => ({
+                ...circle.position,
+                width: circle.width,
+                height: circle.height,
+            })),
+            snapGrid,
+            canvasExtent,
+            MAGIC_CIRCLE_NODE_CONFIG.COLLISION_GAP
+        );
 
-        graphStore.addNode(magicType, position);
+        graphStore.addCircle(position);
     }
 
     function centerInitialViewport(attempt = 0) {
@@ -121,27 +174,187 @@
     function onDragOver(event: DragEvent) {
         event.preventDefault();
         if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+        if (
+            !event.dataTransfer?.types.includes('application/magictype')
+        ) {
+            return;
+        }
+
+        const drop = resolveMagicCircleSequenceInsertion(
+            screenToFlowPosition({ x: event.clientX, y: event.clientY }),
+            graphStore.nodes,
+            getMagicCircleNodes(graphStore.nodes)
+        );
+        showSequenceDropPreview(drop);
     }
 
     function onDrop(event: DragEvent) {
         event.preventDefault();
         const magicType = event.dataTransfer?.getData('application/magictype') as MagicType | undefined;
-        if (!magicType) return;
+        if (!magicType) {
+            graphStore.setSequenceDropPreview(undefined);
+            return;
+        }
 
         const flowPosition = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-        const position = resolveDropPosition(flowPosition, snapGrid, canvasExtent);
-        graphStore.addNode(magicType, position);
+        const drop = resolveMagicCircleSequenceInsertion(
+            flowPosition,
+            graphStore.nodes,
+            getMagicCircleNodes(graphStore.nodes)
+        );
+        if (!drop.targetCircleId) {
+            graphStore.setSequenceDropPreview(undefined);
+            return;
+        }
+
+        graphStore.selectCircle(drop.targetCircleId);
+        graphStore.addNode(
+            magicType,
+            drop.targetCircleId,
+            drop.insertionIndex
+        );
+        graphStore.setSequenceDropPreview(undefined);
+    }
+
+    function onDragLeave(event: DragEvent) {
+        const currentTarget = event.currentTarget;
+        if (
+            currentTarget instanceof HTMLElement &&
+            event.relatedTarget instanceof Node &&
+            currentTarget.contains(event.relatedTarget)
+        ) {
+            return;
+        }
+
+        graphStore.setSequenceDropPreview(undefined);
+    }
+
+    function onToolbarDragEnd() {
+        graphStore.setSequenceDropPreview(undefined);
+    }
+
+    function showSequenceDropPreview(drop: MagicNodeSequenceDrop) {
+        graphStore.setSequenceDropPreview(
+            drop.targetCircleId && drop.indicatorY !== undefined
+                ? {
+                    circleId: drop.targetCircleId,
+                    y: drop.indicatorY,
+                    beforeNodeId: drop.beforeNodeId,
+                    afterNodeId: drop.afterNodeId,
+                }
+                : undefined
+        );
     }
 
     function preventCanvasContextMenu(event: MouseEvent) {
         event.preventDefault();
     }
 
-    const onDelete: OnDelete<MagicNode, Edge> = ({ nodes, edges }) => {
+    const onBeforeDelete: OnBeforeDelete<MagicEditorNode, Edge> = async ({ nodes }) => {
+        if (!nodes.some(isMagicCircleNode)) return true;
+        return window.confirm(NODE_EDITOR_TEXT.CIRCLE_DELETE_CONFIRM);
+    };
+
+    const onDelete: OnDelete<MagicEditorNode, Edge> = ({ nodes, edges }) => {
         graphStore.onDelete(nodes, edges);
     };
 
-    const onNodeContextMenu: NodeEventWithPointer<MouseEvent, MagicNode> = ({ node, event }) => {
+    const onNodeClick: NodeEventWithPointer<
+        MouseEvent | TouchEvent,
+        MagicEditorNode
+    > = ({ node }) => {
+        graphStore.selectCircle(
+            isMagicCircleNode(node) ? node.id : node.parentId,
+            !isMagicCircleNode(node)
+        );
+    };
+
+    const onNodeDragStart: NodeTargetEventWithPointer<
+        MouseEvent | TouchEvent,
+        MagicEditorNode
+    > = ({ targetNode, nodes }) => {
+        sequenceDrop = {
+            targetCircleId: undefined,
+            insertionIndex: 0,
+            indicatorY: undefined,
+            beforeNodeId: undefined,
+            afterNodeId: undefined,
+        };
+        graphStore.setSequenceDropPreview(undefined);
+        if (targetNode && isMagicCircleNode(targetNode)) {
+            graphStore.selectCircle(targetNode.id);
+            draggedNodeOrigins = [];
+            return;
+        }
+
+        draggedNodeOrigins = createMagicNodeDragOrigins(nodes);
+        if (
+            draggedNodeOrigins.length === 0 &&
+            targetNode &&
+            !isMagicCircleNode(targetNode) &&
+            targetNode.parentId
+        ) {
+            draggedNodeOrigins = [{
+                nodeId: targetNode.id,
+                circleId: targetNode.parentId,
+                sequenceIndex: targetNode.data.sequenceIndex ?? 0,
+            }];
+        }
+        graphStore.syncActiveCircleFromSelectedUnits();
+    };
+
+    function readEventScreenPoint(
+        event: MouseEvent | TouchEvent
+    ): { x: number; y: number } | undefined {
+        if ('touches' in event) {
+            const touch = event.touches[0] ?? event.changedTouches[0];
+            return touch
+                ? { x: touch.clientX, y: touch.clientY }
+                : undefined;
+        }
+
+        return { x: event.clientX, y: event.clientY };
+    }
+
+    const onNodeDrag: NodeTargetEventWithPointer<
+        MouseEvent | TouchEvent,
+        MagicEditorNode
+    > = ({ event }) => {
+        const screenPoint = readEventScreenPoint(event);
+        if (!screenPoint || draggedNodeOrigins.length === 0) return;
+
+        sequenceDrop = resolveMagicNodeSequenceDrop(
+            screenToFlowPosition(screenPoint),
+            draggedNodeOrigins,
+            graphStore.nodes,
+            getMagicCircleNodes(graphStore.nodes)
+        );
+        showSequenceDropPreview(sequenceDrop);
+    };
+
+    const onNodeDragStop: NodeTargetEventWithPointer<
+        MouseEvent | TouchEvent,
+        MagicEditorNode
+    > = () => {
+        if (draggedNodeOrigins.length === 0) return;
+        graphStore.moveNodeGroup(
+            draggedNodeOrigins,
+            sequenceDrop.targetCircleId,
+            sequenceDrop.insertionIndex
+        );
+        draggedNodeOrigins = [];
+        sequenceDrop = {
+            targetCircleId: undefined,
+            insertionIndex: 0,
+            indicatorY: undefined,
+            beforeNodeId: undefined,
+            afterNodeId: undefined,
+        };
+        graphStore.setSequenceDropPreview(undefined);
+    };
+
+    const onNodeContextMenu: NodeEventWithPointer<MouseEvent, MagicEditorNode> = ({ node, event }) => {
+        if (isMagicCircleNode(node)) return;
         openNodeDetailsFromContextMenu(node, event, onOpenNodeDetails);
     };
 
@@ -152,9 +365,12 @@
         {activeCategoryIds}
         {visibleMagicTypes}
         nodeStatEffects={graphStore.externalStatEffects.nodeEffects}
+        canAddNode={Boolean(selectedCircle)}
         onToggleCategory={toggleCategory}
         onAddNode={addNodeAtCanvasCenter}
+        onAddCircle={addCircleAtCanvasCenter}
         {onDragStart}
+        onDragEnd={onToolbarDragEnd}
         onClear={() => graphStore.clear()}
         {onOpenPresetDialog}
     />
@@ -163,6 +379,7 @@
         bind:this={flowWrapperElement}
         class="flow-wrapper"
         ondragover={onDragOver}
+        ondragleave={onDragLeave}
         ondrop={onDrop}
         oncontextmenu={preventCanvasContextMenu}
         role="region"
@@ -185,8 +402,15 @@
             isValidConnection={(edge) => graphStore.checkConnection(edge)}
             onbeforeconnect={(conn) => graphStore.prepareEdge(conn)}
             onconnect={(conn: Connection) => graphStore.onEdgeConnected(conn)}
+            onbeforedelete={onBeforeDelete}
             ondelete={onDelete}
+            onnodeclick={onNodeClick}
+            onnodedragstart={onNodeDragStart}
+            onnodedrag={onNodeDrag}
+            onnodedragstop={onNodeDragStop}
             onnodecontextmenu={onNodeContextMenu}
+            onselectionend={() => graphStore.syncActiveCircleFromSelectedUnits()}
+            onpaneclick={() => graphStore.selectCircle(undefined)}
             oninit={centerInitialViewport}
             deleteKey={interactionBlocked ? null : 'Delete'}
         >
@@ -235,6 +459,18 @@
 
     .flow-wrapper :global(.svelte-flow__viewport) {
         overflow: visible;
+    }
+
+    .flow-wrapper :global(.svelte-flow__pane),
+    .flow-wrapper :global(.svelte-flow__pane.draggable),
+    .flow-wrapper :global(.svelte-flow__pane.dragging),
+    .flow-wrapper :global(.svelte-flow__pane.selection) {
+        cursor: default;
+    }
+
+    .flow-wrapper :global(.svelte-flow__node-magicNode:hover),
+    .flow-wrapper :global(.svelte-flow__node-magicNode:focus-within) {
+        z-index: var(--node-editor-tooltip-node-z-index) !important;
     }
 
     .flow-wrapper :global(.svelte-flow__controls) {

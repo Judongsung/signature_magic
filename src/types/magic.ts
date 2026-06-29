@@ -164,6 +164,9 @@ export interface MagicNodeInstanceEditorConfig {
 export type MagicNodeSettings = Record<string, string>;
 
 export type MagicNodeKind = 'user' | 'system';
+export type MagicEditorNodeKind = MagicNodeKind | 'circle';
+export type MagicCircleStatus = 'empty' | 'external' | 'valid';
+export type MagicCirclePortDirection = 'input' | 'output';
 
 export interface MagicTypeConfig {
     type: MagicType;
@@ -192,6 +195,8 @@ export interface MagicNodeData extends Record<string, unknown> {
     cycleInputHandleConnected?: boolean;
     showTooltip?: boolean;
     showBadges?: boolean;
+    excludeFromStatScaling?: boolean;
+    sequenceIndex?: number;
 }
 
 export interface MagicGraphNode {
@@ -204,11 +209,38 @@ export interface MagicGraphNode {
 
 export type MagicNode = Node<MagicNodeData> & MagicGraphNode;
 
+export interface MagicCircleMetadata {
+    name?: string;
+    caption?: string;
+}
+
+export interface MagicCircleNodeData extends MagicCircleMetadata, Record<string, unknown> {
+    nodeKind: Extract<MagicEditorNodeKind, 'circle'>;
+    inputHandleCount: number;
+    outputHandleCount: number;
+}
+
+export type MagicCircleNode = Node<MagicCircleNodeData> & {
+    type: 'magicCircle';
+    width: number;
+    height: number;
+};
+
+export type MagicEditorNode = MagicNode | MagicCircleNode;
+
+export interface MagicGraphPresetCircleConfig extends MagicCircleMetadata {
+    id: string;
+    position: { x: number; y: number };
+    width: number;
+    height: number;
+}
+
 export interface MagicGraphPresetNodeConfig {
     id: string;
     magicType: MagicType;
     settings?: MagicNodeSettings;
-    position: { x: number; y: number };
+    circleId: string;
+    sequenceIndex: number;
 }
 
 export interface MagicGraphPresetSystemNodePositionConfig {
@@ -220,16 +252,25 @@ export interface MagicGraphPresetEdgeConfig {
     id: string;
     source: string;
     target: string;
-    sourceHandle?: string;
-    targetHandle?: string;
+    sourceHandle: string;
+    targetHandle: string;
 }
 
 export interface MagicGraphPresetConfig {
     id: string;
     label: string;
+    circles: MagicGraphPresetCircleConfig[];
     systemNodePositions?: MagicGraphPresetSystemNodePositionConfig[];
     nodes: MagicGraphPresetNodeConfig[];
     edges: MagicGraphPresetEdgeConfig[];
+}
+
+export interface MagicCircleState {
+    circleId: string;
+    nodeIds: string[];
+    isInternallyValid: boolean;
+    isOnOutputPath: boolean;
+    displayOrder: number;
 }
 
 export interface CirclePath {
@@ -241,6 +282,7 @@ export interface CirclePath {
 
 export interface MagicCalculationResult {
     circles: CirclePath[];
+    circleStates: MagicCircleState[];
     totalStats: MagicStats;
     totalStatAdjustments: MagicStats;
 }

@@ -113,7 +113,7 @@ export function isOutputLimitReached(
     const maxOutputs = resolveConnectionLimit(sourceConfig, 'outputs');
     if (maxOutputs === null) return false;
 
-    return (topology.sourceEdges.get(sourceId)?.length ?? 0) >= maxOutputs;
+    return edges.filter(edge => edge.source === sourceId).length >= maxOutputs;
 }
 
 export function isInputLimitReached(
@@ -129,7 +129,7 @@ export function isInputLimitReached(
     const maxInputs = resolveConnectionLimit(targetConfig, 'inputs');
     if (maxInputs === null) return false;
 
-    return (topology.targetEdges.get(targetId)?.length ?? 0) >= maxInputs;
+    return edges.filter(edge => edge.target === targetId).length >= maxInputs;
 }
 
 export function isDuplicateConnection(connection: Connection, edges: Edge[]): boolean {

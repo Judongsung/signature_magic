@@ -1,10 +1,12 @@
 import { APP_PHASES, type AppPhase } from './appPhaseConfigs';
 import type { MagicNodeCategory } from './nodeEditorConfigs';
 import type {
+    MagicCircleStatus,
     MagicStatEffectOperation,
     MagicStatEffectPhase,
     MagicStatKey,
 } from '../types/magic';
+import { MAGIC_CIRCLE_STATUSES } from './graphConfigs';
 
 // 앱 단계와 전역 내비게이션 문구
 export const DIALOGUE_SCREEN_TEXT = {
@@ -147,11 +149,30 @@ export const NODE_EDITOR_TEXT = {
     PRESET_DEFAULT_NAME: '내 마법 조합',
     PRESET_LOAD_TOOLTIP: '선택한 프리셋으로 현재 조합을 바로 교체합니다.',
     PRESET_DELETE_TOOLTIP: '선택한 내 프리셋을 바로 삭제합니다.',
-    TOOLBAR_HINT: '클릭하면 중앙 배치 · 드래그해서 원하는 위치에 배치 · 선택 후 Delete 로 제거',
+    CIRCLE_ADD: '서클 추가',
+    CIRCLE_ADD_TOOLTIP: '현재 화면 중앙의 빈 위치에 새 서클을 추가합니다.',
+    CIRCLE_DELETE_CONFIRM: '서클과 내부 노드 및 연결을 모두 삭제할까요?',
+    CIRCLE_REQUIRED_TOOLTIP: '단위 마법을 추가하려면 먼저 서클을 선택하세요.',
+    CIRCLE_TITLE: 'Circle',
+    CIRCLE_INPUT: 'INPUT',
+    CIRCLE_OUTPUT: 'OUTPUT',
+    CIRCLE_STATUS_EMPTY: 'EMPTY',
+    CIRCLE_STATUS_EXTERNAL: 'OUTPUT PATH NEEDED',
+    CIRCLE_STATUS_VALID: 'READY',
+    DETAILS_BUTTON_TEXT: '…',
+    DETAILS_OPEN_ARIA_LABEL: '상세정보 열기',
+    CIRCLE_DETAILS_DIALOG_TITLE: '서클 정보',
+    CIRCLE_DETAILS_DIALOG_CLOSE_ARIA_LABEL: '서클 정보 닫기',
+    CIRCLE_DETAILS_NAME_LABEL: '서클명',
+    CIRCLE_DETAILS_NAME_PLACEHOLDER: '서클 이름',
+    CIRCLE_DETAILS_CAPTION_LABEL: '캡션',
+    CIRCLE_DETAILS_CAPTION_PLACEHOLDER: '서클의 역할이나 특징을 입력하세요.',
+    CIRCLE_DETAILS_STATS_LABEL: '서클 스탯',
+    CIRCLE_DETAILS_STATS_ARIA_LABEL: '서클 계산 스탯',
+    TOOLBAR_HINT: '서클을 선택한 뒤 단위 마법을 추가하세요 · 선택 후 Delete 로 제거',
     CANVAS_ARIA_LABEL: 'magic node canvas',
     ROOT_BADGE: 'START',
     LEAF_BADGE: 'END',
-    CYCLE_BADGE: 'CYCLE',
     NODE_STATS_ARIA_LABEL: '마법 스탯',
     NODE_DETAILS_DIALOG_TITLE: '단위 마법 정보',
     NODE_DETAILS_DIALOG_CLOSE_ARIA_LABEL: '단위 마법 정보 닫기',
@@ -166,6 +187,12 @@ export const NODE_EDITOR_TEXT = {
     NODE_DETAILS_STEPPER_INFINITE_VALUE: '무한 반복',
     PANE_RESIZER_ARIA_LABEL: '마법 편집창과 서클 미리보기 크기 조절',
 } as const;
+
+export const MAGIC_CIRCLE_STATUS_LABELS = {
+    [MAGIC_CIRCLE_STATUSES.EMPTY]: NODE_EDITOR_TEXT.CIRCLE_STATUS_EMPTY,
+    [MAGIC_CIRCLE_STATUSES.EXTERNAL]: NODE_EDITOR_TEXT.CIRCLE_STATUS_EXTERNAL,
+    [MAGIC_CIRCLE_STATUSES.VALID]: NODE_EDITOR_TEXT.CIRCLE_STATUS_VALID,
+} as const satisfies Record<MagicCircleStatus, string>;
 
 export const NODE_COMPOSITION_SIGNATURE_TEXT = {
     EYEBROW: 'SIGNATURE MAGIC',

@@ -3,14 +3,16 @@ import {
     GRAPH_EDGE_TYPES,
     GRAPH_NODE_TYPES,
     MAGIC_EDGE_ID_PREFIX,
-    MAGIC_NODE_HANDLE_CONFIG,
 } from '../../../constants/graphConfigs';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type {
     MagicGraphPresetConfig,
+    MagicGraphPresetCircleConfig,
     MagicGraphPresetEdgeConfig,
     MagicGraphPresetNodeConfig,
     MagicGraphPresetSystemNodePositionConfig,
+    MagicCircleNode,
+    MagicEditorNode,
     MagicNode,
     MagicTypeConfig,
 } from '../../../types/magic';
@@ -19,6 +21,17 @@ import { createInitialSystemNodes, isSystemMagicNode } from '../model/systemMagi
 import type { GraphSnapshot } from '../model/graphEventHandlers';
 import { createUserMagicNodeData, normalizeMagicNodeSettings } from '../model/magicNodeData';
 import { readMagicTypeConfigByType, type MagicTypeLookup } from '../model/magicTypeLookup';
+import {
+    attachNodeToCircle,
+    createMagicCircleNodeFromGeometry,
+    getMagicCircleNodes,
+    getMagicUnitNodes,
+    isMagicTypeAllowedInCircleSequence,
+    isMagicCircleNode,
+    readMagicCircleSequenceIndex,
+} from '../model/magicCircleGraph';
+import { isExplicitMagicCircleExternalConnection } from '../model/magicCircleConnectionRules';
+import { normalizeMagicCircleSequences } from '../model/magicCircleGraphActions';
 
 export const MAGIC_GRAPH_PRESET_SOURCES = {
     BUILT_IN: 'builtIn',
@@ -68,11 +81,14 @@ export function createMagicGraphFromPreset(
     preset: MagicGraphPresetConfig,
     magicTypes?: MagicTypeLookup
 ): GraphSnapshot {
+    const circles = createCirclesFromPreset(preset.circles);
+
     return {
-        nodes: [
+        nodes: normalizeMagicCircleSequences([
             ...createSystemNodesFromPreset(preset.systemNodePositions),
-            ...preset.nodes.map(node => createUserNodeFromPreset(node, magicTypes)),
-        ],
+            ...circles,
+            ...createUserNodesFromPreset(preset.nodes, circles, magicTypes),
+        ]),
         edges: preset.edges.map(createEdgeFromPreset),
     };
 }
@@ -83,33 +99,52 @@ export function createMagicGraphPresetSnapshot(
     createId: MagicGraphPresetIdFactory = createUniqueId
 ): MagicGraphPresetConfig | false {
     const trimmedLabel = label.trim();
-    const userNodes = snapshot.nodes.filter(node => !isSystemMagicNode(node));
-    const systemNodes = snapshot.nodes.filter(isSystemMagicNode);
+    const circleNodes = getMagicCircleNodes(snapshot.nodes);
+    const unitNodes = getMagicUnitNodes(snapshot.nodes);
+    const userNodes = unitNodes.filter(node => !isSystemMagicNode(node));
+    const systemNodes = unitNodes.filter(isSystemMagicNode);
     if (!trimmedLabel || userNodes.length === 0) return false;
 
     const allowedNodeIds = new Set([
         ...SYSTEM_NODE_IDS,
+        ...circleNodes.map(circle => circle.id),
         ...userNodes.map(node => node.id),
     ]);
 
     return {
         id: `${USER_PRESET_ID_PREFIX}-${createId() || USER_PRESET_DEFAULT_ID_SEGMENT}`,
         label: trimmedLabel,
+        circles: circleNodes.map(createPresetCircleFromGraph),
         systemNodePositions: systemNodes.map(createPresetSystemNodePositionFromGraph),
         nodes: userNodes.map(createPresetNodeFromGraph),
         edges: snapshot.edges
-            .filter(edge => allowedNodeIds.has(edge.source) && allowedNodeIds.has(edge.target))
+            .filter(edge =>
+                allowedNodeIds.has(edge.source) &&
+                allowedNodeIds.has(edge.target) &&
+                isExplicitMagicCircleExternalConnection(
+                    {
+                        source: edge.source,
+                        target: edge.target,
+                        sourceHandle: edge.sourceHandle ?? null,
+                        targetHandle: edge.targetHandle ?? null,
+                    },
+                    snapshot.nodes
+                )
+            )
             .map(createPresetEdgeFromGraph),
     };
 }
 
-export function hasUserMagicGraphContent(nodes: readonly MagicNode[]): boolean {
-    return nodes.some(node => !isSystemMagicNode(node));
+export function hasUserMagicGraphContent(nodes: readonly MagicEditorNode[]): boolean {
+    return getMagicUnitNodes(nodes).some(node => !isSystemMagicNode(node));
 }
 
-export function getPresetAllowedNodeIds(preset: Pick<MagicGraphPresetConfig, 'nodes'>): Set<string> {
+export function getPresetAllowedNodeIds(
+    preset: Pick<MagicGraphPresetConfig, 'circles' | 'nodes'>
+): Set<string> {
     return new Set([
         ...SYSTEM_NODE_IDS,
+        ...preset.circles.map(circle => circle.id),
         ...preset.nodes.map(node => node.id),
     ]);
 }
@@ -125,6 +160,12 @@ export function collectMagicGraphPresetReferenceErrors(
     preset.nodes.forEach(node => {
         if (node.magicType && !magicTypeIds.has(node.magicType)) {
             errors.push(`Unknown magic graph preset node type: ${preset.id} -> ${node.id} -> ${node.magicType}`);
+        }
+        if (!isMagicTypeAllowedInCircleSequence(node.magicType)) {
+            errors.push(`Disabled magic graph preset node type: ${preset.id} -> ${node.id} -> ${node.magicType}`);
+        }
+        if (!preset.circles.some(circle => circle.id === node.circleId)) {
+            errors.push(`Unknown magic graph preset node circle: ${preset.id} -> ${node.id} -> ${node.circleId}`);
         }
     });
 
@@ -142,6 +183,7 @@ export function collectMagicGraphPresetReferenceErrors(
 
 function createUserNodeFromPreset(
     node: MagicGraphPresetNodeConfig,
+    circle: MagicCircleNode,
     magicTypes?: MagicTypeLookup
 ): MagicNode {
     const config = magicTypes
@@ -151,12 +193,33 @@ function createUserNodeFromPreset(
         ? normalizeMagicNodeSettings(config, node.settings)
         : node.settings;
 
-    return {
+    return attachNodeToCircle({
         id: node.id,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
-        position: { ...node.position },
+        position: { x: 0, y: 0 },
         data: createUserMagicNodeData(node.magicType, settings),
-    };
+    }, circle, node.sequenceIndex);
+}
+
+function createCirclesFromPreset(
+    circles: readonly MagicGraphPresetCircleConfig[]
+): MagicCircleNode[] {
+    return circles.map(circle => createMagicCircleNodeFromGeometry(circle));
+}
+
+function createUserNodesFromPreset(
+    nodes: readonly MagicGraphPresetNodeConfig[],
+    circles: readonly MagicCircleNode[],
+    magicTypes?: MagicTypeLookup
+): MagicNode[] {
+    const circleById = new Map(
+        circles.map(circle => [circle.id, circle])
+    );
+
+    return nodes.flatMap(node => {
+        const circle = circleById.get(node.circleId);
+        return circle ? [createUserNodeFromPreset(node, circle, magicTypes)] : [];
+    });
 }
 
 function createSystemNodesFromPreset(
@@ -176,8 +239,8 @@ function createEdgeFromPreset(edge: MagicGraphPresetEdgeConfig): Edge {
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        sourceHandle: edge.sourceHandle ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
-        targetHandle: edge.targetHandle ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID,
+        sourceHandle: edge.sourceHandle,
+        targetHandle: edge.targetHandle,
         type: GRAPH_EDGE_TYPES.MAGIC_EDGE,
     };
 }
@@ -189,12 +252,26 @@ function createPresetSystemNodePositionFromGraph(node: MagicNode): MagicGraphPre
     };
 }
 
+function createPresetCircleFromGraph(
+    circle: MagicCircleNode
+): MagicGraphPresetCircleConfig {
+    return {
+        id: circle.id,
+        position: { ...circle.position },
+        width: circle.width,
+        height: circle.height,
+        ...(circle.data.name ? { name: circle.data.name } : {}),
+        ...(circle.data.caption ? { caption: circle.data.caption } : {}),
+    };
+}
+
 function createPresetNodeFromGraph(node: MagicNode): MagicGraphPresetNodeConfig {
     return {
         id: node.id,
         magicType: node.data.magicType,
         ...(node.data.settings ? { settings: { ...node.data.settings } } : {}),
-        position: { ...node.position },
+        circleId: node.parentId!,
+        sequenceIndex: readMagicCircleSequenceIndex(node),
     };
 }
 
@@ -203,7 +280,7 @@ function createPresetEdgeFromGraph(edge: Edge): MagicGraphPresetEdgeConfig {
         id: edge.id || `${MAGIC_EDGE_ID_PREFIX}-${createUniqueId()}`,
         source: edge.source,
         target: edge.target,
-        sourceHandle: edge.sourceHandle ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
-        targetHandle: edge.targetHandle ?? MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID,
+        sourceHandle: edge.sourceHandle!,
+        targetHandle: edge.targetHandle!,
     };
 }

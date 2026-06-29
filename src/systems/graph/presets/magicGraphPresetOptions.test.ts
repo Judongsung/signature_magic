@@ -12,12 +12,14 @@ import {
 const builtInPreset = {
     id: 'built-in',
     label: 'Built In',
+    circles: [],
     nodes: [],
     edges: [],
 } satisfies MagicGraphPresetConfig;
 const userPreset = {
     id: 'user-one',
     label: 'User One',
+    circles: [],
     nodes: [],
     edges: [],
 } satisfies MagicGraphPresetConfig;

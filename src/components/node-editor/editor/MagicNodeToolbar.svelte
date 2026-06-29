@@ -18,6 +18,7 @@
 
     const toolbarId = $props.id();
     const presetTooltipId = `${toolbarId}-preset-tooltip`;
+    const circleTooltipId = `${toolbarId}-circle-tooltip`;
     const clearTooltipId = `${toolbarId}-clear-tooltip`;
     const guideTooltipId = `${toolbarId}-guide-tooltip`;
 
@@ -25,18 +26,24 @@
         activeCategoryIds,
         visibleMagicTypes,
         nodeStatEffects = [],
+        canAddNode = true,
         onToggleCategory,
         onAddNode,
+        onAddCircle = () => {},
         onDragStart,
+        onDragEnd = () => {},
         onClear,
         onOpenPresetDialog,
     }: {
         activeCategoryIds: MagicNodeCategory[];
         visibleMagicTypes: MagicTypeConfig[];
         nodeStatEffects?: readonly MagicStatEffectConfig[];
+        canAddNode?: boolean;
         onToggleCategory: (categoryId: MagicNodeCategory) => void;
         onAddNode: (magicType: MagicType) => void;
+        onAddCircle?: () => void;
         onDragStart: (event: DragEvent, magicType: MagicType) => void;
+        onDragEnd?: () => void;
         onClear: () => void;
         onOpenPresetDialog: () => void;
     } = $props();
@@ -66,9 +73,12 @@
             class="drag-btn tooltip-host"
             type="button"
             draggable="true"
+            disabled={!canAddNode}
+            title={!canAddNode ? NODE_EDITOR_TEXT.CIRCLE_REQUIRED_TOOLTIP : undefined}
             aria-describedby={`magic-node-tooltip-${type}`}
             onclick={() => onAddNode(type)}
             ondragstart={(event) => onDragStart(event, type)}
+            ondragend={onDragEnd}
         >
             <span>{icon} {label}</span>
             <DescriptionTooltip
@@ -89,6 +99,22 @@
     {#if visibleMagicTypes.length === 0}
         <span class="toolbar-empty">{NODE_EDITOR_TEXT.EMPTY_CATEGORY}</span>
     {/if}
+
+    <div class="toolbar-divider"></div>
+
+    <button
+        class="node-editor-action-btn node-editor-action-btn--primary action-btn tooltip-host action-tooltip-host"
+        type="button"
+        aria-describedby={circleTooltipId}
+        onclick={onAddCircle}
+    >
+        {NODE_EDITOR_TEXT.CIRCLE_ADD}
+        <DescriptionTooltip
+            id={circleTooltipId}
+            description={NODE_EDITOR_TEXT.CIRCLE_ADD_TOOLTIP}
+            placement="bottom"
+        />
+    </button>
 
     <div class="toolbar-divider"></div>
 
@@ -238,6 +264,12 @@
         transform: translateY(-2px);
         box-shadow: var(--node-editor-accent-shadow);
         border-color: var(--node-editor-accent);
+    }
+
+    .drag-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.42;
+        transform: none;
     }
 
     .drag-btn:focus-visible,

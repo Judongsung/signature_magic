@@ -1,24 +1,18 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { NODE_EDITOR_CANVAS_BACKGROUND } from '../../../constants/nodeEditorAssets';
     import {
         MAGIC_CIRCLE_ANIMATION_MODES,
         NODE_COMPOSITION_TRANSITION_CONFIG,
     } from '../../../constants/magicCircleConfigs';
-    import { MAGIC_STAR_FIELD_CONFIG } from '../../../constants/graphConfigs';
     import type { CirclePath } from '../../../types/magic';
     import {
         buildMagicCircleCompositionScene,
         type MagicCircleCompositionSceneCircle,
     } from '../../../systems/graph/presentation/magicCircleCompositionScene';
-    import { createStarField } from '../../../systems/graph/presentation/starField';
     import MagicCircleSvg from '../magic-circle/MagicCircleSvg.svelte';
 
     const REDUCED_MOTION_MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
-    const transitionStars = createStarField(MAGIC_STAR_FIELD_CONFIG, {
-        width: 100,
-        height: 100,
-        unit: '%',
-    });
     const totalDurationMs = NODE_COMPOSITION_TRANSITION_CONFIG.FILL_DURATION_MS
         + NODE_COMPOSITION_TRANSITION_CONFIG.SPIN_DURATION_MS
         + NODE_COMPOSITION_TRANSITION_CONFIG.FLASH_DURATION_MS;
@@ -98,20 +92,8 @@
     style:--orbit-easing={NODE_COMPOSITION_TRANSITION_CONFIG.ORBIT_ACCELERATION_EASING}
     style:--central-circle-size={transitionLayout.centralCircleSize}
     style:--vertex-circle-size={transitionLayout.vertexCircleSize}
+    style:--canvas-background-image-layer={NODE_EDITOR_CANVAS_BACKGROUND.IMAGE_LAYER}
 >
-    <div class="transition-star-field" aria-hidden="true">
-        {#each transitionStars as star}
-            <span
-                class="transition-star"
-                style:left={star.x}
-                style:top={star.y}
-                style:--star-size={star.size}
-                style:--star-color={star.color}
-                style:--star-glow={star.glow}
-            ></span>
-        {/each}
-    </div>
-
     <div class="circle-system">
         {#if centralCircle}
             <div
@@ -162,6 +144,7 @@
         pointer-events: auto;
         background:
             radial-gradient(circle at center, rgba(128, 243, 236, 0.16), transparent 42%),
+            var(--canvas-background-image-layer),
             linear-gradient(180deg, rgba(4, 8, 11, 0.92), rgba(0, 0, 0, 0.98));
         animation: transition-fill var(--transition-fill-duration) ease-out both;
         isolation: isolate;
@@ -177,24 +160,6 @@
         opacity: 0;
         z-index: 4;
         animation: transition-flash var(--transition-flash-duration) ease-in var(--transition-flash-delay) forwards;
-    }
-
-    .transition-star-field {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        opacity: 0.86;
-    }
-
-    .transition-star {
-        position: absolute;
-        width: var(--star-size);
-        height: var(--star-size);
-        border-radius: 50%;
-        background: var(--star-color);
-        box-shadow: var(--star-glow);
-        transform: translate(-50%, -50%);
     }
 
     .circle-system {

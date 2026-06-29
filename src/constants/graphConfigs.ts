@@ -1,7 +1,13 @@
-import type { MagicNodeKind } from '../types/magic';
+import type {
+    MagicCirclePortDirection,
+    MagicCircleStatus,
+    MagicEditorNodeKind,
+} from '../types/magic';
+import { EDITOR_GRID_SIZE } from './nodeEditorConfigs';
 
 export const GRAPH_NODE_TYPES = {
     MAGIC_NODE: 'magicNode',
+    MAGIC_CIRCLE: 'magicCircle',
 } as const;
 
 export const GRAPH_EDGE_TYPES = {
@@ -11,11 +17,54 @@ export const GRAPH_EDGE_TYPES = {
 export const MAGIC_NODE_KINDS = {
     USER: 'user',
     SYSTEM: 'system',
-} as const satisfies Record<string, MagicNodeKind>;
+    CIRCLE: 'circle',
+} as const satisfies Record<string, MagicEditorNodeKind>;
 
 export const MAGIC_NODE_ID_PREFIX = 'node';
 export const MAGIC_EDGE_ID_PREFIX = 'edge';
 export const MAGIC_CIRCLE_ID_PREFIX = 'circle';
+
+export const MAGIC_CIRCLE_HANDLE_IDS = {
+    INPUT: 'circle-input',
+    OUTPUT: 'circle-output',
+} as const;
+
+export const MAGIC_CIRCLE_PORT_DIRECTIONS = {
+    INPUT: 'input',
+    OUTPUT: 'output',
+} as const satisfies Record<string, MagicCirclePortDirection>;
+
+export const MAGIC_NODE_SIZE = { width: 80, height: 80 } as const;
+export const MAGIC_CIRCLE_SEQUENCE_CONFIG = {
+    NODE_HEIGHT: EDITOR_GRID_SIZE.HEIGHT,
+    HORIZONTAL_INSET: 32,
+    VERTICAL_GAP: 0,
+    CONTENT_TOP: 72,
+    CONTENT_BOTTOM: 48,
+} as const;
+
+export const MAGIC_CIRCLE_STATUSES = {
+    EMPTY: 'empty',
+    EXTERNAL: 'external',
+    VALID: 'valid',
+} as const satisfies Record<string, MagicCircleStatus>;
+
+export const MAGIC_CIRCLE_PORT_CONFIG = {
+    DEFAULT_VISIBLE_COUNT: 1,
+    TRAILING_EMPTY_PORT_COUNT: 1,
+    SPACING_PX: EDITOR_GRID_SIZE.WIDTH,
+    INDEX_SEPARATOR: '-',
+} as const;
+
+export const MAGIC_CIRCLE_NODE_CONFIG = {
+    DEFAULT_SIZE: { width: 480, height: 640 },
+    MIN_SIZE: { width: 320, height: 400 },
+    DEFAULT_POSITION: { x: -240, y: -320 },
+    PORT_OFFSET: 28,
+    COLLISION_GAP: 40,
+    DRAG_HANDLE_CLASS: 'magic-circle-title-bar',
+    DRAG_HANDLE_SELECTOR: '.magic-circle-title-bar',
+} as const;
 
 export const MAGIC_NODE_HANDLE_CONFIG = {
     INPUT_PREFIX: 'input',
@@ -46,27 +95,8 @@ export const MAGIC_EDGE_RENDERING_CONFIG = {
     SELECTED_STROKE_WIDTH: 3.5,
 } as const;
 
-export const MAGIC_STAR_FIELD_CONFIG = {
-    COUNT: 700,
-    SEED: 731,
-    MIN_POSITION_PERCENT: 2,
-    MAX_POSITION_PERCENT: 98,
-    MIN_RADIUS_PX: 0.38,
-    MAX_RADIUS_PX: 1.05,
-    MIN_ALPHA: 0.2,
-    MAX_ALPHA: 0.58,
-    MIN_GLOW_PX: 3.2,
-    MAX_GLOW_PX: 7.2,
-    COLORS: [
-        '233, 199, 111',
-        '205, 234, 255',
-        '110, 214, 209',
-        '185, 150, 255',
-    ],
-} as const;
-
 export const MAGIC_GRAPH_RESULT_PREVIEW_CONFIG = {
-    NODE_SIZE: { width: 80, height: 80 },
+    NODE_SIZE: MAGIC_NODE_SIZE,
     BOUNDS_PADDING_PX: 96,
     MIN_ASPECT_RATIO: 1.25,
     MAX_ASPECT_RATIO: 2.4,

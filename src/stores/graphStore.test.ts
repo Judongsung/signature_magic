@@ -1,266 +1,260 @@
-﻿import type { Connection, Edge } from '@xyflow/svelte';
+import type { Connection, Edge } from '@xyflow/svelte';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { graphStore } from './graphStore.svelte';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../constants/systemMagicNodeConfigs';
-import { isSystemMagicNode } from '../systems/graph/model/systemMagicNodes';
-import type { MagicGraphPresetConfig } from '../types/magic';
 import { resetGraphStoreFixture } from '../test-utils/graphFixtures';
-
-function resetGraphStore(): void {
-    resetGraphStoreFixture();
-}
-
-function connection(source: string, target: string): Connection {
-    return {
-        source,
-        target,
-        sourceHandle: 'output-0',
-        targetHandle: 'input-0',
-    };
-}
-
-function edge(id: string, source: string, target: string, targetHandle = 'input-0'): Edge {
-    return {
-        id,
-        source,
-        target,
-        sourceHandle: 'output-0',
-        targetHandle,
-    };
-}
-
-function appendPreparedEdge(conn: Connection): Edge {
-    const preparedEdge = graphStore.prepareEdge(conn);
-
-    expect(preparedEdge).not.toBe(false);
-    graphStore.edges = [...graphStore.edges, preparedEdge as Edge];
-    graphStore.onEdgeConnected(conn);
-
-    return preparedEdge as Edge;
-}
-
-async function flushTopologySync(): Promise<void> {
-    await new Promise<void>(resolve => {
-        setTimeout(resolve, 0);
-    });
-}
+import type { MagicGraphPresetConfig } from '../types/magic';
+import {
+    getMagicCircleNodes,
+    getMagicUnitNodes,
+} from '../systems/graph/model/magicCircleGraph';
+import { isSystemMagicNode } from '../systems/graph/model/systemMagicNodes';
+import { graphStore } from './graphStore.svelte';
 
 function userNodes() {
-    return graphStore.nodes.filter(node => !isSystemMagicNode(node));
+    return getMagicUnitNodes(graphStore.nodes)
+        .filter(node => !isSystemMagicNode(node));
 }
 
-function systemNode(id: string) {
-    return graphStore.nodes.find(node => node.id === id);
+function circleNode() {
+    return getMagicCircleNodes(graphStore.nodes)[0];
 }
 
-const preset = {
+function appendPreparedEdge(connection: Connection): Edge {
+    const prepared = graphStore.prepareEdge(connection);
+    expect(prepared).not.toBe(false);
+    graphStore.edges = [...graphStore.edges, prepared as Edge];
+    graphStore.onEdgeConnected(connection);
+    return prepared as Edge;
+}
+
+function connectCircle(circleId = circleNode().id): void {
+    appendPreparedEdge({
+        source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
+        target: circleId,
+        sourceHandle: 'output-0',
+        targetHandle: 'circle-input',
+    });
+    appendPreparedEdge({
+        source: circleId,
+        target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
+        sourceHandle: 'circle-output',
+        targetHandle: 'input-0',
+    });
+}
+
+const preset: MagicGraphPresetConfig = {
     id: 'store-preset',
     label: 'Store Preset',
-    nodes: [
-        { id: 'preset-ignition', magicType: 'ignition', position: { x: -40, y: -160 } },
-    ],
+    circles: [{
+        id: 'store-circle',
+        position: { x: -240, y: -320 },
+        width: 480,
+        height: 640,
+    }],
+    nodes: [{
+        id: 'preset-ignition',
+        magicType: 'ignition',
+        circleId: 'store-circle',
+        sequenceIndex: 0,
+    }],
     edges: [
         {
-            id: 'preset-source-ignition',
+            id: 'preset-source-circle',
             source: SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
-            target: 'preset-ignition',
+            target: 'store-circle',
             sourceHandle: 'output-0',
-            targetHandle: 'input-0',
+            targetHandle: 'circle-input',
         },
         {
-            id: 'preset-ignition-output',
-            source: 'preset-ignition',
+            id: 'preset-circle-output',
+            source: 'store-circle',
             target: SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id,
-            sourceHandle: 'output-0',
+            sourceHandle: 'circle-output',
             targetHandle: 'input-0',
         },
     ],
-} satisfies MagicGraphPresetConfig;
+};
 
-describe('graphStore', () => {
+describe('graphStore sequence circles', () => {
     beforeEach(() => {
-        resetGraphStore();
+        resetGraphStoreFixture();
     });
 
-    it('starts with the fixed system nodes', () => {
-        expect(graphStore.nodes).toHaveLength(2);
-        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)?.data.inputHandleCount).toBe(0);
-        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)?.data.outputHandleCount).toBe(0);
+    it('starts with fixed system nodes and one selected empty circle', () => {
+        expect(graphStore.nodes).toHaveLength(3);
+        expect(circleNode().selected).toBe(true);
+        expect(graphStore.activeCircleId).toBe(circleNode().id);
     });
 
-    it('clear resets the graph back to only the fixed system nodes', () => {
-        graphStore.addNode('ignition', { x: 0, y: 0 });
-        graphStore.setSignatureMetadata({ name: 'Flame Spear', description: 'Burns bright.' });
-        graphStore.clear();
+    it('appends nodes to the active circle in contiguous sequence order', () => {
+        expect(graphStore.addNode('ignition')).toBe(true);
+        expect(graphStore.addNode('stream')).toBe(true);
 
-        expect(graphStore.nodes).toHaveLength(2);
-        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
-        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
-        expect(graphStore.edges).toHaveLength(0);
-        expect(graphStore.signatureMetadata).toEqual({ name: '', description: '' });
-    });
-
-    it('loads a preset by replacing the current graph and refreshing topology roles', () => {
-        graphStore.addNode('stream', { x: 0, y: 0 });
-        graphStore.setSignatureMetadata({ name: 'Old Spell', description: 'Old note.' });
-
-        graphStore.loadPreset(preset);
-
-        expect(userNodes()).toHaveLength(1);
-        expect(userNodes()[0]).toMatchObject({
-            id: 'preset-ignition',
-            position: { x: -40, y: -160 },
-            data: {
-                magicType: 'ignition',
-                isRoot: false,
-                isLeaf: false,
-                inputHandleCount: 1,
-                outputHandleCount: 1,
-            },
-        });
-        expect(graphStore.edges.map(item => item.id)).toEqual([
-            'preset-source-ignition',
-            'preset-ignition-output',
+        expect(userNodes().map(node => node.data.sequenceIndex)).toEqual([0, 1]);
+        expect(userNodes().map(node => node.position)).toEqual([
+            { x: 32, y: 72 },
+            { x: 32, y: 112 },
         ]);
-        expect(graphStore.signatureMetadata).toEqual({ name: '', description: '' });
-        expect(graphStore.totalStats.power).toBe(4);
+        expect(userNodes().every(node => node.connectable === false)).toBe(true);
     });
 
-    it('adds nodes without calculating them until they are between source and output', () => {
-        graphStore.addNode('ignition', { x: 0, y: 0 });
+    it('requires an active circle and rejects repeat nodes', () => {
+        graphStore.selectCircle(undefined);
+        expect(graphStore.addNode('ignition')).toBe(false);
 
-        expect(userNodes()).toHaveLength(1);
-        expect(userNodes()[0].data.magicType).toBe('ignition');
-        expect(graphStore.circles).toHaveLength(0);
-        expect(graphStore.totalStats.power).toBe(0);
+        graphStore.selectCircle(circleNode().id);
+        expect(graphStore.addNode('repeat')).toBe(false);
+        expect(userNodes()).toEqual([]);
     });
 
-    it('updates instance settings without changing calculated stats', () => {
-        graphStore.addNode('custom', { x: 0, y: 0 });
-        const [customNode] = userNodes();
-        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
-        const output = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)!;
-        const sourceEdge = graphStore.prepareEdge(connection(source.id, customNode.id));
-        const outputEdge = graphStore.prepareEdge(connection(customNode.id, output.id));
-        graphStore.edges = [
-            ...(sourceEdge ? [sourceEdge] : []),
-            ...(outputEdge ? [outputEdge] : []),
-        ];
-        const before = { ...graphStore.totalStats };
-
-        graphStore.updateNodeSettings(customNode.id, { displayName: '  별빛 핵  ' });
-
-        expect(userNodes()[0].data.settings).toEqual({ displayName: '별빛 핵' });
-        expect(graphStore.totalStats).toEqual(before);
-    });
-
-    it('calculates only user nodes connected from source to final output', () => {
-        graphStore.addNode('ignition', { x: 0, y: 0 });
-        graphStore.addNode('stream', { x: 80, y: 0 });
-
-        const [connected, disconnected] = userNodes();
-        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
-        const output = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)!;
-        const sourceEdge = graphStore.prepareEdge(connection(source.id, connected.id));
-        const outputEdge = graphStore.prepareEdge(connection(connected.id, output.id));
-
-        graphStore.edges = [
-            ...(sourceEdge ? [sourceEdge] : []),
-            ...(outputEdge ? [outputEdge] : []),
-        ];
-
-        expect(disconnected.data.magicType).toBe('stream');
-        expect(graphStore.circles).toHaveLength(1);
-        expect(graphStore.totalStats.power).toBe(4);
-    });
-
-    it('prepares valid edges and stages same-handle replacements', () => {
-        graphStore.addNode('ignition', { x: 0, y: 0 });
-        graphStore.addNode('stream', { x: 80, y: 0 });
-
-        const [source, target] = userNodes();
-        const conn = connection(source.id, target.id);
-        const firstEdge = graphStore.prepareEdge(conn);
-
-        expect(firstEdge).not.toBe(false);
-        if (firstEdge) {
-            graphStore.edges = [...graphStore.edges, firstEdge];
-        }
-        expect(graphStore.edges).toHaveLength(1);
-        expect(graphStore.checkConnection(conn)).toBe(true);
-
-        const replacementEdge = graphStore.prepareEdge(conn);
-
-        expect(replacementEdge).not.toBe(false);
-        expect(graphStore.edges).toHaveLength(0);
-    });
-
-    it('applies externally injected stat effects without depending on CYOA state', () => {
-        graphStore.addNode('ignition', { x: 0, y: 0 });
-        const [userNode] = userNodes();
-        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
-        const output = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)!;
-        const sourceEdge = graphStore.prepareEdge(connection(source.id, userNode.id));
-        const outputEdge = graphStore.prepareEdge(connection(userNode.id, output.id));
-        graphStore.edges = [
-            ...(sourceEdge ? [sourceEdge] : []),
-            ...(outputEdge ? [outputEdge] : []),
-        ];
-
-        graphStore.setExternalStatEffects({
-            nodeEffects: [],
-            finalEffects: [
-                { phase: 'final', operation: 'add', stat: 'power', value: 10 },
-            ],
+    it('updates circle name and caption through the circle action', () => {
+        graphStore.updateCircleMetadata(circleNode().id, {
+            name: '  공격 서클  ',
+            caption: '  첫 번째 단계  ',
         });
 
-        expect(graphStore.totalStats.power).toBe(14);
-        expect(graphStore.totalStatAdjustments.power).toBe(10);
+        expect(circleNode().data).toMatchObject({
+            name: '공격 서클',
+            caption: '첫 번째 단계',
+        });
     });
 
-    it('keeps system nodes when deletion events include them', () => {
-        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
+    it('moves a selected sequence block to another circle at an insertion index', () => {
+        graphStore.addNode('ignition');
+        graphStore.addNode('stream');
+        const sourceCircle = circleNode();
+        const [first, second] = userNodes();
+        const targetCircleId = graphStore.addCircle({ x: 520, y: -320 });
+        graphStore.addNode('merge', targetCircleId);
 
-        graphStore.onDelete([source], []);
+        expect(graphStore.moveNodeGroup(
+            [
+                {
+                    nodeId: first.id,
+                    circleId: sourceCircle.id,
+                    sequenceIndex: 0,
+                },
+                {
+                    nodeId: second.id,
+                    circleId: sourceCircle.id,
+                    sequenceIndex: 1,
+                },
+            ],
+            targetCircleId,
+            0
+        )).toBe(true);
 
-        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
-        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
+        expect(userNodes()
+            .filter(node => node.parentId === targetCircleId)
+            .map(node => [node.id, node.data.sequenceIndex])
+        ).toEqual([
+            [first.id, 0],
+            [second.id, 1],
+            [userNodes().find(node => node.data.magicType === 'merge')!.id, 2],
+        ]);
     });
 
-    it('handles add, connect, delete, and handle normalization through store events', async () => {
-        graphStore.addNode('ignition', { x: 0, y: 0 });
-        graphStore.addNode('stream', { x: 80, y: 0 });
-        graphStore.addNode('merge', { x: 160, y: 0 });
+    it('reindexes remaining children after deletion without shrinking the circle', () => {
+        graphStore.addNode('ignition');
+        graphStore.addNode('stream');
+        graphStore.addNode('merge');
+        const circleHeight = circleNode().height;
+        const [, deleted] = userNodes();
 
-        const [firstNode, remainingInputNode, mergeNode] = userNodes();
-        const source = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)!;
-        const output = systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)!;
-        const sourceEdge = appendPreparedEdge(connection(source.id, firstNode.id));
-        const firstToMergeEdge = appendPreparedEdge(connection(firstNode.id, mergeNode.id));
-        appendPreparedEdge(connection(mergeNode.id, output.id));
+        graphStore.onDelete([deleted], []);
 
-        const remainingInputEdge = edge(
-            'remaining-input-to-merge',
-            remainingInputNode.id,
-            mergeNode.id,
-            'input-2'
-        );
-        graphStore.edges = [...graphStore.edges, remainingInputEdge];
+        expect(userNodes().map(node => node.data.sequenceIndex)).toEqual([0, 1]);
+        expect(userNodes().map(node => node.position.y)).toEqual([72, 112]);
+        expect(circleNode().height).toBe(circleHeight);
+    });
 
-        graphStore.onDelete([firstNode], [sourceEdge, firstToMergeEdge]);
-        await flushTopologySync();
+    it('grows a circle to fit appended nodes and keeps the grown height after deletion', () => {
+        for (let index = 0; index < 15; index += 1) {
+            graphStore.addNode('ignition');
+        }
+        const grownHeight = circleNode().height;
+        expect(grownHeight).toBeGreaterThan(640);
 
-        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id)).toBeTruthy();
-        expect(systemNode(SYSTEM_MAGIC_NODE_CONFIGS.FINAL_OUTPUT.id)).toBeTruthy();
-        expect(userNodes().map(node => node.id)).toEqual([remainingInputNode.id, mergeNode.id]);
-        expect(graphStore.edges).toHaveLength(2);
-        expect(
-            graphStore.edges.find(item => item.id === remainingInputEdge.id)
-        ).toMatchObject({
-            source: remainingInputNode.id,
-            target: mergeNode.id,
+        graphStore.onDelete([userNodes()[14]], []);
+        expect(circleNode().height).toBe(grownHeight);
+    });
+
+    it('resizes sequence card widths while respecting the dynamic minimum height', () => {
+        graphStore.addNode('ignition');
+        graphStore.resizeCircle(circleNode().id, { width: 600, height: 100 });
+
+        expect(circleNode()).toMatchObject({ width: 600, height: 400 });
+        expect(userNodes()[0].style).toContain('--node-editor-node-width: 536px');
+    });
+
+    it('calculates every serial child only when its circle is on an external output path', () => {
+        graphStore.addNode('ignition');
+        graphStore.addNode('stream');
+        expect(graphStore.circles).toHaveLength(0);
+
+        connectCircle();
+
+        expect(graphStore.circles).toHaveLength(1);
+        expect(graphStore.circles[0].nodes.map(node => node.data.magicType))
+            .toEqual(['ignition', 'stream']);
+    });
+
+    it('rejects every attempted internal unit connection', () => {
+        graphStore.addNode('ignition');
+        graphStore.addNode('stream');
+        const [source, target] = userNodes();
+
+        expect(graphStore.checkConnection({
+            source: source.id,
+            target: target.id,
             sourceHandle: 'output-0',
             targetHandle: 'input-0',
+        })).toBe(false);
+    });
+
+    it('loads and snapshots the v3 sequence preset without internal edges', () => {
+        graphStore.loadPreset(preset);
+
+        expect(userNodes()[0]).toMatchObject({
+            id: 'preset-ignition',
+            parentId: 'store-circle',
+            position: { x: 32, y: 72 },
+            data: { sequenceIndex: 0 },
         });
+        expect(graphStore.edges.map(edge => edge.id)).toEqual([
+            'preset-source-circle',
+            'preset-circle-output',
+        ]);
+        expect(getMagicCircleNodes(graphStore.nodes)[0].data).toMatchObject({
+            inputHandleCount: 2,
+            outputHandleCount: 2,
+        });
+        expect(graphStore.createPresetSnapshot('Saved')).toMatchObject({
+            nodes: [{
+                id: 'preset-ignition',
+                circleId: 'store-circle',
+                sequenceIndex: 0,
+            }],
+        });
+    });
+
+    it('deletes a circle with its children and external edges', () => {
+        graphStore.addNode('ignition');
+        connectCircle();
+        graphStore.onDelete([circleNode()], []);
+
+        expect(getMagicCircleNodes(graphStore.nodes)).toEqual([]);
+        expect(userNodes()).toEqual([]);
+        expect(graphStore.edges).toEqual([]);
+    });
+
+    it('clear restores one empty circle and signature metadata', () => {
+        graphStore.addNode('ignition');
+        graphStore.setSignatureMetadata({ name: 'Spell', description: 'Note' });
+        graphStore.clear();
+
+        expect(getMagicCircleNodes(graphStore.nodes)).toHaveLength(1);
+        expect(userNodes()).toEqual([]);
+        expect(graphStore.signatureMetadata).toEqual({ name: '', description: '' });
     });
 });

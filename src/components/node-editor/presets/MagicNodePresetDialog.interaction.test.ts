@@ -36,13 +36,13 @@ const PRESET_OPTIONS: MagicGraphPresetOption[] = [
         value: 'builtIn:fire-bolt',
         label: '화염 화살',
         source: MAGIC_GRAPH_PRESET_SOURCES.BUILT_IN,
-        preset: { id: 'fire-bolt', label: '화염 화살', nodes: [], edges: [] },
+        preset: { id: 'fire-bolt', label: '화염 화살', circles: [], nodes: [], edges: [] },
     },
     {
         value: 'user:user-preset-1',
         label: '저장한 조합',
         source: MAGIC_GRAPH_PRESET_SOURCES.USER,
-        preset: { id: 'user-preset-1', label: '저장한 조합', nodes: [], edges: [] },
+        preset: { id: 'user-preset-1', label: '저장한 조합', circles: [], nodes: [], edges: [] },
     },
 ];
 

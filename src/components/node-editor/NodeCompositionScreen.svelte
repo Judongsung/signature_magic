@@ -4,16 +4,22 @@
     import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../constants/magicCircleConfigs';
     import { graphStore } from '../../stores/graphStore.svelte';
     import { getMagicTypeConfig } from '../../systems/graph/registry/magicTypeRegistry';
-    import type { MagicGraphPresetConfig, MagicNodeSettings } from '../../types/magic';
+    import type {
+        MagicCircleMetadata,
+        MagicGraphPresetConfig,
+        MagicNodeSettings,
+    } from '../../types/magic';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
     import MagicCirclePanel from './magic-circle/MagicCirclePanel.svelte';
     import NodeCompositionPaneLayout from './NodeCompositionPaneLayout.svelte';
     import MagicNodeEditor from './editor/MagicNodeEditor.svelte';
     import MagicNodeDetailsDialog from './editor/MagicNodeDetailsDialog.svelte';
+    import MagicCircleDetailsDialog from './editor/MagicCircleDetailsDialog.svelte';
     import MagicNodePresetDialog from './presets/MagicNodePresetDialog.svelte';
     import {
         createNodeCompositionPresetController,
     } from './presets/nodeCompositionPresetController.svelte';
+    import { isMagicCircleNode } from '../../systems/graph/model/magicCircleGraph';
 
     const builtInPresets = magicGraphPresetsData as MagicGraphPresetConfig[];
     const presetController = createNodeCompositionPresetController({
@@ -22,30 +28,63 @@
     });
 
     let isPresetDialogOpen = $state(false);
-    let activeNodeId = $state<string | undefined>(undefined);
+    let activeDetailsId = $state<string | undefined>(undefined);
 
-    const activeNode = $derived(graphStore.nodes.find(node => node.id === activeNodeId));
+    const activeDetailsCandidate = $derived(
+        graphStore.nodes.find(node => node.id === activeDetailsId)
+    );
+    const activeNode = $derived(
+        activeDetailsCandidate && !isMagicCircleNode(activeDetailsCandidate)
+            ? activeDetailsCandidate
+            : undefined
+    );
+    const activeCircle = $derived(
+        activeDetailsCandidate && isMagicCircleNode(activeDetailsCandidate)
+            ? activeDetailsCandidate
+            : undefined
+    );
     const activeNodeConfig = $derived(activeNode ? getMagicTypeConfig(activeNode.data.magicType) : undefined);
-    const isDialogOpen = $derived(isPresetDialogOpen || Boolean(activeNode));
+    const activeCirclePath = $derived(
+        activeCircle
+            ? graphStore.circles.find(circle => circle.id === activeCircle.id)
+            : undefined
+    );
+    const activeCircleDisplayOrder = $derived(
+        activeCircle
+            ? graphStore.circleStates.find(state =>
+                state.circleId === activeCircle.id
+            )?.displayOrder
+            : undefined
+    );
+    const isDialogOpen = $derived(
+        isPresetDialogOpen || Boolean(activeNode) || Boolean(activeCircle)
+    );
 
     function openPresetDialog() {
-        activeNodeId = undefined;
+        activeDetailsId = undefined;
         isPresetDialogOpen = true;
     }
 
     function openNodeDetails(nodeId: string) {
         isPresetDialogOpen = false;
-        activeNodeId = nodeId;
+        activeDetailsId = nodeId;
     }
 
     function closeNodeDetails() {
-        activeNodeId = undefined;
+        activeDetailsId = undefined;
     }
 
     function saveNodeSettings(settings: MagicNodeSettings | undefined) {
         if (!activeNode) return;
 
         graphStore.updateNodeSettings(activeNode.id, settings);
+        closeNodeDetails();
+    }
+
+    function saveCircleMetadata(metadata: MagicCircleMetadata) {
+        if (!activeCircle) return;
+
+        graphStore.updateCircleMetadata(activeCircle.id, metadata);
         closeNodeDetails();
     }
 </script>
@@ -94,6 +133,16 @@
             config={activeNodeConfig}
             nodeStatEffects={graphStore.externalStatEffects.nodeEffects}
             onSave={saveNodeSettings}
+            onClose={closeNodeDetails}
+        />
+    {/if}
+
+    {#if activeCircle}
+        <MagicCircleDetailsDialog
+            circle={activeCircle}
+            circlePath={activeCirclePath}
+            displayOrder={activeCircleDisplayOrder}
+            onSave={saveCircleMetadata}
             onClose={closeNodeDetails}
         />
     {/if}

@@ -1,5 +1,6 @@
 ﻿export type Point = { x: number; y: number };
 export type Size = { width: number; height: number };
+export type Rect = Point & Size;
 export type ViewportTransform = Point & { zoom: number };
 export type GridSize = readonly [number, number];
 export type CanvasExtent = readonly [
@@ -62,4 +63,59 @@ export function resolveCenteredDropPosition(
         x: flowCenterPosition.x - nodeSize.width / 2,
         y: flowCenterPosition.y - nodeSize.height / 2,
     }, grid, extent);
+}
+
+function rectanglesOverlap(left: Rect, right: Rect, gap: number): boolean {
+    return left.x < right.x + right.width + gap &&
+        left.x + left.width + gap > right.x &&
+        left.y < right.y + right.height + gap &&
+        left.y + left.height + gap > right.y;
+}
+
+export function resolveNearestAvailableRectPosition(
+    desiredPosition: Point,
+    size: Size,
+    occupiedRects: readonly Rect[],
+    grid: GridSize,
+    extent: CanvasExtent,
+    gap: number
+): Point {
+    const rectExtent: CanvasExtent = [
+        extent[0],
+        [
+            Math.max(extent[0][0], extent[1][0] - size.width),
+            Math.max(extent[0][1], extent[1][1] - size.height),
+        ],
+    ];
+    const desired = resolveDropPosition(desiredPosition, grid, rectExtent);
+    const isAvailable = (position: Point) =>
+        !occupiedRects.some(rect => rectanglesOverlap(
+            { ...position, ...size },
+            rect,
+            gap
+        ));
+    if (isAvailable(desired)) return desired;
+
+    const candidates: Point[] = [];
+    const minX = Math.ceil(rectExtent[0][0] / grid[0]) * grid[0];
+    const minY = Math.ceil(rectExtent[0][1] / grid[1]) * grid[1];
+    const maxX = Math.floor(rectExtent[1][0] / grid[0]) * grid[0];
+    const maxY = Math.floor(rectExtent[1][1] / grid[1]) * grid[1];
+
+    for (let y = minY; y <= maxY; y += grid[1]) {
+        for (let x = minX; x <= maxX; x += grid[0]) {
+            candidates.push({ x, y });
+        }
+    }
+
+    candidates.sort((left, right) => {
+        const leftDistance = (left.x - desired.x) ** 2 + (left.y - desired.y) ** 2;
+        const rightDistance = (right.x - desired.x) ** 2 + (right.y - desired.y) ** 2;
+        return leftDistance - rightDistance ||
+            Math.abs(left.y - desired.y) - Math.abs(right.y - desired.y) ||
+            left.y - right.y ||
+            left.x - right.x;
+    });
+
+    return candidates.find(isAvailable) ?? desired;
 }

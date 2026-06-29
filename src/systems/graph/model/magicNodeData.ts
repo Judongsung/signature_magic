@@ -11,6 +11,7 @@ import {
 } from '../../../constants/graphConfigs';
 import { SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type {
+    MagicEditorNode,
     MagicNode,
     MagicNodeEditorFieldConfig,
     MagicNodeSettings,
@@ -19,6 +20,7 @@ import type {
     MagicTypeConfig,
 } from '../../../types/magic';
 import { readMagicTypeConfig, type MagicTypeLookup } from './magicTypeLookup';
+import { isMagicCircleNode } from './magicCircleGraph';
 
 const SYSTEM_MAGIC_TYPE_IDS = new Set<string>([
     SYSTEM_MAGIC_NODE_CONFIGS.MANA_SOURCE.id,
@@ -144,14 +146,15 @@ export function resolveMagicNodeCycleRepeatCount(
 }
 
 export function updateMagicNodeSettings(
-    nodes: MagicNode[],
+    nodes: MagicEditorNode[],
     nodeId: string,
     settings: Readonly<MagicNodeSettings> | undefined,
     magicTypes: MagicTypeLookup
-): MagicNode[] {
+): MagicEditorNode[] {
     let changed = false;
     const updatedNodes = nodes.map(node => {
         if (node.id !== nodeId) return node;
+        if (isMagicCircleNode(node)) return node;
 
         const config = readMagicTypeConfig(node, magicTypes);
         const normalizedSettings = normalizeMagicNodeSettings(config, settings);

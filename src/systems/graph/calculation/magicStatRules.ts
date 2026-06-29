@@ -102,7 +102,13 @@ function scaleByNodeCount(
     config: MagicStatScalingConfig
 ): number {
     const factor = config.factor ?? DEFAULT_EXPONENTIAL_FACTOR;
-    const exponent = Math.max(0, context.nodes.length - FIRST_NODE_SCALING_EXPONENT_OFFSET);
+    const countedNodeTotal = context.nodes.filter(
+        node => node.data.excludeFromStatScaling !== true
+    ).length;
+    const exponent = Math.max(
+        0,
+        countedNodeTotal - FIRST_NODE_SCALING_EXPONENT_OFFSET
+    );
 
     return value * (factor ** exponent);
 }

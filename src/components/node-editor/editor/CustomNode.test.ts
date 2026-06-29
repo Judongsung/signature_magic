@@ -13,12 +13,19 @@ vi.mock('@xyflow/svelte', () => ({
     },
     useUpdateNodeInternals: () => () => {},
 }));
+vi.mock('./nodeDetailsContext', () => ({
+    useNodeEditorDetails: () => undefined,
+}));
 
 afterEach(() => {
     graphStore.setExternalStatEffects({ nodeEffects: [], finalEffects: [] });
+    graphStore.setSequenceDropPreview(undefined);
 });
 
-function renderNode(data: Partial<MagicNodeData> = {}) {
+function renderNode(
+    data: Partial<MagicNodeData> = {},
+    parentId?: string
+) {
     return render(CustomNode, {
         props: {
             id: 'node-1',
@@ -26,12 +33,45 @@ function renderNode(data: Partial<MagicNodeData> = {}) {
                 magicType: 'ignition',
                 ...data,
             },
+            parentId,
             isConnectable: false,
         },
     });
 }
 
 describe('CustomNode', () => {
+    it('renders user nodes as horizontal sequence cards', () => {
+        const { html } = renderNode({ nodeKind: 'user', sequenceIndex: 0 });
+
+        expect(html).toContain('sequence-node');
+        expect(html).not.toContain('root-badge');
+        expect(html).not.toContain('leaf-badge');
+    });
+
+    it('keeps system nodes in the original node variant', () => {
+        const { html } = renderNode({
+            nodeKind: 'system',
+            isRoot: true,
+            isLeaf: false,
+        });
+
+        expect(html).not.toContain('sequence-node');
+        expect(html).toContain('root-badge');
+    });
+
+    it('renders insertion feedback on the adjacent sequence card', () => {
+        graphStore.setSequenceDropPreview({
+            circleId: 'circle-a',
+            y: 136,
+            beforeNodeId: 'node-1',
+        });
+
+        expect(renderNode(
+            { nodeKind: 'user', sequenceIndex: 1 },
+            'circle-a'
+        ).html).toContain('sequence-insertion-before');
+    });
+
     it('renders node tooltip by default', () => {
         const { html } = renderNode();
 

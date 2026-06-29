@@ -1,14 +1,17 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
+import type { Edge } from '@xyflow/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CYOA_REGISTRATION_RESULT_TEXT } from '../../../constants/uiText';
-import { MAGIC_STAR_FIELD_CONFIG } from '../../../constants/graphConfigs';
 import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
 import { installResizeObserverStub } from '../../../test-utils/domApis';
 import {
     createTestMagicEdge,
     createTestMagicNode,
+    resetGraphStoreFixture,
 } from '../../../test-utils/graphFixtures';
+import { graphStore } from '../../../stores/graphStore.svelte';
+import type { MagicEditorNode } from '../../../types/magic';
 import MagicGraphResultPreview from './MagicGraphResultPreview.svelte';
 
 let mountedPreview: Record<string, unknown> | undefined;
@@ -27,7 +30,10 @@ function installDomAPIs(): void {
     });
 }
 
-async function mountPreview(props = {
+async function mountPreview(props: {
+    nodes: MagicEditorNode[];
+    edges: Edge[];
+} = {
     nodes: [
         { ...createTestMagicNode('source'), position: { x: 0, y: 0 } },
         { ...createTestMagicNode('target'), position: { x: 220, y: 120 } },
@@ -70,8 +76,15 @@ describe('MagicGraphResultPreview', () => {
             expect(target.querySelector('.svelte-flow')).not.toBeNull();
             expect(target.querySelector('.magic-graph-canvas-background')).not.toBeNull();
         });
-        expect(target.querySelectorAll('.magic-graph-canvas-star'))
-            .toHaveLength(MAGIC_STAR_FIELD_CONFIG.COUNT);
+        const canvasBackground = target.querySelector<HTMLElement>(
+            '.magic-graph-canvas-background'
+        );
+        const backgroundImageLayer = canvasBackground?.style.getPropertyValue(
+            '--canvas-background-image-layer'
+        );
+        expect(backgroundImageLayer).toContain('50% 50%');
+        expect(backgroundImageLayer).toContain('repeat');
+        expect(target.querySelectorAll('.magic-graph-canvas-star')).toHaveLength(0);
         expect(target.querySelector(
             `[data-build-export-role="${BUILD_RESULT_EXPORT_ROLES.GRAPH_PREVIEW}"]`
         )).not.toBeNull();
@@ -95,6 +108,23 @@ describe('MagicGraphResultPreview', () => {
         });
         expect(target.querySelector('.tooltip-host')).toBeNull();
         expect(target.querySelector('.badge')).toBeNull();
+    });
+
+    it('renders explicit circle boxes and their fixed port labels', async () => {
+        resetGraphStoreFixture();
+        graphStore.addNode('ignition');
+        const target = await mountPreview({
+            nodes: graphStore.nodes,
+            edges: graphStore.edges,
+        });
+
+        await vi.waitFor(() => {
+            expect(target.querySelector('.magic-circle-node')).not.toBeNull();
+        });
+        expect(target.textContent).toContain('INPUT');
+        expect(target.textContent).toContain('OUTPUT');
+        expect(target.textContent).not.toContain('START');
+        expect(target.textContent).not.toContain('END');
     });
 
     it('renders the existing fallback for an empty graph', async () => {

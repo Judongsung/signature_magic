@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { tick } from 'svelte';
     import { Handle, Position, useUpdateNodeInternals } from '@xyflow/svelte';
     import {
         type MagicNodeData,
@@ -16,16 +15,26 @@
         resolveMagicNodeCaption,
         resolveMagicNodeLabel,
     } from '../../../systems/graph/model/magicNodeData';
+    import { resolveHandleLeft } from '../../../systems/graph/presentation/magicHandlePresentation';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
+    import {
+        createNodeHandleLayoutKey,
+        createNodeInternalsRefresh,
+    } from './nodeInternalsRefresh';
+    import { useNodeEditorDetails } from './nodeDetailsContext';
 
     let {
         id,
         data,
+        parentId,
+        draggable = true,
         isConnectable,
     }: {
         id: string;
         data: MagicNodeData;
+        parentId?: string;
+        draggable?: boolean;
         isConnectable?: boolean;
     } = $props();
 
@@ -38,7 +47,19 @@
     const description = $derived(nodeConfig?.description || '');
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
     const shouldShowTooltip = $derived(data.showTooltip !== false);
-    const shouldShowBadges = $derived(data.showBadges !== false);
+    const isSystemNode = $derived(data.nodeKind === MAGIC_NODE_KINDS.SYSTEM);
+    const isSequenceNode = $derived(!isSystemNode);
+    const shouldShowBadges = $derived(
+        isSystemNode && data.showBadges !== false
+    );
+    const isSequenceInsertionBefore = $derived(
+        graphStore.sequenceDropPreview?.circleId === parentId &&
+        graphStore.sequenceDropPreview?.beforeNodeId === id
+    );
+    const isSequenceInsertionAfter = $derived(
+        graphStore.sequenceDropPreview?.circleId === parentId &&
+        graphStore.sequenceDropPreview?.afterNodeId === id
+    );
     const nodeStatEffects = $derived(
         data.nodeKind === MAGIC_NODE_KINDS.SYSTEM
             ? []
@@ -55,26 +76,24 @@
     const inputHandles = $derived(createHandleIndexes(inputHandleCount));
     const outputHandles = $derived(createHandleIndexes(outputHandleCount));
     const updateNodeInternals = useUpdateNodeInternals();
+    const openDetails = useNodeEditorDetails();
+    const refreshNodeInternals = createNodeInternalsRefresh(
+        () => id,
+        updateNodeInternals
+    );
+    const handleLayoutKey = $derived(createNodeHandleLayoutKey([
+        inputHandleCount,
+        outputHandleCount,
+        cycleInputHandleIndex,
+        cycleInputHandleConnected,
+    ]));
 
     $effect(() => {
-        inputHandleCount;
-        outputHandleCount;
-        cycleInputHandleIndex;
-        cycleInputHandleConnected;
-        void tick().then(() => updateNodeInternals(id));
+        refreshNodeInternals(handleLayoutKey);
     });
 
     function createHandleIndexes(count: number): number[] {
         return Array.from({ length: Math.max(0, count) }, (_, index) => index);
-    }
-
-    function handleLeft(index: number, count: number): string {
-        if (count <= 1) return MAGIC_NODE_RENDERING_CONFIG.SINGLE_HANDLE_LEFT;
-        const offset = index * (
-            MAGIC_NODE_RENDERING_CONFIG.HANDLE_SPREAD_PERCENT / (count - 1)
-        );
-
-        return `${MAGIC_NODE_RENDERING_CONFIG.HANDLE_SPREAD_START_PERCENT + offset}%`;
     }
 
     function isCycleInputHandle(index: number): boolean {
@@ -86,36 +105,46 @@
             ? false
             : isConnectable;
     }
+
+    function openNodeDetails(event: MouseEvent): void {
+        event.stopPropagation();
+        openDetails?.(id);
+    }
 </script>
 
 <div
     class="custom-node"
     class:tooltip-host={shouldShowTooltip}
-    class:is-root={isRoot}
-    class:is-leaf={isLeaf}
+    class:is-root={isSystemNode && isRoot}
+    class:is-leaf={isSystemNode && isLeaf}
+    class:sequence-node={isSequenceNode}
+    class:sequence-insertion-before={isSequenceInsertionBefore}
+    class:sequence-insertion-after={isSequenceInsertionAfter}
     aria-describedby={shouldShowTooltip ? tooltipId : undefined}
     style="--c: {color};"
 >
     <!--
-        SOURCE handle (출력, 상단)
-        isLeaf = 아직 아무데도 연결 안 한 노드 → 상단에 END 배지 표시
-        연결을 생성하면 isLeaf=false가 되어 이 배지가 사라집니다.
+        TARGET handle (입력, 상단)
+        isRoot = 아직 아무도 연결 안 한 노드 → 상단에 START 배지 표시
+        연결이 도착하면 isRoot=false가 되어 이 배지가 사라집니다.
     -->
     {#if shouldShowBadges}
         <div class="badge-wrap top-badge-wrap">
-            {#if isLeaf}<span class="badge leaf-badge">{NODE_EDITOR_TEXT.LEAF_BADGE}</span>{/if}
+            {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
         </div>
     {/if}
-    {#each outputHandles as index}
-        <Handle
-            type="source"
-            position={Position.Top}
-            id={`${MAGIC_NODE_HANDLE_CONFIG.OUTPUT_PREFIX}-${index}`}
-            isConnectable={isConnectable}
-            class="node-handle source-handle"
-            style={`left: ${handleLeft(index, outputHandleCount)}; --handle-color: ${color};`}
-        />
-    {/each}
+    {#if isSystemNode}
+        {#each inputHandles as index}
+            <Handle
+                type="target"
+                position={Position.Top}
+                id={`${MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX}-${index}`}
+                isConnectable={isInputHandleConnectable(index)}
+                class={`node-handle target-handle ${isCycleInputHandle(index) ? 'cycle-input-handle' : ''}`}
+                style={`left: ${resolveHandleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
+            />
+        {/each}
+    {/if}
 
     <div class="node-body" class:has-caption={Boolean(caption)}>
         <div class="icon">{icon}</div>
@@ -123,32 +152,38 @@
         {#if caption}<div class="caption">{caption}</div>{/if}
     </div>
 
+    {#if draggable && openDetails}
+        <button
+            type="button"
+            class="node-details-trigger nodrag nopan"
+            aria-label={`${label} ${NODE_EDITOR_TEXT.DETAILS_OPEN_ARIA_LABEL}`}
+            onpointerdown={(event) => event.stopPropagation()}
+            onclick={openNodeDetails}
+        >
+            {NODE_EDITOR_TEXT.DETAILS_BUTTON_TEXT}
+        </button>
+    {/if}
+
     <!--
-        TARGET handle (입력, 하단)
-        isRoot = 아직 아무도 연결 안 한 노드 → 하단에 START 배지 표시
-        연결이 도착하면 isRoot=false가 되어 이 배지가 사라집니다.
+        SOURCE handle (출력, 하단)
+        isLeaf = 아직 아무데도 연결 안 한 노드 → 하단에 END 배지 표시
+        연결을 생성하면 isLeaf=false가 되어 이 배지가 사라집니다.
     -->
-    {#each inputHandles as index}
-        <Handle
-            type="target"
-            position={Position.Bottom}
-            id={`${MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX}-${index}`}
-            isConnectable={isInputHandleConnectable(index)}
-            class={`node-handle target-handle ${isCycleInputHandle(index) ? 'cycle-input-handle' : ''}`}
-            style={`left: ${handleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
-        />
-        {#if isCycleInputHandle(index) && shouldShowBadges}
-            <span
-                class="badge cycle-badge"
-                style={`left: ${handleLeft(index, inputHandleCount)}; --handle-color: ${color};`}
-            >
-                {NODE_EDITOR_TEXT.CYCLE_BADGE}
-            </span>
-        {/if}
-    {/each}
+    {#if isSystemNode}
+        {#each outputHandles as index}
+            <Handle
+                type="source"
+                position={Position.Bottom}
+                id={`${MAGIC_NODE_HANDLE_CONFIG.OUTPUT_PREFIX}-${index}`}
+                isConnectable={isConnectable}
+                class="node-handle source-handle"
+                style={`left: ${resolveHandleLeft(index, outputHandleCount)}; --handle-color: ${color};`}
+            />
+        {/each}
+    {/if}
     {#if shouldShowBadges}
         <div class="badge-wrap bottom-badge-wrap">
-            {#if isRoot}<span class="badge root-badge">{NODE_EDITOR_TEXT.ROOT_BADGE}</span>{/if}
+            {#if isLeaf}<span class="badge leaf-badge">{NODE_EDITOR_TEXT.LEAF_BADGE}</span>{/if}
         </div>
     {/if}
 
@@ -204,6 +239,7 @@
         height: 1px;
         background: var(--node-editor-node-rune-bg);
         opacity: 0.72;
+        filter: drop-shadow(0 0 3px rgba(233, 199, 111, 0.38));
     }
 
     .custom-node::after {
@@ -220,12 +256,32 @@
         transform: translateY(-1px);
     }
 
+    .custom-node.sequence-node {
+        padding: 0;
+        text-align: left;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .custom-node.sequence-node::after {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .custom-node.sequence-insertion-before {
+        border-top: 3px solid var(--node-editor-circle-selected);
+    }
+
+    .custom-node.sequence-insertion-after {
+        border-bottom: 3px solid var(--node-editor-circle-selected);
+    }
+
     .custom-node.is-root {
-        border-bottom-color: var(--c);
+        border-top-color: var(--c);
     }
 
     .custom-node.is-leaf {
-        border-top-color: var(--c);
+        border-bottom-color: var(--c);
     }
 
     :global(.node-handle) {
@@ -239,11 +295,11 @@
     }
 
     :global(.source-handle) {
-        top: -6px;
+        bottom: -6px;
     }
 
     :global(.target-handle) {
-        bottom: -6px;
+        top: -6px;
     }
 
     :global(.cycle-input-handle) {
@@ -264,6 +320,63 @@
 
     .node-body.has-caption {
         gap: 2px;
+    }
+
+    .sequence-node .node-body {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 14px;
+        padding: 0 40px 0 12px;
+        box-sizing: border-box;
+    }
+
+    .sequence-node .node-body.has-caption {
+        display: flex;
+        flex-direction: row;
+        gap: 14px;
+    }
+
+    .sequence-node .node-body.has-caption .label {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .sequence-node .node-body.has-caption .caption {
+        display: block;
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .node-details-trigger {
+        position: absolute;
+        top: 50%;
+        right: 6px;
+        z-index: 4;
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        transform: translateY(-50%);
+        border: 1px solid color-mix(in srgb, var(--c) 34%, var(--node-editor-border));
+        border-radius: var(--node-editor-radius-sm);
+        background: color-mix(in srgb, var(--node-editor-button-bg) 88%, transparent);
+        color: var(--node-editor-text-strong);
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    .node-details-trigger:hover,
+    .node-details-trigger:focus-visible {
+        border-color: color-mix(in srgb, var(--c) 70%, var(--node-editor-border));
+        background: var(--node-editor-button-active-bg);
+    }
+
+    .node-details-trigger:focus-visible {
+        outline: 2px solid var(--node-editor-starlight);
+        outline-offset: 1px;
     }
 
     .icon {
@@ -325,17 +438,6 @@
         background: var(--node-editor-leaf-badge-bg);
         color: var(--node-editor-leaf-badge-color);
         border: 1px solid var(--node-editor-leaf-badge-color);
-    }
-
-    .cycle-badge {
-        position: absolute;
-        bottom: -28px;
-        transform: translateX(-50%);
-        z-index: 2;
-        background: color-mix(in srgb, var(--handle-color) 18%, var(--node-editor-root-badge-bg));
-        color: color-mix(in srgb, var(--handle-color) 72%, var(--node-editor-text-strong));
-        border: 1px solid color-mix(in srgb, var(--handle-color) 74%, var(--node-editor-root-badge-color));
-        pointer-events: none;
     }
 
 </style>

@@ -21,11 +21,17 @@ import {
     type CyclePolicyContext,
 } from './graphCyclePolicy';
 import { computeNodeRoles } from '../calculation/magicCalculator';
-import type { MagicNode, MagicType } from '../../../types/magic';
+import type { MagicEditorNode, MagicNode, MagicType } from '../../../types/magic';
 import { isSystemMagicNode } from './systemMagicNodes';
 import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
 import { createReachabilityCache } from '../topology/graphTraversal';
 import { createUserMagicNodeData } from './magicNodeData';
+import {
+    createMagicCirclePortHandleId,
+    isMagicCircleNode,
+    isMagicCirclePortHandleId,
+    readMagicCirclePortHandleIndex,
+} from './magicCircleGraph';
 
 export type IdFactory = () => string;
 
@@ -201,7 +207,7 @@ export function resolveNodeHandleCounts(
         nodeMap: resolvedTopology.nodeMap,
         reachabilityCache: createReachabilityCache(),
     };
-    const shouldScanRawEdges = !topology;
+    const shouldScanRawEdges = true;
     const maxInputs = resolveNodeConnectionLimit(node, magicTypes, 'inputs');
     const maxOutputs = resolveNodeConnectionLimit(node, magicTypes, 'outputs');
     const usedInputs = new Set(readNodeTargetEdges(node.id, edges, resolvedTopology, shouldScanRawEdges)
@@ -257,7 +263,8 @@ function readHandleIndex(handleId: string | null | undefined, fallbackHandleId: 
 
 function buildNormalizedDirectionalHandleIds(
     edges: Edge[],
-    direction: 'source' | 'target'
+    direction: 'source' | 'target',
+    nodes?: readonly MagicEditorNode[]
 ): Map<string, string> {
     const handleKey = direction === 'source' ? 'sourceHandle' : 'targetHandle';
     const fallbackHandleId = direction === 'source' ? DEFAULT_OUTPUT_HANDLE_ID : DEFAULT_INPUT_HANDLE_ID;
@@ -266,9 +273,13 @@ function buildNormalizedDirectionalHandleIds(
         : MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX;
     const groupedEdges = new Map<string, { edge: Edge; index: number }[]>();
     const nextHandleIds = new Map<string, string>();
+    const circleIds = new Set(
+        (nodes ?? []).filter(isMagicCircleNode).map(node => node.id)
+    );
 
     edges.forEach((edge, index) => {
         const nodeId = edge[direction];
+        if (circleIds.has(nodeId)) return;
         const group = groupedEdges.get(nodeId) ?? [];
         group.push({ edge, index });
         groupedEdges.set(nodeId, group);
@@ -291,9 +302,69 @@ function buildNormalizedDirectionalHandleIds(
     return nextHandleIds;
 }
 
-export function normalizeEdgeHandles(edges: Edge[]): Edge[] {
-    const sourceHandleIds = buildNormalizedDirectionalHandleIds(edges, 'source');
-    const targetHandleIds = buildNormalizedDirectionalHandleIds(edges, 'target');
+function buildNormalizedCirclePortHandleIds(
+    edges: Edge[],
+    direction: 'source' | 'target',
+    nodes: readonly MagicEditorNode[]
+): Map<string, string> {
+    const circleIds = new Set(nodes.filter(isMagicCircleNode).map(node => node.id));
+    const handleKey = direction === 'source' ? 'sourceHandle' : 'targetHandle';
+    const portDirection = direction === 'source' ? 'output' : 'input';
+    const groupedEdges = new Map<string, { edge: Edge; index: number }[]>();
+    const nextHandleIds = new Map<string, string>();
+
+    edges.forEach((edge, index) => {
+        const circleId = edge[direction];
+        const handleId = edge[handleKey];
+        if (
+            !circleIds.has(circleId) ||
+            !isMagicCirclePortHandleId(handleId, portDirection)
+        ) {
+            return;
+        }
+
+        const group = groupedEdges.get(circleId) ?? [];
+        group.push({ edge, index });
+        groupedEdges.set(circleId, group);
+    });
+
+    groupedEdges.forEach(circleEdges => {
+        circleEdges.sort((left, right) => {
+            const indexDifference =
+                (readMagicCirclePortHandleIndex(
+                    left.edge[handleKey],
+                    portDirection
+                ) ?? 0) -
+                (readMagicCirclePortHandleIndex(
+                    right.edge[handleKey],
+                    portDirection
+                ) ?? 0);
+            return indexDifference || left.index - right.index;
+        });
+
+        circleEdges.forEach(({ edge }, index) => {
+            nextHandleIds.set(
+                edge.id,
+                createMagicCirclePortHandleId(portDirection, index)
+            );
+        });
+    });
+
+    return nextHandleIds;
+}
+
+export function normalizeEdgeHandles(
+    edges: Edge[],
+    nodes?: readonly MagicEditorNode[]
+): Edge[] {
+    const sourceHandleIds = buildNormalizedDirectionalHandleIds(edges, 'source', nodes);
+    const targetHandleIds = buildNormalizedDirectionalHandleIds(edges, 'target', nodes);
+    if (nodes) {
+        buildNormalizedCirclePortHandleIds(edges, 'source', nodes)
+            .forEach((handleId, edgeId) => sourceHandleIds.set(edgeId, handleId));
+        buildNormalizedCirclePortHandleIds(edges, 'target', nodes)
+            .forEach((handleId, edgeId) => targetHandleIds.set(edgeId, handleId));
+    }
 
     return edges.map(edge => {
         const sourceHandle = sourceHandleIds.get(edge.id);

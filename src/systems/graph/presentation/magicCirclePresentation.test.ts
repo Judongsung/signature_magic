@@ -1,0 +1,100 @@
+import { describe, expect, it } from 'vitest';
+import {
+    MAGIC_CIRCLE_NODE_CONFIG,
+    MAGIC_CIRCLE_STATUSES,
+} from '../../../constants/graphConfigs';
+import { createTestMagicNode } from '../../../test-utils/graphFixtures';
+import type { MagicCircleState } from '../../../types/magic';
+import {
+    attachNodeToCircle,
+    createMagicCircleNode,
+} from '../model/magicCircleGraph';
+import { resolveMagicCircleViewModel } from './magicCirclePresentation';
+
+function state(
+    overrides: Partial<MagicCircleState> = {}
+): MagicCircleState {
+    return {
+        circleId: 'circle-view',
+        nodeIds: ['child'],
+        isInternallyValid: true,
+        isOnOutputPath: true,
+        displayOrder: 1,
+        ...overrides,
+    };
+}
+
+describe('magicCirclePresentation', () => {
+    it('shows one empty input and output port for a new circle', () => {
+        const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'view');
+        const viewModel = resolveMagicCircleViewModel(
+            circle,
+            [circle],
+            undefined
+        );
+
+        expect(viewModel.status).toBe(MAGIC_CIRCLE_STATUSES.EMPTY);
+        expect(viewModel.inputHandleIds).toEqual(['circle-input']);
+        expect(viewModel.outputHandleIds).toEqual(['circle-output']);
+        expect(viewModel.minimumWidth).toBe(MAGIC_CIRCLE_NODE_CONFIG.MIN_SIZE.width);
+        expect(viewModel.minimumHeight).toBe(MAGIC_CIRCLE_NODE_CONFIG.MIN_SIZE.height);
+    });
+
+    it('keeps one empty external port after every connected port', () => {
+        const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'view');
+        const child = attachNodeToCircle(createTestMagicNode('child'), circle, 0);
+        const circleWithPorts = {
+            ...circle,
+            data: {
+                ...circle.data,
+                inputHandleCount: 3,
+                outputHandleCount: 2,
+            },
+        };
+        const viewModel = resolveMagicCircleViewModel(
+            circleWithPorts,
+            [circleWithPorts, child],
+            state()
+        );
+
+        expect(viewModel.inputHandleIds).toEqual([
+            'circle-input',
+            'circle-input-1',
+            'circle-input-2',
+        ]);
+        expect(viewModel.outputHandleIds).toEqual([
+            'circle-output',
+            'circle-output-1',
+        ]);
+    });
+
+    it.each([
+        [state({ isOnOutputPath: false }), MAGIC_CIRCLE_STATUSES.EXTERNAL],
+        [state(), MAGIC_CIRCLE_STATUSES.VALID],
+    ])('resolves the simplified circle status', (
+        circleState,
+        expectedStatus
+    ) => {
+        const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'view');
+        const child = attachNodeToCircle(createTestMagicNode('child'), circle, 0);
+
+        expect(resolveMagicCircleViewModel(
+            circle,
+            [circle, child],
+            circleState
+        ).status).toBe(expectedStatus);
+    });
+
+    it('derives minimum height from sequence length', () => {
+        const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'view');
+        const children = Array.from({ length: 8 }, (_, index) =>
+            attachNodeToCircle(createTestMagicNode(`child-${index}`), circle, index)
+        );
+
+        expect(resolveMagicCircleViewModel(
+            circle,
+            [circle, ...children],
+            state()
+        ).minimumHeight).toBe(440);
+    });
+});

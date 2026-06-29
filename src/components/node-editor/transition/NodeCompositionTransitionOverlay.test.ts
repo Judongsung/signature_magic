@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     NODE_COMPOSITION_TRANSITION_CONFIG,
 } from '../../../constants/magicCircleConfigs';
-import { MAGIC_STAR_FIELD_CONFIG } from '../../../constants/graphConfigs';
 import { buildNodeCompositionTransitionLayout } from '../../../systems/graph/presentation/nodeCompositionTransitionLayout';
 import {
     createSingleNodeCircleFixture,
@@ -102,9 +101,17 @@ describe('NodeCompositionTransitionOverlay', () => {
         const { target, onComplete } = mountOverlay(createSingleNodeCircle());
         await tick();
 
-        expect(target.querySelector('.node-composition-transition-overlay')).not.toBeNull();
-        expect(target.querySelector('.transition-star-field')).not.toBeNull();
-        expect(target.querySelectorAll('.transition-star')).toHaveLength(MAGIC_STAR_FIELD_CONFIG.COUNT);
+        const transitionOverlay = target.querySelector<HTMLElement>(
+            '.node-composition-transition-overlay'
+        );
+        expect(transitionOverlay).not.toBeNull();
+        const backgroundImageLayer = transitionOverlay?.style.getPropertyValue(
+            '--canvas-background-image-layer'
+        );
+        expect(backgroundImageLayer).toContain('50% 50%');
+        expect(backgroundImageLayer).toContain('repeat');
+        expect(target.querySelector('.transition-star-field')).toBeNull();
+        expect(target.querySelectorAll('.transition-star')).toHaveLength(0);
         expect(target.querySelectorAll('.central-circle')).toHaveLength(1);
         expect(target.querySelectorAll('.polygon-circle')).toHaveLength(0);
         expect(target.innerHTML).toContain('data-animation-mode="burst"');

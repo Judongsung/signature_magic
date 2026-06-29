@@ -31,9 +31,12 @@ type ClearHandler = () => void;
 type ToolbarProps = {
     activeCategoryIds: MagicNodeCategory[];
     visibleMagicTypes: MagicTypeConfig[];
+    canAddNode: boolean;
     onToggleCategory: Mock<ToggleCategoryHandler>;
     onAddNode: Mock<AddNodeHandler>;
+    onAddCircle: Mock<ClearHandler>;
     onDragStart: Mock<DragStartHandler>;
+    onDragEnd: Mock<ClearHandler>;
     onClear: Mock<ClearHandler>;
     onOpenPresetDialog: Mock<ClearHandler>;
 };
@@ -44,9 +47,12 @@ function createToolbarProps(overrides: Partial<ToolbarProps> = {}): ToolbarProps
     return {
         activeCategoryIds: ['basic'],
         visibleMagicTypes: [TEST_MAGIC_TYPE],
+        canAddNode: true,
         onToggleCategory: vi.fn<ToggleCategoryHandler>(),
         onAddNode: vi.fn<AddNodeHandler>(),
+        onAddCircle: vi.fn<ClearHandler>(),
         onDragStart: vi.fn<DragStartHandler>(),
+        onDragEnd: vi.fn<ClearHandler>(),
         onClear: vi.fn<ClearHandler>(),
         onOpenPresetDialog: vi.fn<ClearHandler>(),
         ...overrides,
@@ -96,6 +102,26 @@ describe('MagicNodeToolbar interaction', () => {
         expect(props.onAddNode).toHaveBeenCalledWith(TEST_MAGIC_TYPE.type);
     });
 
+    it('adds a circle from the dedicated toolbar action', () => {
+        const { target, props } = mountToolbar();
+
+        getButtonContainingText(target, NODE_EDITOR_TEXT.CIRCLE_ADD).click();
+
+        expect(props.onAddCircle).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables unit-node addition and explains why when no circle is selected', () => {
+        const { target, props } = mountToolbar(createToolbarProps({
+            canAddNode: false,
+        }));
+        const button = getButtonContainingText(target, TEST_MAGIC_TYPE.label);
+
+        expect(button.disabled).toBe(true);
+        expect(button.title).toBe(NODE_EDITOR_TEXT.CIRCLE_REQUIRED_TOOLTIP);
+        button.click();
+        expect(props.onAddNode).not.toHaveBeenCalled();
+    });
+
     it('forwards dragstart with dataTransfer to the owner callback', () => {
         const { target, props } = mountToolbar();
         const dataTransfer = {
@@ -115,6 +141,19 @@ describe('MagicNodeToolbar interaction', () => {
         expect(props.onDragStart).toHaveBeenCalledTimes(1);
         expect(props.onDragStart).toHaveBeenCalledWith(dragEvent, TEST_MAGIC_TYPE.type);
         expect((props.onDragStart.mock.calls[0][0] as DragEvent).dataTransfer).toBe(dataTransfer);
+    });
+
+    it('notifies the owner when a toolbar drag ends', () => {
+        const { target, props } = mountToolbar();
+        const dragEndEvent = new Event('dragend', {
+            bubbles: true,
+            cancelable: true,
+        });
+
+        getButtonContainingText(target, TEST_MAGIC_TYPE.label)
+            .dispatchEvent(dragEndEvent);
+
+        expect(props.onDragEnd).toHaveBeenCalledTimes(1);
     });
 
     it('calls onClear when the clear button is clicked', () => {
@@ -149,6 +188,7 @@ describe('MagicNodeToolbar interaction', () => {
     it('associates every toolbar action with a shared description tooltip', () => {
         const { target } = mountToolbar();
         const actions = [
+            getButtonContainingText(target, NODE_EDITOR_TEXT.CIRCLE_ADD),
             getButtonContainingText(target, NODE_EDITOR_TEXT.PRESET_OPEN),
             getButtonContainingText(target, NODE_EDITOR_TEXT.CLEAR_ALL),
             target.querySelector<HTMLAnchorElement>(`a[href="${MAGIC_EDITOR_GUIDE_PATH}"]`),

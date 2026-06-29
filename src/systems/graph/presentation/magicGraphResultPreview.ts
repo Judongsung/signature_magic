@@ -1,6 +1,7 @@
 import type { Edge, FitViewOptions } from '@xyflow/svelte';
 import { MAGIC_GRAPH_RESULT_PREVIEW_CONFIG } from '../../../constants/graphConfigs';
-import type { MagicNode } from '../../../types/magic';
+import type { MagicEditorNode } from '../../../types/magic';
+import { isMagicCircleNode } from '../model/magicCircleGraph';
 
 type MagicGraphResultPreviewConfig = typeof MAGIC_GRAPH_RESULT_PREVIEW_CONFIG;
 
@@ -14,18 +15,30 @@ export interface MagicGraphResultPreviewBounds {
 }
 
 export interface MagicGraphResultPreviewModel {
-    nodes: MagicNode[];
+    nodes: MagicEditorNode[];
     edges: Edge[];
     bounds: MagicGraphResultPreviewBounds;
     aspectRatio: number;
-    fitViewOptions: FitViewOptions<MagicNode>;
+    fitViewOptions: FitViewOptions<MagicEditorNode>;
 }
 
 function clamp(value: number, min: number, max: number): number {
     return Math.min(max, Math.max(min, value));
 }
 
-function clonePreviewNode(node: MagicNode): MagicNode {
+function clonePreviewNode(node: MagicEditorNode): MagicEditorNode {
+    if (isMagicCircleNode(node)) {
+        return {
+            ...node,
+            data: { ...node.data },
+            position: { ...node.position },
+            draggable: false,
+            selectable: false,
+            connectable: false,
+            selected: false,
+        };
+    }
+
     return {
         ...node,
         data: { ...node.data, showTooltip: false, showBadges: false },
@@ -60,16 +73,21 @@ function createEmptyBounds(config: MagicGraphResultPreviewConfig): MagicGraphRes
 }
 
 function calculatePreviewBounds(
-    nodes: readonly MagicNode[],
+    nodes: readonly MagicEditorNode[],
     config: MagicGraphResultPreviewConfig
 ): MagicGraphResultPreviewBounds {
     if (nodes.length === 0) return createEmptyBounds(config);
 
-    const minX = Math.min(...nodes.map(node => node.position.x)) - config.BOUNDS_PADDING_PX;
-    const minY = Math.min(...nodes.map(node => node.position.y)) - config.BOUNDS_PADDING_PX;
-    const maxX = Math.max(...nodes.map(node => node.position.x + config.NODE_SIZE.width))
+    const rootNodes = nodes.filter(node => !node.parentId);
+    const minX = Math.min(...rootNodes.map(node => node.position.x)) - config.BOUNDS_PADDING_PX;
+    const minY = Math.min(...rootNodes.map(node => node.position.y)) - config.BOUNDS_PADDING_PX;
+    const maxX = Math.max(...rootNodes.map(node =>
+        node.position.x + (isMagicCircleNode(node) ? node.width : config.NODE_SIZE.width)
+    ))
         + config.BOUNDS_PADDING_PX;
-    const maxY = Math.max(...nodes.map(node => node.position.y + config.NODE_SIZE.height))
+    const maxY = Math.max(...rootNodes.map(node =>
+        node.position.y + (isMagicCircleNode(node) ? node.height : config.NODE_SIZE.height)
+    ))
         + config.BOUNDS_PADDING_PX;
 
     return {
@@ -95,7 +113,7 @@ function calculateAspectRatio(
     );
 }
 
-function filterPreviewEdges(edges: readonly Edge[], nodes: readonly MagicNode[]): Edge[] {
+function filterPreviewEdges(edges: readonly Edge[], nodes: readonly MagicEditorNode[]): Edge[] {
     const nodeIds = new Set(nodes.map(node => node.id));
 
     return edges
@@ -104,7 +122,7 @@ function filterPreviewEdges(edges: readonly Edge[], nodes: readonly MagicNode[])
 }
 
 export function buildMagicGraphResultPreview(
-    nodes: readonly MagicNode[],
+    nodes: readonly MagicEditorNode[],
     edges: readonly Edge[],
     config: MagicGraphResultPreviewConfig = MAGIC_GRAPH_RESULT_PREVIEW_CONFIG
 ): MagicGraphResultPreviewModel {

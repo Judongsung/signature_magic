@@ -5,6 +5,7 @@ import {
     resolveCenteredDropPosition,
     resolveCenteredViewport,
     resolveDropPosition,
+    resolveNearestAvailableRectPosition,
     snapPointToGrid,
 } from './editorCanvas';
 
@@ -57,5 +58,45 @@ describe('editorCanvas', () => {
             grid,
             extent
         )).toEqual({ x: -80, y: -40 });
+    });
+
+    it('finds the nearest non-overlapping snapped position for a new circle', () => {
+        const position = resolveNearestAvailableRectPosition(
+            { x: 0, y: 0 },
+            { width: 480, height: 640 },
+            [{ x: 0, y: 0, width: 480, height: 640 }],
+            grid,
+            extent,
+            40
+        );
+
+        expect(position).toEqual({ x: -520, y: 0 });
+    });
+
+    it('keeps searching when every immediately adjacent circle position is occupied', () => {
+        const occupiedRects = [
+            { x: 0, y: 0, width: 480, height: 640 },
+            { x: -520, y: 0, width: 480, height: 640 },
+            { x: 520, y: 0, width: 480, height: 640 },
+        ];
+        const position = resolveNearestAvailableRectPosition(
+            { x: 0, y: 0 },
+            { width: 480, height: 640 },
+            occupiedRects,
+            grid,
+            extent,
+            40
+        );
+
+        expect(occupiedRects.some(rect =>
+            position.x < rect.x + rect.width + 40 &&
+            position.x + 480 + 40 > rect.x &&
+            position.y < rect.y + rect.height + 40 &&
+            position.y + 640 + 40 > rect.y
+        )).toBe(false);
+        expect(position.x).toBeGreaterThanOrEqual(extent[0][0]);
+        expect(position.x + 480).toBeLessThanOrEqual(extent[1][0]);
+        expect(position.y).toBeGreaterThanOrEqual(extent[0][1]);
+        expect(position.y + 640).toBeLessThanOrEqual(extent[1][1]);
     });
 });

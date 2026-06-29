@@ -4,19 +4,24 @@ export const EDITOR_MOUSE_BUTTONS = {
     RIGHT: 2,
 } as const;
 
+export const EDITOR_GRID_SIZE = {
+    WIDTH: 40,
+    HEIGHT: 40,
+} as const;
+
 export const EDITOR_CANVAS = {
-    SNAP_GRID: [40, 40],
+    SNAP_GRID: [EDITOR_GRID_SIZE.WIDTH, EDITOR_GRID_SIZE.HEIGHT],
     EXTENT: [[-1200, -800], [1200, 800]],
     PAN_ON_DRAG_BUTTONS: [EDITOR_MOUSE_BUTTONS.RIGHT],
     INITIAL_VIEWPORT_ZOOM: 1,
     INITIAL_VIEWPORT_DURATION_MS: 0,
     INITIAL_VIEWPORT_CENTER_RETRY_LIMIT: 2,
-    CLICK_PLACEMENT_NODE_SIZE: { width: 80, height: 80 },
     EDGE_INTERACTION_STROKE_WIDTH: 18,
     EDGE_SELECTED_GLOW_STROKE_WIDTH: 9,
 } as const;
 
 export const MAGIC_NODE_CATEGORIES = ['basic', 'action', 'control', 'extension'] as const;
+export const MAGIC_SEQUENCE_DISABLED_NODE_TYPES = ['repeat'] as const;
 
 export type MagicNodeCategory = (typeof MAGIC_NODE_CATEGORIES)[number];
 
@@ -57,6 +62,11 @@ export const MAGIC_REPEAT_CONFIG = {
     INFINITE_CALCULATION_COUNT: 1,
     INFINITE_LABEL: '∞',
     FINITE_LABEL_PREFIX: '×',
+} as const;
+
+export const MAGIC_CIRCLE_METADATA_CONFIG = {
+    NAME_MAX_LENGTH: 80,
+    CAPTION_MAX_LENGTH: 160,
 } as const;
 
 export const MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD = {

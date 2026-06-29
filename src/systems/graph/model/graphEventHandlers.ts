@@ -1,6 +1,9 @@
 ﻿import type { Connection, Edge } from '@xyflow/svelte';
-import type { MagicNode } from '../../../types/magic';
-import type { MagicTypeLookup } from './graphRules';
+import type { MagicEditorNode } from '../../../types/magic';
+import {
+    isConnectionValid,
+    type MagicTypeLookup,
+} from './graphRules';
 import {
     createEdgeUpdate,
     filterEdgesForDeletedNodes,
@@ -12,9 +15,19 @@ import {
     GRAPH_PERFORMANCE_OPERATION_IDS,
     measureGraphOperation,
 } from '../diagnostics/graphPerformance';
+import {
+    getMagicCircleNodes,
+    getMagicUnitNodes,
+    isMagicCircleNode,
+    syncMagicCirclePortCounts,
+} from './magicCircleGraph';
+import {
+    createExplicitMagicCircleEdgeUpdate,
+    isExplicitMagicCircleConnectionValid,
+} from './magicCircleConnectionRules';
 
 export interface GraphSnapshot {
-    nodes: MagicNode[];
+    nodes: MagicEditorNode[];
     edges: Edge[];
 }
 
@@ -27,24 +40,70 @@ export interface GraphEdgePreparation {
     edges: Edge[];
 }
 
+export function isGraphConnectionValid(
+    connection: Connection,
+    snapshot: GraphSnapshot,
+    magicTypes: MagicTypeLookup
+): boolean {
+    return getMagicCircleNodes(snapshot.nodes).length > 0
+        ? isExplicitMagicCircleConnectionValid(
+            connection,
+            snapshot.edges,
+            snapshot.nodes,
+            magicTypes
+        )
+        : isConnectionValid(
+            connection,
+            snapshot.edges,
+            getMagicUnitNodes(snapshot.nodes),
+            magicTypes
+        );
+}
+
 export function prepareGraphEdge(
     connection: Connection,
     snapshot: GraphSnapshot,
     magicTypes: MagicTypeLookup
 ): GraphEdgePreparation | false {
-    return createEdgeUpdate(connection, snapshot.edges, snapshot.nodes, magicTypes);
+    if (getMagicCircleNodes(snapshot.nodes).length > 0) {
+        return createExplicitMagicCircleEdgeUpdate(
+            connection,
+            snapshot.edges,
+            snapshot.nodes,
+            magicTypes
+        );
+    }
+
+    return createEdgeUpdate(
+        connection,
+        snapshot.edges,
+        getMagicUnitNodes(snapshot.nodes),
+        magicTypes
+    );
 }
 
 export function removeDeletedGraphElements(
     snapshot: GraphSnapshot,
-    deletedNodes: MagicNode[],
+    deletedNodes: MagicEditorNode[],
     deletedEdges: Edge[]
 ): GraphSnapshot {
     let { nodes, edges } = snapshot;
     const shouldMaintainSystemNodes = hasSystemNodes(snapshot.nodes) || deletedNodes.some(isSystemMagicNode);
 
     if (deletedNodes.length) {
-        const ids = new Set(deletedNodes.filter(node => !isSystemMagicNode(node)).map(node => node.id));
+        const deletedCircleIds = new Set(
+            deletedNodes.filter(isMagicCircleNode).map(node => node.id)
+        );
+        const explicitlyDeletedIds = new Set(deletedNodes.map(node => node.id));
+        const ids = new Set(
+            nodes
+                .filter(node =>
+                    explicitlyDeletedIds.has(node.id) ||
+                    deletedCircleIds.has(node.parentId ?? '')
+                )
+                .filter(node => !isSystemMagicNode(node))
+                .map(node => node.id)
+        );
         nodes = nodes.filter(node => !ids.has(node.id));
         edges = filterEdgesForDeletedNodes(ids, edges);
     }
@@ -81,20 +140,32 @@ function syncGraphTopologyNow(
     const nodes = hasSystemNodes(snapshot.nodes)
         ? ensureSystemMagicNodes(snapshot.nodes)
         : snapshot.nodes;
-    const edges = normalizeEdgeHandles(snapshot.edges);
-    const nodeRoles = refreshNodeRoles(nodes, edges, magicTypes);
+    const edges = normalizeEdgeHandles(snapshot.edges, nodes);
+    const circlePortUpdate = syncMagicCirclePortCounts(nodes, edges);
+    const nodeRoles = refreshNodeRoles(
+        getMagicUnitNodes(circlePortUpdate.nodes),
+        edges,
+        magicTypes
+    );
+    const updatedUnitNodeById = new Map(
+        nodeRoles.nodes.map(node => [node.id, node])
+    );
+    const updatedNodes = circlePortUpdate.nodes.map(node =>
+        updatedUnitNodeById.get(node.id) ?? node
+    );
     const changed = snapshot.nodes.length !== nodes.length ||
         !areEdgesEquivalent(snapshot.edges, edges) ||
+        circlePortUpdate.changed ||
         nodeRoles.changed;
 
     return {
-        nodes: nodeRoles.nodes,
+        nodes: updatedNodes,
         edges,
         changed,
     };
 }
 
-function hasSystemNodes(nodes: MagicNode[]): boolean {
+function hasSystemNodes(nodes: MagicEditorNode[]): boolean {
     return nodes.some(isSystemMagicNode);
 }
 
