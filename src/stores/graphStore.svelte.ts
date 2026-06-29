@@ -11,6 +11,7 @@ import { magicTypeMap, magicTypes } from '../systems/graph/registry/magicTypeReg
 import {
     activateCircleForUnitSelection,
     getMagicCircleNodes,
+    isMagicCircleNode,
     resolveSelectedUnitCircleId,
     selectOnlyCircle,
 } from '../systems/graph/model/magicCircleGraph';
@@ -31,6 +32,12 @@ import {
 import {
     createEmptyMagicStatEffectBundle,
 } from '../systems/graph/calculation/magicStatEffectBundles';
+import {
+    MAGIC_GRAPH_SELECTION_MODES,
+    normalizeMagicGraphSelection,
+    resolveMagicGraphSelectionTargetCircleId,
+    type MagicGraphSelectionScope,
+} from '../systems/graph/editor/magicGraphSelection';
 import {
     createMagicGraphFromPreset,
     createMagicGraphPresetSnapshot,
@@ -120,6 +127,29 @@ class GraphStore {
         this.selectCircle(
             resolveSelectedUnitCircleId(this.nodes),
             true
+        );
+    }
+
+    applySelectionScope(scope: MagicGraphSelectionScope): void {
+        this.nodes = normalizeMagicGraphSelection(this.nodes, scope);
+        this.edges = this.edges.map(edge =>
+            edge.selected ? { ...edge, selected: false } : edge
+        );
+        this.activeCircleId =
+            resolveMagicGraphSelectionTargetCircleId(this.nodes);
+    }
+
+    syncSelectionForNode(nodeId: string): void {
+        const node = this.nodes.find(candidate => candidate.id === nodeId);
+        if (!node) return;
+
+        this.applySelectionScope(
+            isMagicCircleNode(node)
+                ? { mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES }
+                : {
+                    mode: MAGIC_GRAPH_SELECTION_MODES.UNITS,
+                    circleId: node.parentId ?? '',
+                }
         );
     }
 

@@ -116,7 +116,7 @@ describe('MagicCircleNode', () => {
         const { html } = renderCircle();
 
         expect(html).toContain('branch-connector');
-        expect(html).toContain('V 92');
+        expect(html).toContain('V 100');
     });
 
     it('keeps control-pair connectors in the read-only renderer', () => {

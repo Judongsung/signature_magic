@@ -29,7 +29,7 @@ describe('magicCircleGraph sequence model', () => {
             width: MAGIC_CIRCLE_NODE_CONFIG.DEFAULT_SIZE.width,
             height: MAGIC_CIRCLE_NODE_CONFIG.DEFAULT_SIZE.height,
             dragHandle: MAGIC_CIRCLE_NODE_CONFIG.DRAG_HANDLE_SELECTOR,
-            selectable: false,
+            selectable: true,
             selected: true,
             data: {
                 nodeKind: MAGIC_NODE_KINDS.CIRCLE,

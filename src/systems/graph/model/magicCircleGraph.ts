@@ -90,7 +90,7 @@ export function createMagicCircleNodeFromGeometry(
         width: geometry.width,
         height: geometry.height,
         dragHandle: MAGIC_CIRCLE_NODE_CONFIG.DRAG_HANDLE_SELECTOR,
-        selectable: false,
+        selectable: true,
         selected,
         data: {
             nodeKind: MAGIC_NODE_KINDS.CIRCLE,

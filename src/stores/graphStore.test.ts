@@ -8,6 +8,7 @@ import {
 import { isCircleSystemMagicNode } from '../systems/graph/model/circleSystemMagicNodes';
 import { isSystemMagicNode } from '../systems/graph/model/systemMagicNodes';
 import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../constants/systemMagicNodeConfigs';
+import { MAGIC_GRAPH_SELECTION_MODES } from '../systems/graph/editor/magicGraphSelection';
 import { graphStore } from './graphStore.svelte';
 
 function userNodes() {
@@ -54,6 +55,52 @@ describe('graphStore sequence circles', () => {
             node => isCircleSystemMagicNode(node)
         )).toHaveLength(1);
         expect(userNodes()).toEqual([]);
+    });
+
+    it('keeps multi-circle selection and targets the uppermost circle', () => {
+        const firstCircleId = circleNode().id;
+        const secondCircleId = graphStore.addCircle({ x: 520, y: -800 });
+        graphStore.nodes = graphStore.nodes.map(node =>
+            getMagicCircleNodes(graphStore.nodes).some(circle =>
+                circle.id === node.id
+            )
+                ? { ...node, selected: true }
+                : node
+        );
+
+        graphStore.applySelectionScope({
+            mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES,
+        });
+
+        expect(getMagicCircleNodes(graphStore.nodes)
+            .filter(circle => circle.selected)
+            .map(circle => circle.id)
+        ).toEqual([firstCircleId, secondCircleId]);
+        expect(graphStore.activeCircleId).toBe(secondCircleId);
+    });
+
+    it('drops unit selections from other circles when a node becomes active', () => {
+        const firstCircleId = circleNode().id;
+        graphStore.addNode('ignition', firstCircleId);
+        const secondCircleId = graphStore.addCircle({ x: 520, y: -320 });
+        graphStore.addNode('stream', secondCircleId);
+        const firstUnit = userNodes().find(node =>
+            node.parentId === firstCircleId
+        )!;
+        const secondUnit = userNodes().find(node =>
+            node.parentId === secondCircleId
+        )!;
+        graphStore.nodes = graphStore.nodes.map(node =>
+            node.id === firstUnit.id || node.id === secondUnit.id
+                ? { ...node, selected: true }
+                : node
+        );
+
+        graphStore.syncSelectionForNode(firstUnit.id);
+
+        expect(userNodes().filter(node => node.selected).map(node => node.id))
+            .toEqual([firstUnit.id]);
+        expect(graphStore.activeCircleId).toBe(firstCircleId);
     });
 
     it('appends nodes to the active circle in contiguous sequence order', () => {

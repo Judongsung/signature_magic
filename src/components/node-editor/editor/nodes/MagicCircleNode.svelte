@@ -146,7 +146,7 @@
     data-status={viewModel.status}
     style:width={`${width}px`}
     style:height={`${height}px`}
-    style:pointer-events={draggable ? 'auto' : 'none'}
+    style:pointer-events="none"
     style:cursor="default"
     style:--circle-port-offset={`${MAGIC_CIRCLE_NODE_CONFIG.PORT_OFFSET}px`}
 >

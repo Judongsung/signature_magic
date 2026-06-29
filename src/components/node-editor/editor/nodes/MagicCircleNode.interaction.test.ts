@@ -47,7 +47,7 @@ afterEach(async () => {
 });
 
 describe('MagicCircleNode interaction', () => {
-    it('keeps the empty circle surface clickable with a default cursor', () => {
+    it('lets the empty circle surface fall through to pane selection', () => {
         const [circle] = getMagicCircleNodes(graphStore.nodes);
         const target = document.createElement('div');
         document.body.append(target);
@@ -65,7 +65,7 @@ describe('MagicCircleNode interaction', () => {
             '.magic-circle-node'
         );
 
-        expect(getComputedStyle(circleSurface!).pointerEvents).toBe('auto');
+        expect(getComputedStyle(circleSurface!).pointerEvents).toBe('none');
         expect(getComputedStyle(circleSurface!).cursor).toBe('default');
     });
 

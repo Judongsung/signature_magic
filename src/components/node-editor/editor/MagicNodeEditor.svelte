@@ -61,6 +61,11 @@
     import { provideNodeEditorDetails } from './details/nodeDetailsContext';
     import { isMagicControlPairNode } from '../../../systems/graph/model/magicControlPairs';
     import { isCircleSystemMagicNode } from '../../../systems/graph/model/circleSystemMagicNodes';
+    import {
+        MAGIC_GRAPH_SELECTION_MODES,
+        resolveMagicGraphSelectionScope,
+        type MagicGraphSelectionScope,
+    } from '../../../systems/graph/editor/magicGraphSelection';
 
     let {
         onOpenPresetDialog,
@@ -88,6 +93,9 @@
     let activeCategoryIds = $state<MagicNodeCategory[]>([...DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES]);
     let flowWrapperElement: HTMLDivElement | undefined;
     let draggedNodeOrigins = $state(createMagicNodeDragOrigins([]));
+    let selectionScope = $state<MagicGraphSelectionScope>({
+        mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES,
+    });
     let sequenceDrop = $state<MagicNodeSequenceDrop>({
         targetCircleId: undefined,
         insertionIndex: 0,
@@ -253,6 +261,18 @@
         event.preventDefault();
     }
 
+    function captureSelectionScope(event: PointerEvent): void {
+        if (event.button !== 0 || interactionBlocked) return;
+
+        selectionScope = resolveMagicGraphSelectionScope(
+            screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+            }),
+            getMagicCircleNodes(graphStore.nodes)
+        );
+    }
+
     const onBeforeDelete: OnBeforeDelete<MagicEditorNode, Edge> = async ({ nodes }) => {
         if (!nodes.some(isMagicCircleNode)) return true;
         return window.confirm(NODE_EDITOR_TEXT.CIRCLE_DELETE_CONFIRM);
@@ -266,16 +286,13 @@
         MouseEvent | TouchEvent,
         MagicEditorNode
     > = ({ node }) => {
-        graphStore.selectCircle(
-            isMagicCircleNode(node) ? node.id : node.parentId,
-            !isMagicCircleNode(node)
-        );
+        graphStore.syncSelectionForNode(node.id);
     };
 
     const onNodeDragStart: NodeTargetEventWithPointer<
         MouseEvent | TouchEvent,
         MagicEditorNode
-    > = ({ targetNode, nodes }) => {
+    > = ({ targetNode }) => {
         sequenceDrop = {
             targetCircleId: undefined,
             insertionIndex: 0,
@@ -285,12 +302,20 @@
         };
         graphStore.setSequenceDropPreview(undefined);
         if (targetNode && isMagicCircleNode(targetNode)) {
-            graphStore.selectCircle(targetNode.id);
+            graphStore.applySelectionScope({
+                mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES,
+            });
             draggedNodeOrigins = [];
             return;
         }
 
-        draggedNodeOrigins = createMagicNodeDragOrigins(nodes);
+        if (targetNode?.parentId) {
+            graphStore.applySelectionScope({
+                mode: MAGIC_GRAPH_SELECTION_MODES.UNITS,
+                circleId: targetNode.parentId,
+            });
+        }
+        draggedNodeOrigins = createMagicNodeDragOrigins(graphStore.nodes);
         if (
             draggedNodeOrigins.length === 0 &&
             targetNode &&
@@ -303,7 +328,6 @@
                 sequenceIndex: targetNode.data.sequenceIndex ?? 0,
             }];
         }
-        graphStore.syncActiveCircleFromSelectedUnits();
     };
 
     function readEventScreenPoint(
@@ -388,6 +412,7 @@
     <div
         bind:this={flowWrapperElement}
         class="flow-wrapper"
+        onpointerdowncapture={captureSelectionScope}
         ondragover={onDragOver}
         ondragleave={onDragLeave}
         ondrop={onDrop}
@@ -419,7 +444,7 @@
             onnodedrag={onNodeDrag}
             onnodedragstop={onNodeDragStop}
             onnodecontextmenu={onNodeContextMenu}
-            onselectionend={() => graphStore.syncActiveCircleFromSelectedUnits()}
+            onselectionend={() => graphStore.applySelectionScope(selectionScope)}
             onpaneclick={() => graphStore.selectCircle(undefined)}
             oninit={centerInitialViewport}
             deleteKey={interactionBlocked ? null : 'Delete'}

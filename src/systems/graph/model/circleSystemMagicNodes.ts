@@ -253,6 +253,7 @@ function normalizeCircleSystemMagicNode(
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         connectable: false,
         deletable: false,
+        selectable: false,
         data: {
             ...existingData,
             magicType: config.magicType,
