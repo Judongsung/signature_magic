@@ -39,6 +39,12 @@ import {
     type MagicGraphSelectionScope,
 } from '../systems/graph/editor/magicGraphSelection';
 import {
+    createMagicGraphClipboardPayload,
+    parseMagicGraphClipboardPayload,
+    pasteMagicGraphClipboardPayload,
+    serializeMagicGraphClipboardPayload,
+} from '../systems/graph/model/magicGraphClipboard';
+import {
     createMagicGraphFromPreset,
     createMagicGraphPresetSnapshot,
     hasUserMagicGraphContent,
@@ -76,6 +82,8 @@ class GraphStore {
     signatureMetadata = $state.raw<MagicSignatureMetadata>(createEmptySignatureMetadata());
     private topologySyncScheduled = false;
     private connectionValidationCache: ConnectionValidationCache | undefined;
+    private clipboardFallback: string | undefined;
+    private clipboardPasteCount = 0;
 
     readonly calculation: MagicCalculationResult = $derived(
         calculateMagic(this.nodes, this.edges, magicTypes, this.externalStatEffects)
@@ -151,6 +159,45 @@ class GraphStore {
                     circleId: node.parentId ?? '',
                 }
         );
+    }
+
+    copySelection(): string | false {
+        const payload = createMagicGraphClipboardPayload(this.snapshot());
+        if (!payload) return false;
+
+        const serialized = serializeMagicGraphClipboardPayload(payload);
+        this.clipboardFallback = serialized;
+        this.clipboardPasteCount = 0;
+        return serialized;
+    }
+
+    pasteSelection(serialized?: string): boolean {
+        const clipboardText = serialized || this.clipboardFallback;
+        if (!clipboardText) return false;
+
+        const payload = parseMagicGraphClipboardPayload(clipboardText);
+        if (!payload) return false;
+
+        const isNewClipboardPayload =
+            clipboardText !== this.clipboardFallback;
+        const pasteCount = isNewClipboardPayload
+            ? 1
+            : this.clipboardPasteCount + 1;
+        const update = pasteMagicGraphClipboardPayload(
+            this.snapshot(),
+            payload,
+            magicTypeMap,
+            pasteCount
+        );
+        if (!update) return false;
+
+        this.nodes = update.nodes;
+        this.edges = update.edges;
+        this.activeCircleId = update.activeCircleId;
+        this.clipboardFallback = clipboardText;
+        this.clipboardPasteCount = pasteCount;
+        this.syncTopology();
+        return true;
     }
 
     addNode(

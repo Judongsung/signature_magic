@@ -148,7 +148,14 @@ export function collectMagicControlPairDeletionIds(
     nodes: readonly MagicEditorNode[],
     requestedNodeIds: ReadonlySet<string>
 ): Set<string> {
-    const deletedIds = new Set(requestedNodeIds);
+    return expandMagicControlPairNodeIds(nodes, requestedNodeIds);
+}
+
+export function expandMagicControlPairNodeIds(
+    nodes: readonly MagicEditorNode[],
+    requestedNodeIds: ReadonlySet<string>
+): Set<string> {
+    const expandedIds = new Set(requestedNodeIds);
     const requestedPairIds = new Set(
         nodes
             .filter(isMagicControlPairNode)
@@ -158,11 +165,11 @@ export function collectMagicControlPairDeletionIds(
 
     nodes.filter(isMagicControlPairNode).forEach(node => {
         if (requestedPairIds.has(node.data.controlPair.id)) {
-            deletedIds.add(node.id);
+            expandedIds.add(node.id);
         }
     });
 
-    return deletedIds;
+    return expandedIds;
 }
 
 export function canMoveMagicControlPairsAcrossCircles(

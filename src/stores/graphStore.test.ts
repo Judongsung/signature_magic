@@ -103,6 +103,40 @@ describe('graphStore sequence circles', () => {
         expect(graphStore.activeCircleId).toBe(firstCircleId);
     });
 
+    it('uses the internal clipboard fallback and offsets repeated circle pastes', () => {
+        const originalCircle = circleNode();
+        const serialized = graphStore.copySelection();
+
+        expect(serialized).not.toBe(false);
+        expect(graphStore.pasteSelection()).toBe(true);
+        expect(graphStore.pasteSelection()).toBe(true);
+
+        const circles = getMagicCircleNodes(graphStore.nodes);
+        expect(circles).toHaveLength(3);
+        expect(circles.map(circle => circle.position)).toEqual([
+            originalCircle.position,
+            {
+                x: originalCircle.position.x + 40,
+                y: originalCircle.position.y + 40,
+            },
+            {
+                x: originalCircle.position.x + 80,
+                y: originalCircle.position.y + 80,
+            },
+        ]);
+        expect(new Set(circles.map(circle => circle.id)).size).toBe(3);
+        expect(graphStore.activeCircleId).toBe(circles[2].id);
+    });
+
+    it('ignores unrelated clipboard text without mutating the graph', () => {
+        const nodes = graphStore.nodes;
+        const edges = graphStore.edges;
+
+        expect(graphStore.pasteSelection('plain text')).toBe(false);
+        expect(graphStore.nodes).toBe(nodes);
+        expect(graphStore.edges).toBe(edges);
+    });
+
     it('appends nodes to the active circle in contiguous sequence order', () => {
         expect(graphStore.addNode('ignition')).toBe(true);
         expect(graphStore.addNode('stream')).toBe(true);

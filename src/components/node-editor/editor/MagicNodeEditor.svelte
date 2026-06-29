@@ -66,6 +66,9 @@
         resolveMagicGraphSelectionScope,
         type MagicGraphSelectionScope,
     } from '../../../systems/graph/editor/magicGraphSelection';
+    import {
+        MAGIC_GRAPH_CLIPBOARD_MIME_TYPE,
+    } from '../../../systems/graph/model/magicGraphClipboard';
 
     let {
         onOpenPresetDialog,
@@ -261,6 +264,51 @@
         event.preventDefault();
     }
 
+    function isEditableClipboardTarget(target: EventTarget | null): boolean {
+        if (!(target instanceof HTMLElement)) return false;
+        return Boolean(target.closest(
+            'input, textarea, select, [contenteditable="true"]'
+        ));
+    }
+
+    function handleCopy(event: ClipboardEvent): void {
+        if (
+            interactionBlocked ||
+            isEditableClipboardTarget(event.target)
+        ) {
+            return;
+        }
+
+        const serialized = graphStore.copySelection();
+        if (!serialized) return;
+
+        event.clipboardData?.setData(
+            MAGIC_GRAPH_CLIPBOARD_MIME_TYPE,
+            serialized
+        );
+        event.clipboardData?.setData('text/plain', serialized);
+        event.preventDefault();
+    }
+
+    function handlePaste(event: ClipboardEvent): void {
+        if (
+            interactionBlocked ||
+            isEditableClipboardTarget(event.target)
+        ) {
+            return;
+        }
+
+        const serialized =
+            event.clipboardData?.getData(
+                MAGIC_GRAPH_CLIPBOARD_MIME_TYPE
+            ) ||
+            event.clipboardData?.getData('text/plain') ||
+            undefined;
+        if (!graphStore.pasteSelection(serialized)) return;
+
+        event.preventDefault();
+    }
+
     function captureSelectionScope(event: PointerEvent): void {
         if (event.button !== 0 || interactionBlocked) return;
 
@@ -393,6 +441,8 @@
     };
 
 </script>
+
+<svelte:window oncopy={handleCopy} onpaste={handlePaste} />
 
 <div class="editor-container">
     <MagicNodeToolbar

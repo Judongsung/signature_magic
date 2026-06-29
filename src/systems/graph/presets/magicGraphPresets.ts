@@ -142,11 +142,11 @@ export function createMagicGraphPresetSnapshot(
         id: `${USER_PRESET_ID_PREFIX}-${createId() || USER_PRESET_DEFAULT_ID_SEGMENT}`,
         label: trimmedLabel,
         circles: circleNodes.map(circle =>
-            createPresetCircleFromGraph(circle, snapshot.nodes)
+            createMagicGraphPresetCircleSnapshot(circle, snapshot.nodes)
         ),
         systemNodePositions: systemNodes.map(createPresetSystemNodePositionFromGraph),
         nodes: circleNodes.flatMap(circle =>
-            createPresetNodesFromGraph(snapshot.nodes, circle)
+            createMagicGraphPresetNodeSnapshots(snapshot.nodes, circle)
         ),
         edges: snapshot.edges
             .filter(edge =>
@@ -162,7 +162,7 @@ export function createMagicGraphPresetSnapshot(
                     snapshot.nodes
                 )
             )
-            .map(createPresetEdgeFromGraph),
+            .map(createMagicGraphPresetEdgeSnapshot),
     };
 }
 
@@ -354,7 +354,7 @@ function createPresetSystemNodePositionFromGraph(node: MagicNode): MagicGraphPre
     };
 }
 
-function createPresetCircleFromGraph(
+export function createMagicGraphPresetCircleSnapshot(
     circle: MagicCircleNode,
     nodes: readonly MagicEditorNode[]
 ): MagicGraphPresetCircleConfig {
@@ -372,17 +372,17 @@ function createPresetCircleFromGraph(
     };
 }
 
-function createPresetNodesFromGraph(
+export function createMagicGraphPresetNodeSnapshots(
     nodes: readonly MagicEditorNode[],
     circle: MagicCircleNode
 ): MagicGraphPresetNodeConfig[] {
     return getCircleEditableSequenceNodes(nodes, circle.id)
         .map((node, sequenceIndex) =>
-            createPresetNodeFromGraph(node, sequenceIndex)
+            createMagicGraphPresetNodeSnapshot(node, sequenceIndex)
         );
 }
 
-function createPresetNodeFromGraph(
+export function createMagicGraphPresetNodeSnapshot(
     node: MagicNode,
     sequenceIndex: number
 ): MagicGraphPresetNodeConfig {
@@ -398,7 +398,9 @@ function createPresetNodeFromGraph(
     };
 }
 
-function createPresetEdgeFromGraph(edge: Edge): MagicGraphPresetEdgeConfig {
+export function createMagicGraphPresetEdgeSnapshot(
+    edge: Edge
+): MagicGraphPresetEdgeConfig {
     return {
         id: edge.id || `${MAGIC_EDGE_ID_PREFIX}-${createUniqueId()}`,
         source: edge.source,

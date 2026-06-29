@@ -219,13 +219,49 @@ export function addMagicNodeToCircle(
         ? resolveDefaultMagicNodeInsertionIndex(children)
         : Math.max(0, Math.min(Math.trunc(insertionIndex), children.length));
     const addedNodes = createSequenceNodes(magicType);
+
+    return insertMagicNodesIntoCircle(
+        nodes,
+        addedNodes,
+        circleId,
+        safeInsertionIndex
+    );
+}
+
+export function insertMagicNodesIntoCircle(
+    nodes: readonly MagicEditorNode[],
+    insertedNodes: readonly MagicNode[],
+    circleId: string | undefined,
+    insertionIndex?: number
+): { nodes: MagicEditorNode[]; added: boolean } {
+    const circle = getMagicCircleNodes(nodes)
+        .find(candidate => candidate.id === circleId);
+    const existingIds = new Set(nodes.map(node => node.id));
+    const insertedIds = new Set(insertedNodes.map(node => node.id));
+    if (
+        !circle ||
+        insertedNodes.length === 0 ||
+        insertedIds.size !== insertedNodes.length ||
+        insertedNodes.some(node =>
+            existingIds.has(node.id) ||
+            !isMagicTypeAllowedInCircleSequence(node.data.magicType) ||
+            isCircleSystemMagicNode(node)
+        )
+    ) {
+        return { nodes: [...nodes], added: false };
+    }
+
+    const children = getCircleChildNodes(nodes, circle.id);
+    const safeInsertionIndex = insertionIndex === undefined
+        ? resolveDefaultMagicNodeInsertionIndex(children)
+        : Math.max(0, Math.min(Math.trunc(insertionIndex), children.length));
     const nextChildren = [
         ...children.slice(0, safeInsertionIndex),
-        ...addedNodes,
+        ...insertedNodes,
         ...children.slice(safeInsertionIndex),
     ];
     const candidateNodes = replaceCircleAndChildren(
-        [...nodes, ...addedNodes],
+        [...nodes, ...insertedNodes],
         circle,
         nextChildren
     );
