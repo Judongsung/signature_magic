@@ -3,6 +3,8 @@ import {
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
+    MAGIC_NODE_WEIGHT_CONFIG,
+    MAGIC_NODE_WEIGHT_EDITOR_FIELD,
     MAGIC_REPEAT_CONFIG,
 } from '../../../constants/nodeEditorConfigs';
 import {
@@ -21,6 +23,7 @@ import type {
 } from '../../../types/magic';
 import { readMagicTypeConfig, type MagicTypeLookup } from './magicTypeLookup';
 import { isMagicCircleNode } from './magicCircleGraph';
+import { canMagicTypeUseNodeWeight } from './magicNodeWeight';
 
 const SYSTEM_MAGIC_TYPE_IDS = new Set<string>([
     ...SYSTEM_MAGIC_TYPE_CONFIGS.map(config => config.type),
@@ -51,12 +54,19 @@ export function getMagicNodeEditorFields(
         field.key === MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD.key ||
         field.presentation === MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_CAPTION
     );
+    const commonFields = canMagicTypeUseNodeWeight(config)
+        ? [MAGIC_NODE_WEIGHT_EDITOR_FIELD]
+        : [];
 
     if (SYSTEM_MAGIC_TYPE_IDS.has(config.type) || hasCaptionOverride) {
-        return configuredFields;
+        return [...configuredFields, ...commonFields];
     }
 
-    return [...configuredFields, MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD];
+    return [
+        ...configuredFields,
+        ...commonFields,
+        MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD,
+    ];
 }
 
 export function normalizeMagicNodeSettings(
@@ -92,14 +102,28 @@ export function resolveMagicNodeLabel(
     );
 
     const baseLabel = customLabel || config?.label || data.magicType;
-    const suffixValue = resolveMagicNodePresentationValue(
-        data,
-        config,
-        MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX
+    const suffixField = getMagicNodeEditorFields(config).find(
+        candidate =>
+            candidate.presentation ===
+            MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX
     );
-    if (suffixValue === undefined) return baseLabel;
+    if (!suffixField) return baseLabel;
 
-    const suffix = Number(suffixValue) === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
+    const suffixValue = getMagicNodeEditorFieldDraftValue(
+        suffixField,
+        data.settings
+    ).trim();
+    if (
+        suffixField.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.NODE_WEIGHT &&
+        Number(suffixValue) === MAGIC_NODE_WEIGHT_CONFIG.DEFAULT
+    ) {
+        return baseLabel;
+    }
+
+    const suffix = (
+        suffixField.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT &&
+        Number(suffixValue) === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
+    )
         ? MAGIC_REPEAT_CONFIG.INFINITE_LABEL
         : `${MAGIC_REPEAT_CONFIG.FINITE_LABEL_PREFIX}${suffixValue}`;
 

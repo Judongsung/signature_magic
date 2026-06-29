@@ -48,6 +48,10 @@ import { untrack } from 'svelte';
     let draftSettings = $state<MagicNodeSettings>(untrack(() => Object.fromEntries(
         fields.map(field => [field.key, getMagicNodeEditorFieldDraftValue(field, node.data.settings)])
     )));
+    const draftNodeData = $derived({
+        settings: draftSettings,
+        nodeKind: node.data.nodeKind,
+    });
 
     function saveSettings(event: SubmitEvent) {
         event.preventDefault();
@@ -126,6 +130,7 @@ import { untrack } from 'svelte';
                     magicType={config.type}
                     nodeCategory={config.category}
                     nodeStatBounds={config.statBounds}
+                    nodeData={draftNodeData}
                 />
             </section>
 

@@ -1,4 +1,7 @@
-import { MAGIC_NODE_EDITOR_PRESENTATIONS } from '../../../constants/nodeEditorConfigs';
+import {
+    MAGIC_NODE_EDITOR_PRESENTATIONS,
+    MAGIC_NODE_WEIGHT_CONFIG,
+} from '../../../constants/nodeEditorConfigs';
 import { describe, expect, it } from 'vitest';
 import { MAGIC_NODE_EDITOR_CONTROLS } from '../../../constants/nodeEditorConfigs';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
@@ -66,6 +69,8 @@ describe('magicNodeData', () => {
         expect(normalizeMagicNodeSettings(plainType, {
             caption: '  불꽃을 일으킨다  ',
         })).toEqual({ caption: '불꽃을 일으킨다' });
+        expect(getMagicNodeEditorFields(plainType).map(field => field.key))
+            .toEqual([MAGIC_NODE_WEIGHT_CONFIG.KEY, 'caption']);
     });
 
     it('normalizes only declared settings and applies field length limits', () => {
@@ -81,6 +86,32 @@ describe('magicNodeData', () => {
     it('resolves the node label through the configured presentation target', () => {
         expect(resolveMagicNodeLabel(node({ displayName: '별빛' }).data, configurableType)).toBe('별빛');
         expect(resolveMagicNodeLabel(node().data, configurableType)).toBe('커스텀');
+        expect(resolveMagicNodeLabel(
+            node({ displayName: '별빛', weight: '3' }).data,
+            configurableType
+        )).toBe('별빛 ×3');
+    });
+
+    it('normalizes eligible weights and removes weights from extension nodes', () => {
+        const detectType = getMagicTypeConfig('detect')!;
+        const diffuseType = getMagicTypeConfig('diffuse')!;
+
+        expect(normalizeMagicNodeSettings(plainType, { weight: '1' }))
+            .toBeUndefined();
+        expect(normalizeMagicNodeSettings(plainType, { weight: '120' }))
+            .toEqual({ weight: '99' });
+        expect(normalizeMagicNodeSettings(diffuseType, { weight: '4' }))
+            .toEqual({ weight: '4' });
+        expect(normalizeMagicNodeSettings(detectType, { weight: '4' }))
+            .toBeUndefined();
+        expect(resolveMagicNodeLabel(
+            { magicType: plainType.type, settings: { weight: '2' } },
+            plainType
+        )).toBe('점화 ×2');
+        expect(resolveMagicNodeLabel(
+            { magicType: plainType.type },
+            plainType
+        )).toBe('점화');
     });
 
     it('resolves and trims the node caption through its presentation target', () => {

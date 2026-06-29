@@ -5,12 +5,16 @@ import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/nodeEditorConfigs
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { hasMagicStatRuleForEveryKey } from './magicStatRules';
 
-function node(id: string, magicType: MagicType): MagicNode {
+function node(
+    id: string,
+    magicType: MagicType,
+    settings?: Record<string, string>
+): MagicNode {
     return {
         id,
         type: 'magicNode',
         position: { x: 0, y: 0 },
-        data: { magicType },
+        data: { magicType, settings },
     };
 }
 
@@ -195,6 +199,67 @@ describe('calculateMagicStats', () => {
             range: 6,
             manaCost: 6,
             duration: 6,
+        });
+    });
+
+    it('applies node effects, bounds, weight, and repeats in that order', () => {
+        const nodes = [node('a', 'ignition', { weight: '3' })];
+        const magicTypes = buildMagicTypeMap([
+            magicType('ignition', 2, {
+                category: 'action',
+                statBounds: { power: { maximum: 5 } },
+            }),
+        ]);
+
+        expectStatsClose(calculateMagicStats(
+            nodes,
+            [],
+            magicTypes,
+            'total',
+            [{
+                phase: 'node',
+                operation: 'add',
+                stat: 'power',
+                value: 10,
+            }],
+            undefined,
+            new Map([['a', 2]])
+        ), {
+            castingTime: 12,
+            instability: 6,
+            power: 30,
+            range: 36,
+            manaCost: 12,
+            duration: 4,
+        });
+    });
+
+    it('weights sustain duration but ignores weight on extension nodes', () => {
+        const sustainStats = calculateMagicStats(
+            [node('sustain', 'sustain', { weight: '3' })],
+            [],
+            buildMagicTypeMap([
+                magicType('sustain', 2, { category: 'control' }),
+            ]),
+            'total'
+        );
+        const extensionStats = calculateMagicStats(
+            [node('detect', 'detect', { weight: '9' })],
+            [],
+            buildMagicTypeMap([
+                magicType('detect', 2, { category: 'extension' }),
+            ]),
+            'total'
+        );
+
+        expect(sustainStats.duration).toBe(6);
+        expect(extensionStats).toEqual({
+            castingTime: 2,
+            instability: 2,
+            power: 2,
+            range: 2,
+            manaCost: 2,
+            duration: 2,
         });
     });
 });

@@ -274,6 +274,32 @@ describe('dataValidation', () => {
         });
     });
 
+    it('requires node weight behavior to use a stepper label suffix', () => {
+        const validation = validateMagicTypes([{
+            type: 'weighted',
+            label: 'Weighted',
+            icon: '',
+            color: '#fff',
+            category: 'basic',
+            description: 'desc',
+            stats,
+            instanceEditor: {
+                fields: [{
+                    key: 'weight',
+                    label: 'Weight',
+                    control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
+                    presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL,
+                    behavior: MAGIC_NODE_EDITOR_BEHAVIORS.NODE_WEIGHT,
+                }],
+            },
+        }], MAGIC_NODE_CATEGORIES);
+
+        expect(validation.errors).toEqual([
+            'Invalid node weight control: weighted -> 0',
+            'Invalid node weight presentation: weighted -> 0',
+        ]);
+    });
+
     it('reports invalid magic graph preset data', () => {
         const validation = validateMagicGraphPresets(
             [

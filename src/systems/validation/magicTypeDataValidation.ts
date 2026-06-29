@@ -209,6 +209,12 @@ function validateMagicNodeInstanceEditor(
             errors.push(`Invalid repeat count control: ${type} -> ${index}`);
         }
         if (
+            field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.NODE_WEIGHT &&
+            field.control !== MAGIC_NODE_EDITOR_CONTROLS.STEPPER
+        ) {
+            errors.push(`Invalid node weight control: ${type} -> ${index}`);
+        }
+        if (
             field.presentation === MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX &&
             field.control !== MAGIC_NODE_EDITOR_CONTROLS.STEPPER
         ) {
@@ -219,6 +225,12 @@ function validateMagicNodeInstanceEditor(
             field.presentation !== MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX
         ) {
             errors.push(`Invalid repeat count presentation: ${type} -> ${index}`);
+        }
+        if (
+            field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.NODE_WEIGHT &&
+            field.presentation !== MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX
+        ) {
+            errors.push(`Invalid node weight presentation: ${type} -> ${index}`);
         }
     });
 

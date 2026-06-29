@@ -162,6 +162,38 @@ describe('MagicNodeDetailsDialog', () => {
         expect(increase.disabled).toBe(true);
     });
 
+    it('edits an eligible node weight and previews weighted stats', async () => {
+        const { target, onSave } = mountDialog('ignition');
+        const stepper = target.querySelector<HTMLElement>(
+            '.node-details-stepper'
+        )!;
+        const increase = stepper.querySelector<HTMLButtonElement>(
+            `button[aria-label="가중치 ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INCREASE}"]`
+        )!;
+
+        expect(stepper.querySelector('output')?.textContent).toBe('1');
+        expect(target.querySelector('.stat-adjustment')).toBeNull();
+
+        increase.click();
+        await tick();
+
+        expect(stepper.querySelector('output')?.textContent).toBe('2');
+        expect(target.querySelector('.stat-adjustment')).not.toBeNull();
+
+        target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
+            bubbles: true,
+            cancelable: true,
+        }));
+        expect(onSave).toHaveBeenCalledWith({ weight: '2' });
+    });
+
+    it('does not offer a weight stepper for extension nodes', () => {
+        const { target } = mountDialog('detect');
+
+        expect(target.querySelector('.node-details-stepper')).toBeNull();
+        expect(target.textContent).not.toContain('가중치');
+    });
+
     it('renders JSON-configured fields and saves normalized custom settings', () => {
         const { target, onSave } = mountDialog('custom', { displayName: '기존 이름' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;

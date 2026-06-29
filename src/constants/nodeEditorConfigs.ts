@@ -27,6 +27,18 @@ export type MagicNodeCategory = (typeof MAGIC_NODE_CATEGORIES)[number];
 
 export const DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES: MagicNodeCategory[] = ['basic'];
 
+export const MAGIC_NODE_WEIGHT_CONFIG = {
+    KEY: 'weight',
+    MIN: 1,
+    MAX: 99,
+    STEP: 1,
+    DEFAULT: 1,
+    LABEL: '가중치',
+    LABEL_PREFIX: '×',
+    EXCLUDED_CATEGORY: 'extension',
+    DURATION_WEIGHTED_MAGIC_TYPE: 'sustain',
+} as const;
+
 export const MAGIC_EDITOR_GUIDE_PATH = './magic-editor-guide.html';
 
 export const MAGIC_CONNECTION_RULE_KEYS = {
@@ -52,6 +64,7 @@ export type MagicNodeEditorPresentation =
 
 export const MAGIC_NODE_EDITOR_BEHAVIORS = {
     REPEAT_COUNT: 'repeatCount',
+    NODE_WEIGHT: 'nodeWeight',
 } as const;
 
 export type MagicNodeEditorBehavior =
@@ -76,4 +89,17 @@ export const MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD = {
     maxLength: 80,
     placeholder: '노드 캡션을 입력하세요.',
     presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_CAPTION,
+} as const;
+
+export const MAGIC_NODE_WEIGHT_EDITOR_FIELD = {
+    key: MAGIC_NODE_WEIGHT_CONFIG.KEY,
+    label: MAGIC_NODE_WEIGHT_CONFIG.LABEL,
+    control: MAGIC_NODE_EDITOR_CONTROLS.STEPPER,
+    min: MAGIC_NODE_WEIGHT_CONFIG.MIN,
+    max: MAGIC_NODE_WEIGHT_CONFIG.MAX,
+    step: MAGIC_NODE_WEIGHT_CONFIG.STEP,
+    defaultValue: MAGIC_NODE_WEIGHT_CONFIG.DEFAULT,
+    helpText: '지속 시간을 제외한 노드 스탯에 적용됩니다. 유지 노드는 지속 시간에도 적용됩니다.',
+    presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX,
+    behavior: MAGIC_NODE_EDITOR_BEHAVIORS.NODE_WEIGHT,
 } as const;

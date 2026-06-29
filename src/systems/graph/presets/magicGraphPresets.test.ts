@@ -196,6 +196,29 @@ describe('magicGraphPresets v6', () => {
             .toEqual(pairedPreset.circles[0].systemNodeSlots);
     });
 
+    it('keeps valid weights and removes weights from extension presets', () => {
+        const weightedPreset: MagicGraphPresetConfig = {
+            ...preset,
+            nodes: [
+                {
+                    ...preset.nodes[0],
+                    settings: { weight: '3' },
+                },
+                {
+                    ...preset.nodes[1],
+                    magicType: 'detect',
+                    settings: { weight: '7' },
+                },
+            ],
+        };
+        const graph = createMagicGraphFromPreset(weightedPreset, magicTypes);
+
+        expect(graph.nodes.find(node => node.id === 'test-ignition')
+            ?.data.settings).toEqual({ weight: '3' });
+        expect(graph.nodes.find(node => node.id === 'test-stream')
+            ?.data.settings).toBeUndefined();
+    });
+
     it('filters stale internal edges from snapshots', () => {
         const graph = createMagicGraphFromPreset(preset, magicTypes);
         graph.edges.push({

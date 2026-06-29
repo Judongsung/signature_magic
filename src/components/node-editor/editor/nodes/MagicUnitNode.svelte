@@ -221,6 +221,7 @@
                 magicType={nodeConfig.type}
                 nodeCategory={nodeConfig.category}
                 nodeStatBounds={nodeConfig.statBounds}
+                nodeData={data}
             />
         </DescriptionTooltip>
     {/if}

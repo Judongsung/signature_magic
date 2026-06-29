@@ -4,6 +4,7 @@
         EMPTY_MAGIC_STATS,
         MAGIC_STAT_KEYS,
         type MagicNodeStatBoundsConfig,
+        type MagicNodeData,
         type MagicStatEffectConfig,
         type MagicStatsConfig,
         type MagicType,
@@ -18,6 +19,7 @@
         formatMagicStat,
         formatMagicStatAdjustment,
     } from '../../../systems/graph/presentation/magicStatFormatting';
+    import { applyMagicNodeWeightToStat } from '../../../systems/graph/model/magicNodeWeight';
 
     let {
         stats,
@@ -25,12 +27,14 @@
         magicType,
         nodeCategory,
         nodeStatBounds,
+        nodeData,
     }: {
         stats?: MagicStatsConfig;
         nodeStatEffects?: readonly MagicStatEffectConfig[];
         magicType?: MagicType;
         nodeCategory?: MagicNodeCategory;
         nodeStatBounds?: MagicNodeStatBoundsConfig;
+        nodeData?: Pick<MagicNodeData, 'settings' | 'nodeKind'>;
     } = $props();
 
     const applicableNodeStatEffects = $derived(filterMagicStatEffectsForNode(
@@ -45,10 +49,20 @@
     ));
     const tooltipStats = $derived(MAGIC_STAT_KEYS.map((statKey) => {
         const baseValue = stats?.[statKey] ?? EMPTY_MAGIC_STATS[statKey];
-        const adjustedValue = MAGIC_STAT_RULES[statKey].clampNodeValue(
+        const boundedValue = MAGIC_STAT_RULES[statKey].clampNodeValue(
             applyMagicStatEffects(baseValue, statKey, applicableNodeStatEffects),
             nodeStatBounds
         );
+        const adjustedValue = nodeData
+            ? applyMagicNodeWeightToStat(
+                boundedValue,
+                statKey,
+                nodeData,
+                magicType && nodeCategory
+                    ? { type: magicType, category: nodeCategory }
+                    : undefined
+            )
+            : boundedValue;
 
         return {
             key: statKey,

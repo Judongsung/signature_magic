@@ -23,6 +23,7 @@ import {
 } from './magicGraphAnalysis';
 import { findNearestCommonReachableNode } from '../topology/graphTraversal';
 import type { MagicNodeExecutionCounts } from './magicRepeatCalculation';
+import { applyMagicNodeWeightToStat } from '../model/magicNodeWeight';
 
 const EMPTY_NODE_EXECUTION_COUNTS: MagicNodeExecutionCounts = new Map();
 const DEFAULT_NODE_EXECUTION_COUNT = 1;
@@ -315,16 +316,25 @@ function readNodeStats(
                 statKey,
                 nodeStatEffectSummary
             );
-            const value = MAGIC_STAT_RULES[statKey].clampNodeValue(
+            const boundedValue = MAGIC_STAT_RULES[statKey].clampNodeValue(
                 adjustedValue,
                 magicType?.statBounds
+            );
+            const weightedValue = applyMagicNodeWeightToStat(
+                boundedValue,
+                statKey,
+                node.data,
+                magicType
             );
 
             return [
                 statKey,
                 statKey === NON_REPEATABLE_STAT_KEY
-                    ? value
-                    : MAGIC_STAT_RULES[statKey].repeatSerialValue(value, executionCount),
+                    ? weightedValue
+                    : MAGIC_STAT_RULES[statKey].repeatSerialValue(
+                        weightedValue,
+                        executionCount
+                    ),
             ];
         })
     ) as MagicStats;

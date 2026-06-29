@@ -286,6 +286,49 @@ describe('magicGraphClipboard', () => {
         ]);
     });
 
+    it('removes disallowed weight settings while pasting units', () => {
+        const sourceCircle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'source-weight'
+        );
+        const sourceNode = {
+            ...attachNodeToCircle(
+                createTestMagicNode('weighted-detect', 'detect', {
+                    settings: { weight: '7' },
+                }),
+                sourceCircle,
+                0
+            ),
+            selected: true,
+        };
+        const payload = requirePayload(createMagicGraphClipboardPayload({
+            nodes: [{ ...sourceCircle, selected: false }, sourceNode],
+            edges: [],
+        }));
+        const targetCircle = {
+            ...createMagicCircleNode(
+                { x: 0, y: 0 },
+                () => 'target-weight'
+            ),
+            selected: true,
+        };
+        const result = requirePasteResult(pasteMagicGraphClipboardPayload(
+            {
+                nodes: normalizeMagicCircleSequences([targetCircle]),
+                edges: [],
+            },
+            payload,
+            magicTypeMap,
+            1,
+            sequentialIdFactory()
+        ));
+
+        expect(getCircleEditableSequenceNodes(
+            result.nodes,
+            targetCircle.id
+        )[0].data.settings).toBeUndefined();
+    });
+
     it('round-trips supported payloads and rejects malformed versions', () => {
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },

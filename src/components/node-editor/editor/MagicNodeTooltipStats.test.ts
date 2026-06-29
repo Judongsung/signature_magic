@@ -22,4 +22,19 @@ describe('MagicNodeTooltipStats', () => {
         expect(html).toContain('(+1)');
         expect((html.match(/stat-adjustment/g) ?? [])).toHaveLength(2);
     });
+
+    it('shows weighted values while leaving regular duration unchanged', () => {
+        const { html } = render(MagicNodeTooltipStats, {
+            props: {
+                stats: { castingTime: 2, duration: 3 },
+                magicType: 'ignition',
+                nodeCategory: 'action',
+                nodeData: { settings: { weight: '2' } },
+            },
+        });
+
+        expect(html).toContain('4');
+        expect(html).toContain('(+2)');
+        expect((html.match(/stat-adjustment/g) ?? [])).toHaveLength(1);
+    });
 });
