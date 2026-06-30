@@ -140,7 +140,8 @@ function isMagicGraphPresetCircleSystemNodeSlotConfig(value: unknown): boolean {
 
     return typeof value.magicType === 'string' &&
         Number.isInteger(value.slotIndex) &&
-        Number(value.slotIndex) >= 0;
+        Number(value.slotIndex) >= 0 &&
+        isOptionalMagicNodeSettings(value.settings);
 }
 
 function hasValidCircleSystemNodeSlots(

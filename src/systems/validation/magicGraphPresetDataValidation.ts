@@ -11,6 +11,7 @@ import {
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
     INITIAL_SYSTEM_MAGIC_NODE_CONFIGS,
+    SYSTEM_MAGIC_TYPE_CONFIGS,
 } from '../../constants/systemMagicNodeConfigs';
 import type { MagicGraphPresetConfig, MagicTypeConfig } from '../../types/magic';
 import { getMagicNodeEditorFields } from '../graph/model/magicNodeData';
@@ -62,7 +63,7 @@ export function validateMagicGraphPresets(
             errors.push(`Missing magic graph preset label: ${preset.id}`);
         }
         errors.push(...validatePresetSystemNodePositions(preset));
-        errors.push(...validatePresetCircles(preset));
+        errors.push(...validatePresetCircles(preset, magicTypes));
         errors.push(...validatePresetNodes(preset, magicTypes));
         errors.push(...validatePresetEdges(preset));
         errors.push(...collectMagicGraphPresetReferenceErrors(preset, magicTypes));
@@ -82,7 +83,10 @@ function isMagicGraphPresetArray(value: unknown): value is Record<string, unknow
     );
 }
 
-function validatePresetCircles(preset: MagicGraphPresetConfig): string[] {
+function validatePresetCircles(
+    preset: MagicGraphPresetConfig,
+    magicTypes: MagicTypeConfig[]
+): string[] {
     const errors: string[] = [];
 
     errors.push(...collectDuplicateErrors(
@@ -122,7 +126,8 @@ function validatePresetCircles(preset: MagicGraphPresetConfig): string[] {
             preset.id,
             circle.id,
             circle.systemNodeSlots,
-            editableNodeCount
+            editableNodeCount,
+            magicTypes
         ));
         if (
             circle.name !== undefined &&
@@ -151,7 +156,8 @@ function validatePresetCircleSystemNodeSlots(
     presetId: string,
     circleId: string,
     slots: MagicGraphPresetConfig['circles'][number]['systemNodeSlots'],
-    editableNodeCount: number
+    editableNodeCount: number,
+    magicTypes: MagicTypeConfig[]
 ): string[] {
     const errors: string[] = [];
     if (!Array.isArray(slots)) {
@@ -179,6 +185,13 @@ function validatePresetCircleSystemNodeSlots(
         }
 
         actualMagicTypes.add(slot.magicType);
+        errors.push(...validatePresetSettings(
+            presetId,
+            `${circleId}:${slot.magicType}`,
+            slot.magicType,
+            slot.settings,
+            [...SYSTEM_MAGIC_TYPE_CONFIGS, ...magicTypes]
+        ));
     });
 
     if (
@@ -381,25 +394,41 @@ function validatePresetNodeSettings(
     node: MagicGraphPresetConfig['nodes'][number],
     magicTypes: MagicTypeConfig[]
 ): string[] {
-    if (node.settings === undefined) return [];
-    if (!isPlainObject(node.settings)) {
-        return [`Invalid magic graph preset node settings: ${presetId} -> ${node.id}`];
+    return validatePresetSettings(
+        presetId,
+        node.id,
+        node.magicType,
+        node.settings,
+        magicTypes
+    );
+}
+
+function validatePresetSettings(
+    presetId: string,
+    subjectId: string,
+    magicType: string,
+    settings: unknown,
+    magicTypes: readonly MagicTypeConfig[]
+): string[] {
+    if (settings === undefined) return [];
+    if (!isPlainObject(settings)) {
+        return [`Invalid magic graph preset node settings: ${presetId} -> ${subjectId}`];
     }
 
     const errors: string[] = [];
-    const config = magicTypes.find(magicType => magicType.type === node.magicType);
+    const config = magicTypes.find(config => config.type === magicType);
     const fieldByKey = new Map(
         getMagicNodeEditorFields(config).map(field => [field.key, field])
     );
 
-    Object.entries(node.settings).forEach(([key, value]) => {
+    Object.entries(settings).forEach(([key, value]) => {
         const field = fieldByKey.get(key);
         if (!field) {
-            errors.push(`Unknown magic graph preset node setting: ${presetId} -> ${node.id} -> ${key}`);
+            errors.push(`Unknown magic graph preset node setting: ${presetId} -> ${subjectId} -> ${key}`);
             return;
         }
         if (!isNonEmptyString(value)) {
-            errors.push(`Invalid magic graph preset node setting value: ${presetId} -> ${node.id} -> ${key}`);
+            errors.push(`Invalid magic graph preset node setting value: ${presetId} -> ${subjectId} -> ${key}`);
             return;
         }
         if (
@@ -407,7 +436,7 @@ function validatePresetNodeSettings(
             field.maxLength !== undefined &&
             value.trim().length > field.maxLength
         ) {
-            errors.push(`Magic graph preset node setting is too long: ${presetId} -> ${node.id} -> ${key}`);
+            errors.push(`Magic graph preset node setting is too long: ${presetId} -> ${subjectId} -> ${key}`);
         }
         if (field.control === MAGIC_NODE_EDITOR_CONTROLS.STEPPER) {
             const numericValue = Number(value);
@@ -418,7 +447,7 @@ function validatePresetNodeSettings(
                 numericValue < field.min ||
                 numericValue > field.max
             ) {
-                errors.push(`Invalid magic graph preset stepper setting: ${presetId} -> ${node.id} -> ${key}`);
+                errors.push(`Invalid magic graph preset stepper setting: ${presetId} -> ${subjectId} -> ${key}`);
             }
         }
     });

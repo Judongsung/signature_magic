@@ -8,6 +8,7 @@ import {
 import {
     MAGIC_GRAPH_SELECTION_MODES,
     normalizeMagicGraphSelection,
+    resolveMagicGraphCircleClickTargetId,
     resolveMagicGraphSelectionScope,
     resolveMagicGraphSelectionTargetCircleId,
     resolveUppermostSelectedCircle,
@@ -29,6 +30,14 @@ describe('magicGraphSelection', () => {
             { x: 1000, y: 1000 },
             [back, front]
         )).toEqual({ mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES });
+        expect(resolveMagicGraphCircleClickTargetId(
+            { x: 100, y: 100 },
+            [back, front]
+        )).toBe(front.id);
+        expect(resolveMagicGraphCircleClickTargetId(
+            { x: 1000, y: 1000 },
+            [back, front]
+        )).toBeUndefined();
     });
 
     it('keeps only editable units from the scoped circle', () => {

@@ -4,6 +4,9 @@ import {
     type MagicNode,
     type MagicTypeConfig,
 } from '../types/magic';
+import {
+    MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD,
+} from './nodeEditorConfigs';
 
 export interface CircleSystemMagicNodeConfig {
     magicType: MagicType;
@@ -31,6 +34,9 @@ export const SYSTEM_MAGIC_TYPE_CONFIGS: MagicTypeConfig[] = [
         category: 'control',
         description: '서클에서 형성된 마법을 다른 서클에 전파하거나 최종 발현한다.',
         connectionLimits: { maxInputs: 0, maxOutputs: 0 },
+        instanceEditor: {
+            fields: [MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD],
+        },
         stats: EMPTY_MAGIC_STATS,
     },
 ];

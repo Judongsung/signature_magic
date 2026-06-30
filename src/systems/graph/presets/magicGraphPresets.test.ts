@@ -219,6 +219,37 @@ describe('magicGraphPresets v6', () => {
             ?.data.settings).toBeUndefined();
     });
 
+    it('round-trips manifestation captions through circle system slots', () => {
+        const captionedPreset: MagicGraphPresetConfig = {
+            ...preset,
+            circles: [{
+                ...preset.circles[0],
+                systemNodeSlots: [{
+                    ...preset.circles[0].systemNodeSlots[0],
+                    settings: { caption: '최종 발현' },
+                }],
+            }],
+        };
+        const graph = createMagicGraphFromPreset(
+            captionedPreset,
+            magicTypes
+        );
+        const manifestation = graph.nodes.find(node =>
+            isCircleSystemMagicNode(node)
+        );
+        const saved = createMagicGraphPresetSnapshot(
+            'Captioned',
+            graph,
+            () => 'captioned'
+        );
+
+        expect(manifestation?.data.settings).toEqual({
+            caption: '최종 발현',
+        });
+        expect(saved && saved.circles[0].systemNodeSlots[0].settings)
+            .toEqual({ caption: '최종 발현' });
+    });
+
     it('filters stale internal edges from snapshots', () => {
         const graph = createMagicGraphFromPreset(preset, magicTypes);
         graph.edges.push({
@@ -285,6 +316,25 @@ describe('magicGraphPresets v6', () => {
         expect(loadStoredMagicGraphPresets(storage)).toEqual([pairedPreset]);
         expect(deleteStoredMagicGraphPreset(pairedPreset.id, storage))
             .toEqual([]);
+    });
+
+    it('loads optional manifestation caption settings from v6 storage', () => {
+        const storage = new MemoryStorage();
+        const captionedPreset: MagicGraphPresetConfig = {
+            ...preset,
+            circles: [{
+                ...preset.circles[0],
+                systemNodeSlots: [{
+                    ...preset.circles[0].systemNodeSlots[0],
+                    settings: { caption: '저장된 발현' },
+                }],
+            }],
+        };
+
+        expect(saveStoredMagicGraphPreset(captionedPreset, storage))
+            .toEqual([captionedPreset]);
+        expect(loadStoredMagicGraphPresets(storage))
+            .toEqual([captionedPreset]);
     });
 
     it('rejects malformed stored control pairs', () => {

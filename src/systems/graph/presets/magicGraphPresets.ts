@@ -318,7 +318,8 @@ function createCircleSystemNodesFromPreset(
                 resolveSystemNodeRuntimeSequenceIndex(
                     slot,
                     systemNodeSlots
-                )
+                ),
+                slot.settings
             )];
         });
     });

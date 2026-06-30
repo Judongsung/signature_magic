@@ -175,7 +175,7 @@
         {#if caption}<div class="caption">{caption}</div>{/if}
     </div>
 
-    {#if draggable && openDetails && controlPairPresentation.showDetails && !isCircleSystemNode}
+    {#if draggable && openDetails && controlPairPresentation.showDetails}
         <button
             type="button"
             class="node-details-trigger nodrag nopan"

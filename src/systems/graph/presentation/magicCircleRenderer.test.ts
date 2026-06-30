@@ -56,20 +56,20 @@ describe('buildMagicCircleRenderModels', () => {
         ]);
     });
 
-    it('maps control and graph operation nodes to stable glyph families', () => {
+    it('maps movement, control, and sequence nodes to stable glyph families', () => {
         const [model] = buildMagicCircleRenderModels([
             circle([
                 node('move', 'move'),
-                node('split', 'split'),
-                node('merge', 'merge'),
+                node('diffuse', 'diffuse'),
+                node('repeat', 'repeat'),
                 node('stabilize', 'stabilize'),
             ]),
         ]);
 
         expect(model.bands.map(band => band.marks[0].kind)).toEqual([
             'rune-gale',
-            'rune-cut',
-            'rune-cycle',
+            'rune-flow',
+            'rune-pulse',
             'rune-root',
         ]);
         expect(model.bands.map(band => band.spinDirection)).toEqual(['normal', 'reverse', 'normal', 'reverse']);

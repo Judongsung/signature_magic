@@ -36,6 +36,13 @@ export function resolveMagicGraphSelectionScope(
         : { mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES };
 }
 
+export function resolveMagicGraphCircleClickTargetId(
+    point: Point,
+    circles: readonly MagicCircleNode[]
+): string | undefined {
+    return findMagicCircleAtPoint(circles, point)?.id;
+}
+
 export function normalizeMagicGraphSelection(
     nodes: readonly MagicEditorNode[],
     scope: MagicGraphSelectionScope

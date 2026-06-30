@@ -6,8 +6,12 @@ import {
 import { magicTypeMap } from '../registry/magicTypeRegistry';
 import {
     getCircleEditableSequenceNodes,
+    createCircleSystemMagicNode,
     isCircleSystemMagicNode,
 } from './circleSystemMagicNodes';
+import {
+    CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
+} from '../../../constants/systemMagicNodeConfigs';
 import {
     attachNodeToCircle,
     createMagicCircleNode,
@@ -139,6 +143,48 @@ describe('magicGraphClipboard', () => {
         expect(pastedEdge.id).not.toBe(edges[0].id);
         expect(pastedCircleIds.has(pastedEdge.source)).toBe(true);
         expect(pastedCircleIds.has(pastedEdge.target)).toBe(true);
+    });
+
+    it('keeps manifestation captions when copying a circle', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'captioned-circle'
+        );
+        const manifestation = createCircleSystemMagicNode(
+            circle,
+            CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS[0],
+            0,
+            { caption: '복사된 발현' }
+        );
+        const nodes = normalizeMagicCircleSequences([
+            circle,
+            manifestation,
+        ]);
+        const payload = requirePayload(
+            createMagicGraphClipboardPayload({ nodes, edges: [] })
+        );
+        const result = requirePasteResult(pasteMagicGraphClipboardPayload(
+            { nodes, edges: [] },
+            payload,
+            magicTypeMap,
+            1,
+            sequentialIdFactory()
+        ));
+        const selectedCircleIds = new Set(
+            getMagicCircleNodes(result.nodes)
+                .filter(candidate => candidate.selected)
+                .map(candidate => candidate.id)
+        );
+        const pastedManifestation = getMagicUnitNodes(result.nodes)
+            .find(node =>
+                node.parentId &&
+                selectedCircleIds.has(node.parentId) &&
+                isCircleSystemMagicNode(node)
+            );
+
+        expect(pastedManifestation?.data.settings).toEqual({
+            caption: '복사된 발현',
+        });
     });
 
     it('expands a selected control marker to its partner', () => {

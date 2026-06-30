@@ -41,9 +41,13 @@ import {
 const stats = { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 };
 const magicTypeIds = new Set(magicTypesData.map(magicType => magicType.type));
 const isKnownMagicType = (magicType: string): boolean => magicTypeIds.has(magicType);
-const manifestationSlot = (slotIndex: number) => [{
+const manifestationSlot = (
+    slotIndex: number,
+    settings?: Record<string, string>
+) => [{
     magicType: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
     slotIndex,
+    ...(settings ? { settings } : {}),
 }];
 
 describe('dataValidation', () => {
@@ -441,6 +445,27 @@ describe('dataValidation', () => {
                     edges: [],
                 },
             ],
+            magicTypesData
+        )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('accepts a caption setting for the manifestation slot', () => {
+        expect(validateMagicGraphPresets(
+            [{
+                id: 'manifestation-caption-preset',
+                label: 'Manifestation caption',
+                circles: [{
+                    id: 'circle-a',
+                    position: { x: 0, y: 0 },
+                    width: 480,
+                    height: 640,
+                    systemNodeSlots: manifestationSlot(0, {
+                        caption: '최종 발현',
+                    }),
+                }],
+                nodes: [],
+                edges: [],
+            }],
             magicTypesData
         )).toEqual({ valid: true, errors: [] });
     });

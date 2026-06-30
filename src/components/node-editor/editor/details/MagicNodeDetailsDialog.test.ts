@@ -194,6 +194,28 @@ describe('MagicNodeDetailsDialog', () => {
         expect(target.textContent).not.toContain('가중치');
     });
 
+    it('edits a manifestation caption without offering weight', () => {
+        const { target, onSave } = mountDialog(
+            'manifestation',
+            { caption: '기존 발현' }
+        );
+        const input = target.querySelector<HTMLInputElement>(
+            'input[type="text"]'
+        )!;
+
+        expect(input.value).toBe('기존 발현');
+        expect(target.querySelector('.node-details-stepper')).toBeNull();
+        expect(target.textContent).not.toContain('가중치');
+
+        setInputValue(input, '  최종 발현  ');
+        target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
+            bubbles: true,
+            cancelable: true,
+        }));
+
+        expect(onSave).toHaveBeenCalledWith({ caption: '최종 발현' });
+    });
+
     it('renders JSON-configured fields and saves normalized custom settings', () => {
         const { target, onSave } = mountDialog('custom', { displayName: '기존 이름' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;

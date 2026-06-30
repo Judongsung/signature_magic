@@ -59,11 +59,11 @@ describe('MagicUnitNode', () => {
         expect(html).toContain('root-badge');
     });
 
-    it('renders circle-owned system nodes as sequence cards without tooltip or badges', () => {
+    it('renders circle-owned system nodes with a tooltip and without badges', () => {
         const { html } = renderNode({
             magicType: 'manifestation',
             nodeKind: 'system',
-            showTooltip: false,
+            showTooltip: true,
             showBadges: false,
             sequenceIndex: 0,
         }, 'circle-a');
@@ -73,7 +73,7 @@ describe('MagicUnitNode', () => {
         expect(html).toContain('발현');
         expect(html).not.toContain('root-badge');
         expect(html).not.toContain('leaf-badge');
-        expect(html).not.toContain('description-tooltip');
+        expect(html).toContain('description-tooltip');
     });
 
     it('renders insertion feedback on the adjacent sequence card', () => {

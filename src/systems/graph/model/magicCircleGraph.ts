@@ -186,15 +186,13 @@ export function isMagicTypeAllowedInCircleSequence(
 
 export function resolveMagicCircleSequenceNodeWidth(
     circle: Pick<MagicCircleNode, 'width'>,
-    rightRailWidth = 0,
-    indentDepth = 0
+    rightRailWidth = 0
 ): number {
     return Math.max(
         1,
         circle.width -
             MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET * 2 -
-            rightRailWidth -
-            indentDepth * MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX
+            rightRailWidth
     );
 }
 
@@ -233,7 +231,7 @@ function createMagicCircleSequenceNodeStyle(
     indentDepth = 0
 ): string {
     return [
-        `--node-editor-node-width: ${resolveMagicCircleSequenceNodeWidth(circle, rightRailWidth, indentDepth)}px`,
+        `--node-editor-node-width: ${resolveMagicCircleSequenceNodeWidth(circle, rightRailWidth)}px`,
         `--node-editor-node-height: ${MAGIC_CIRCLE_SEQUENCE_CONFIG.NODE_HEIGHT}px`,
     ].join('; ');
 }

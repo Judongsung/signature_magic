@@ -91,4 +91,34 @@ describe('MagicUnitNode interaction', () => {
         expect(target.querySelector('.node-details-trigger')).toBeNull();
         expect(target.querySelector('.description-tooltip')).toBeNull();
     });
+
+    it('opens details for a circle-owned manifestation node', async () => {
+        const target = document.createElement('div');
+        document.body.append(target);
+        mountedNode = mount(MagicUnitNode, {
+            target,
+            props: {
+                id: 'circle-1-manifestation',
+                data: {
+                    magicType: 'manifestation',
+                    nodeKind: 'system',
+                    showTooltip: true,
+                    sequenceIndex: 0,
+                },
+                parentId: 'circle-1',
+                draggable: true,
+                isConnectable: false,
+            },
+        });
+
+        target.querySelector<HTMLButtonElement>(
+            '.node-details-trigger'
+        )?.click();
+        await tick();
+
+        expect(interactionMocks.openDetails).toHaveBeenCalledWith(
+            'circle-1-manifestation'
+        );
+        expect(target.querySelector('.description-tooltip')).not.toBeNull();
+    });
 });

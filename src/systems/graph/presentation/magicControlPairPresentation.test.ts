@@ -59,7 +59,7 @@ function pair(
 }
 
 describe('magicControlPairPresentation', () => {
-    it('places repeat connectors on left indentation lanes and branches on the right', () => {
+    it('omits repeat connectors and keeps branch connectors on the right', () => {
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'presentation'
@@ -73,26 +73,8 @@ describe('magicControlPairPresentation', () => {
 
         expect(connectors).toEqual([
             {
-                pairId: 'outer',
-                kind: 'repeat',
-                lane: 0,
-                side: 'left',
-                startY: 100,
-                endY: 260,
-            },
-            {
-                pairId: 'inner',
-                kind: 'repeat',
-                lane: 1,
-                side: 'left',
-                startY: 140,
-                endY: 220,
-            },
-            {
                 pairId: 'branch',
-                kind: 'branch',
                 lane: 0,
-                side: 'right',
                 startY: 300,
                 endY: 340,
             },

@@ -2,7 +2,6 @@ import {
     MAGIC_CIRCLE_SEQUENCE_CONFIG,
     MAGIC_CONTROL_PAIR_NODE_TYPES,
     MAGIC_CONTROL_PAIR_ROLES,
-    type MagicControlPairNodeType,
 } from '../../../constants/graphConfigs';
 import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
 import type {
@@ -10,17 +9,13 @@ import type {
     MagicNode,
 } from '../../../types/magic';
 import {
-    getCircleControlPairs,
     isMagicControlPairType,
     resolveMagicBranchPairLanes,
-    resolveMagicRepeatIndentDepths,
 } from '../model/magicControlPairs';
 
 export interface MagicControlPairConnector {
     pairId: string;
-    kind: MagicControlPairNodeType;
     lane: number;
-    side: 'left' | 'right';
     startY: number;
     endY: number;
 }
@@ -81,30 +76,13 @@ export function resolveMagicControlPairConnectors(
     nodes: readonly MagicEditorNode[],
     circleId: string
 ): MagicControlPairConnector[] {
-    const indentDepths = resolveMagicRepeatIndentDepths(nodes, circleId);
-    const repeatConnectors = getCircleControlPairs(nodes, circleId)
-        .filter(pair =>
-            pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
-        )
-        .map(pair => ({
-            pairId: pair.id,
-            kind: MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT,
-            lane: indentDepths.get(pair.startIndex) ?? 0,
-            side: 'left' as const,
-            startY: resolveSequenceCenterY(pair.startIndex),
-            endY: resolveSequenceCenterY(pair.endIndex),
-        }));
-    const branchConnectors = resolveMagicBranchPairLanes(nodes, circleId)
+    return resolveMagicBranchPairLanes(nodes, circleId)
         .map(({ pair, lane }) => ({
             pairId: pair.id,
-            kind: MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH,
             lane,
-            side: 'right' as const,
             startY: resolveSequenceCenterY(pair.startIndex),
             endY: resolveSequenceCenterY(pair.endIndex),
         }));
-
-    return [...repeatConnectors, ...branchConnectors];
 }
 
 function resolveSequenceCenterY(sequenceIndex: number): number {

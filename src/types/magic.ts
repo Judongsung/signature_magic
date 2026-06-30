@@ -246,6 +246,7 @@ export interface MagicGraphPresetCircleConfig extends MagicCircleMetadata {
 export interface MagicGraphPresetCircleSystemNodeSlotConfig {
     magicType: MagicType;
     slotIndex: number;
+    settings?: MagicNodeSettings;
 }
 
 export interface MagicGraphPresetNodeConfig {

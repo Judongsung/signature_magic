@@ -89,14 +89,14 @@ describe('MagicCircleNode', () => {
         expect(renderCircle().html).toContain('sequence-insertion-indicator');
     });
 
-    it('renders presentation-only repeat and branch connectors', () => {
+    it('renders only presentation branch connectors', () => {
         graphStore.addNode('repeat');
         graphStore.addNode('branch');
 
         const { html } = renderCircle();
 
         expect(html).toContain('control-pair-overlay');
-        expect(html).toContain('repeat-connector');
+        expect(html).not.toContain('repeat-connector');
         expect(html).toContain('branch-connector');
         expect(graphStore.edges).toEqual([]);
     });
@@ -116,16 +116,17 @@ describe('MagicCircleNode', () => {
         const { html } = renderCircle();
 
         expect(html).toContain('branch-connector');
-        expect(html).toContain('V 100');
+        expect(html).toContain('Q ');
+        expect(html).toContain('M 0 0 L 6 3 L 0 6');
     });
 
     it('keeps control-pair connectors in the read-only renderer', () => {
-        graphStore.addNode('repeat');
+        graphStore.addNode('branch');
 
         const { html } = renderCircle(false, false);
 
         expect(html).toContain('read-only');
-        expect(html).toContain('repeat-connector');
+        expect(html).toContain('branch-connector');
         expect(html).not.toContain('circle-details-trigger');
     });
 

@@ -4,6 +4,7 @@ import {
 } from '../../../constants/graphConfigs';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
+    SYSTEM_MAGIC_TYPE_CONFIGS,
     type CircleSystemMagicNodeConfig,
 } from '../../../constants/systemMagicNodeConfigs';
 import type {
@@ -12,6 +13,7 @@ import type {
     MagicGraphPresetCircleSystemNodeSlotConfig,
     MagicNode,
     MagicNodeData,
+    MagicNodeSettings,
     MagicType,
 } from '../../../types/magic';
 import {
@@ -19,6 +21,7 @@ import {
     getCircleChildNodes,
     isMagicCircleNode,
 } from './magicCircleGraph';
+import { normalizeMagicNodeSettings } from './magicNodeData';
 
 type CircleSystemMagicNode = MagicNode & {
     data: MagicNodeData & {
@@ -99,6 +102,13 @@ export function resolveCircleSystemNodeSlots(
                 .slice(0, systemNodeIndex)
                 .filter(node => !isCircleSystemMagicNode(node, configs))
                 .length,
+            ...(children[systemNodeIndex].data.settings
+                ? {
+                    settings: {
+                        ...children[systemNodeIndex].data.settings,
+                    },
+                }
+                : {}),
         };
     });
 }
@@ -140,10 +150,16 @@ export function normalizeCircleSystemNodeChildren(
 export function createCircleSystemMagicNode(
     circle: MagicCircleNode,
     config: CircleSystemMagicNodeConfig,
-    sequenceIndex: number
+    sequenceIndex: number,
+    settings?: MagicNodeSettings
 ): MagicNode {
     return attachNodeToCircle(
-        normalizeCircleSystemMagicNode(undefined, circle, config),
+        normalizeCircleSystemMagicNode(
+            undefined,
+            circle,
+            config,
+            settings
+        ),
         circle,
         sequenceIndex
     );
@@ -160,6 +176,9 @@ export function normalizeCircleSystemNodeSlots(
         return {
             magicType: config.magicType,
             slotIndex: clampSlotIndex(slot?.slotIndex, editableNodeCount),
+            ...(slot?.settings
+                ? { settings: { ...slot.settings } }
+                : {}),
         };
     });
 }
@@ -235,7 +254,8 @@ function buildChildrenFromSlots(
 function normalizeCircleSystemMagicNode(
     existing: MagicNode | undefined,
     circle: MagicCircleNode,
-    config: CircleSystemMagicNodeConfig
+    config: CircleSystemMagicNodeConfig,
+    settings = existing?.data.settings
 ): MagicNode {
     const {
         settings: _settings,
@@ -244,6 +264,13 @@ function normalizeCircleSystemMagicNode(
     } = existing?.data ?? {
         magicType: config.magicType,
     };
+    const typeConfig = SYSTEM_MAGIC_TYPE_CONFIGS.find(candidate =>
+        candidate.type === config.magicType
+    );
+    const normalizedSettings = normalizeMagicNodeSettings(
+        typeConfig,
+        settings
+    );
 
     return {
         ...(existing ?? {
@@ -262,9 +289,12 @@ function normalizeCircleSystemMagicNode(
             isLeaf: false,
             inputHandleCount: 0,
             outputHandleCount: 0,
-            showTooltip: false,
+            showTooltip: true,
             showBadges: false,
             excludeFromStatScaling: true,
+            ...(normalizedSettings
+                ? { settings: normalizedSettings }
+                : {}),
         },
     };
 }

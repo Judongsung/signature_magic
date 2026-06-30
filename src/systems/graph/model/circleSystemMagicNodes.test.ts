@@ -52,11 +52,41 @@ describe('circleSystemMagicNodes', () => {
             isCircleSystemMagicNode(node, testCircleSystemNodeConfigs)
         )).toHaveLength(2);
         expect(normalized[0].selectable).toBe(false);
+        expect(normalized[0].data.showTooltip).toBe(true);
         expect(normalized[2].data).toMatchObject({
             magicType: 'test-system',
             nodeKind: MAGIC_NODE_KINDS.SYSTEM,
             excludeFromStatScaling: true,
         });
+    });
+
+    it('normalizes and snapshots manifestation caption settings', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'caption'
+        );
+        const manifestation = createCircleSystemMagicNode(
+            circle,
+            testCircleSystemNodeConfigs[0],
+            0,
+            {
+                caption: '  최종 발현  ',
+                weight: '9',
+            }
+        );
+
+        expect(manifestation.data.settings).toEqual({
+            caption: '최종 발현',
+        });
+        expect(resolveCircleSystemNodeSlots(
+            [circle, manifestation],
+            circle.id,
+            [testCircleSystemNodeConfigs[0]]
+        )).toEqual([{
+            magicType: 'manifestation',
+            slotIndex: 0,
+            settings: { caption: '최종 발현' },
+        }]);
     });
 
     it('resolves generic system node slots by editable-node position', () => {

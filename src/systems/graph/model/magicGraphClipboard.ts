@@ -248,6 +248,9 @@ function pasteCircleClipboardPayload(
             },
             systemNodeSlots: circle.systemNodeSlots.map(slot => ({
                 ...slot,
+                ...(slot.settings
+                    ? { settings: { ...slot.settings } }
+                    : {}),
             })),
         })),
         nodes: payload.nodes.map(node => ({
@@ -498,7 +501,8 @@ function isClipboardCircle(
             isRecord(slot) &&
             typeof slot.magicType === 'string' &&
             Number.isInteger(slot.slotIndex) &&
-            Number(slot.slotIndex) >= 0
+            Number(slot.slotIndex) >= 0 &&
+            isOptionalStringRecord(slot.settings)
         );
 }
 

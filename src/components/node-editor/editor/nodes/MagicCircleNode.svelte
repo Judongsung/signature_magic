@@ -9,7 +9,6 @@
         MAGIC_CIRCLE_NODE_CONFIG,
         MAGIC_CIRCLE_SEQUENCE_CONFIG,
         MAGIC_CONTROL_PAIR_CONFIG,
-        MAGIC_CONTROL_PAIR_NODE_TYPES,
     } from '../../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
     import type { MagicCircleNodeData } from '../../../../types/magic';
@@ -109,30 +108,22 @@
     ): string {
         const {
             lane,
-            side,
             startY,
             endY,
         } = connector;
-        if (side === 'left') {
-            const anchorX =
-                MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET +
-                lane * MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX;
-            const railX =
-                anchorX +
-                MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX / 2;
-            return [
-                `M ${anchorX} ${startY}`,
-                `H ${railX}`,
-                `V ${endY}`,
-                `H ${anchorX}`,
-            ].join(' ');
-        }
-
         const laneX = branchConnectorLaneX(lane);
+        const direction = endY >= startY ? 1 : -1;
+        const cornerRadius = Math.min(
+            MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_CORNER_RADIUS,
+            Math.abs(endY - startY) / 2,
+            laneX - cardRight
+        );
         return [
             `M ${cardRight} ${startY}`,
-            `H ${laneX}`,
-            `V ${endY}`,
+            `H ${laneX - cornerRadius}`,
+            `Q ${laneX} ${startY} ${laneX} ${startY + direction * cornerRadius}`,
+            `V ${endY - direction * cornerRadius}`,
+            `Q ${laneX} ${endY} ${laneX - cornerRadius} ${endY}`,
             `H ${cardRight}`,
         ].join(' ');
     }
@@ -215,22 +206,15 @@
                     orient="auto"
                 >
                     <path
-                        d={`M 0 0 L ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE} ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE / 2} L 0 ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE} z`}
+                        d={`M 0 0 L ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE} ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE / 2} L 0 ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE}`}
                     />
                 </marker>
             </defs>
             {#each controlPairConnectors as connector (connector.pairId)}
                 <path
-                    class:repeat-connector={connector.kind ===
-                        MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT}
-                    class:branch-connector={connector.kind ===
-                        MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH}
-                    class="control-pair-connector"
+                    class="control-pair-connector branch-connector"
                     d={connectorPath(connector)}
-                    marker-end={connector.kind ===
-                        MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH
-                        ? `url(#${branchMarkerId})`
-                        : undefined}
+                    marker-end={`url(#${branchMarkerId})`}
                 />
             {/each}
         </svg>
@@ -304,16 +288,15 @@
         vector-effect: non-scaling-stroke;
     }
 
-    .repeat-connector {
-        stroke: var(--node-editor-repeat-color);
-    }
-
     .branch-connector {
         stroke: var(--node-editor-branch-color);
     }
 
     .control-pair-overlay marker path {
-        fill: var(--node-editor-branch-color);
+        fill: none;
+        stroke: var(--node-editor-branch-color);
+        stroke-linecap: round;
+        stroke-linejoin: round;
     }
 
     .magic-circle-node[data-status='valid'] {

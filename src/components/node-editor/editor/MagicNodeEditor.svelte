@@ -60,9 +60,9 @@
     } from '../../../systems/graph/editor/magicCircleEditorInteraction';
     import { provideNodeEditorDetails } from './details/nodeDetailsContext';
     import { isMagicControlPairNode } from '../../../systems/graph/model/magicControlPairs';
-    import { isCircleSystemMagicNode } from '../../../systems/graph/model/circleSystemMagicNodes';
     import {
         MAGIC_GRAPH_SELECTION_MODES,
+        resolveMagicGraphCircleClickTargetId,
         resolveMagicGraphSelectionScope,
         type MagicGraphSelectionScope,
     } from '../../../systems/graph/editor/magicGraphSelection';
@@ -391,6 +391,18 @@
         return { x: event.clientX, y: event.clientY };
     }
 
+    function handlePaneClick({ event }: { event: MouseEvent }): void {
+        const screenPoint = readEventScreenPoint(event);
+        const circleId = screenPoint
+            ? resolveMagicGraphCircleClickTargetId(
+                screenToFlowPosition(screenPoint),
+                getMagicCircleNodes(graphStore.nodes)
+            )
+            : undefined;
+
+        graphStore.selectCircle(circleId);
+    }
+
     const onNodeDrag: NodeTargetEventWithPointer<
         MouseEvent | TouchEvent,
         MagicEditorNode
@@ -430,7 +442,6 @@
 
     const onNodeContextMenu: NodeEventWithPointer<MouseEvent, MagicEditorNode> = ({ node, event }) => {
         if (isMagicCircleNode(node)) return;
-        if (isCircleSystemMagicNode(node)) return;
         if (
             isMagicControlPairNode(node) &&
             node.data.controlPair.role === MAGIC_CONTROL_PAIR_ROLES.END
@@ -495,7 +506,7 @@
             onnodedragstop={onNodeDragStop}
             onnodecontextmenu={onNodeContextMenu}
             onselectionend={() => graphStore.applySelectionScope(selectionScope)}
-            onpaneclick={() => graphStore.selectCircle(undefined)}
+            onpaneclick={handlePaneClick}
             oninit={centerInitialViewport}
             deleteKey={interactionBlocked ? null : 'Delete'}
         >

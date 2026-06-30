@@ -154,12 +154,12 @@ describe('magicCircleGraphActions', () => {
         );
 
         expect(children.map(node => node.position.x))
-            .toEqual([40, 70, 100, 70, 40]);
+            .toEqual([40, 60, 80, 60, 40]);
         expect(children.map(node => node.style)).toEqual([
             expect.stringContaining('--node-editor-node-width: 400px'),
-            expect.stringContaining('--node-editor-node-width: 370px'),
-            expect.stringContaining('--node-editor-node-width: 340px'),
-            expect.stringContaining('--node-editor-node-width: 370px'),
+            expect.stringContaining('--node-editor-node-width: 400px'),
+            expect.stringContaining('--node-editor-node-width: 400px'),
+            expect.stringContaining('--node-editor-node-width: 400px'),
             expect.stringContaining('--node-editor-node-width: 400px'),
         ]);
     });
