@@ -30,12 +30,14 @@ import { untrack } from 'svelte';
         config,
         nodeStatEffects = [],
         onSave,
+        onDelete,
         onClose,
     }: {
         node: MagicNode;
         config: MagicTypeConfig;
         nodeStatEffects?: readonly MagicStatEffectConfig[];
         onSave: (settings: MagicNodeSettings | undefined) => void;
+        onDelete?: () => void;
         onClose: () => void;
     } = $props();
 
@@ -182,6 +184,15 @@ import { untrack } from 'svelte';
         </form>
 
         <footer class="node-details-actions">
+            {#if onDelete}
+                <button
+                    type="button"
+                    class="node-details-delete node-editor-action-btn node-editor-action-btn--danger"
+                    onclick={onDelete}
+                >
+                    {NODE_EDITOR_TEXT.DETAILS_DELETE}
+                </button>
+            {/if}
             {#if isEditable}
                 <button
                     type="button"
@@ -400,5 +411,9 @@ import { untrack } from 'svelte';
         min-width: 76px;
         min-height: 38px;
         padding: 8px 14px;
+    }
+
+    .node-details-delete {
+        margin-right: auto;
     }
 </style>

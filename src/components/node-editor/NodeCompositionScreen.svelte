@@ -15,6 +15,7 @@
     import MagicNodeEditor from './editor/MagicNodeEditor.svelte';
     import MagicNodeDetailsDialog from './editor/details/MagicNodeDetailsDialog.svelte';
     import MagicCircleDetailsDialog from './editor/details/MagicCircleDetailsDialog.svelte';
+    import MagicCircleDeleteConfirmDialog from './editor/details/MagicCircleDeleteConfirmDialog.svelte';
     import MagicNodePresetDialog from './presets/MagicNodePresetDialog.svelte';
     import {
         createNodeCompositionPresetController,
@@ -29,6 +30,9 @@
 
     let isPresetDialogOpen = $state(false);
     let activeDetailsId = $state<string | undefined>(undefined);
+    let circleDeleteConfirmation = $state.raw<{
+        resolve: (confirmed: boolean) => void;
+    } | undefined>(undefined);
 
     const activeDetailsCandidate = $derived(
         graphStore.nodes.find(node => node.id === activeDetailsId)
@@ -57,7 +61,10 @@
             : undefined
     );
     const isDialogOpen = $derived(
-        isPresetDialogOpen || Boolean(activeNode) || Boolean(activeCircle)
+        isPresetDialogOpen ||
+        Boolean(activeNode) ||
+        Boolean(activeCircle) ||
+        Boolean(circleDeleteConfirmation)
     );
 
     function openPresetDialog() {
@@ -87,6 +94,45 @@
         graphStore.updateCircleMetadata(activeCircle.id, metadata);
         closeNodeDetails();
     }
+
+    function requestCircleDeleteConfirmation(): Promise<boolean> {
+        if (circleDeleteConfirmation) return Promise.resolve(false);
+
+        return new Promise(resolve => {
+            circleDeleteConfirmation = { resolve };
+        });
+    }
+
+    function settleCircleDeleteConfirmation(confirmed: boolean): void {
+        const confirmation = circleDeleteConfirmation;
+        if (!confirmation) return;
+
+        circleDeleteConfirmation = undefined;
+        confirmation.resolve(confirmed);
+    }
+
+    function deleteActiveNode(): void {
+        if (!activeNode) return;
+        if (graphStore.deleteEditorNodeById(activeNode.id)) {
+            closeNodeDetails();
+        }
+    }
+
+    async function deleteActiveCircle(): Promise<void> {
+        if (!activeCircle) return;
+
+        const circleId = activeCircle.id;
+        activeDetailsId = undefined;
+        const confirmed = await requestCircleDeleteConfirmation();
+        if (confirmed) {
+            graphStore.deleteEditorNodeById(circleId);
+            return;
+        }
+
+        if (graphStore.nodes.some(node => node.id === circleId)) {
+            activeDetailsId = circleId;
+        }
+    }
 </script>
 
 {#snippet editorPane()}
@@ -94,6 +140,7 @@
         <MagicNodeEditor
             onOpenPresetDialog={openPresetDialog}
             onOpenNodeDetails={openNodeDetails}
+            onConfirmCircleDelete={requestCircleDeleteConfirmation}
             interactionBlocked={isDialogOpen}
         />
     </SvelteFlowProvider>
@@ -133,6 +180,9 @@
             config={activeNodeConfig}
             nodeStatEffects={graphStore.externalStatEffects.nodeEffects}
             onSave={saveNodeSettings}
+            onDelete={activeNode.deletable === false
+                ? undefined
+                : deleteActiveNode}
             onClose={closeNodeDetails}
         />
     {/if}
@@ -143,7 +193,15 @@
             circlePath={activeCirclePath}
             displayOrder={activeCircleDisplayOrder}
             onSave={saveCircleMetadata}
+            onDelete={deleteActiveCircle}
             onClose={closeNodeDetails}
+        />
+    {/if}
+
+    {#if circleDeleteConfirmation}
+        <MagicCircleDeleteConfirmDialog
+            onConfirm={() => settleCircleDeleteConfirmation(true)}
+            onClose={() => settleCircleDeleteConfirmation(false)}
         />
     {/if}
 </main>

@@ -93,6 +93,7 @@
     });
 
     function openCircleDetails(event: MouseEvent): void {
+        event.preventDefault();
         event.stopPropagation();
         openDetails?.(id);
     }
@@ -150,6 +151,9 @@
 
     <div
         class={`circle-title ${MAGIC_CIRCLE_NODE_CONFIG.DRAG_HANDLE_CLASS}`}
+        role="group"
+        aria-label={circleTitle}
+        oncontextmenu={openCircleDetails}
     >
         <span
             class="circle-title-content"

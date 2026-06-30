@@ -293,11 +293,22 @@ describe('graphStore sequence circles', () => {
 
     it('deletes a circle with its children and external edges', () => {
         graphStore.addNode('ignition');
-        graphStore.onDelete([circleNode()], []);
+        const circleId = circleNode().id;
 
+        expect(graphStore.deleteEditorNodeById(circleId)).toBe(true);
         expect(getMagicCircleNodes(graphStore.nodes)).toEqual([]);
         expect(userNodes()).toEqual([]);
         expect(graphStore.edges).toEqual([]);
+    });
+
+    it('rejects direct deletion of a non-deletable system node', () => {
+        const manifestation = getMagicUnitNodes(graphStore.nodes)
+            .find(node => isCircleSystemMagicNode(node))!;
+
+        expect(graphStore.deleteEditorNodeById(manifestation.id)).toBe(false);
+        expect(graphStore.nodes.some(node =>
+            node.id === manifestation.id
+        )).toBe(true);
     });
 
     it('clear restores one empty circle and signature metadata', () => {

@@ -15,6 +15,7 @@
         type CoordinateExtent,
         type SnapGrid,
     } from '@xyflow/svelte';
+    import { tick } from 'svelte';
     import '@xyflow/svelte/dist/style.css';
 
     import { graphStore } from '../../../stores/graphStore.svelte';
@@ -73,10 +74,12 @@
     let {
         onOpenPresetDialog,
         onOpenNodeDetails,
+        onConfirmCircleDelete,
         interactionBlocked = false,
     }: {
         onOpenPresetDialog: () => void;
         onOpenNodeDetails: (nodeId: string) => void;
+        onConfirmCircleDelete: () => Promise<boolean>;
         interactionBlocked?: boolean;
     } = $props();
 
@@ -323,7 +326,7 @@
 
     const onBeforeDelete: OnBeforeDelete<MagicEditorNode, Edge> = async ({ nodes }) => {
         if (!nodes.some(isMagicCircleNode)) return true;
-        return window.confirm(NODE_EDITOR_TEXT.CIRCLE_DELETE_CONFIRM);
+        return onConfirmCircleDelete();
     };
 
     const onDelete: OnDelete<MagicEditorNode, Edge> = ({ nodes, edges }) => {
@@ -391,7 +394,9 @@
         return { x: event.clientX, y: event.clientY };
     }
 
-    function handlePaneClick({ event }: { event: MouseEvent }): void {
+    async function handlePaneClick(
+        { event }: { event: MouseEvent }
+    ): Promise<void> {
         const screenPoint = readEventScreenPoint(event);
         const circleId = screenPoint
             ? resolveMagicGraphCircleClickTargetId(
@@ -400,6 +405,8 @@
             )
             : undefined;
 
+        // Svelte Flow의 pane 기본 선택 해제가 반영된 뒤 store 선택을 확정한다.
+        await tick();
         graphStore.selectCircle(circleId);
     }
 

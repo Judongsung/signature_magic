@@ -93,6 +93,32 @@ describe('MagicCircleNode interaction', () => {
         expect(detailsMocks.openDetails).toHaveBeenCalledWith(circle.id);
     });
 
+    it('opens circle details by right-clicking the title bar', async () => {
+        const [circle] = getMagicCircleNodes(graphStore.nodes);
+        const target = document.createElement('div');
+        document.body.append(target);
+        mountedCircles.push(mount(MagicCircleNode, {
+            target,
+            props: {
+                id: circle.id,
+                data: circle.data,
+                width: circle.width,
+                height: circle.height,
+            },
+        }));
+        const contextMenuEvent = new MouseEvent('contextmenu', {
+            bubbles: true,
+            cancelable: true,
+        });
+
+        target.querySelector<HTMLElement>('.circle-title')
+            ?.dispatchEvent(contextMenuEvent);
+        await tick();
+
+        expect(contextMenuEvent.defaultPrevented).toBe(true);
+        expect(detailsMocks.openDetails).toHaveBeenCalledWith(circle.id);
+    });
+
     it('does not create a feedback loop when two circles write measured nodes back to the store', async () => {
         graphStore.addCircle({ x: 520, y: -320 });
         const circles = getMagicCircleNodes(graphStore.nodes);

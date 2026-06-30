@@ -35,6 +35,7 @@ function mountDialog() {
         statAdjustments: { ...EMPTY_MAGIC_STATS, power: 1 },
     };
     const onSave = vi.fn();
+    const onDelete = vi.fn();
     const onClose = vi.fn();
 
     mountedDialog = mount(MagicCircleDetailsDialog, {
@@ -44,11 +45,12 @@ function mountDialog() {
             circlePath,
             displayOrder: 1,
             onSave,
+            onDelete,
             onClose,
         },
     });
 
-    return { target, onSave, onClose };
+    return { target, onSave, onDelete, onClose };
 }
 
 afterEach(async () => {
@@ -60,6 +62,18 @@ afterEach(async () => {
 });
 
 describe('MagicCircleDetailsDialog', () => {
+    it('requests circle deletion from the details action', () => {
+        const { target, onDelete } = mountDialog();
+        const deleteButton = target.querySelector<HTMLButtonElement>(
+            '.circle-details-delete'
+        );
+
+        expect(deleteButton?.textContent?.trim())
+            .toBe(NODE_EDITOR_TEXT.DETAILS_DELETE);
+        deleteButton?.click();
+        expect(onDelete).toHaveBeenCalledOnce();
+    });
+
     it('renders editable metadata and calculated circle stats', () => {
         const { target } = mountDialog();
         const nameInput = target.querySelector<HTMLInputElement>('input')!;

@@ -21,12 +21,14 @@
         circlePath,
         displayOrder,
         onSave,
+        onDelete,
         onClose,
     }: {
         circle: MagicCircleNode;
         circlePath?: CirclePath;
         displayOrder?: number;
         onSave: (metadata: MagicCircleMetadata) => void;
+        onDelete: () => void;
         onClose: () => void;
     } = $props();
 
@@ -103,6 +105,13 @@
         </form>
 
         <footer class="circle-details-actions">
+            <button
+                type="button"
+                class="circle-details-delete node-editor-action-btn node-editor-action-btn--danger"
+                onclick={onDelete}
+            >
+                {NODE_EDITOR_TEXT.DETAILS_DELETE}
+            </button>
             <button
                 type="button"
                 class="node-editor-action-btn node-editor-action-btn--secondary"
@@ -242,5 +251,9 @@
         min-width: 76px;
         min-height: 38px;
         padding: 8px 14px;
+    }
+
+    .circle-details-delete {
+        margin-right: auto;
     }
 </style>

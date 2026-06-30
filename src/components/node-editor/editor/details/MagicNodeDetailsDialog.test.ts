@@ -29,6 +29,7 @@ function mountDialog(
     document.body.append(target);
     const config = getMagicTypeConfig(magicType)!;
     const onSave = vi.fn();
+    const onDelete = vi.fn();
     const onClose = vi.fn();
 
     mountedDialog = mount(MagicNodeDetailsDialog, {
@@ -38,11 +39,12 @@ function mountDialog(
             config,
             nodeStatEffects,
             onSave,
+            onDelete,
             onClose,
         },
     });
 
-    return { target, onSave, onClose };
+    return { target, onSave, onDelete, onClose };
 }
 
 function setInputValue(input: HTMLInputElement, value: string): void {
@@ -59,6 +61,18 @@ afterEach(async () => {
 });
 
 describe('MagicNodeDetailsDialog', () => {
+    it('deletes the node from the details action', () => {
+        const { target, onDelete } = mountDialog('ignition');
+        const deleteButton = target.querySelector<HTMLButtonElement>(
+            '.node-details-delete'
+        );
+
+        expect(deleteButton?.textContent?.trim())
+            .toBe(NODE_EDITOR_TEXT.DETAILS_DELETE);
+        deleteButton?.click();
+        expect(onDelete).toHaveBeenCalledOnce();
+    });
+
     it('shows active node stat effects in the details stats', () => {
         const { target } = mountDialog('ignition', undefined, [
             { phase: 'node', operation: 'multiply', stat: 'castingTime', value: 0.9 },

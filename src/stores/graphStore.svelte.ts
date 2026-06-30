@@ -348,6 +348,14 @@ class GraphStore {
         this.scheduleTopologySync();
     }
 
+    deleteEditorNodeById(nodeId: string): boolean {
+        const node = this.nodes.find(candidate => candidate.id === nodeId);
+        if (!node || node.deletable === false) return false;
+
+        this.onDelete([node], []);
+        return true;
+    }
+
     clear(): void {
         const initial = createInitialMagicCircleGraph();
         this.nodes = initial.nodes;
