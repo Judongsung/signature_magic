@@ -80,7 +80,17 @@ export function resolveCircleSystemNodeSlots(
     configs: readonly CircleSystemMagicNodeConfig[] =
         DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
 ): MagicGraphPresetCircleSystemNodeSlotConfig[] {
-    const children = getCircleChildNodes(nodes, circleId);
+    return resolveCircleSystemNodeSlotsFromChildren(
+        getCircleChildNodes(nodes, circleId),
+        configs
+    );
+}
+
+export function resolveCircleSystemNodeSlotsFromChildren(
+    children: readonly MagicNode[],
+    configs: readonly CircleSystemMagicNodeConfig[] =
+        DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
+): MagicGraphPresetCircleSystemNodeSlotConfig[] {
     const editableChildren = children.filter(node =>
         !isCircleSystemMagicNode(node, configs)
     );

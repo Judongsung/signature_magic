@@ -6,17 +6,19 @@ import { createTestMagicNode } from '../../../test-utils/graphFixtures';
 import type { MagicNode, MagicType } from '../../../types/magic';
 import {
     attachNodeToCircle,
+    compareMagicCircleSequenceNodes,
     createMagicCircleNode,
 } from './magicCircleGraph';
 import {
     canMoveMagicControlPairsAcrossCircles,
     collectMagicControlPairDeletionIds,
     isMagicControlPairGraphValid,
-    resolveMagicBranchPairLayouts,
-    resolveMagicBranchPairRailWidth,
-    resolveMagicControlPairLanes,
-    resolveMagicRepeatIndentDepths,
+    resolveMagicControlPairLayout,
 } from './magicControlPairs';
+
+function ordered(nodes: MagicNode[]): MagicNode[] {
+    return [...nodes].sort(compareMagicCircleSequenceNodes);
+}
 
 function marker(
     id: string,
@@ -180,15 +182,14 @@ describe('magicControlPairs', () => {
             { x: 0, y: 0 },
             () => 'lanes'
         );
-        const nodes = [
-            circle,
+        const children = ordered([
             ...pair(circle, 'first', 'branch', 0, 2),
             ...pair(circle, 'overlap', 'branch', 1, 3),
             ...pair(circle, 'inverted', 'branch', 6, 4),
             ...pair(circle, 'later', 'branch', 4, 5),
-        ];
+        ]);
 
-        expect(resolveMagicControlPairLanes(nodes, circle.id)
+        expect(resolveMagicControlPairLayout(children).branchLayouts
             .map(item => [item.pair.id, item.lane])
         ).toEqual([
             ['first', 0],
@@ -203,8 +204,7 @@ describe('magicControlPairs', () => {
             { x: 0, y: 0 },
             () => 'indent'
         );
-        const nodes = [
-            circle,
+        const children = ordered([
             ...pair(circle, 'outer', 'repeat', 0, 4),
             ...pair(circle, 'inner', 'repeat', 1, 3),
             attachNodeToCircle(
@@ -212,9 +212,10 @@ describe('magicControlPairs', () => {
                 circle,
                 2
             ),
-        ];
+        ]);
+        const layout = resolveMagicControlPairLayout(children);
 
-        expect([...resolveMagicRepeatIndentDepths(nodes, circle.id)])
+        expect([...layout.indentDepths])
             .toEqual([
                 [0, 0],
                 [1, 1],
@@ -222,11 +223,11 @@ describe('magicControlPairs', () => {
                 [3, 1],
                 [4, 0],
             ]);
-        expect(resolveMagicBranchPairRailWidth(nodes, circle.id)).toBe(0);
-        expect(resolveMagicBranchPairRailWidth([
-            ...nodes,
+        expect(layout.rightRailWidth).toBe(0);
+        expect(resolveMagicControlPairLayout(ordered([
+            ...children,
             ...pair(circle, 'branch', 'branch', 5, 6),
-        ], circle.id)).toBe(28);
+        ])).rightRailWidth).toBe(28);
     });
 
     it('reserves branch rail space beyond nested repeated content', () => {
@@ -234,8 +235,7 @@ describe('magicControlPairs', () => {
             { x: 0, y: 0 },
             () => 'nested-branch'
         );
-        const nodes = [
-            circle,
+        const children = ordered([
             ...pair(circle, 'outer', 'repeat', 0, 6),
             ...pair(circle, 'branch', 'branch', 1, 5),
             ...pair(circle, 'inner', 'repeat', 2, 4),
@@ -244,15 +244,16 @@ describe('magicControlPairs', () => {
                 circle,
                 3
             ),
-        ];
+        ]);
+        const layout = resolveMagicControlPairLayout(children);
 
-        expect(resolveMagicBranchPairLayouts(nodes, circle.id))
+        expect(layout.branchLayouts)
             .toMatchObject([{
                 lane: 0,
                 startIndentDepth: 1,
                 endIndentDepth: 1,
                 railIndentDepth: 2,
             }]);
-        expect(resolveMagicBranchPairRailWidth(nodes, circle.id)).toBe(68);
+        expect(layout.rightRailWidth).toBe(68);
     });
 });

@@ -10,7 +10,6 @@ import type {
     MagicType,
 } from '../../../types/magic';
 import {
-    getCircleChildNodes,
     isMagicCircleNode,
     readMagicCircleSequenceIndex,
 } from './magicCircleGraph';
@@ -38,6 +37,13 @@ export interface MagicBranchPairLayout extends MagicControlPairLane {
     startIndentDepth: number;
     endIndentDepth: number;
     railIndentDepth: number;
+}
+
+export interface MagicControlPairLayout {
+    pairs: readonly MagicControlPair[];
+    indentDepths: ReadonlyMap<number, number>;
+    branchLayouts: readonly MagicBranchPairLayout[];
+    rightRailWidth: number;
 }
 
 export function isMagicControlPairType(
@@ -214,52 +220,36 @@ export function getMagicControlPairOwnerId(
     )?.id ?? nodeId;
 }
 
-export function getCircleControlPairs(
-    nodes: readonly MagicEditorNode[],
-    circleId: string
-): MagicControlPair[] {
-    const childIds = new Set(
-        getCircleChildNodes(nodes, circleId).map(node => node.id)
+export function resolveMagicControlPairLayout(
+    orderedChildren: readonly MagicNode[]
+): MagicControlPairLayout {
+    const pairs = resolveMagicControlPairs(orderedChildren);
+    const indentDepths = resolveRepeatIndentDepths(
+        orderedChildren,
+        pairs
     );
-    return resolveMagicControlPairs(nodes, circleId)
-        .filter(pair =>
-            childIds.has(pair.start.id) && childIds.has(pair.end.id)
-        );
-}
-
-export function resolveMagicControlPairLanes(
-    nodes: readonly MagicEditorNode[],
-    circleId: string
-): MagicControlPairLane[] {
-    return resolvePairLanes(getCircleControlPairs(nodes, circleId));
-}
-
-export function resolveMagicBranchPairLanes(
-    nodes: readonly MagicEditorNode[],
-    circleId: string
-): MagicControlPairLane[] {
-    return resolvePairLanes(
-        getCircleControlPairs(nodes, circleId).filter(pair =>
+    const branchLayouts = resolvePairLanes(
+        pairs.filter(pair =>
             pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH
         )
-    );
-}
-
-export function resolveMagicBranchPairLayouts(
-    nodes: readonly MagicEditorNode[],
-    circleId: string
-): MagicBranchPairLayout[] {
-    const indentDepths = resolveMagicRepeatIndentDepths(nodes, circleId);
-
-    return resolveMagicBranchPairLanes(nodes, circleId).map(item => ({
+    ).map(item => ({
         ...item,
-        startIndentDepth: indentDepths.get(item.pair.startIndex) ?? 0,
-        endIndentDepth: indentDepths.get(item.pair.endIndex) ?? 0,
+        startIndentDepth:
+            indentDepths.get(item.pair.startIndex) ?? 0,
+        endIndentDepth:
+            indentDepths.get(item.pair.endIndex) ?? 0,
         railIndentDepth: resolveIntervalMaximumIndentDepth(
             item.pair,
             indentDepths
         ),
     }));
+
+    return {
+        pairs,
+        indentDepths,
+        branchLayouts,
+        rightRailWidth: resolveBranchPairRailWidth(branchLayouts),
+    };
 }
 
 function resolvePairLanes(
@@ -286,23 +276,37 @@ function resolvePairLanes(
     });
 }
 
-export function resolveMagicRepeatIndentDepths(
-    nodes: readonly MagicEditorNode[],
-    circleId: string
+function resolveRepeatIndentDepths(
+    orderedChildren: readonly MagicNode[],
+    controlPairs: readonly MagicControlPair[]
 ): ReadonlyMap<number, number> {
-    const repeatPairs = getCircleControlPairs(nodes, circleId)
-        .filter(pair =>
-            pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
-        );
+    const repeatPairs = controlPairs.filter(pair =>
+        pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT &&
+        pair.startIndex < pair.endIndex
+    );
+    const startsByIndex = new Map<number, number>();
+    const endsByIndex = new Map<number, number>();
     const depths = new Map<number, number>();
 
-    getCircleChildNodes(nodes, circleId).forEach(node => {
+    repeatPairs.forEach(pair => {
+        startsByIndex.set(
+            pair.startIndex,
+            (startsByIndex.get(pair.startIndex) ?? 0) + 1
+        );
+        endsByIndex.set(
+            pair.endIndex,
+            (endsByIndex.get(pair.endIndex) ?? 0) + 1
+        );
+    });
+
+    let activeDepth = 0;
+    orderedChildren.forEach(node => {
         const sequenceIndex = readMagicCircleSequenceIndex(node);
-        const depth = repeatPairs.filter(pair =>
-            pair.startIndex < sequenceIndex &&
-            sequenceIndex < pair.endIndex
-        ).length;
-        depths.set(sequenceIndex, depth);
+        // 반복 끝은 먼저 깊이를 닫고 시작은 현재 marker를 기록한 뒤 연다.
+        // 따라서 두 marker는 부모 깊이에, 사이의 노드만 내부 깊이에 놓인다.
+        activeDepth -= endsByIndex.get(sequenceIndex) ?? 0;
+        depths.set(sequenceIndex, Math.max(0, activeDepth));
+        activeDepth += startsByIndex.get(sequenceIndex) ?? 0;
     });
 
     return depths;
@@ -338,11 +342,9 @@ function resolveIntervalMaximumIndentDepth(
     return maximumDepth;
 }
 
-export function resolveMagicBranchPairRailWidth(
-    nodes: readonly MagicEditorNode[],
-    circleId: string
+function resolveBranchPairRailWidth(
+    layouts: readonly MagicBranchPairLayout[]
 ): number {
-    const layouts = resolveMagicBranchPairLayouts(nodes, circleId);
     if (layouts.length === 0) return 0;
 
     const maximumRailOffset = Math.max(...layouts.map(layout =>

@@ -4,13 +4,10 @@ import {
     MAGIC_CONTROL_PAIR_ROLES,
 } from '../../../constants/graphConfigs';
 import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
-import type {
-    MagicEditorNode,
-    MagicNode,
-} from '../../../types/magic';
+import type { MagicNode } from '../../../types/magic';
 import {
     isMagicControlPairType,
-    resolveMagicBranchPairLayouts,
+    type MagicControlPairLayout,
 } from '../model/magicControlPairs';
 
 export interface MagicControlPairConnector {
@@ -76,10 +73,9 @@ export function resolveMagicControlPairNodePresentation(
 }
 
 export function resolveMagicControlPairConnectors(
-    nodes: readonly MagicEditorNode[],
-    circleId: string
+    layout: Pick<MagicControlPairLayout, 'branchLayouts'>
 ): MagicControlPairConnector[] {
-    return resolveMagicBranchPairLayouts(nodes, circleId)
+    return layout.branchLayouts
         .map(({
             pair,
             lane,

@@ -10,10 +10,11 @@ import type {
     MagicNode,
 } from '../../../types/magic';
 import {
-    getCircleChildNodes,
-    getMagicCircleNodes,
     isMagicCirclePortHandleId,
 } from '../model/magicCircleGraph';
+import {
+    createMagicCircleGraphIndex,
+} from '../model/magicCircleGraphIndex';
 import {
     isMagicControlPairGraphValid,
     isMagicControlPairNode,
@@ -26,7 +27,7 @@ const VIRTUAL_END_SUFFIX = 'end';
 
 export interface CircleInternalAnalysis {
     circle: MagicCircleNode;
-    sequenceNodes: MagicNode[];
+    sequenceNodes: readonly MagicNode[];
     calculationNodes: MagicNode[];
     projectedNodes: MagicNode[];
     projectedEdges: Edge[];
@@ -34,7 +35,7 @@ export interface CircleInternalAnalysis {
 }
 
 export interface ExplicitMagicCircleGraphAnalysis {
-    circles: MagicCircleNode[];
+    circles: readonly MagicCircleNode[];
     states: MagicCircleState[];
     internalByCircleId: ReadonlyMap<string, CircleInternalAnalysis>;
     projectedNodes: MagicNode[];
@@ -73,9 +74,8 @@ function addAdjacency(
 
 function analyzeCircleInternals(
     circle: MagicCircleNode,
-    nodes: readonly MagicEditorNode[]
+    childNodes: readonly MagicNode[]
 ): CircleInternalAnalysis {
-    const childNodes = getCircleChildNodes(nodes, circle.id);
     const calculationSequenceNodes = childNodes.filter(node =>
         !isCircleSystemMagicNode(node)
     );
@@ -199,11 +199,15 @@ export function analyzeExplicitMagicCircleGraph(
     nodes: readonly MagicEditorNode[],
     edges: readonly Edge[]
 ): ExplicitMagicCircleGraphAnalysis {
-    const circles = getMagicCircleNodes(nodes);
+    const index = createMagicCircleGraphIndex(nodes);
+    const circles = index.circles;
     const circleById = new Map(circles.map(circle => [circle.id, circle]));
     const internalByCircleId = new Map(circles.map(circle => [
         circle.id,
-        analyzeCircleInternals(circle, nodes),
+        analyzeCircleInternals(
+            circle,
+            index.childrenByCircleId.get(circle.id) ?? []
+        ),
     ]));
     const externalOutEdges = new Map<string, string[]>();
     const externalEdges: Array<Edge & { source: string; target: string }> = [];

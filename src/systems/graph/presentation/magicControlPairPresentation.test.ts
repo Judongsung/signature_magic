@@ -6,8 +6,10 @@ import { createTestMagicNode } from '../../../test-utils/graphFixtures';
 import type { MagicNode, MagicType } from '../../../types/magic';
 import {
     attachNodeToCircle,
+    compareMagicCircleSequenceNodes,
     createMagicCircleNode,
 } from '../model/magicCircleGraph';
+import { resolveMagicControlPairLayout } from '../model/magicControlPairs';
 import { resolveMagicControlPairConnectors } from './magicControlPairPresentation';
 
 function marker(
@@ -64,12 +66,14 @@ describe('magicControlPairPresentation', () => {
             { x: 0, y: 0 },
             () => 'presentation'
         );
-        const connectors = resolveMagicControlPairConnectors([
-            circle,
+        const children = [
             ...pair(circle, 'outer', 'repeat', 0, 4),
             ...pair(circle, 'inner', 'repeat', 1, 3),
             ...pair(circle, 'branch', 'branch', 5, 6),
-        ], circle.id);
+        ].sort(compareMagicCircleSequenceNodes);
+        const connectors = resolveMagicControlPairConnectors(
+            resolveMagicControlPairLayout(children)
+        );
 
         expect(connectors).toEqual([
             {
@@ -89,8 +93,7 @@ describe('magicControlPairPresentation', () => {
             { x: 0, y: 0 },
             () => 'nested-presentation'
         );
-        const connectors = resolveMagicControlPairConnectors([
-            circle,
+        const children = [
             ...pair(circle, 'outer', 'repeat', 0, 6),
             ...pair(circle, 'branch', 'branch', 1, 5),
             ...pair(circle, 'inner', 'repeat', 2, 4),
@@ -99,7 +102,10 @@ describe('magicControlPairPresentation', () => {
                 circle,
                 3
             ),
-        ], circle.id);
+        ].sort(compareMagicCircleSequenceNodes);
+        const connectors = resolveMagicControlPairConnectors(
+            resolveMagicControlPairLayout(children)
+        );
 
         expect(connectors).toEqual([{
             pairId: 'branch',

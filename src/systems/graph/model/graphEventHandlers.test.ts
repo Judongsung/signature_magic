@@ -197,6 +197,10 @@ describe('graphEventHandlers', () => {
 
         expect(firstSync.nodes.find(node => node.id === target.id)
             ?.data.inputHandleCount).toBe(3);
+        expect(firstSync.nodes.find(node => node.id === sourceA.id)
+            ?.data.outputHandleCount).toBe(2);
+        expect(firstSync.nodes.find(node => node.id === sourceB.id)
+            ?.data.outputHandleCount).toBe(2);
 
         const secondSync = syncGraphTopology({
             nodes: firstSync.nodes,
@@ -207,5 +211,9 @@ describe('graphEventHandlers', () => {
             .toBe(MAGIC_CIRCLE_HANDLE_IDS.INPUT);
         expect(secondSync.nodes.find(node => node.id === target.id)
             ?.data.inputHandleCount).toBe(2);
+        expect(secondSync.nodes.find(node => node.id === sourceA.id)
+            ?.data.outputHandleCount).toBe(1);
+        expect(secondSync.nodes.find(node => node.id === sourceB.id)
+            ?.data.outputHandleCount).toBe(2);
     });
 });

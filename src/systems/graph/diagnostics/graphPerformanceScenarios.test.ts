@@ -16,6 +16,9 @@ import {
     attachNodeToCircle,
     createMagicCircleNode,
 } from '../model/magicCircleGraph';
+import {
+    normalizeMagicCircleSequences,
+} from '../model/magicCircleGraphActions';
 import { syncGraphTopology } from '../model/graphEventHandlers';
 import { buildMagicCircleRenderModels } from '../presentation/magicCircleRenderer';
 
@@ -177,6 +180,9 @@ function runGraphPerformanceScenario(
             scenarioMagicTypes
         );
     });
+    const normalizeDuration = measureDuration(() => {
+        normalizeMagicCircleSequences(graph.nodes);
+    });
     const syncDuration = measureDuration(() => {
         syncGraphTopology(graph);
     });
@@ -187,6 +193,7 @@ function runGraphPerformanceScenario(
     expect(calculation.totalStats.power).toBeGreaterThanOrEqual(0);
     expect(calculation.circles.length).toBeGreaterThan(0);
     expectWithinPerformanceBudget(calculateDuration);
+    expectWithinPerformanceBudget(normalizeDuration);
     expectWithinPerformanceBudget(syncDuration);
     expectWithinPerformanceBudget(renderDuration);
 }

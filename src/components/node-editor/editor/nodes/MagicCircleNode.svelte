@@ -16,7 +16,8 @@
     import { resolveMagicCircleViewModel } from '../../../../systems/graph/presentation/magicCirclePresentation';
     import { resolveCirclePortLeft } from '../../../../systems/graph/presentation/magicHandlePresentation';
     import { resolveMagicControlPairConnectors } from '../../../../systems/graph/presentation/magicControlPairPresentation';
-    import { resolveMagicBranchPairRailWidth } from '../../../../systems/graph/model/magicControlPairs';
+    import { resolveMagicControlPairLayout } from '../../../../systems/graph/model/magicControlPairs';
+    import { getCircleChildNodes } from '../../../../systems/graph/model/magicCircleGraph';
     import {
         createNodeHandleLayoutKey,
         createNodeInternalsRefresh,
@@ -46,9 +47,12 @@
     const circleState = $derived(
         graphStore.circleStates.find(state => state.circleId === id)
     );
+    const childNodes = $derived(
+        getCircleChildNodes(graphStore.nodes, id)
+    );
     const viewModel = $derived(resolveMagicCircleViewModel(
         { id, data, width, height },
-        graphStore.nodes,
+        childNodes,
         circleState
     ));
     const isActiveTarget = $derived(
@@ -73,12 +77,13 @@
         data.name ||
         `${NODE_EDITOR_TEXT.CIRCLE_TITLE} ${viewModel.displayOrder ?? '—'}`
     );
+    const controlPairLayout = $derived(
+        resolveMagicControlPairLayout(childNodes)
+    );
     const controlPairConnectors = $derived(
-        resolveMagicControlPairConnectors(graphStore.nodes, id)
+        resolveMagicControlPairConnectors(controlPairLayout)
     );
-    const rightRailWidth = $derived(
-        resolveMagicBranchPairRailWidth(graphStore.nodes, id)
-    );
+    const rightRailWidth = $derived(controlPairLayout.rightRailWidth);
     const cardRight = $derived(
         width -
         MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET -

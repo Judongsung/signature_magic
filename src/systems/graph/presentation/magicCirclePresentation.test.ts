@@ -28,7 +28,7 @@ describe('magicCirclePresentation', () => {
         const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'view');
         const viewModel = resolveMagicCircleViewModel(
             circle,
-            [circle],
+            [],
             undefined
         );
 
@@ -52,7 +52,7 @@ describe('magicCirclePresentation', () => {
         };
         const viewModel = resolveMagicCircleViewModel(
             circleWithPorts,
-            [circleWithPorts, child],
+            [child],
             state()
         );
 
@@ -73,7 +73,7 @@ describe('magicCirclePresentation', () => {
 
         expect(resolveMagicCircleViewModel(
             circle,
-            [circle, child],
+            [child],
             state()
         ).status).toBe(MAGIC_CIRCLE_STATUSES.VALID);
     });
@@ -86,7 +86,7 @@ describe('magicCirclePresentation', () => {
 
         expect(resolveMagicCircleViewModel(
             circle,
-            [circle, ...children],
+            children,
             state()
         ).minimumHeight).toBe(448);
     });

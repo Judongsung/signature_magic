@@ -8,6 +8,7 @@ import {
 import {
     addMagicNodeToCircle,
     moveMagicNodeGroup,
+    normalizeMagicCircleSequences,
     resizeMagicCircleSequence,
     updateMagicCircleMetadata,
     type MagicNodeSequenceOrigin,
@@ -76,6 +77,53 @@ describe('magicCircleGraphActions', () => {
 
         expect(secondUpdate[0]).toBe(firstUpdate[0]);
         expect(secondUpdate[0].data).toBe(firstUpdate[0].data);
+    });
+
+    it('normalizes multiple circles together and preserves unrelated nodes', () => {
+        const first = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'first-normalized'
+        );
+        const second = createMagicCircleNode(
+            { x: 520, y: 0 },
+            () => 'second-normalized'
+        );
+        const firstChild = attachNodeToCircle(
+            createTestMagicNode('first-child'),
+            first,
+            3
+        );
+        const secondChild = attachNodeToCircle(
+            createTestMagicNode('second-child'),
+            second,
+            2
+        );
+        const unrelated = createTestMagicNode('unrelated');
+
+        const normalized = normalizeMagicCircleSequences([
+            first,
+            secondChild,
+            unrelated,
+            second,
+            firstChild,
+        ]);
+
+        expect(getCircleChildNodes(normalized, first.id).map(node => [
+            node.data.magicType,
+            node.data.sequenceIndex,
+        ])).toEqual([
+            ['ignition', 0],
+            ['manifestation', 1],
+        ]);
+        expect(getCircleChildNodes(normalized, second.id).map(node => [
+            node.data.magicType,
+            node.data.sequenceIndex,
+        ])).toEqual([
+            ['ignition', 0],
+            ['manifestation', 1],
+        ]);
+        expect(normalized.find(node => node.id === unrelated.id))
+            .toBe(unrelated);
     });
 
     it('appends a new node and assigns the next sequence index', () => {

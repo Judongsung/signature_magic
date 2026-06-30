@@ -25,28 +25,6 @@ import type {
 } from '../../../types/magic';
 
 type CircleIdFactory = () => string;
-type CirclePortNodeKey = Extract<
-    keyof Edge,
-    'source' | 'target'
->;
-type CirclePortHandleKey = Extract<
-    keyof Edge,
-    'sourceHandle' | 'targetHandle'
->;
-
-const CIRCLE_PORT_EDGE_KEYS = {
-    [MAGIC_CIRCLE_PORT_DIRECTIONS.INPUT]: {
-        nodeKey: 'target',
-        handleKey: 'targetHandle',
-    },
-    [MAGIC_CIRCLE_PORT_DIRECTIONS.OUTPUT]: {
-        nodeKey: 'source',
-        handleKey: 'sourceHandle',
-    },
-} as const satisfies Record<
-    MagicCirclePortDirection,
-    { nodeKey: CirclePortNodeKey; handleKey: CirclePortHandleKey }
->;
 
 function createCircleId(): string {
     return crypto.randomUUID();
@@ -397,30 +375,58 @@ export function normalizeMagicCirclePortHandles(
     });
 }
 
+interface MagicCircleConnectedPortIndexes {
+    inputByCircleId: ReadonlyMap<string, number>;
+    outputByCircleId: ReadonlyMap<string, number>;
+}
+
 function resolveMagicCirclePortCount(
-    circleId: string,
-    edges: readonly Edge[],
-    direction: MagicCirclePortDirection
+    highestConnectedIndex: number
 ): number {
-    const { handleKey, nodeKey } = CIRCLE_PORT_EDGE_KEYS[direction];
-    const highestConnectedIndex = edges.reduce((highestIndex, edge) => {
-        if (edge[nodeKey] !== circleId) return highestIndex;
-        const handleIndex = readMagicCirclePortHandleIndex(
-            edge[handleKey],
-            direction
-        );
-        return handleIndex === undefined
-            ? highestIndex
-            : Math.max(highestIndex, handleIndex);
-    }, -1);
-
-    const connectedPortCount = highestConnectedIndex + 1;
-
     return Math.max(
         MAGIC_CIRCLE_PORT_CONFIG.DEFAULT_VISIBLE_COUNT,
-        connectedPortCount +
+        highestConnectedIndex + 1 +
             MAGIC_CIRCLE_PORT_CONFIG.TRAILING_EMPTY_PORT_COUNT
     );
+}
+
+function collectMagicCircleConnectedPortIndexes(
+    edges: readonly Edge[]
+): MagicCircleConnectedPortIndexes {
+    const inputByCircleId = new Map<string, number>();
+    const outputByCircleId = new Map<string, number>();
+
+    edges.forEach(edge => {
+        const inputIndex = readMagicCirclePortHandleIndex(
+            edge.targetHandle,
+            MAGIC_CIRCLE_PORT_DIRECTIONS.INPUT
+        );
+        if (inputIndex !== undefined) {
+            inputByCircleId.set(
+                edge.target,
+                Math.max(
+                    inputByCircleId.get(edge.target) ?? -1,
+                    inputIndex
+                )
+            );
+        }
+
+        const outputIndex = readMagicCirclePortHandleIndex(
+            edge.sourceHandle,
+            MAGIC_CIRCLE_PORT_DIRECTIONS.OUTPUT
+        );
+        if (outputIndex !== undefined) {
+            outputByCircleId.set(
+                edge.source,
+                Math.max(
+                    outputByCircleId.get(edge.source) ?? -1,
+                    outputIndex
+                )
+            );
+        }
+    });
+
+    return { inputByCircleId, outputByCircleId };
 }
 
 export interface MagicCirclePortCountSync {
@@ -433,18 +439,16 @@ export function syncMagicCirclePortCounts(
     edges: readonly Edge[]
 ): MagicCirclePortCountSync {
     let changed = false;
+    const connectedPortIndexes =
+        collectMagicCircleConnectedPortIndexes(edges);
     const nextNodes = nodes.map(node => {
         if (!isMagicCircleNode(node)) return node;
 
         const inputHandleCount = resolveMagicCirclePortCount(
-            node.id,
-            edges,
-            MAGIC_CIRCLE_PORT_DIRECTIONS.INPUT
+            connectedPortIndexes.inputByCircleId.get(node.id) ?? -1
         );
         const outputHandleCount = resolveMagicCirclePortCount(
-            node.id,
-            edges,
-            MAGIC_CIRCLE_PORT_DIRECTIONS.OUTPUT
+            connectedPortIndexes.outputByCircleId.get(node.id) ?? -1
         );
         if (
             node.data.inputHandleCount === inputHandleCount &&
