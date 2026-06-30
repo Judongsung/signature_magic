@@ -2,7 +2,6 @@ import type {
     MagicCircleNode,
     MagicEditorNode,
 } from '../../../types/magic';
-import { isCircleSystemMagicNode } from '../model/circleSystemMagicNodes';
 import {
     getMagicCircleNodes,
     isMagicCircleNode,
@@ -69,7 +68,6 @@ function shouldKeepNodeSelected(
     }
 
     return !isMagicCircleNode(node) &&
-        !isCircleSystemMagicNode(node) &&
         node.parentId === scope.circleId;
 }
 
@@ -78,7 +76,6 @@ export function resolveMagicGraphSelectionTargetCircleId(
 ): string | undefined {
     const selectedUnitCircleId = nodes.find(node =>
         !isMagicCircleNode(node) &&
-        !isCircleSystemMagicNode(node) &&
         node.selected &&
         node.parentId
     )?.parentId;

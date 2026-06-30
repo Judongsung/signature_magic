@@ -3,38 +3,71 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="시그니처 마법의 노드 편집, 연결 규칙, 단위 마법, 서클과 스탯 계산을 설명하는 상세 가이드">
-    <title>마법 편집 시스템 상세 가이드</title>
+    <meta
+        name="description"
+        content="서클 중심 마법 편집기의 노드 배치, 제어 쌍, 선택, 복사와 붙여넣기, 가중치, 스탯, 프리셋 사용법"
+    >
+    <meta name="theme-color" content="#080b18">
+    <title>마법 편집기 가이드 · 시그니처 마법</title>
     <style>
         :root {
             color-scheme: dark;
-            --bg: #070914;
-            --panel: rgba(15, 20, 39, 0.92);
-            --panel-soft: rgba(20, 28, 51, 0.72);
-            --line: rgba(153, 202, 226, 0.2);
-            --text: #eaf4ff;
-            --muted: #a6b7ca;
-            --gold: #e9c76f;
-            --mint: #6ed6d1;
-            --violet: #b996ff;
-            --coral: #ff8b6f;
-            --radius: 18px;
+            --page: #070914;
+            --page-deep: #04050b;
+            --surface: rgba(15, 20, 39, 0.94);
+            --surface-strong: #12182d;
+            --surface-soft: rgba(23, 31, 57, 0.72);
+            --surface-raised: rgba(29, 39, 70, 0.86);
+            --line: rgba(158, 190, 223, 0.18);
+            --line-strong: rgba(158, 202, 238, 0.34);
+            --text: #edf5ff;
+            --muted: #a8b8cb;
+            --faint: #77889d;
+            --gold: #f0cc78;
+            --gold-soft: rgba(240, 204, 120, 0.13);
+            --blue: #73b9ff;
+            --blue-soft: rgba(79, 157, 255, 0.15);
+            --cyan: #77ddd8;
+            --cyan-soft: rgba(83, 211, 205, 0.13);
+            --violet: #bd9dff;
+            --violet-soft: rgba(167, 125, 255, 0.14);
+            --coral: #ff9b86;
+            --coral-soft: rgba(255, 128, 104, 0.12);
+            --green: #86deb1;
+            --radius-xl: 26px;
+            --radius-lg: 18px;
+            --radius-md: 13px;
+            --content-width: 1240px;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
         }
 
         * {
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 28px;
+        }
+
         body {
-            margin: 0;
             min-width: 320px;
+            margin: 0;
             background:
-                radial-gradient(circle at 14% 6%, rgba(110, 214, 209, 0.12), transparent 30rem),
-                radial-gradient(circle at 88% 24%, rgba(185, 150, 255, 0.12), transparent 28rem),
-                linear-gradient(180deg, #090d1d, var(--bg));
+                radial-gradient(circle at 12% 0%, rgba(87, 155, 255, 0.13), transparent 32rem),
+                radial-gradient(circle at 88% 14%, rgba(177, 123, 255, 0.12), transparent 34rem),
+                linear-gradient(180deg, #0a0e20 0%, var(--page) 48%, var(--page-deep) 100%);
             color: var(--text);
-            font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
-            line-height: 1.6;
+            font-family:
+                Pretendard,
+                "Noto Sans KR",
+                "Apple SD Gothic Neo",
+                Inter,
+                system-ui,
+                sans-serif;
+            font-size: 16px;
+            line-height: 1.68;
+            word-break: keep-all;
         }
 
         body::before {
@@ -42,863 +75,1215 @@
             inset: 0;
             z-index: -1;
             background-image:
-                radial-gradient(circle, rgba(255, 255, 255, 0.34) 0 1px, transparent 1.5px),
-                radial-gradient(circle, rgba(233, 199, 111, 0.25) 0 1px, transparent 1.5px);
-            background-position: 0 0, 37px 53px;
-            background-size: 83px 83px, 119px 119px;
+                radial-gradient(circle, rgba(219, 238, 255, 0.27) 0 1px, transparent 1.3px),
+                radial-gradient(circle, rgba(240, 204, 120, 0.22) 0 1px, transparent 1.3px);
+            background-position: 0 0, 41px 57px;
+            background-size: 97px 97px, 139px 139px;
             content: "";
-            opacity: 0.28;
-        }
-
-        main {
-            width: min(960px, calc(100% - 32px));
-            margin: 0 auto;
-            padding: 56px 0 64px;
-        }
-
-        header {
-            position: relative;
-            overflow: hidden;
-            padding: clamp(28px, 6vw, 54px);
-            border: 1px solid var(--line);
-            border-radius: 24px;
-            background:
-                linear-gradient(135deg, rgba(18, 27, 51, 0.96), rgba(9, 13, 29, 0.94));
-            box-shadow: 0 26px 80px rgba(0, 0, 0, 0.34);
-        }
-
-        header::after {
-            position: absolute;
-            top: -130px;
-            right: -100px;
-            width: 330px;
-            height: 330px;
-            border: 1px solid rgba(233, 199, 111, 0.18);
-            border-radius: 50%;
-            box-shadow:
-                0 0 0 28px rgba(110, 214, 209, 0.035),
-                0 0 0 62px rgba(185, 150, 255, 0.025);
-            content: "";
-        }
-
-        .eyebrow {
-            margin: 0 0 8px;
-            color: var(--gold);
-            font-size: 0.75rem;
-            font-weight: 800;
-            letter-spacing: 0.18em;
-        }
-
-        h1,
-        h2,
-        h3,
-        p {
-            margin-top: 0;
-        }
-
-        h1 {
-            position: relative;
-            z-index: 1;
-            margin-bottom: 12px;
-            font-size: clamp(2rem, 7vw, 3.7rem);
-            line-height: 1.12;
-            letter-spacing: -0.04em;
-        }
-
-        .lead {
-            position: relative;
-            z-index: 1;
-            max-width: 640px;
-            margin: 0;
-            color: var(--muted);
-            font-size: clamp(1rem, 2.2vw, 1.14rem);
-        }
-
-        .core-rule {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 9px;
-            margin-top: 28px;
-        }
-
-        .flow-node {
-            min-width: 120px;
-            padding: 10px 14px;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            background: rgba(8, 12, 25, 0.76);
-            font-size: 0.9rem;
-            font-weight: 800;
-            text-align: center;
-        }
-
-        .flow-node:first-child {
-            border-color: rgba(65, 214, 164, 0.48);
-            color: #8ee8c7;
-        }
-
-        .flow-node:last-child {
-            border-color: rgba(255, 139, 111, 0.48);
-            color: #ffb19d;
-        }
-
-        .flow-arrow {
-            color: var(--gold);
-            font-weight: 900;
-        }
-
-        section {
-            margin-top: 42px;
-        }
-
-        .section-heading {
-            display: flex;
-            align-items: baseline;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .section-heading span {
-            color: var(--mint);
-            font-size: 0.75rem;
-            font-weight: 900;
-            letter-spacing: 0.14em;
-        }
-
-        h2 {
-            margin-bottom: 0;
-            font-size: clamp(1.35rem, 4vw, 1.8rem);
-            letter-spacing: -0.025em;
-        }
-
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-            padding: 0;
-            list-style: none;
-            counter-reset: steps;
-        }
-
-        .steps li {
-            position: relative;
-            min-height: 154px;
-            padding: 22px 22px 20px 68px;
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: var(--panel);
-            counter-increment: steps;
-        }
-
-        .steps li::before {
-            position: absolute;
-            top: 22px;
-            left: 20px;
-            display: grid;
-            width: 34px;
-            height: 34px;
-            place-items: center;
-            border: 1px solid rgba(233, 199, 111, 0.5);
-            border-radius: 50%;
-            color: var(--gold);
-            content: counter(steps, decimal-leading-zero);
-            font-size: 0.78rem;
-            font-weight: 900;
-        }
-
-        h3 {
-            margin-bottom: 6px;
-            font-size: 1.05rem;
-        }
-
-        .steps p,
-        .category p {
-            margin-bottom: 0;
-            color: var(--muted);
-            font-size: 0.9rem;
-        }
-
-        strong {
-            color: #fff8dc;
-        }
-
-        kbd {
-            padding: 2px 7px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-bottom-width: 2px;
-            border-radius: 5px;
-            background: #171d31;
-            color: var(--text);
-            font: inherit;
-            font-size: 0.82em;
-        }
-
-        .categories {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 10px;
-        }
-
-        .category {
-            padding: 18px;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            background: var(--panel-soft);
-        }
-
-        .category-icon {
-            display: inline-grid;
-            width: 30px;
-            height: 30px;
-            margin-bottom: 12px;
-            place-items: center;
-            border-radius: 9px;
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--gold);
-            font-weight: 900;
-        }
-
-        .category h3 {
-            margin-bottom: 4px;
-        }
-
-        .tips {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            overflow: hidden;
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: var(--panel);
-        }
-
-        .tips article {
-            padding: 22px;
-        }
-
-        .tips article + article {
-            border-left: 1px solid var(--line);
-        }
-
-        .tips h3 {
-            color: var(--mint);
-        }
-
-        .tips p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.9rem;
-        }
-
-        .finish {
-            margin-top: 32px;
-            padding: 18px 20px;
-            border: 1px solid rgba(233, 199, 111, 0.28);
-            border-radius: 14px;
-            background: linear-gradient(90deg, rgba(233, 199, 111, 0.09), rgba(110, 214, 209, 0.06));
-            color: #dbe8f5;
-            text-align: center;
-        }
-
-        .finish b {
-            color: var(--gold);
-        }
-
-        footer {
-            margin-top: 22px;
-            color: #76879b;
-            font-size: 0.76rem;
-            text-align: center;
+            opacity: 0.24;
+            pointer-events: none;
         }
 
         a {
             color: inherit;
         }
 
-        .reading-time {
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        ::selection {
+            background: rgba(115, 185, 255, 0.32);
+            color: #fff;
+        }
+
+        .skip-link {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            padding: 9px 13px;
+            border-radius: 8px;
+            background: #fff;
+            color: #08101d;
+            font-weight: 800;
+            transform: translateY(-150%);
+            transition: transform 0.16s ease;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+        }
+
+        .hero,
+        .guide-layout,
+        .page-footer {
+            width: min(var(--content-width), calc(100% - 40px));
+            margin-inline: auto;
+        }
+
+        .hero {
             position: relative;
-            z-index: 1;
-            display: inline-flex;
-            margin: 20px 0 0;
-            padding: 5px 10px;
-            border: 1px solid rgba(233, 199, 111, 0.22);
-            border-radius: 999px;
-            background: rgba(233, 199, 111, 0.07);
-            color: #d7c48f;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        .toc {
-            margin-top: 18px;
-            padding: 18px;
+            overflow: hidden;
+            margin-top: 34px;
+            padding: clamp(30px, 6vw, 64px);
             border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: rgba(10, 15, 31, 0.82);
+            border-radius: var(--radius-xl);
+            background:
+                linear-gradient(135deg, rgba(20, 29, 55, 0.97), rgba(9, 13, 29, 0.96)),
+                var(--surface);
+            box-shadow: var(--shadow);
+            isolation: isolate;
         }
 
-        .toc strong {
-            display: block;
-            margin-bottom: 10px;
-            color: var(--gold);
-            font-size: 0.78rem;
-            letter-spacing: 0.08em;
+        .hero::before,
+        .hero::after {
+            position: absolute;
+            z-index: -1;
+            border: 1px solid rgba(115, 185, 255, 0.16);
+            border-radius: 50%;
+            content: "";
+            pointer-events: none;
         }
 
-        .toc ol {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 8px;
+        .hero::before {
+            top: -220px;
+            right: -130px;
+            width: 520px;
+            height: 520px;
+            box-shadow:
+                0 0 0 38px rgba(115, 185, 255, 0.025),
+                0 0 0 84px rgba(189, 157, 255, 0.018);
+        }
+
+        .hero::after {
+            right: 92px;
+            bottom: -176px;
+            width: 300px;
+            height: 300px;
+            border-color: rgba(240, 204, 120, 0.12);
+        }
+
+        .eyebrow,
+        .section-kicker,
+        .nav-kicker {
             margin: 0;
-            padding: 0;
-            list-style: none;
-            counter-reset: toc;
+            color: var(--gold);
+            font-size: 0.72rem;
+            font-weight: 850;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
         }
 
-        .toc li {
-            counter-increment: toc;
+        .hero h1 {
+            max-width: 760px;
+            margin: 12px 0 18px;
+            font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+            font-size: clamp(2.45rem, 7vw, 5rem);
+            font-weight: 700;
+            letter-spacing: -0.055em;
+            line-height: 1.04;
         }
 
-        .toc a {
+        .hero h1 span {
+            color: var(--blue);
+            text-shadow: 0 0 28px rgba(79, 157, 255, 0.3);
+        }
+
+        .hero-lead {
+            max-width: 760px;
+            margin: 0;
+            color: var(--muted);
+            font-size: clamp(1rem, 2vw, 1.16rem);
+        }
+
+        .hero-flow {
             display: flex;
-            min-height: 46px;
+            flex-wrap: wrap;
             align-items: center;
+            gap: 9px;
+            margin-top: 30px;
+        }
+
+        .hero-flow span:not(.flow-arrow) {
+            padding: 8px 12px;
+            border: 1px solid var(--line-strong);
+            border-radius: 999px;
+            background: rgba(9, 15, 31, 0.72);
+            color: #dfefff;
+            font-size: 0.87rem;
+            font-weight: 750;
+        }
+
+        .flow-arrow {
+            color: var(--faint);
+            font-weight: 850;
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
             gap: 8px;
-            padding: 8px 10px;
+            margin-top: 22px;
+        }
+
+        .hero-meta span {
+            padding: 5px 9px;
+            border-radius: 6px;
+            background: rgba(115, 185, 255, 0.08);
+            color: #aecdff;
+            font-size: 0.75rem;
+            font-weight: 720;
+        }
+
+        .guide-layout {
+            display: grid;
+            grid-template-columns: 230px minmax(0, 1fr);
+            gap: 32px;
+            align-items: start;
+            padding-block: 32px 80px;
+        }
+
+        .side-nav {
+            position: sticky;
+            top: 24px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background: rgba(10, 14, 29, 0.88);
+            box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(14px);
+        }
+
+        .side-nav-header {
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .side-nav-header strong {
+            display: block;
+            margin-top: 3px;
+            font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+            font-size: 1.1rem;
+        }
+
+        .side-nav ol {
+            margin: 0;
+            padding: 9px;
+            list-style: none;
+            counter-reset: guide-nav;
+        }
+
+        .side-nav li {
+            counter-increment: guide-nav;
+        }
+
+        .side-nav a {
+            display: grid;
+            grid-template-columns: 22px 1fr;
+            gap: 7px;
+            align-items: baseline;
+            padding: 8px 9px;
             border-radius: 9px;
             color: var(--muted);
-            font-size: 0.8rem;
+            font-size: 0.82rem;
+            font-weight: 690;
+            line-height: 1.35;
             text-decoration: none;
             transition:
-                color 150ms ease,
-                background 150ms ease;
+                background 0.16s ease,
+                color 0.16s ease;
         }
 
-        .toc a::before {
-            color: var(--mint);
-            content: counter(toc, decimal-leading-zero);
-            font-size: 0.7rem;
-            font-weight: 900;
+        .side-nav a::before {
+            color: var(--faint);
+            content: counter(guide-nav, decimal-leading-zero);
+            font-size: 0.66rem;
+            font-variant-numeric: tabular-nums;
         }
 
-        .toc a:hover,
-        .toc a:focus-visible {
-            background: rgba(110, 214, 209, 0.08);
+        .side-nav a:hover,
+        .side-nav a:focus-visible {
+            background: var(--blue-soft);
             color: var(--text);
             outline: none;
         }
 
-        .section-intro {
-            max-width: 760px;
-            margin: -5px 0 18px;
-            color: var(--muted);
-            font-size: 0.94rem;
+        .guide-content {
+            min-width: 0;
         }
 
-        .screen-map,
-        .rule-grid,
-        .advanced-grid,
-        .troubleshooting {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .screen-card,
-        .rule-card,
-        .advanced-card,
-        .trouble-card {
-            padding: 20px;
+        .guide-section {
+            scroll-margin-top: 24px;
+            margin-bottom: 28px;
+            padding: clamp(24px, 4vw, 42px);
             border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: var(--panel);
-        }
-
-        .screen-card .number,
-        .rule-card .number {
-            display: inline-grid;
-            width: 28px;
-            height: 28px;
-            margin-bottom: 12px;
-            place-items: center;
-            border: 1px solid rgba(110, 214, 209, 0.34);
-            border-radius: 8px;
-            color: var(--mint);
-            font-size: 0.73rem;
-            font-weight: 900;
-        }
-
-        .screen-card p,
-        .rule-card p,
-        .advanced-card p,
-        .trouble-card p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.88rem;
-        }
-
-        .note {
-            margin-top: 14px;
-            padding: 15px 17px;
-            border: 1px solid rgba(110, 214, 209, 0.24);
-            border-radius: 12px;
-            background: rgba(110, 214, 209, 0.06);
-            color: #c7d8e7;
-            font-size: 0.86rem;
-        }
-
-        .note strong {
-            color: var(--mint);
-        }
-
-        .note.warning {
-            border-color: rgba(255, 139, 111, 0.28);
-            background: rgba(255, 139, 111, 0.06);
-        }
-
-        .note.warning strong {
-            color: #ffb19d;
-        }
-
-        .recipe {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        .recipe article {
-            padding: 14px;
-            border: 1px dashed rgba(233, 199, 111, 0.26);
-            border-radius: 12px;
-            background: rgba(233, 199, 111, 0.04);
-        }
-
-        .recipe h3 {
-            margin-bottom: 6px;
-            color: var(--gold);
-            font-size: 0.88rem;
-        }
-
-        .recipe p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.78rem;
-            line-height: 1.55;
-        }
-
-        .anatomy {
-            display: grid;
-            grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
-            gap: 14px;
-            align-items: stretch;
-        }
-
-        .anatomy-visual {
-            display: grid;
-            min-height: 310px;
-            place-items: center;
-            padding: 28px;
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
+            border-radius: var(--radius-xl);
             background:
-                linear-gradient(rgba(153, 202, 226, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(153, 202, 226, 0.04) 1px, transparent 1px),
-                rgba(7, 11, 24, 0.86);
-            background-size: 28px 28px;
+                linear-gradient(145deg, rgba(18, 25, 47, 0.94), rgba(10, 14, 29, 0.94));
+            box-shadow: 0 18px 52px rgba(0, 0, 0, 0.2);
         }
 
-        .demo-node {
-            position: relative;
-            width: 132px;
-            padding: 30px 12px 24px;
-            border: 1px solid rgba(185, 150, 255, 0.65);
-            border-radius: 14px;
-            background: linear-gradient(180deg, #18162b, #0d1020);
-            box-shadow: 0 0 26px rgba(185, 150, 255, 0.15);
-            text-align: center;
+        .section-heading {
+            display: grid;
+            grid-template-columns: 48px minmax(0, 1fr);
+            gap: 16px;
+            align-items: start;
+            margin-bottom: 22px;
         }
 
-        .demo-node::before,
-        .demo-node::after {
-            position: absolute;
-            left: 50%;
-            width: 14px;
-            height: 14px;
-            transform: translateX(-50%);
-            border: 2px solid #d7c7ff;
+        .section-number {
+            display: grid;
+            width: 48px;
+            height: 48px;
+            place-items: center;
+            border: 1px solid rgba(240, 204, 120, 0.26);
             border-radius: 50%;
-            background: #36255b;
-            box-shadow: 0 0 10px rgba(185, 150, 255, 0.8);
-            content: "";
+            background: var(--gold-soft);
+            color: var(--gold);
+            font-size: 0.73rem;
+            font-weight: 850;
+            font-variant-numeric: tabular-nums;
         }
 
-        .demo-node::before {
-            top: -8px;
+        .section-heading h2 {
+            margin: 3px 0 0;
+            font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+            font-size: clamp(1.65rem, 4vw, 2.45rem);
+            letter-spacing: -0.035em;
+            line-height: 1.2;
         }
 
-        .demo-node::after {
-            bottom: -8px;
+        .section-intro {
+            max-width: 800px;
+            margin: -4px 0 26px 64px;
+            color: var(--muted);
         }
 
-        .demo-node .icon {
-            display: block;
-            color: var(--violet);
-            font-size: 1.8rem;
+        h3,
+        h4,
+        p {
+            margin-top: 0;
         }
 
-        .demo-node .name {
-            display: block;
+        h3 {
+            margin-bottom: 8px;
+            font-size: 1.08rem;
+            line-height: 1.4;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        strong {
+            color: #fff;
+        }
+
+        .callout {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr);
+            gap: 13px;
+            margin: 22px 0;
+            padding: 17px 18px;
+            border: 1px solid rgba(115, 185, 255, 0.24);
+            border-radius: var(--radius-md);
+            background: var(--blue-soft);
+            color: #bfd2e9;
+        }
+
+        .callout.warning {
+            border-color: rgba(240, 204, 120, 0.24);
+            background: var(--gold-soft);
+        }
+
+        .callout.danger {
+            border-color: rgba(255, 155, 134, 0.26);
+            background: var(--coral-soft);
+        }
+
+        .callout-icon {
+            display: grid;
+            width: 30px;
+            height: 30px;
+            place-items: center;
+            border-radius: 50%;
+            background: rgba(115, 185, 255, 0.15);
+            color: var(--blue);
             font-weight: 900;
         }
 
-        .demo-node .caption {
-            display: block;
-            margin-top: 3px;
-            color: var(--muted);
-            font-size: 0.7rem;
+        .warning .callout-icon {
+            background: rgba(240, 204, 120, 0.14);
+            color: var(--gold);
         }
 
-        .demo-label {
-            position: absolute;
-            left: 50%;
-            width: max-content;
-            color: var(--muted);
-            font-size: 0.7rem;
-            font-weight: 700;
+        .danger .callout-icon {
+            background: rgba(255, 155, 134, 0.14);
+            color: var(--coral);
         }
 
-        .demo-label.output {
-            bottom: calc(100% + 16px);
-            transform: translateX(-50%);
+        .callout p {
+            margin: 1px 0 0;
         }
 
-        .demo-label.input {
-            top: calc(100% + 16px);
-            transform: translateX(-50%);
-        }
-
-        .anatomy-list {
+        .steps {
             display: grid;
-            gap: 10px;
+            gap: 12px;
+            margin: 0;
             padding: 0;
             list-style: none;
+            counter-reset: quick-step;
         }
 
-        .anatomy-list li {
-            padding: 15px 16px;
+        .steps li {
+            display: grid;
+            grid-template-columns: 46px minmax(0, 1fr);
+            gap: 15px;
+            padding: 18px;
             border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: var(--surface-soft);
+            counter-increment: quick-step;
+        }
+
+        .steps li::before {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
             border-radius: 12px;
-            background: var(--panel-soft);
+            background: linear-gradient(145deg, rgba(115, 185, 255, 0.2), rgba(189, 157, 255, 0.14));
+            color: #dcecff;
+            content: counter(quick-step);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.18rem;
+            font-weight: 800;
+        }
+
+        .steps h3 {
+            margin-bottom: 5px;
+        }
+
+        .steps p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .feature-grid,
+        .category-grid,
+        .selection-grid,
+        .detail-grid,
+        .save-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 13px;
+        }
+
+        .feature-card,
+        .selection-card,
+        .detail-card,
+        .save-card {
+            padding: 19px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: var(--surface-soft);
+        }
+
+        .feature-card .card-icon,
+        .selection-card .card-icon {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            margin-bottom: 12px;
+            place-items: center;
+            border-radius: 10px;
+            background: var(--blue-soft);
+            color: var(--blue);
+            font-weight: 850;
+        }
+
+        .feature-card p,
+        .selection-card p,
+        .detail-card p,
+        .save-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .control-list {
+            overflow: hidden;
+            margin-top: 20px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+        }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1.7fr);
+            gap: 20px;
+            padding: 13px 16px;
+            background: rgba(12, 17, 34, 0.65);
+        }
+
+        .control-row + .control-row {
+            border-top: 1px solid var(--line);
+        }
+
+        .control-row strong {
+            font-size: 0.87rem;
+        }
+
+        .control-row span {
             color: var(--muted);
             font-size: 0.87rem;
         }
 
-        .anatomy-list strong {
+        kbd {
+            display: inline-block;
+            min-width: 1.65em;
+            padding: 0.08em 0.42em;
+            border: 1px solid rgba(191, 216, 239, 0.28);
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            background: #171f38;
+            color: #f0f6ff;
+            font-family: inherit;
+            font-size: 0.78em;
+            font-weight: 800;
+            line-height: 1.5;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .circle-anatomy {
+            display: grid;
+            grid-template-columns: minmax(290px, 0.9fr) minmax(0, 1.1fr);
+            gap: 24px;
+            align-items: center;
+        }
+
+        .circle-demo-wrap {
+            display: grid;
+            place-items: center;
+            padding: 28px 12px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background:
+                linear-gradient(rgba(115, 185, 255, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(115, 185, 255, 0.045) 1px, transparent 1px),
+                rgba(7, 11, 24, 0.62);
+            background-size: 32px 32px;
+        }
+
+        .circle-demo {
+            position: relative;
+            width: min(280px, 90%);
+            padding: 0 28px 24px;
+            border: 2px solid rgba(115, 185, 255, 0.58);
+            border-radius: 18px;
+            background: rgba(19, 27, 51, 0.94);
+            box-shadow:
+                0 0 0 4px rgba(115, 185, 255, 0.08),
+                0 18px 38px rgba(0, 0, 0, 0.28);
+        }
+
+        .circle-port {
+            position: absolute;
+            left: 50%;
+            width: 13px;
+            height: 13px;
+            border: 2px solid #d8ebff;
+            border-radius: 50%;
+            background: #4f9dff;
+            box-shadow: 0 0 12px rgba(79, 157, 255, 0.8);
+            transform: translateX(-50%);
+        }
+
+        .circle-port::after {
+            position: absolute;
+            left: 20px;
+            color: var(--muted);
+            content: attr(data-label);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            white-space: nowrap;
+        }
+
+        .circle-port.input {
+            top: -7px;
+        }
+
+        .circle-port.output {
+            bottom: -7px;
+        }
+
+        .circle-port.input::after {
+            top: -4px;
+        }
+
+        .circle-port.output::after {
+            bottom: -4px;
+        }
+
+        .circle-demo-title {
+            margin-inline: -28px;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--line);
+            border-radius: 16px 16px 0 0;
+            background: rgba(30, 42, 75, 0.9);
+            color: #e9f4ff;
+            font-size: 0.8rem;
+            font-weight: 850;
+        }
+
+        .demo-sequence {
+            display: grid;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .demo-unit {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 44px;
+            padding: 8px 11px;
+            border: 1px solid rgba(119, 221, 216, 0.35);
+            border-radius: 10px;
+            background: rgba(10, 18, 34, 0.9);
+            color: #e7fbfa;
+            font-size: 0.79rem;
+            font-weight: 760;
+        }
+
+        .demo-unit .glyph {
+            color: var(--cyan);
+            font-size: 1rem;
+        }
+
+        .demo-unit.manifestation {
+            border-color: rgba(115, 185, 255, 0.82);
+            box-shadow:
+                inset 0 0 0 1px rgba(178, 219, 255, 0.26),
+                0 0 18px rgba(79, 157, 255, 0.24);
+        }
+
+        .demo-unit.manifestation .glyph {
+            color: #96ceff;
+        }
+
+        .anatomy-points {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .anatomy-points li {
+            position: relative;
+            padding: 15px 0 15px 28px;
+            color: var(--muted);
+        }
+
+        .anatomy-points li + li {
+            border-top: 1px solid var(--line);
+        }
+
+        .anatomy-points li::before {
+            position: absolute;
+            top: 22px;
+            left: 5px;
+            width: 7px;
+            height: 7px;
+            border: 2px solid var(--blue);
+            border-radius: 50%;
+            content: "";
+            box-shadow: 0 0 8px rgba(115, 185, 255, 0.5);
+        }
+
+        .anatomy-points strong {
             display: block;
             margin-bottom: 3px;
-            color: var(--text);
         }
 
-        .badge-key {
-            display: inline-flex;
-            margin-right: 5px;
-            padding: 1px 6px;
-            border: 1px solid currentColor;
-            border-radius: 999px;
-            color: var(--gold);
-            font-size: 0.64rem;
-            font-weight: 900;
-            vertical-align: 1px;
+        .category-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin-bottom: 18px;
         }
 
-        .rule-grid {
-            margin-top: 14px;
+        .category-card {
+            min-height: 142px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: var(--surface-soft);
+        }
+
+        .category-card .category-symbol {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--category-color, var(--blue));
+            font-size: 1.45rem;
+            text-shadow: 0 0 15px color-mix(in srgb, var(--category-color, var(--blue)) 45%, transparent);
+        }
+
+        .category-card h3 {
+            margin-bottom: 4px;
+        }
+
+        .category-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .category-card.basic {
+            --category-color: var(--coral);
+        }
+
+        .category-card.action {
+            --category-color: var(--cyan);
+        }
+
+        .category-card.adjust {
+            --category-color: var(--gold);
+        }
+
+        .category-card.control {
+            --category-color: var(--violet);
         }
 
         .catalog {
             display: grid;
-            gap: 12px;
-            margin-top: 16px;
+            gap: 10px;
+            margin-top: 22px;
         }
 
-        .catalog-group {
+        .catalog details {
             overflow: hidden;
             border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: var(--panel);
+            border-radius: var(--radius-md);
+            background: rgba(10, 15, 30, 0.66);
         }
 
-        .catalog-group summary {
+        .catalog summary {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 17px 20px;
-            color: var(--text);
+            justify-content: space-between;
+            gap: 14px;
+            padding: 15px 17px;
+            color: #eef6ff;
             cursor: pointer;
-            font-weight: 900;
+            font-weight: 820;
             list-style: none;
         }
 
-        .catalog-group summary::-webkit-details-marker {
+        .catalog summary::-webkit-details-marker {
             display: none;
         }
 
-        .catalog-group summary::after {
-            margin-left: auto;
-            color: var(--mint);
-            content: "+";
-            font-size: 1.2rem;
+        .catalog summary::after {
+            color: var(--faint);
+            content: "＋";
+            font-size: 1.1rem;
         }
 
-        .catalog-group[open] summary::after {
+        .catalog details[open] summary::after {
             content: "−";
         }
 
-        .catalog-group summary span {
+        .catalog summary small {
             color: var(--muted);
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 650;
         }
 
-        .node-list {
+        .node-catalog {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0;
+            gap: 0 18px;
             margin: 0;
-            padding: 0 20px 18px;
+            padding: 4px 17px 17px;
             list-style: none;
         }
 
-        .node-list li {
+        .node-catalog li {
             display: grid;
-            grid-template-columns: 90px minmax(0, 1fr);
+            grid-template-columns: 86px minmax(0, 1fr);
             gap: 10px;
-            padding: 11px 10px;
-            border-top: 1px solid rgba(153, 202, 226, 0.1);
+            padding: 12px 0;
+            border-top: 1px solid var(--line);
             color: var(--muted);
             font-size: 0.82rem;
         }
 
         .node-name {
-            color: #fff8dc;
-            font-weight: 850;
+            color: #eef6ff;
+            font-weight: 800;
         }
 
         .node-name i {
             display: inline-block;
-            width: 22px;
-            color: var(--gold);
+            width: 23px;
+            color: var(--blue);
             font-style: normal;
             text-align: center;
         }
 
-        .node-tag {
+        .tag {
             display: inline-block;
-            margin-left: 4px;
-            padding: 0 4px;
-            border: 1px solid rgba(185, 150, 255, 0.3);
-            border-radius: 4px;
-            color: #cbb7ff;
-            font-size: 0.6rem;
-            line-height: 1.5;
-            vertical-align: 1px;
-        }
-
-        .stat-table-wrap {
-            overflow-x: auto;
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            background: var(--panel);
-        }
-
-        .stat-table {
-            width: 100%;
-            min-width: 700px;
-            border-collapse: collapse;
-            font-size: 0.82rem;
-        }
-
-        .stat-table th,
-        .stat-table td {
-            padding: 13px 14px;
-            border-bottom: 1px solid rgba(153, 202, 226, 0.12);
-            text-align: left;
-            vertical-align: top;
-        }
-
-        .stat-table th {
-            background: rgba(110, 214, 209, 0.06);
-            color: var(--mint);
-            font-size: 0.72rem;
-            letter-spacing: 0.04em;
-        }
-
-        .stat-table tr:last-child td {
-            border-bottom: 0;
-        }
-
-        .stat-table td:first-child {
-            color: #fff8dc;
-            font-weight: 850;
+            margin: 2px 2px 2px 0;
+            padding: 2px 6px;
+            border: 1px solid rgba(189, 157, 255, 0.24);
+            border-radius: 999px;
+            background: var(--violet-soft);
+            color: #ccb7ff;
+            font-size: 0.67rem;
+            font-weight: 760;
             white-space: nowrap;
         }
 
-        .stat-table td {
-            color: var(--muted);
-        }
-
-        .circle-rules {
+        .control-demo-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 10px;
-            margin-bottom: 16px;
-            padding: 0;
-            list-style: none;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 20px;
         }
 
-        .circle-rules li {
-            padding: 15px;
+        .control-demo-card {
+            padding: 20px;
             border: 1px solid var(--line);
-            border-radius: 12px;
-            background: var(--panel-soft);
+            border-radius: var(--radius-lg);
+            background: var(--surface-soft);
+        }
+
+        .control-demo-card > p {
             color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .sequence-diagram {
+            position: relative;
+            display: grid;
+            gap: 7px;
+            margin-top: 17px;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(6, 10, 22, 0.7);
+        }
+
+        .sequence-pill {
+            position: relative;
+            z-index: 1;
+            min-height: 37px;
+            padding: 8px 11px;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            background: #151d35;
+            color: #dce9f8;
+            font-size: 0.75rem;
+            font-weight: 760;
+        }
+
+        .repeat-diagram .sequence-pill.inside {
+            margin-left: 20px;
+            padding-right: 31px;
+            border-color: rgba(240, 204, 120, 0.28);
+        }
+
+        .repeat-diagram .indent-guide {
+            position: absolute;
+            top: 57px;
+            bottom: 57px;
+            left: 20px;
+            width: 1px;
+            background: linear-gradient(var(--gold), rgba(240, 204, 120, 0.12));
+        }
+
+        .branch-diagram .branch-rail {
+            position: absolute;
+            top: 31px;
+            right: 10px;
+            bottom: 31px;
+            width: 31px;
+            border-top: 2px solid var(--violet);
+            border-right: 2px solid var(--violet);
+            border-bottom: 2px solid var(--violet);
+            border-radius: 0 9px 9px 0;
+            opacity: 0.8;
+        }
+
+        .branch-diagram .branch-rail::after {
+            position: absolute;
+            bottom: -5px;
+            left: -1px;
+            width: 7px;
+            height: 7px;
+            border-bottom: 2px solid var(--violet);
+            border-left: 2px solid var(--violet);
+            content: "";
+            transform: rotate(45deg);
+        }
+
+        .rule-list,
+        .compact-list {
+            margin: 12px 0 0;
+            padding-left: 1.25rem;
+            color: var(--muted);
+        }
+
+        .rule-list li,
+        .compact-list li {
+            margin-block: 7px;
+        }
+
+        .selection-card {
+            min-height: 160px;
+        }
+
+        .selection-card.inside .card-icon {
+            background: var(--violet-soft);
+            color: var(--violet);
+        }
+
+        .selection-card.outside .card-icon {
+            background: var(--cyan-soft);
+            color: var(--cyan);
+        }
+
+        .selection-rules {
+            display: grid;
+            gap: 9px;
+            margin-top: 18px;
+        }
+
+        .selection-rule {
+            display: grid;
+            grid-template-columns: 116px minmax(0, 1fr);
+            gap: 13px;
+            padding: 12px 14px;
+            border-left: 2px solid rgba(115, 185, 255, 0.42);
+            background: rgba(115, 185, 255, 0.055);
+        }
+
+        .selection-rule strong {
             font-size: 0.82rem;
         }
 
-        .circle-rules strong {
-            display: block;
-            margin-bottom: 5px;
-            color: var(--gold);
-        }
-
-        .advanced-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .advanced-card {
-            position: relative;
-        }
-
-        .advanced-card h3 {
-            color: var(--mint);
-        }
-
-        .compact-list {
-            display: grid;
-            gap: 7px;
-            margin: 12px 0 0;
-            padding-left: 20px;
+        .selection-rule span {
             color: var(--muted);
             font-size: 0.84rem;
         }
 
-        .troubleshooting {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .trouble-card h3 {
-            color: #ffb19d;
-        }
-
-        .control-table {
+        .clipboard-flow {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            margin-top: 14px;
-        }
-
-        .control-row {
-            display: grid;
-            grid-template-columns: 150px minmax(0, 1fr);
+            grid-template-columns: 1fr auto 1fr auto 1fr;
             gap: 10px;
-            padding: 11px 12px;
-            border: 1px solid rgba(153, 202, 226, 0.12);
-            border-radius: 9px;
-            background: rgba(255, 255, 255, 0.025);
+            align-items: center;
+            margin: 22px 0;
+        }
+
+        .clipboard-step {
+            min-height: 104px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: var(--surface-soft);
+        }
+
+        .clipboard-step b {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .clipboard-step span {
             color: var(--muted);
             font-size: 0.8rem;
         }
 
-        .control-row strong {
-            color: var(--text);
+        .clipboard-arrow {
+            color: var(--faint);
+            font-size: 1.2rem;
         }
 
-        @media (max-width: 720px) {
-            main {
-                width: min(100% - 20px, 960px);
-                padding: 18px 0 36px;
-            }
+        .detail-card ul,
+        .save-card ul {
+            margin: 10px 0 0;
+            padding-left: 1.15rem;
+            color: var(--muted);
+            font-size: 0.86rem;
+        }
 
-            header {
-                border-radius: 18px;
-            }
+        .detail-card li,
+        .save-card li {
+            margin-block: 5px;
+        }
 
-            .steps,
-            .tips {
-                grid-template-columns: 1fr;
-            }
+        .weight-formula {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 22px 0;
+            padding: 18px;
+            border: 1px solid rgba(119, 221, 216, 0.22);
+            border-radius: var(--radius-md);
+            background: var(--cyan-soft);
+        }
 
-            .toc ol,
-            .screen-map,
-            .rule-grid,
-            .recipe,
-            .advanced-grid,
-            .troubleshooting,
-            .control-table {
-                grid-template-columns: 1fr;
-            }
+        .weight-formula span:not(.formula-arrow) {
+            padding: 7px 10px;
+            border-radius: 8px;
+            background: rgba(7, 13, 26, 0.72);
+            color: #dff8f7;
+            font-size: 0.79rem;
+            font-weight: 760;
+        }
 
-            .anatomy {
-                grid-template-columns: 1fr;
-            }
+        .formula-arrow {
+            color: var(--cyan);
+            font-weight: 850;
+        }
 
-            .node-list {
-                grid-template-columns: 1fr;
-            }
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 18px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+        }
 
-            .circle-rules {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(8, 12, 25, 0.6);
+            font-size: 0.82rem;
+        }
+
+        th,
+        td {
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: rgba(28, 38, 67, 0.72);
+            color: #e8f3ff;
+            font-size: 0.75rem;
+            letter-spacing: 0.03em;
+        }
+
+        td {
+            color: var(--muted);
+        }
+
+        td:first-child {
+            color: #f2f7ff;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .shortcut-table td:first-child {
+            width: 180px;
+        }
+
+        .finish-card {
+            position: relative;
+            overflow: hidden;
+            margin-top: 26px;
+            padding: 25px;
+            border: 1px solid rgba(115, 185, 255, 0.25);
+            border-radius: var(--radius-lg);
+            background:
+                radial-gradient(circle at 100% 0%, rgba(115, 185, 255, 0.15), transparent 18rem),
+                rgba(15, 22, 42, 0.9);
+        }
+
+        .finish-card h3 {
+            color: #ddebff;
+        }
+
+        .finish-card p {
+            max-width: 690px;
+            color: var(--muted);
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 0 0 38px 262px;
+            color: var(--faint);
+            font-size: 0.75rem;
+        }
+
+        .page-footer a {
+            color: #9fc9fa;
+            text-decoration: none;
+        }
+
+        .page-footer a:hover,
+        .page-footer a:focus-visible {
+            text-decoration: underline;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 1060px) {
+            .category-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .categories {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+            .node-catalog {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 820px) {
+            html {
+                scroll-padding-top: 16px;
             }
 
-            .tips article + article {
-                border-top: 1px solid var(--line);
-                border-left: 0;
+            .hero,
+            .guide-layout,
+            .page-footer {
+                width: min(100% - 24px, 720px);
             }
 
-            .core-rule {
+            .guide-layout {
+                display: block;
+                padding-top: 18px;
+            }
+
+            .side-nav {
+                position: static;
+                margin-bottom: 18px;
+            }
+
+            .side-nav ol {
                 display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .section-intro {
+                margin-left: 0;
+            }
+
+            .circle-anatomy {
                 grid-template-columns: 1fr;
+            }
+
+            .clipboard-flow {
+                grid-template-columns: 1fr;
+            }
+
+            .clipboard-arrow {
+                transform: rotate(90deg);
                 text-align: center;
             }
 
-            .flow-arrow {
-                transform: rotate(90deg);
+            .page-footer {
+                padding-left: 0;
             }
         }
 
-        @media (max-width: 430px) {
-            .categories {
+        @media (max-width: 620px) {
+            body {
+                word-break: normal;
+            }
+
+            .hero {
+                margin-top: 12px;
+                padding: 27px 22px;
+                border-radius: 20px;
+            }
+
+            .hero h1 {
+                font-size: clamp(2.2rem, 14vw, 3.5rem);
+            }
+
+            .guide-section {
+                padding: 23px 19px;
+                border-radius: 20px;
+            }
+
+            .section-heading {
+                grid-template-columns: 40px minmax(0, 1fr);
+                gap: 12px;
+            }
+
+            .section-number {
+                width: 40px;
+                height: 40px;
+            }
+
+            .feature-grid,
+            .category-grid,
+            .selection-grid,
+            .detail-grid,
+            .save-grid,
+            .control-demo-grid {
                 grid-template-columns: 1fr;
             }
 
-            .circle-rules {
+            .side-nav ol {
                 grid-template-columns: 1fr;
-            }
-
-            .node-list li,
-            .control-row {
-                grid-template-columns: 1fr;
-                gap: 3px;
             }
 
             .steps li {
-                padding: 62px 18px 18px;
+                grid-template-columns: 38px minmax(0, 1fr);
+                gap: 12px;
+                padding: 15px;
+            }
+
+            .steps li::before {
+                width: 36px;
+                height: 36px;
+            }
+
+            .control-row,
+            .selection-rule {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+
+            .node-catalog li {
+                grid-template-columns: 78px minmax(0, 1fr);
+            }
+
+            .page-footer {
+                display: block;
+            }
+
+            .page-footer span {
+                display: block;
+                margin-top: 5px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                transition-duration: 0.01ms !important;
             }
         }
 
@@ -913,619 +1298,1003 @@
             }
 
             body::before,
-            header::after {
+            .side-nav {
                 display: none;
             }
 
-            main {
+            .hero,
+            .guide-layout,
+            .page-footer {
                 width: 100%;
-                padding: 0;
             }
 
-            header,
-            .steps li,
-            .category,
-            .tips,
-            .toc,
-            .screen-card,
-            .rule-card,
-            .advanced-card,
-            .trouble-card,
-            .anatomy-visual,
-            .anatomy-list li,
-            .catalog-group,
-            .stat-table-wrap,
-            .circle-rules li,
-            .control-row,
-            .flow-node,
-            .finish {
-                border-color: #cdd5df;
+            .hero,
+            .guide-section {
+                break-inside: avoid;
+                border-color: #ccd4df;
                 background: #fff;
                 box-shadow: none;
-                break-inside: avoid;
             }
 
-            h1,
+            .hero h1 span,
             h2,
             h3,
             strong,
-            .lead,
-            .steps p,
-            .category p,
-            .tips p,
-            .screen-card p,
-            .rule-card p,
-            .advanced-card p,
-            .trouble-card p,
-            .anatomy-list li,
-            .node-list li,
-            .stat-table td,
-            .circle-rules li,
-            .control-row,
-            .finish {
+            td:first-child {
                 color: #172033;
+                text-shadow: none;
             }
 
-            .catalog-group {
-                break-inside: avoid;
+            .hero-lead,
+            .section-intro,
+            p,
+            li,
+            td,
+            .control-row span {
+                color: #455468;
             }
 
-            .stat-table th {
-                background: #f2f6f8;
-                color: #174f59;
+            .guide-layout {
+                display: block;
             }
 
-            .node-name,
-            .stat-table td:first-child,
-            .advanced-card h3,
-            .toc strong {
-                color: #172033;
-            }
-
-            .trouble-card h3 {
-                color: #7c2f23;
+            .page-footer {
+                padding-left: 0;
             }
         }
     </style>
 </head>
 <body>
-    <main>
-        <header>
-            <p class="eyebrow">SIGNATURE MAGIC · COMPLETE GUIDE 26.06.27</p>
-            <h1>마법 편집 시스템<br>상세 가이드</h1>
-            <p class="lead">
-                단위 마법을 배치하고 마나의 흐름을 연결해 나만의 시그니처 마법을 설계합니다.
-                이 가이드는 첫 조합부터 반복·분기와 스탯 계산까지 편집 시스템 전체를 설명합니다.
-            </p>
+    <a class="skip-link" href="#guide-content">본문으로 건너뛰기</a>
 
-            <div class="core-rule" aria-label="마법 연결의 기본 흐름">
-                <span class="flow-node">⊕ 마나근원</span>
-                <span class="flow-arrow" aria-hidden="true">→</span>
-                <span class="flow-node">단위 마법</span>
-                <span class="flow-arrow" aria-hidden="true">→</span>
-                <span class="flow-node">⟡ 최종발현</span>
+    <header class="hero" id="top">
+        <p class="eyebrow">SIGNATURE MAGIC · EDITOR GUIDE · 2026.06.30</p>
+        <h1>서클로 설계하는<br><span>시그니처 마법</span></h1>
+        <p class="hero-lead">
+            서클 안에서는 단위 마법의 세로 순서가 실행 순서가 되고,
+            서클 밖에서는 간선이 서클 사이의 흐름을 만듭니다.
+            이 가이드는 현재 편집기의 선택·제어·가중치·복사·저장 규칙을 처음부터 끝까지 설명합니다.
+        </p>
+
+        <div class="hero-flow" aria-label="마법 편집 기본 순서">
+            <span>서클 선택</span>
+            <span class="flow-arrow" aria-hidden="true">→</span>
+            <span>단위 마법 배치</span>
+            <span class="flow-arrow" aria-hidden="true">→</span>
+            <span>서클 연결</span>
+            <span class="flow-arrow" aria-hidden="true">→</span>
+            <span>결과 확인</span>
+        </div>
+
+        <div class="hero-meta" aria-label="가이드 기준">
+            <span>현재 편집기 기준</span>
+            <span>제어 · 감지 / 반복 / 분기</span>
+            <span>Windows · macOS 단축키 병기</span>
+        </div>
+    </header>
+
+    <div class="guide-layout">
+        <aside class="side-nav">
+            <div class="side-nav-header">
+                <p class="nav-kicker">CONTENTS</p>
+                <strong>가이드 목차</strong>
             </div>
+            <nav aria-label="마법 편집기 가이드 목차">
+                <ol>
+                    <li><a href="#quick-start">빠른 시작</a></li>
+                    <li><a href="#workspace">화면과 조작</a></li>
+                    <li><a href="#circles">서클 편집</a></li>
+                    <li><a href="#nodes">단위 마법</a></li>
+                    <li><a href="#control">제어 노드</a></li>
+                    <li><a href="#selection">선택과 복사</a></li>
+                    <li><a href="#details">상세정보와 가중치</a></li>
+                    <li><a href="#stats">스탯 계산</a></li>
+                    <li><a href="#save-result">프리셋과 결과</a></li>
+                    <li><a href="#reference">단축키와 문제 해결</a></li>
+                </ol>
+            </nav>
+        </aside>
 
-            <p class="reading-time">예상 읽기 시간 · 7분</p>
-        </header>
+        <main class="guide-content" id="guide-content">
+            <section class="guide-section" id="quick-start" aria-labelledby="quick-start-title">
+                <div class="section-heading">
+                    <span class="section-number">01</span>
+                    <div>
+                        <p class="section-kicker">QUICK START</p>
+                        <h2 id="quick-start-title">첫 서클을 완성하는 가장 짧은 순서</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    편집 화면은 선택된 빈 서클 하나로 시작합니다.
+                    내부 간선을 직접 그리지 않고 필요한 단위 마법을 위에서 아래 순서로 쌓으면 됩니다.
+                </p>
 
-        <nav class="toc" aria-label="가이드 목차">
-            <strong>CONTENTS</strong>
-            <ol>
-                <li><a href="#screen">화면 구성과 조작</a></li>
-                <li><a href="#quick-start">첫 마법 만들기</a></li>
-                <li><a href="#connections">노드와 연결 규칙</a></li>
-                <li><a href="#catalog">단위 마법 도감</a></li>
-                <li><a href="#stats">서클과 스탯</a></li>
-                <li><a href="#advanced">고급 조합과 프리셋</a></li>
-                <li><a href="#troubleshooting">문제 해결</a></li>
-            </ol>
-        </nav>
+                <ol class="steps">
+                    <li>
+                        <div>
+                            <h3>서클이 선택되어 있는지 확인</h3>
+                            <p>
+                                선택된 서클은 테두리와 상단 탭이 강조됩니다.
+                                선택이 풀렸다면 서클의 빈 공간이나 상단 탭을 클릭하세요.
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div>
+                            <h3>카테고리를 열고 단위 마법 추가</h3>
+                            <p>
+                                속성·행동·조절·제어 탭은 여러 개를 동시에 켤 수 있습니다.
+                                도구 모음의 노드를 클릭하면 선택된 서클의 발현 노드 앞에 추가됩니다.
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div>
+                            <h3>위에서 아래로 실행 순서 정리</h3>
+                            <p>
+                                노드를 끌어 세로 순서를 바꾸세요.
+                                도구 모음에서 직접 끌어 놓으면 포인터 위치에 삽입할 수 있습니다.
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div>
+                            <h3>여러 서클이라면 OUTPUT에서 INPUT으로 연결</h3>
+                            <p>
+                                서클 아래쪽 OUTPUT 포트에서 다음 서클 위쪽 INPUT 포트로 끌어 간선을 만듭니다.
+                                연결이 늘어나면 필요한 빈 포트가 자동으로 추가됩니다.
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div>
+                            <h3>미리보기와 Total Stats 확인</h3>
+                            <p>
+                                단위 마법이 하나 이상 들어간 유효한 서클은 오른쪽 미리보기와 스탯에 반영됩니다.
+                                완성한 뒤 시연 시작에서 이름과 설명을 기록합니다.
+                            </p>
+                        </div>
+                    </li>
+                </ol>
 
-        <section id="screen" aria-labelledby="screen-title">
-            <div class="section-heading">
-                <span>01</span>
-                <h2 id="screen-title">화면 구성과 기본 조작</h2>
-            </div>
-
-            <p class="section-intro">
-                조합 화면은 단위 마법을 고르는 도구 모음, 흐름을 설계하는 편집창,
-                결과를 확인하는 미리보기로 나뉩니다.
-            </p>
-
-            <div class="screen-map">
-                <article class="screen-card">
-                    <span class="number">01</span>
-                    <h3>상단 도구 모음</h3>
+                <div class="callout">
+                    <span class="callout-icon" aria-hidden="true">!</span>
                     <p>
-                        속성·행동·조절·확장 탭으로 노드를 찾습니다.
-                        프리셋 관리와 전체 초기화도 이곳에서 실행합니다.
+                        <strong>핵심 모델:</strong>
+                        서클 <em>안</em>의 흐름은 노드의 순서로 자동 생성되고,
+                        간선은 서클 <em>사이</em>에서만 직접 연결합니다.
+                        단위 노드끼리 핸들을 연결하는 방식이 아닙니다.
                     </p>
-                </article>
-                <article class="screen-card">
-                    <span class="number">02</span>
-                    <h3>마법 편집창</h3>
-                    <p>
-                        노드를 배치하고 핸들을 연결하는 작업 공간입니다.
-                        선의 화살표가 실제 마나 진행 방향을 나타냅니다.
-                    </p>
-                </article>
-                <article class="screen-card">
-                    <span class="number">03</span>
-                    <h3>서클 미리보기</h3>
-                    <p>
-                        유효한 연결이 생기면 서클 수, 각 서클의 모습과 스탯,
-                        전체 조합의 Total Stats가 즉시 갱신됩니다.
-                    </p>
-                </article>
-            </div>
+                </div>
+            </section>
 
-            <div class="control-table" aria-label="마법 편집창 조작표">
-                <div class="control-row"><strong>마법 버튼 클릭</strong><span>편집창 중앙에 노드 배치</span></div>
-                <div class="control-row"><strong>마법 버튼 드래그</strong><span>놓은 위치에 노드 배치</span></div>
-                <div class="control-row"><strong>노드 드래그</strong><span>노드 위치 이동</span></div>
-                <div class="control-row"><strong>노드 우클릭</strong><span>설명·스탯·개별 설정 열기</span></div>
-                <div class="control-row"><strong>빈 공간 우클릭 드래그</strong><span>캔버스 이동</span></div>
-                <div class="control-row"><strong>마우스 휠 / 좌하단 도구</strong><span>확대·축소 및 화면 맞춤</span></div>
-                <div class="control-row"><strong>빈 공간 드래그</strong><span>범위 안의 노드·연결선 다중 선택</span></div>
-                <div class="control-row"><strong>선택 후 <kbd>Delete</kbd></strong><span>노드 또는 연결선 제거</span></div>
-            </div>
+            <section class="guide-section" id="workspace" aria-labelledby="workspace-title">
+                <div class="section-heading">
+                    <span class="section-number">02</span>
+                    <div>
+                        <p class="section-kicker">WORKSPACE</p>
+                        <h2 id="workspace-title">화면 구성과 기본 조작</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    위쪽 도구 모음에서 재료를 고르고, 왼쪽 편집창에서 구조를 만들며,
+                    오른쪽 미리보기에서 계산 결과를 확인합니다.
+                </p>
 
-            <p class="note">
-                <strong>화면 비율 조절:</strong>
-                가운데 구분선을 끌면 편집창과 미리보기의 크기가 바뀝니다.
-                구분선을 키보드로 선택한 뒤 방향키로 5%씩 조절하고,
-                <kbd>Enter</kbd>로 50:50 비율을 복원할 수도 있습니다.
-                좁은 화면에서는 두 영역이 위아래로 배치됩니다.
-            </p>
-        </section>
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <span class="card-icon" aria-hidden="true">01</span>
+                        <h3>단위 마법 도구 모음</h3>
+                        <p>
+                            카테고리 필터, 단위 마법, 서클 추가, 프리셋, 전체 초기화, 가이드 버튼을 제공합니다.
+                            노드에 마우스를 올리면 설명과 현재 보정이 반영된 스탯을 볼 수 있습니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <span class="card-icon" aria-hidden="true">02</span>
+                        <h3>마법 편집창</h3>
+                        <p>
+                            서클과 단위 노드를 배치·선택·복사하고 서클 간 흐름을 연결합니다.
+                            처음 배율은 넓은 작업 공간을 보기 쉽도록 축소되어 있습니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <span class="card-icon" aria-hidden="true">03</span>
+                        <h3>서클 미리보기</h3>
+                        <p>
+                            유효한 서클의 문양과 각 서클 스탯, 전체 Total Stats가 편집과 함께 갱신됩니다.
+                            앞 단계에서 받은 보정은 괄호 안 증감치로 함께 표시됩니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <span class="card-icon" aria-hidden="true">↔</span>
+                        <h3>크기 조절 구분선</h3>
+                        <p>
+                            가운데 구분선을 끌어 편집창 비율을 30~75% 사이에서 바꿀 수 있습니다.
+                            좁은 화면에서는 편집창과 미리보기가 위아래로 배치됩니다.
+                        </p>
+                    </article>
+                </div>
 
-        <section id="quick-start" aria-labelledby="quick-start-title">
-            <div class="section-heading">
-                <span>02</span>
-                <h2 id="quick-start-title">첫 마법 만들기</h2>
-            </div>
+                <div class="control-list" aria-label="캔버스 조작 방법">
+                    <div class="control-row">
+                        <strong>빈 공간 우클릭 드래그</strong>
+                        <span>캔버스 이동</span>
+                    </div>
+                    <div class="control-row">
+                        <strong>마우스 휠</strong>
+                        <span>포인터 주변 확대·축소</span>
+                    </div>
+                    <div class="control-row">
+                        <strong>왼쪽 아래 컨트롤</strong>
+                        <span>확대, 축소, 전체 그래프 맞춤</span>
+                    </div>
+                    <div class="control-row">
+                        <strong>빈 공간 좌클릭 드래그</strong>
+                        <span>시작 위치에 따라 서클 또는 단위 노드 범위 선택</span>
+                    </div>
+                    <div class="control-row">
+                        <strong>가운데 구분선 드래그</strong>
+                        <span>편집창과 미리보기 비율 조절</span>
+                    </div>
+                    <div class="control-row">
+                        <strong>구분선 + 방향키</strong>
+                        <span>5%씩 조절 · <kbd>Home</kbd>/<kbd>End</kbd> 최소·최대 · <kbd>Enter</kbd> 50% 복원</span>
+                    </div>
+                </div>
+            </section>
 
-            <p class="section-intro">
-                처음에는 분기나 반복 없이 직선 조합부터 만들어 보세요.
-                핵심은 마나근원과 최종발현 사이에 끊김 없는 경로를 만드는 것입니다.
-            </p>
+            <section class="guide-section" id="circles" aria-labelledby="circles-title">
+                <div class="section-heading">
+                    <span class="section-number">03</span>
+                    <div>
+                        <p class="section-kicker">CIRCLES</p>
+                        <h2 id="circles-title">서클이 구조와 흐름의 기본 단위</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    하나의 서클은 이름과 메모, 단위 마법 시퀀스, 발현 노드,
+                    다른 서클과 연결하는 INPUT·OUTPUT 포트를 가집니다.
+                </p>
 
-            <ol class="steps">
-                <li>
-                    <h3>카테고리 선택</h3>
+                <div class="circle-anatomy">
+                    <div class="circle-demo-wrap">
+                        <div class="circle-demo" aria-label="서클 구성 예시">
+                            <span class="circle-port input" data-label="INPUT"></span>
+                            <div class="circle-demo-title">빙결 구속 · 대상의 움직임 제한</div>
+                            <div class="demo-sequence">
+                                <div class="demo-unit"><span class="glyph">✳</span> 냉각</div>
+                                <div class="demo-unit"><span class="glyph">⊙</span> 지정</div>
+                                <div class="demo-unit"><span class="glyph">◇</span> 성형</div>
+                                <div class="demo-unit manifestation"><span class="glyph">✧</span> 발현</div>
+                            </div>
+                            <span class="circle-port output" data-label="OUTPUT"></span>
+                        </div>
+                    </div>
+
+                    <ul class="anatomy-points">
+                        <li>
+                            <strong>상단 탭</strong>
+                            탭을 끌어 서클을 이동합니다. 우클릭하거나 … 버튼을 누르면 이름·메모·스탯 상세정보가 열립니다.
+                        </li>
+                        <li>
+                            <strong>내부 시퀀스</strong>
+                            위에서 아래로 실행됩니다. 노드는 40px 그리드에 맞춰 정렬되고, 반복 내부만 중첩 깊이당 20px 들여쓰기 됩니다.
+                        </li>
+                        <li>
+                            <strong>발현 노드</strong>
+                            푸른 테두리로 표시되는 서클의 시스템 노드입니다. 선택하고 순서를 옮기거나 캡션을 쓸 수 있지만 삭제·가중치 적용은 할 수 없습니다.
+                        </li>
+                        <li>
+                            <strong>INPUT · OUTPUT</strong>
+                            위쪽 입력과 아래쪽 출력으로 서클을 연결합니다. 연결된 포트 옆에는 다음 연결을 위한 빈 포트가 유지됩니다.
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="feature-grid" style="margin-top: 22px;">
+                    <article class="feature-card">
+                        <h3>서클 추가와 선택</h3>
+                        <p>
+                            <strong>서클 추가</strong>는 현재 화면 중앙의 비어 있는 위치에 새 서클을 만듭니다.
+                            빈 내부 공간을 클릭해도 서클이 선택되며 테두리와 탭에 선택 효과가 나타납니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>이동과 크기 조절</h3>
+                        <p>
+                            상단 탭으로 이동하고, 선택 상태에 나타나는 테두리 핸들로 크기를 바꿉니다.
+                            여러 서클이 선택되어 있으면 한 서클을 이동할 때 선택된 서클이 함께 움직입니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>이름과 메모</h3>
+                        <p>
+                            상단 탭 우클릭 또는 … 버튼으로 상세정보를 열어 이름과 메모를 기록합니다.
+                            메모는 탭에 함께 표시되어 복잡한 그래프의 역할을 구분하기 쉽습니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>서클 삭제</h3>
+                        <p>
+                            상세정보의 삭제 버튼이나 선택 후 <kbd>Delete</kbd>를 사용합니다.
+                            서클과 내부 노드, 연결이 모두 삭제되므로 전용 확인 창에서 한 번 더 승인해야 합니다.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="callout warning">
+                    <span class="callout-icon" aria-hidden="true">i</span>
                     <p>
-                        속성부터 시작해 행동·조절 노드를 골라 봅니다.
-                        카테고리 탭은 여러 개를 동시에 켤 수 있습니다.
+                        도구 모음의 단위 마법을 <strong>클릭</strong>하면 선택된 서클 중 화면상 가장 위에 있는 서클 하나에만 추가됩니다.
+                        정확한 서클과 위치를 지정하려면 노드를 도구 모음에서 원하는 삽입 지점으로 <strong>드래그</strong>하세요.
                     </p>
-                </li>
-                <li>
-                    <h3>스탯 확인 후 배치</h3>
-                    <p>
-                        마법 버튼에 커서를 올리면 설명과 기본 스탯이 보입니다.
-                        클릭하거나 드래그해 필요한 노드를 놓습니다.
-                    </p>
-                </li>
-                <li>
-                    <h3>마나근원에서 출발</h3>
-                    <p>
-                        화면 아래쪽의 <strong>마나근원 위쪽 출력점</strong>을
-                        첫 단위 마법의 아래쪽 입력점에 연결합니다.
-                    </p>
-                </li>
-                <li>
-                    <h3>아래에서 위로 연결</h3>
-                    <p>
-                        각 노드의 <strong>위쪽 출력점 → 다음 노드의 아래쪽 입력점</strong>
-                        순서로 연결하고 마지막은 최종발현에 잇습니다.
-                    </p>
-                </li>
-                <li>
-                    <h3>결과 조정</h3>
-                    <p>
-                        미리보기에서 서클과 Total Stats를 확인합니다.
-                        노드를 추가·제거하거나 순서를 바꾸며 결과를 조정하세요.
-                    </p>
-                </li>
-                <li>
-                    <h3>시그니처 마법 기록</h3>
-                    <p>
-                        서클이 하나 이상 만들어지면 <strong>시연 시작</strong>이 활성화됩니다.
-                        마법 이름과 설명을 적으면 조합이 완성됩니다.
-                    </p>
-                </li>
-            </ol>
+                </div>
+            </section>
 
-            <div class="recipe" aria-label="연습용 마법 조합 예시">
-                <article>
-                    <h3>불꽃 투사</h3>
-                    <p>마나근원 → 발화 → 지정 → 방출 → 최종발현</p>
-                </article>
-                <article>
-                    <h3>얼음 구속</h3>
-                    <p>마나근원 → 냉각 → 지정 → 성형 → 유지 → 최종발현</p>
-                </article>
-                <article>
-                    <h3>바람 추적</h3>
-                    <p>마나근원 → 공기 → 감지 → 이동 → 최종발현</p>
-                </article>
-            </div>
-        </section>
+            <section class="guide-section" id="nodes" aria-labelledby="nodes-title">
+                <div class="section-heading">
+                    <span class="section-number">04</span>
+                    <div>
+                        <p class="section-kicker">MAGIC UNITS</p>
+                        <h2 id="nodes-title">단위 마법 배치와 카테고리</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    단위 마법은 역할에 따라 네 카테고리로 나뉩니다.
+                    여러 카테고리 탭을 동시에 켜서 필요한 노드를 한 화면에 모을 수 있습니다.
+                </p>
 
-        <section id="connections" aria-labelledby="connections-title">
-            <div class="section-heading">
-                <span>03</span>
-                <h2 id="connections-title">노드 읽기와 연결 규칙</h2>
-            </div>
+                <div class="category-grid">
+                    <article class="category-card basic">
+                        <span class="category-symbol" aria-hidden="true">▲</span>
+                        <h3>속성 · 9종</h3>
+                        <p>마법을 이루는 물질, 힘, 개념과 기본 성질을 정합니다.</p>
+                    </article>
+                    <article class="category-card action">
+                        <span class="category-symbol" aria-hidden="true">↗</span>
+                        <h3>행동 · 7종</h3>
+                        <p>마법이 어디에, 어떤 형태와 움직임으로 작용할지 정합니다.</p>
+                    </article>
+                    <article class="category-card adjust">
+                        <span class="category-symbol" aria-hidden="true">⇧</span>
+                        <h3>조절 · 8종</h3>
+                        <p>출력, 범위, 안정성, 지속과 작용 방향을 조정합니다.</p>
+                    </article>
+                    <article class="category-card control">
+                        <span class="category-symbol" aria-hidden="true">∞</span>
+                        <h3>제어 · 3종</h3>
+                        <p>조건을 감지하고 시퀀스를 반복하거나 다른 지점으로 분기합니다.</p>
+                    </article>
+                </div>
 
-            <div class="anatomy">
-                <div class="anatomy-visual" aria-label="단위 마법 노드 구조 예시">
-                    <div class="demo-node">
-                        <span class="demo-label output">출력 · 다음 노드로</span>
-                        <span class="icon">⇧</span>
-                        <span class="name">증폭</span>
-                        <span class="caption">화력 강화</span>
-                        <span class="demo-label input">입력 · 이전 노드에서</span>
+                <div class="callout">
+                    <span class="callout-icon" aria-hidden="true">↕</span>
+                    <p>
+                        서클 안에서 노드를 끌면 삽입선이 표시됩니다.
+                        여러 단위 노드를 범위 선택한 뒤 하나를 끌면 선택한 블록의 상대 순서를 유지한 채 함께 이동합니다.
+                        다른 서클로 옮길 때 반복·분기 쌍은 두 마커가 모두 포함되어야 합니다.
+                    </p>
+                </div>
+
+                <div class="catalog">
+                    <details open>
+                        <summary>
+                            <span>속성</span>
+                            <small>9종 · 재료와 성질</small>
+                        </summary>
+                        <ul class="node-catalog">
+                            <li><span class="node-name"><i>▲</i>발화</span><span>불이 붙고 타오르는 변화를 일으킵니다.</span></li>
+                            <li><span class="node-name"><i>✳</i>냉각</span><span>열을 빼앗아 낮은 온도로 기울게 합니다.</span></li>
+                            <li><span class="node-name"><i>≋</i>수류</span><span>물이 흐르고 번지는 성질을 다룹니다.</span></li>
+                            <li><span class="node-name"><i>⌁</i>공기</span><span>기체의 흐름과 방향을 다룹니다.</span></li>
+                            <li><span class="node-name"><i>▰</i>토양</span><span>흙과 돌의 형태와 밀도를 다룹니다.</span></li>
+                            <li><span class="node-name"><i>⬡</i>금속</span><span>금속의 단단함과 전도성을 다룹니다.</span></li>
+                            <li><span class="node-name"><i>◆</i>힘</span><span>밀고 당기는 작용의 크기를 다룹니다.</span></li>
+                            <li><span class="node-name"><i>✚</i>순리</span><span>회복과 생장 같은 자연스러운 순환을 돕습니다.</span></li>
+                            <li>
+                                <span class="node-name"><i>◈</i>커스텀</span>
+                                <span>알려진 분류 밖의 단위 마법입니다. <span class="tag">이름 편집</span></span>
+                            </li>
+                        </ul>
+                    </details>
+
+                    <details>
+                        <summary>
+                            <span>행동</span>
+                            <small>7종 · 대상과 실제 작용</small>
+                        </summary>
+                        <ul class="node-catalog">
+                            <li><span class="node-name"><i>⊙</i>지정</span><span>발현할 위치, 목표 지점 또는 대상을 지정합니다.</span></li>
+                            <li><span class="node-name"><i>↗</i>이동</span><span>대상이나 효과를 지정된 곳으로 이동시킵니다.</span></li>
+                            <li><span class="node-name"><i>⟳</i>회전</span><span>한 점을 기준으로 회전시킵니다.</span></li>
+                            <li><span class="node-name"><i>⤴</i>방출</span><span>효과를 한 방향으로 쏘아냅니다.</span></li>
+                            <li><span class="node-name"><i>⤵</i>흡인</span><span>대상이나 효과를 지정된 지점으로 끌어당깁니다.</span></li>
+                            <li><span class="node-name"><i>◇</i>성형</span><span>윤곽과 형태를 원하는 모양으로 빚습니다.</span></li>
+                            <li><span class="node-name"><i>⊕</i>부여</span><span>대상이나 술식에 특정 효과를 깃들게 합니다.</span></li>
+                        </ul>
+                    </details>
+
+                    <details>
+                        <summary>
+                            <span>조절</span>
+                            <small>8종 · 세기와 작동 방식</small>
+                        </summary>
+                        <ul class="node-catalog">
+                            <li><span class="node-name"><i>◌</i>확산</span><span>효과를 넓게 퍼뜨립니다.</span></li>
+                            <li><span class="node-name"><i>▭</i>유지</span><span>효과를 붙잡아 소멸을 늦춥니다. <span class="tag">지속 시간 가중치</span></span></li>
+                            <li><span class="node-name"><i>✦</i>분산</span><span>출력을 낮추고 범위를 크게 넓힙니다.</span></li>
+                            <li><span class="node-name"><i>⇧</i>증폭</span><span>효과의 출력이나 강도를 키웁니다.</span></li>
+                            <li><span class="node-name"><i>▣</i>안정</span><span>불안정성을 낮춰 술식을 제어합니다.</span></li>
+                            <li><span class="node-name"><i>◍</i>압축</span><span>효과를 좁은 범위에 밀집시킵니다.</span></li>
+                            <li><span class="node-name"><i>⇄</i>반전</span><span>앞선 효과의 방향이나 작용을 뒤집습니다.</span></li>
+                            <li><span class="node-name"><i>⊘</i>반발</span><span>마나 흐름을 밀어내거나 충돌시킵니다.</span></li>
+                        </ul>
+                    </details>
+
+                    <details>
+                        <summary>
+                            <span>제어</span>
+                            <small>3종 · 조건과 시퀀스 구조</small>
+                        </summary>
+                        <ul class="node-catalog">
+                            <li><span class="node-name"><i>◉</i>감지</span><span>조건, 대상 또는 변화를 찾아냅니다. <span class="tag">가중치 제외</span></span></li>
+                            <li><span class="node-name"><i>∞</i>반복</span><span>시작과 끝 사이를 지정 횟수만큼 반복합니다. <span class="tag">쌍 노드</span></span></li>
+                            <li><span class="node-name"><i>∨</i>분기</span><span>조건이 충족되면 쌍으로 지정된 목적지로 이동합니다. <span class="tag">쌍 노드</span></span></li>
+                        </ul>
+                    </details>
+                </div>
+            </section>
+
+            <section class="guide-section" id="control" aria-labelledby="control-title">
+                <div class="section-heading">
+                    <span class="section-number">05</span>
+                    <div>
+                        <p class="section-kicker">CONTROL PAIRS</p>
+                        <h2 id="control-title">감지·반복·분기로 흐름 제어</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    감지는 일반 시퀀스 노드처럼 한 칸을 차지합니다.
+                    반복과 분기는 추가할 때 시작·끝 마커가 한 쌍으로 생성되며 쌍의 불변식이 자동으로 유지됩니다.
+                </p>
+
+                <div class="control-demo-grid">
+                    <article class="control-demo-card">
+                        <h3>반복 · 들여쓰기로 범위 표시</h3>
+                        <p>
+                            <strong>반복 시작</strong>과 <strong>반복 끝</strong> 사이 노드가 반복 대상입니다.
+                            내부 노드는 중첩 깊이마다 20px 오른쪽으로 들여쓰고 그만큼 폭이 늘어나므로 오른쪽 정렬선은 유지됩니다.
+                        </p>
+                        <div class="sequence-diagram repeat-diagram" aria-label="반복 구간 예시">
+                            <span class="indent-guide" aria-hidden="true"></span>
+                            <div class="sequence-pill">∞ 반복 시작 ×3</div>
+                            <div class="sequence-pill inside">▲ 발화</div>
+                            <div class="sequence-pill inside">⇧ 증폭</div>
+                            <div class="sequence-pill">∞ 반복 끝</div>
+                        </div>
+                        <ul class="compact-list">
+                            <li>반복 간선은 표시하지 않으며 들여쓰기가 범위를 나타냅니다.</li>
+                            <li>중첩 반복은 안쪽 구간이 20px씩 더 들여쓰기 됩니다.</li>
+                            <li>시작 노드 상세정보에서 0~99회로 설정합니다.</li>
+                            <li>0은 무한 반복(∞)이며 스탯은 1회 기준으로 계산합니다.</li>
+                        </ul>
+                    </article>
+
+                    <article class="control-demo-card">
+                        <h3>분기 · 조건에서 목적지로 이동</h3>
+                        <p>
+                            <strong>분기</strong>에서 <strong>분기 목적지</strong>로 이어지는 보라색 선이 오른쪽 레일에 표시됩니다.
+                            선은 둥근 모서리와 꺾쇠 화살표로 진행 방향을 나타냅니다.
+                        </p>
+                        <div class="sequence-diagram branch-diagram" aria-label="분기 구간 예시">
+                            <span class="branch-rail" aria-hidden="true"></span>
+                            <div class="sequence-pill">∨ 분기 · 대상이 움직일 때</div>
+                            <div class="sequence-pill">✳ 냉각</div>
+                            <div class="sequence-pill">◇ 성형</div>
+                            <div class="sequence-pill">∨ 분기 목적지</div>
+                        </div>
+                        <ul class="compact-list">
+                            <li>시작 노드 상세정보의 캡션이 분기 조건으로 표시됩니다.</li>
+                            <li>반복 안에 있어도 실제 들여쓰기 폭을 기준으로 선이 바깥을 우회합니다.</li>
+                            <li>겹치는 분기 구간은 서로 다른 오른쪽 레일을 사용합니다.</li>
+                            <li>목적지 마커는 별도 상세정보를 열지 않습니다.</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div class="callout warning">
+                    <span class="callout-icon" aria-hidden="true">∞</span>
+                    <p>
+                        반복·분기 마커는 항상 유효한 한 쌍으로 관리됩니다.
+                        한쪽만 복사하면 상대 마커가 자동으로 포함되고, 삭제할 때도 쌍이 함께 정리됩니다.
+                        서로 교차하는 잘못된 반복 범위는 만들 수 없습니다.
+                    </p>
+                </div>
+            </section>
+
+            <section class="guide-section" id="selection" aria-labelledby="selection-title">
+                <div class="section-heading">
+                    <span class="section-number">06</span>
+                    <div>
+                        <p class="section-kicker">SELECTION & CLIPBOARD</p>
+                        <h2 id="selection-title">시작 위치가 범위 선택의 대상을 결정</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    서클과 단위 노드를 실수로 섞어 선택하지 않도록 범위 선택의 범위가 분리되어 있습니다.
+                    드래그를 시작한 위치를 먼저 확인하세요.
+                </p>
+
+                <div class="selection-grid">
+                    <article class="selection-card inside">
+                        <span class="card-icon" aria-hidden="true">IN</span>
+                        <h3>서클 안에서 드래그 시작</h3>
+                        <p>
+                            포인터 아래에서 가장 앞에 있는 서클의 단위 노드만 선택합니다.
+                            다른 서클의 노드와 서클 자체는 선택 대상에서 제외됩니다.
+                        </p>
+                    </article>
+                    <article class="selection-card outside">
+                        <span class="card-icon" aria-hidden="true">OUT</span>
+                        <h3>모든 서클 밖에서 드래그 시작</h3>
+                        <p>
+                            단위 노드를 제외하고 서클만 선택합니다.
+                            여러 서클을 한 번에 감싼 뒤 함께 이동하거나 복사할 때 사용합니다.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="selection-rules">
+                    <div class="selection-rule">
+                        <strong>혼합 선택 방지</strong>
+                        <span>서클 선택과 단위 노드 선택은 동시에 유지되지 않습니다.</span>
+                    </div>
+                    <div class="selection-rule">
+                        <strong>서클 전환</strong>
+                        <span>다른 서클의 단위 노드를 선택하면 이전 서클의 단위 선택이 해제됩니다.</span>
+                    </div>
+                    <div class="selection-rule">
+                        <strong>발현 선택</strong>
+                        <span>발현 노드도 같은 서클의 단위 선택 범위에 포함되며 클릭으로 선택할 수 있습니다.</span>
+                    </div>
+                    <div class="selection-rule">
+                        <strong>그룹 이동</strong>
+                        <span>여러 서클 또는 같은 서클의 여러 단위 노드를 선택한 뒤 하나를 끌면 함께 이동합니다.</span>
                     </div>
                 </div>
 
-                <ul class="anatomy-list">
-                    <li>
-                        <strong>위쪽 핸들 = 출력</strong>
-                        현재 노드에서 다음 노드로 마나를 보냅니다. 연결선의 화살표도 같은 방향을 가리킵니다.
-                    </li>
-                    <li>
-                        <strong>아래쪽 핸들 = 입력</strong>
-                        이전 노드의 출력을 받아옵니다. 확장 노드는 여러 입력 또는 출력을 가질 수 있습니다.
-                    </li>
-                    <li>
-                        <strong>아이콘·이름·캡션</strong>
-                        아이콘과 이름은 단위 마법의 종류를 나타냅니다. 우클릭하면 모든 일반 노드에 캡션을 붙일 수 있습니다.
-                    </li>
-                    <li>
-                        <strong>
-                            <span class="badge-key">START</span>
-                            <span class="badge-key">END</span>
-                            <span class="badge-key">CYCLE</span>
-                            배지
-                        </strong>
-                        START는 들어오는 연결이 없음, END는 나가는 연결이 없음을 뜻합니다.
-                        CYCLE은 반복 연결을 받을 수 있는 추가 입력점입니다.
-                    </li>
-                </ul>
-            </div>
+                <h3 style="margin-top: 28px;">복사와 붙여넣기</h3>
+                <div class="clipboard-flow" aria-label="복사 붙여넣기 순서">
+                    <div class="clipboard-step">
+                        <b>1 · 선택</b>
+                        <span>서클 묶음 또는 한 서클 안의 단위 노드 묶음을 선택합니다.</span>
+                    </div>
+                    <span class="clipboard-arrow" aria-hidden="true">→</span>
+                    <div class="clipboard-step">
+                        <b>2 · 복사</b>
+                        <span><kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>C</kbd>로 구조와 설정을 복사합니다.</span>
+                    </div>
+                    <span class="clipboard-arrow" aria-hidden="true">→</span>
+                    <div class="clipboard-step">
+                        <b>3 · 붙여넣기</b>
+                        <span><kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>V</kbd>로 독립된 새 항목을 만듭니다.</span>
+                    </div>
+                </div>
 
-            <div class="rule-grid">
-                <article class="rule-card">
-                    <span class="number">01</span>
-                    <h3>완성 경로만 계산</h3>
-                    <p>마나근원에서 출발해 최종발현에 도착하는 경로 위의 일반 노드만 서클과 스탯에 반영됩니다.</p>
-                </article>
-                <article class="rule-card">
-                    <span class="number">02</span>
-                    <h3>기본은 입력·출력 1개</h3>
-                    <p>대부분의 단위 마법은 입력 하나와 출력 하나만 가집니다. 같은 핸들에 다시 연결하면 기존 선이 교체됩니다.</p>
-                </article>
-                <article class="rule-card">
-                    <span class="number">03</span>
-                    <h3>시스템 노드는 고정</h3>
-                    <p>마나근원은 입력 없이 여러 출력을, 최종발현은 출력 없이 여러 입력을 받을 수 있으며 삭제할 수 없습니다.</p>
-                </article>
-                <article class="rule-card">
-                    <span class="number">04</span>
-                    <h3>확장 노드는 예외</h3>
-                    <p>분기·분리는 여러 출력을 만들고, 병합은 여러 입력을 하나의 출력으로 모읍니다.</p>
-                </article>
-                <article class="rule-card">
-                    <span class="number">05</span>
-                    <h3>순환은 반복만 허용</h3>
-                    <p>일반 노드로 고리를 만들 수 없습니다. 반복 노드의 출력에서 앞선 노드로 돌아갈 때만 순환 연결이 허용됩니다.</p>
-                </article>
-                <article class="rule-card">
-                    <span class="number">06</span>
-                    <h3>잘못된 연결은 차단</h3>
-                    <p>자기 자신 연결, 같은 노드 쌍의 중복 연결, 연결 수 제한 초과, 허용되지 않은 순환은 생성되지 않습니다.</p>
-                </article>
-            </div>
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <h3>서클을 복사할 때</h3>
+                        <p>
+                            크기·위치·이름·메모·내부 노드·발현 캡션·설정과,
+                            함께 선택한 서클 사이의 간선이 포함됩니다.
+                            반복해서 붙여넣으면 원본 배치를 유지한 채 매번 40px씩 이동합니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>단위 노드를 복사할 때</h3>
+                        <p>
+                            같은 서클에서 선택한 노드만 복사합니다.
+                            반복·분기 마커 한쪽만 골라도 쌍이 자동 포함되며 발현 노드는 단위 복사에서 제외됩니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>단위 노드를 붙여넣을 때</h3>
+                        <p>
+                            단위 노드가 선택되어 있으면 선택 블록 뒤에,
+                            서클이 선택되어 있으면 가장 위쪽 선택 서클의 끝에 삽입됩니다.
+                            붙여넣을 대상이 없으면 그래프를 바꾸지 않습니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>새 복사본의 독립성</h3>
+                        <p>
+                            서클·노드·간선·제어 쌍에는 모두 새 식별자가 발급됩니다.
+                            붙여넣은 항목만 선택되므로 바로 이동하거나 다시 복사할 수 있습니다.
+                        </p>
+                    </article>
+                </div>
 
-            <p class="note warning">
-                <strong>중요:</strong>
-                캔버스에 노드가 보인다고 계산되는 것은 아닙니다.
-                마나근원 또는 최종발현과 연결이 끊긴 노드는 배치되어 있어도 결과에서 제외됩니다.
-            </p>
-        </section>
-
-        <section id="catalog" aria-labelledby="catalog-title">
-            <div class="section-heading">
-                <span>04</span>
-                <h2 id="catalog-title">단위 마법 도감</h2>
-            </div>
-
-            <p class="section-intro">
-                수치는 마법 버튼이나 노드에 커서를 올려 확인하는 것이 가장 정확합니다.
-                아래 도감은 각 노드가 조합에서 맡는 역할과 특수 기능을 설명합니다.
-            </p>
-
-            <div class="categories">
-                <article class="category">
-                    <span class="category-icon">▲</span>
-                    <h3>속성</h3>
-                    <p>마법을 구성하는 물질·힘·개념을 정합니다.</p>
-                </article>
-                <article class="category">
-                    <span class="category-icon">↗</span>
-                    <h3>행동</h3>
-                    <p>대상과 위치, 실제로 일어날 작용을 정합니다.</p>
-                </article>
-                <article class="category">
-                    <span class="category-icon">∞</span>
-                    <h3>조절</h3>
-                    <p>효과의 세기·안정성·지속과 반복을 바꿉니다.</p>
-                </article>
-                <article class="category">
-                    <span class="category-icon">∨</span>
-                    <h3>확장</h3>
-                    <p>범위를 넓히거나 마나 흐름을 나누고 합칩니다.</p>
-                </article>
-            </div>
-
-            <div class="catalog">
-                <details class="catalog-group">
-                    <summary>속성 <span>9종 · 마법의 재료와 성질</span></summary>
-                    <ul class="node-list">
-                        <li><span class="node-name"><i>▲</i>발화</span><span>불이 붙고 타오르는 변화를 일으킵니다. 높은 출력을 내기 좋은 화염 계열의 기초입니다.</span></li>
-                        <li><span class="node-name"><i>✳</i>냉각</span><span>열을 빼앗아 온도를 낮춥니다. 얼음·동결 계열 조합의 기초가 됩니다.</span></li>
-                        <li><span class="node-name"><i>≋</i>수류</span><span>물이 흐르고 번지는 성질을 다룹니다. 흐름과 범위를 함께 표현하기 좋습니다.</span></li>
-                        <li><span class="node-name"><i>⌁</i>공기</span><span>기체의 흐름과 방향을 다룹니다. 비교적 넓은 범위의 바람 계열 조합에 어울립니다.</span></li>
-                        <li><span class="node-name"><i>▰</i>토양</span><span>흙과 돌의 형태·밀도를 다룹니다. 단단하고 오래 유지되는 조합의 기초입니다.</span></li>
-                        <li><span class="node-name"><i>⬡</i>금속</span><span>금속의 단단함과 전도성을 다룹니다. 출력과 지속 시간이 모두 높은 편입니다.</span></li>
-                        <li><span class="node-name"><i>◆</i>힘</span><span>밀고 당기는 작용의 크기를 다룹니다. 강한 출력 대신 불안정성이 커질 수 있습니다.</span></li>
-                        <li><span class="node-name"><i>✚</i>순리</span><span>회복과 생장처럼 자연스러운 순환을 돕습니다. 안정적이고 오래 지속되는 성질을 가집니다.</span></li>
-                        <li><span class="node-name"><i>◈</i>커스텀</span><span>분류에 없는 속성이나 개념을 대신합니다. <span class="node-tag">우클릭으로 이름 변경</span></span></li>
-                    </ul>
-                </details>
-
-                <details class="catalog-group">
-                    <summary>행동 <span>8종 · 마법이 실제로 하는 일</span></summary>
-                    <ul class="node-list">
-                        <li><span class="node-name"><i>⊙</i>지정</span><span>마법이 발현할 위치, 목표 지점 또는 대상을 정합니다.</span></li>
-                        <li><span class="node-name"><i>↗</i>이동</span><span>대상이나 효과를 지정된 곳으로 이동시킵니다.</span></li>
-                        <li><span class="node-name"><i>⟳</i>회전</span><span>한 점을 기준으로 대상이나 효과를 회전시킵니다.</span></li>
-                        <li><span class="node-name"><i>⤴</i>방출</span><span>효과를 한 방향으로 강하게 쏘아냅니다. 출력이 높지만 불안정성도 커집니다.</span></li>
-                        <li><span class="node-name"><i>⤵</i>흡인</span><span>대상이나 효과를 지정된 지점으로 끌어당깁니다.</span></li>
-                        <li><span class="node-name"><i>◇</i>성형</span><span>윤곽과 형태를 원하는 모양으로 빚습니다.</span></li>
-                        <li><span class="node-name"><i>⊕</i>부여</span><span>대상이나 다른 술식에 특정 효과를 깃들게 합니다.</span></li>
-                        <li><span class="node-name"><i>◉</i>감지</span><span>조건, 대상 또는 변화를 찾아냅니다. 조건부 조합의 감지 단계로 활용할 수 있습니다.</span></li>
-                    </ul>
-                </details>
-
-                <details class="catalog-group">
-                    <summary>조절 <span>7종 · 세기와 작동 방식 변경</span></summary>
-                    <ul class="node-list">
-                        <li><span class="node-name"><i>▭</i>유지</span><span>효과를 붙잡아 소멸을 늦추고 지속 시간을 늘립니다.</span></li>
-                        <li><span class="node-name"><i>∞</i>반복</span><span>앞선 경로를 순환시켜 되풀이합니다. <span class="node-tag">0~99회 설정</span> <span class="node-tag">순환 허용</span></span></li>
-                        <li><span class="node-name"><i>⇧</i>증폭</span><span>효과의 출력이나 강도를 크게 올리는 대신 마나와 불안정성 부담을 더합니다.</span></li>
-                        <li><span class="node-name"><i>▣</i>안정</span><span>불안정성을 낮춰 복잡하거나 강한 조합을 제어합니다.</span></li>
-                        <li><span class="node-name"><i>◍</i>압축</span><span>효과를 좁은 범위에 밀집시켜 출력 밀도를 높입니다.</span></li>
-                        <li><span class="node-name"><i>⇄</i>반전</span><span>앞선 효과의 방향이나 작용을 반대로 뒤집습니다.</span></li>
-                        <li><span class="node-name"><i>⊘</i>반발</span><span>마나 흐름을 밀어내거나 충돌시켜 순환과 접근을 방해합니다.</span></li>
-                    </ul>
-                </details>
-
-                <details class="catalog-group">
-                    <summary>확장 <span>5종 · 범위와 흐름 구조 변경</span></summary>
-                    <ul class="node-list">
-                        <li><span class="node-name"><i>◌</i>확산</span><span>효과를 넓게 퍼뜨려 적용 범위를 크게 늘립니다.</span></li>
-                        <li><span class="node-name"><i>✦</i>분산</span><span>출력을 낮추는 대신 효과를 매우 넓은 범위로 분산시킵니다.</span></li>
-                        <li><span class="node-name"><i>÷</i>분리</span><span>앞선 결과를 여러 서클에 나누어 전달합니다. <span class="node-tag">여러 출력</span></span></li>
-                        <li><span class="node-name"><i>∨</i>분기</span><span>조건에 따라 흐름을 여러 갈래의 새 서클로 이어갑니다. <span class="node-tag">여러 출력</span></span></li>
-                        <li><span class="node-name"><i>⋈</i>병합</span><span>여러 서클의 흐름을 하나로 모아 다음 서클에 편입합니다. <span class="node-tag">여러 입력</span></span></li>
-                    </ul>
-                </details>
-            </div>
-        </section>
-
-        <section id="stats" aria-labelledby="stats-title">
-            <div class="section-heading">
-                <span>05</span>
-                <h2 id="stats-title">서클 생성과 스탯 계산</h2>
-            </div>
-
-            <p class="section-intro">
-                서클은 단순히 화면에 놓인 노드 수로 만들어지지 않습니다.
-                유효한 경로를 직렬·분기·병합·순환 구조로 분석해 구간별로 나눈 결과입니다.
-            </p>
-
-            <ul class="circle-rules">
-                <li><strong>직렬 경로</strong>입력과 출력이 하나씩 이어지는 연속 구간은 하나의 서클이 됩니다.</li>
-                <li><strong>여러 출력</strong>분기·분리에서 현재 서클이 끝나고, 각 출력 대상부터 새 서클이 시작됩니다.</li>
-                <li><strong>여러 입력</strong>병합으로 여러 경로가 모이면 병합 노드부터 다음 서클이 시작됩니다.</li>
-                <li><strong>반복 고리</strong>반복 노드가 닫은 순환 경로는 반복을 포함한 별도 서클로 계산됩니다.</li>
-            </ul>
-
-            <div class="stat-table-wrap">
-                <table class="stat-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">스탯</th>
-                            <th scope="col">뜻</th>
-                            <th scope="col">직렬·반복</th>
-                            <th scope="col">분기와 전체 결과</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>시전 시간</td>
-                            <td>마법을 완성하는 데 필요한 시간</td>
-                            <td>경로의 값을 합하고 유한 반복 횟수만큼 증가</td>
-                            <td>동시에 갈라진 경로 중 가장 오래 걸리는 값을 사용</td>
-                        </tr>
-                        <tr>
-                            <td>불안정성</td>
-                            <td>술식이 흔들리거나 제어하기 어려운 정도</td>
-                            <td>서클 내 합계에 1.15<sup>노드 수−1</sup> 보정, 반복 횟수는 제외</td>
-                            <td>생성된 서클 가운데 가장 높은 불안정성을 사용</td>
-                        </tr>
-                        <tr>
-                            <td>출력</td>
-                            <td>마법이 발휘하는 힘과 효과의 크기</td>
-                            <td>노드 값을 합하고 유한 반복 횟수만큼 반영</td>
-                            <td>모든 분기 경로의 값을 합산</td>
-                        </tr>
-                        <tr>
-                            <td>범위</td>
-                            <td>효과가 닿거나 퍼지는 공간적 규모</td>
-                            <td>경로의 배율을 곱하고 유한 반복도 곱셈으로 반영</td>
-                            <td>갈라진 경로 중 가장 넓은 값을 사용</td>
-                        </tr>
-                        <tr>
-                            <td>마나 소모</td>
-                            <td>마법 발현에 필요한 총 마나량</td>
-                            <td>노드 값을 합하고 유한 반복 횟수만큼 증가</td>
-                            <td>모든 분기 경로의 값을 합산</td>
-                        </tr>
-                        <tr>
-                            <td>지속 시간</td>
-                            <td>발현된 효과가 유지되는 시간</td>
-                            <td>경로의 값을 합하고 유한 반복 횟수만큼 증가</td>
-                            <td>갈라진 경로 중 가장 오래 지속되는 값을 사용</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <p class="note">
-                <strong>괄호 안의 +/− 수치:</strong>
-                앞 단계에서 선택한 마법사 특성이나 보정 효과가 기본 수치에 더해진 차이입니다.
-                각 스탯 이름에 커서를 올리거나 키보드로 포커스하면 게임 안에서도 계산 설명을 확인할 수 있습니다.
-            </p>
-        </section>
-
-        <section id="advanced" aria-labelledby="advanced-title">
-            <div class="section-heading">
-                <span>06</span>
-                <h2 id="advanced-title">고급 조합과 프리셋</h2>
-            </div>
-
-            <div class="advanced-grid">
-                <article class="advanced-card">
-                    <h3>반복 서클 만들기</h3>
+                <div class="callout">
+                    <span class="callout-icon" aria-hidden="true">⌘</span>
                     <p>
-                        반복 노드를 경로 끝에 놓고, 반복의 위쪽 출력점을 앞선 노드의 CYCLE 입력점으로 되돌려 고리를 닫습니다.
+                        입력창이나 대화상자에 포커스가 있을 때는 편집기 복사·붙여넣기가 텍스트 입력을 가로채지 않습니다.
+                        시스템 클립보드를 사용할 수 없는 환경에서는 현재 탭의 임시 버퍼가 대신 사용됩니다.
                     </p>
-                    <ol class="compact-list">
-                        <li>순환시킬 노드들을 직렬로 연결합니다.</li>
-                        <li>경로 끝에 반복 노드를 연결합니다.</li>
-                        <li>반복 출력에서 앞선 노드의 CYCLE 입력으로 연결합니다.</li>
-                        <li>반복 노드를 우클릭해 0~99회 중 횟수를 정합니다.</li>
-                    </ol>
-                    <p class="note warning">
-                        <strong>0회 표시는 무한 반복(∞)</strong>을 뜻하며 스탯은 1회 기준으로 계산됩니다.
-                        최종발현으로 빠져나가는 경로는 고리 안의 분기·분리 노드에서 따로 이어야 합니다.
-                    </p>
-                </article>
+                </div>
+            </section>
 
-                <article class="advanced-card">
-                    <h3>분기·분리·병합</h3>
-                    <p>
-                        세 노드는 마나 흐름의 모양을 바꿉니다. 분기와 분리는 연결 구조는 같지만,
-                        각각 조건에 따른 갈림과 결과의 분배라는 다른 의미를 표현합니다.
-                    </p>
-                    <ul class="compact-list">
-                        <li><strong>분기:</strong> 조건별로 다른 마법 경로를 구성할 때 사용</li>
-                        <li><strong>분리:</strong> 하나의 결과를 여러 서클에 나누어 전달할 때 사용</li>
-                        <li><strong>병합:</strong> 여러 경로를 하나의 후속 경로로 다시 모을 때 사용</li>
-                    </ul>
-                </article>
+            <section class="guide-section" id="details" aria-labelledby="details-title">
+                <div class="section-heading">
+                    <span class="section-number">07</span>
+                    <div>
+                        <p class="section-kicker">DETAILS & WEIGHT</p>
+                        <h2 id="details-title">상세정보에서 이름·캡션·가중치 편집</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    단위 노드는 우클릭 또는 … 버튼, 서클은 상단 탭 우클릭 또는 … 버튼으로 상세정보를 엽니다.
+                    변경 가능한 항목은 노드 종류에 따라 달라집니다.
+                </p>
 
-                <article class="advanced-card">
-                    <h3>프리셋 저장과 불러오기</h3>
-                    <p>
-                        현재 노드 종류, 위치, 연결, 캡션과 개별 설정을 이름과 함께 저장합니다.
-                        기본 프리셋과 직접 저장한 내 프리셋을 구분해 관리할 수 있습니다.
-                    </p>
-                    <ul class="compact-list">
-                        <li>일반 노드가 하나 이상 있어야 현재 조합을 저장할 수 있습니다.</li>
-                        <li>불러오기는 현재 조합을 선택한 프리셋으로 즉시 교체합니다.</li>
-                        <li>삭제는 내 프리셋에만 가능하며 기본 프리셋은 삭제되지 않습니다.</li>
-                        <li>내 프리셋은 현재 브라우저에 저장되므로 다른 기기로 자동 동기화되지 않습니다.</li>
-                    </ul>
-                </article>
+                <div class="detail-grid">
+                    <article class="detail-card">
+                        <h3>일반 단위 노드</h3>
+                        <p>카테고리·설명·현재 스탯을 확인하고 공통 캡션과 가중치를 설정합니다.</p>
+                        <ul>
+                            <li>커스텀: 화면에 표시할 이름 편집</li>
+                            <li>가중치 허용 노드: 1~99 스테퍼</li>
+                            <li>상세정보의 삭제 버튼으로 즉시 삭제</li>
+                        </ul>
+                    </article>
+                    <article class="detail-card">
+                        <h3>제어 쌍 시작 노드</h3>
+                        <p>반복 시작과 분기 시작 노드에서 쌍 전체의 핵심 설정을 편집합니다.</p>
+                        <ul>
+                            <li>반복: 횟수 0~99, 0은 무한 반복</li>
+                            <li>분기: 캡션을 분기 조건으로 사용</li>
+                            <li>제어 카테고리는 가중치 없음</li>
+                        </ul>
+                    </article>
+                    <article class="detail-card">
+                        <h3>발현 노드</h3>
+                        <p>푸른빛 시스템 노드도 상세정보를 열고 캡션을 작성할 수 있습니다.</p>
+                        <ul>
+                            <li>스탯은 모두 0이며 합산에서 제외</li>
+                            <li>가중치와 삭제 기능 없음</li>
+                            <li>서클 복사·프리셋에는 캡션과 위치 포함</li>
+                        </ul>
+                    </article>
+                    <article class="detail-card">
+                        <h3>서클</h3>
+                        <p>서클 이름·메모와 해당 서클의 계산 스탯을 한 화면에서 관리합니다.</p>
+                        <ul>
+                            <li>이름과 메모는 상단 탭에 표시</li>
+                            <li>삭제 시 내부 노드·연결도 함께 제거</li>
+                            <li>삭제 전 전용 확인 모달 표시</li>
+                        </ul>
+                    </article>
+                </div>
 
-                <article class="advanced-card">
-                    <h3>초기화와 시연 시작</h3>
-                    <p>
-                        <strong>전체 초기화</strong>는 모든 일반 노드·연결과 기록 중인 시그니처 정보를 지우고,
-                        마나근원과 최종발현만 기본 위치에 되돌립니다.
-                    </p>
-                    <ul class="compact-list">
-                        <li>필요한 조합은 초기화 전에 프리셋으로 저장하세요.</li>
-                        <li>유효한 서클이 하나 이상 있어야 시연 시작이 가능합니다.</li>
-                        <li>시연 시작 후 마법 이름과 설명을 기록하고 최종 결과를 확인합니다.</li>
-                    </ul>
-                </article>
-            </div>
-        </section>
+                <h3 style="margin-top: 28px;">노드 가중치 규칙</h3>
+                <p style="color: var(--muted);">
+                    가중치는 같은 단위 마법의 효과를 여러 겹 적용하는 값입니다.
+                    기본값 1은 노드명에 표시하지 않고, 2 이상부터 이름 뒤에 <strong>×N</strong>으로 표시합니다.
+                </p>
 
-        <section id="troubleshooting" aria-labelledby="troubleshooting-title">
-            <div class="section-heading">
-                <span>07</span>
-                <h2 id="troubleshooting-title">자주 막히는 부분</h2>
-            </div>
+                <div class="weight-formula" aria-label="가중치 계산 순서">
+                    <span>기본 스탯</span>
+                    <span class="formula-arrow" aria-hidden="true">→</span>
+                    <span>외부 노드 보정</span>
+                    <span class="formula-arrow" aria-hidden="true">→</span>
+                    <span>노드 경계값</span>
+                    <span class="formula-arrow" aria-hidden="true">→</span>
+                    <span>가중치</span>
+                    <span class="formula-arrow" aria-hidden="true">→</span>
+                    <span>반복 횟수</span>
+                </div>
 
-            <div class="troubleshooting">
-                <article class="trouble-card">
-                    <h3>서클이 생기지 않아요</h3>
-                    <p>
-                        마나근원부터 최종발현까지 화살표 방향으로 따라가 보세요.
-                        중간 연결 하나가 끊겼거나 방향이 반대이면 계산되지 않습니다.
-                    </p>
-                </article>
-                <article class="trouble-card">
-                    <h3>핸들을 연결할 수 없어요</h3>
-                    <p>
-                        입력·출력 제한을 이미 채웠거나, 중복 연결·자기 연결·일반 순환을 시도했을 가능성이 큽니다.
-                        분기·분리·병합 또는 반복 노드가 필요한 구조인지 확인하세요.
-                    </p>
-                </article>
-                <article class="trouble-card">
-                    <h3>추가한 노드가 스탯에 반영되지 않아요</h3>
-                    <p>
-                        노드가 완성 경로 밖에 있으면 무시됩니다.
-                        마나근원에서 해당 노드를 거쳐 최종발현까지 실제로 도달할 수 있어야 합니다.
-                    </p>
-                </article>
-                <article class="trouble-card">
-                    <h3>반복 뒤 수치가 예상과 달라요</h3>
-                    <p>
-                        유한 반복은 대부분의 스탯에 횟수가 반영되지만 불안정성은 반복 횟수를 적용하지 않습니다.
-                        무한 반복은 모든 스탯을 1회 기준으로 계산합니다.
-                    </p>
-                </article>
-                <article class="trouble-card">
-                    <h3>프리셋을 불러오니 작업이 사라졌어요</h3>
-                    <p>
-                        불러오기는 현재 조합에 덧붙이는 기능이 아니라 전체 교체입니다.
-                        비교하거나 보관할 조합은 먼저 별도 이름으로 저장하세요.
-                    </p>
-                </article>
-                <article class="trouble-card">
-                    <h3>시연 시작 버튼이 비활성화돼요</h3>
-                    <p>
-                        미리보기에 서클이 하나 이상 표시되어야 합니다.
-                        단순히 노드를 배치한 것만으로는 다음 단계로 진행할 수 없습니다.
-                    </p>
-                </article>
-            </div>
-        </section>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">대상</th>
+                                <th scope="col">가중치 적용</th>
+                                <th scope="col">예외</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>일반 사용자 노드</td>
+                                <td>시전 시간·불안정성·출력·범위·마나 소모</td>
+                                <td>지속 시간은 그대로 유지</td>
+                            </tr>
+                            <tr>
+                                <td>유지</td>
+                                <td>일반 대상 스탯 + 지속 시간</td>
+                                <td>지속 시간에도 가중치를 적용하는 유일한 노드</td>
+                            </tr>
+                            <tr>
+                                <td>확산·분산</td>
+                                <td>조절 카테고리이므로 가중치 허용</td>
+                                <td>각 노드의 경계값 적용 뒤 배수 계산</td>
+                            </tr>
+                            <tr>
+                                <td>감지·반복·분기</td>
+                                <td>적용하지 않음</td>
+                                <td>제어 카테고리 전체 제외</td>
+                            </tr>
+                            <tr>
+                                <td>발현</td>
+                                <td>적용하지 않음</td>
+                                <td>서클 시스템 노드</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-        <p class="finish">
-            <b>핵심 원칙:</b>
-            마나근원에서 시작해 최종발현으로 끝나는 흐름을 먼저 완성하고,
-            그 사이에 속성·행동·조절·확장을 더하며 원하는 결과로 다듬으세요.
-        </p>
+            <section class="guide-section" id="stats" aria-labelledby="stats-title">
+                <div class="section-heading">
+                    <span class="section-number">08</span>
+                    <div>
+                        <p class="section-kicker">CALCULATION</p>
+                        <h2 id="stats-title">서클과 전체 스탯 읽기</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    각 유효한 서클은 내부 사용자 노드로 자체 스탯을 계산합니다.
+                    Total Stats는 서클 간 연결 구조와 반복·분기 실행 규칙을 함께 반영합니다.
+                </p>
 
-        <footer>Signature Magic · 마법 편집 시스템 상세 안내</footer>
-    </main>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">스탯</th>
+                                <th scope="col">서클 내부</th>
+                                <th scope="col">전체 흐름</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>시전 시간</td>
+                                <td>서클의 시전 시간을 합산</td>
+                                <td>직렬·유한 반복은 합산, 분기는 가장 오래 걸리는 경로 사용</td>
+                            </tr>
+                            <tr>
+                                <td>불안정성</td>
+                                <td>물리 노드 합계에 1.15<sup>노드 수−1</sup> 보정</td>
+                                <td>반복 횟수는 제외하고 서클별 보정값 중 최댓값 사용</td>
+                            </tr>
+                            <tr>
+                                <td>출력</td>
+                                <td>서클의 출력 값을 합산</td>
+                                <td>모든 노드와 분기를 합산하고 유한 반복 횟수 반영</td>
+                            </tr>
+                            <tr>
+                                <td>범위</td>
+                                <td>서클의 범위 값을 곱함</td>
+                                <td>직렬·유한 반복은 곱하고 분기는 가장 넓은 경로 사용</td>
+                            </tr>
+                            <tr>
+                                <td>마나 소모</td>
+                                <td>서클의 마나 소모를 합산</td>
+                                <td>모든 노드와 분기를 합산하고 유한 반복 횟수 반영</td>
+                            </tr>
+                            <tr>
+                                <td>지속 시간</td>
+                                <td>서클의 지속 시간을 합산</td>
+                                <td>직렬·유한 반복은 합산, 분기는 가장 오래 지속되는 경로 사용</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout warning">
+                    <span class="callout-icon" aria-hidden="true">0</span>
+                    <p>
+                        단위 마법이 하나도 없는 빈 서클은 유효한 계산 서클이 아닙니다.
+                        발현 노드만 있는 상태에서는 미리보기와 다음 단계 조건에 반영되지 않습니다.
+                        무한 반복은 멈추지 않는 의미를 유지하되 스탯은 1회 기준으로 계산합니다.
+                    </p>
+                </div>
+
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <h3>서클 상세 스탯</h3>
+                        <p>
+                            서클 상단 탭의 상세정보에서 해당 서클만의 스탯을 확인합니다.
+                            앞 단계 보정이 있으면 기준값과의 차이가 함께 표시됩니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>노드 툴팁 스탯</h3>
+                        <p>
+                            도구 모음이나 노드에 마우스를 올리면 그 노드의 설명과 스탯을 확인할 수 있습니다.
+                            가중치와 현재 외부 보정이 미리 반영됩니다.
+                        </p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="guide-section" id="save-result" aria-labelledby="save-result-title">
+                <div class="section-heading">
+                    <span class="section-number">09</span>
+                    <div>
+                        <p class="section-kicker">PRESETS & RESULT</p>
+                        <h2 id="save-result-title">프리셋으로 보관하고 결과로 마무리</h2>
+                    </div>
+                </div>
+                <p class="section-intro">
+                    프리셋은 다시 사용할 전체 그래프를 보관하는 기능이고,
+                    클립보드는 현재 편집 중 일부를 빠르게 복제하는 기능입니다.
+                </p>
+
+                <div class="save-grid">
+                    <article class="save-card">
+                        <h3>현재 조합 저장</h3>
+                        <p>사용자 단위 노드가 하나 이상 있을 때 이름을 정해 내 프리셋으로 저장합니다.</p>
+                        <ul>
+                            <li>서클 위치·크기·이름·메모 포함</li>
+                            <li>내부 순서·제어 쌍·가중치·캡션 포함</li>
+                            <li>발현 노드 위치와 캡션 포함</li>
+                            <li>서클 사이 간선 포함</li>
+                        </ul>
+                    </article>
+                    <article class="save-card">
+                        <h3>프리셋 불러오기</h3>
+                        <p>선택한 프리셋으로 현재 그래프 전체를 교체합니다. 기존 조합에 덧붙이는 기능이 아닙니다.</p>
+                        <ul>
+                            <li>보관할 현재 작업은 먼저 별도 저장</li>
+                            <li>기본 프리셋과 내 프리셋을 구분</li>
+                            <li>삭제는 내 프리셋에만 제공</li>
+                            <li>브라우저 로컬 저장소에 보관</li>
+                        </ul>
+                    </article>
+                    <article class="save-card">
+                        <h3>전체 초기화</h3>
+                        <p>현재 그래프와 시그니처 정보를 지우고 선택된 빈 서클 하나가 있는 초기 상태로 돌아갑니다.</p>
+                        <ul>
+                            <li>내 프리셋은 함께 삭제되지 않음</li>
+                            <li>편집 중 그래프는 복구되지 않음</li>
+                            <li>필요한 조합은 초기화 전에 저장</li>
+                        </ul>
+                    </article>
+                    <article class="save-card">
+                        <h3>시연 시작과 결과</h3>
+                        <p>유효한 서클이 하나 이상이면 마법 이름과 설명을 기록하고 최종 결과로 이동할 수 있습니다.</p>
+                        <ul>
+                            <li>그래프·서클 문양·Total Stats 표시</li>
+                            <li>세로로 긴 그래프는 실제 길이만큼 결과 영역 확장</li>
+                            <li>PNG도 동일한 전체 그래프 비율로 내보내기</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div class="callout danger">
+                    <span class="callout-icon" aria-hidden="true">!</span>
+                    <p>
+                        프리셋은 현재 브라우저의 로컬 저장소에만 보관됩니다.
+                        브라우저 데이터 삭제, 시크릿 창 종료, 다른 기기나 다른 브라우저로 이동할 때 자동으로 동기화되지 않습니다.
+                    </p>
+                </div>
+            </section>
+
+            <section class="guide-section" id="reference" aria-labelledby="reference-title">
+                <div class="section-heading">
+                    <span class="section-number">10</span>
+                    <div>
+                        <p class="section-kicker">REFERENCE</p>
+                        <h2 id="reference-title">단축키와 자주 막히는 지점</h2>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="shortcut-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">입력</th>
+                                <th scope="col">동작</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>C</kbd></td>
+                                <td>선택한 서클 또는 단위 노드 복사</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>V</kbd></td>
+                                <td>새 식별자로 붙여넣기</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Delete</kbd></td>
+                                <td>선택한 노드·서클·간선 삭제 · 서클은 확인 모달 표시</td>
+                            </tr>
+                            <tr>
+                                <td>노드 우클릭</td>
+                                <td>단위 마법 상세정보 열기</td>
+                            </tr>
+                            <tr>
+                                <td>서클 상단 탭 우클릭</td>
+                                <td>서클 상세정보 열기</td>
+                            </tr>
+                            <tr>
+                                <td>빈 공간 우클릭 드래그</td>
+                                <td>캔버스 이동</td>
+                            </tr>
+                            <tr>
+                                <td>마우스 휠</td>
+                                <td>캔버스 확대·축소</td>
+                            </tr>
+                            <tr>
+                                <td>구분선 방향키</td>
+                                <td>편집창 크기를 5%씩 조절</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="feature-grid" style="margin-top: 22px;">
+                    <article class="feature-card">
+                        <h3>노드를 추가할 수 없어요</h3>
+                        <p>
+                            먼저 서클을 선택하세요. 여러 서클을 선택했다면 클릭 추가는 화면상 가장 위의 서클만 대상으로 합니다.
+                            원하는 서클에 직접 끌어 놓는 방법도 있습니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>범위 선택 대상이 달라요</h3>
+                        <p>
+                            드래그 시작점이 서클 내부인지 확인하세요.
+                            내부에서 시작하면 그 서클의 단위 노드, 모든 서클 밖에서 시작하면 서클만 선택됩니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>서클이 결과에 안 보여요</h3>
+                        <p>
+                            발현 외에 사용자 단위 노드가 하나 이상 있어야 유효합니다.
+                            반복·분기 마커의 쌍이 유효한지도 확인하세요.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>붙여넣기가 되지 않아요</h3>
+                        <p>
+                            단위 노드 붙여넣기에는 대상 서클이 필요합니다.
+                            입력창이나 대화상자 안에서는 텍스트 붙여넣기가 우선합니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>가중치가 없어요</h3>
+                        <p>
+                            감지·반복·분기는 제어 카테고리라 가중치를 사용하지 않습니다.
+                            발현도 시스템 노드이므로 제외됩니다.
+                        </p>
+                    </article>
+                    <article class="feature-card">
+                        <h3>분기선이 노드에 가려져요</h3>
+                        <p>
+                            분기선은 반복 들여쓰기와 중첩 깊이를 반영해 오른쪽 바깥 레일을 사용합니다.
+                            서클 폭이 너무 좁다면 선택 후 크기 조절 핸들로 넓혀 보세요.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="finish-card">
+                    <h3>구조를 먼저, 수치는 그다음</h3>
+                    <p>
+                        먼저 서클마다 읽기 쉬운 시퀀스를 만들고 필요한 서클만 연결하세요.
+                        그다음 캡션과 분기 조건으로 의도를 기록하고, 마지막에 가중치·반복 횟수와 Total Stats를 조정하면
+                        복잡한 조합도 유지하기 쉬운 형태로 완성할 수 있습니다.
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="page-footer">
+        <span>Signature Magic · 마법 편집 시스템 가이드</span>
+        <a href="#top">맨 위로</a>
+    </footer>
 </body>
 </html>

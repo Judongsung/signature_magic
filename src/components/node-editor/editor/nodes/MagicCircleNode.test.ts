@@ -120,6 +120,31 @@ describe('MagicCircleNode', () => {
         expect(html).toContain('M 0 0 L 6 3 L 0 6');
     });
 
+    it('keeps a visible horizontal hook without repeat indentation', () => {
+        graphStore.addNode('branch');
+
+        const { html } = renderCircle();
+
+        expect(html).toContain(
+            'M 412 100 H 424 Q 430 100 430 106'
+        );
+        expect(html).toContain(
+            'Q 430 140 424 140 H 412'
+        );
+    });
+
+    it('anchors a repeated branch beyond the indented cards', () => {
+        const circle = getMagicCircleNodes(graphStore.nodes)[0];
+        graphStore.addNode('repeat', circle.id);
+        graphStore.addNode('branch', circle.id, 1);
+
+        const { html } = renderCircle();
+
+        expect(html).toContain('M 412 140');
+        expect(html).toContain('Q 430 140 430 146');
+        expect(html).not.toContain('M 392 140');
+    });
+
     it('keeps control-pair connectors in the read-only renderer', () => {
         graphStore.addNode('branch');
 

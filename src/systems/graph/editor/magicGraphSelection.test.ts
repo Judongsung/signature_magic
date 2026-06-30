@@ -40,7 +40,7 @@ describe('magicGraphSelection', () => {
         )).toBeUndefined();
     });
 
-    it('keeps only editable units from the scoped circle', () => {
+    it('keeps user and circle-system units from the scoped circle', () => {
         const first = createMagicCircleNode({ x: 0, y: 0 }, () => 'first');
         const second = createMagicCircleNode({ x: 520, y: 0 }, () => 'second');
         const firstUnit = {
@@ -60,7 +60,7 @@ describe('magicGraphSelection', () => {
                 1
             ),
             selected: true,
-            selectable: false,
+            selectable: true,
         };
         const selected = normalizeMagicGraphSelection(
             [
@@ -77,7 +77,7 @@ describe('magicGraphSelection', () => {
         );
 
         expect(selected.filter(node => node.selected).map(node => node.id))
-            .toEqual([firstUnit.id]);
+            .toEqual([firstUnit.id, manifestation.id]);
     });
 
     it('keeps only circles for an external drag', () => {

@@ -51,7 +51,7 @@ describe('circleSystemMagicNodes', () => {
         expect(normalized.filter(node =>
             isCircleSystemMagicNode(node, testCircleSystemNodeConfigs)
         )).toHaveLength(2);
-        expect(normalized[0].selectable).toBe(false);
+        expect(normalized[0].selectable).toBe(true);
         expect(normalized[0].data.showTooltip).toBe(true);
         expect(normalized[2].data).toMatchObject({
             magicType: 'test-system',

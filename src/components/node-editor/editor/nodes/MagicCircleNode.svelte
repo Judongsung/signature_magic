@@ -98,34 +98,47 @@
         openDetails?.(id);
     }
 
-    function branchConnectorLaneX(lane: number): number {
+    function branchConnectorLaneX(
+        connector: (typeof controlPairConnectors)[number]
+    ): number {
         return cardRight +
+            connector.railIndentDepth *
+                MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX +
             MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_HOOK_WIDTH +
-            lane * MAGIC_CONTROL_PAIR_CONFIG.RAIL_LANE_GAP;
+            connector.lane *
+                MAGIC_CONTROL_PAIR_CONFIG.RAIL_LANE_GAP;
     }
 
     function connectorPath(
         connector: (typeof controlPairConnectors)[number]
     ): string {
         const {
-            lane,
+            startIndentDepth,
+            endIndentDepth,
             startY,
             endY,
         } = connector;
-        const laneX = branchConnectorLaneX(lane);
+        const startAnchorX = cardRight +
+            startIndentDepth *
+                MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX;
+        const endAnchorX = cardRight +
+            endIndentDepth *
+                MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX;
+        const laneX = branchConnectorLaneX(connector);
         const direction = endY >= startY ? 1 : -1;
         const cornerRadius = Math.min(
             MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_CORNER_RADIUS,
             Math.abs(endY - startY) / 2,
-            laneX - cardRight
+            laneX - startAnchorX,
+            laneX - endAnchorX
         );
         return [
-            `M ${cardRight} ${startY}`,
+            `M ${startAnchorX} ${startY}`,
             `H ${laneX - cornerRadius}`,
             `Q ${laneX} ${startY} ${laneX} ${startY + direction * cornerRadius}`,
             `V ${endY - direction * cornerRadius}`,
             `Q ${laneX} ${endY} ${laneX - cornerRadius} ${endY}`,
-            `H ${cardRight}`,
+            `H ${endAnchorX}`,
         ].join(' ');
     }
 </script>

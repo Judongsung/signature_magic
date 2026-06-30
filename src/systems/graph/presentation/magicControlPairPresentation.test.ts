@@ -75,9 +75,40 @@ describe('magicControlPairPresentation', () => {
             {
                 pairId: 'branch',
                 lane: 0,
+                startIndentDepth: 0,
+                endIndentDepth: 0,
+                railIndentDepth: 0,
                 startY: 300,
                 endY: 340,
             },
         ]);
+    });
+
+    it('places a nested branch rail beyond the deepest repeated content', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'nested-presentation'
+        );
+        const connectors = resolveMagicControlPairConnectors([
+            circle,
+            ...pair(circle, 'outer', 'repeat', 0, 6),
+            ...pair(circle, 'branch', 'branch', 1, 5),
+            ...pair(circle, 'inner', 'repeat', 2, 4),
+            attachNodeToCircle(
+                createTestMagicNode('content'),
+                circle,
+                3
+            ),
+        ], circle.id);
+
+        expect(connectors).toEqual([{
+            pairId: 'branch',
+            lane: 0,
+            startIndentDepth: 1,
+            endIndentDepth: 1,
+            railIndentDepth: 2,
+            startY: 140,
+            endY: 300,
+        }]);
     });
 });

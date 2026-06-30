@@ -103,6 +103,24 @@ describe('graphStore sequence circles', () => {
         expect(graphStore.activeCircleId).toBe(firstCircleId);
     });
 
+    it('selects the manifestation node as a unit in its circle', () => {
+        const manifestation = getMagicUnitNodes(graphStore.nodes)
+            .find(node => isCircleSystemMagicNode(node))!;
+
+        graphStore.nodes = graphStore.nodes.map(node =>
+            node.id === manifestation.id
+                ? { ...node, selected: true }
+                : node
+        );
+        graphStore.syncSelectionForNode(manifestation.id);
+
+        expect(getMagicUnitNodes(graphStore.nodes)
+            .filter(node => node.selected)
+            .map(node => node.id)
+        ).toEqual([manifestation.id]);
+        expect(graphStore.activeCircleId).toBe(manifestation.parentId);
+    });
+
     it('uses the internal clipboard fallback and offsets repeated circle pastes', () => {
         const originalCircle = circleNode();
         const serialized = graphStore.copySelection();

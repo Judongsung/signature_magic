@@ -10,12 +10,15 @@ import type {
 } from '../../../types/magic';
 import {
     isMagicControlPairType,
-    resolveMagicBranchPairLanes,
+    resolveMagicBranchPairLayouts,
 } from '../model/magicControlPairs';
 
 export interface MagicControlPairConnector {
     pairId: string;
     lane: number;
+    startIndentDepth: number;
+    endIndentDepth: number;
+    railIndentDepth: number;
     startY: number;
     endY: number;
 }
@@ -76,10 +79,19 @@ export function resolveMagicControlPairConnectors(
     nodes: readonly MagicEditorNode[],
     circleId: string
 ): MagicControlPairConnector[] {
-    return resolveMagicBranchPairLanes(nodes, circleId)
-        .map(({ pair, lane }) => ({
+    return resolveMagicBranchPairLayouts(nodes, circleId)
+        .map(({
+            pair,
+            lane,
+            startIndentDepth,
+            endIndentDepth,
+            railIndentDepth,
+        }) => ({
             pairId: pair.id,
             lane,
+            startIndentDepth,
+            endIndentDepth,
+            railIndentDepth,
             startY: resolveSequenceCenterY(pair.startIndex),
             endY: resolveSequenceCenterY(pair.endIndex),
         }));

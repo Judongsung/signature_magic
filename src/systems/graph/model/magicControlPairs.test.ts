@@ -12,6 +12,7 @@ import {
     canMoveMagicControlPairsAcrossCircles,
     collectMagicControlPairDeletionIds,
     isMagicControlPairGraphValid,
+    resolveMagicBranchPairLayouts,
     resolveMagicBranchPairRailWidth,
     resolveMagicControlPairLanes,
     resolveMagicRepeatIndentDepths,
@@ -226,5 +227,32 @@ describe('magicControlPairs', () => {
             ...nodes,
             ...pair(circle, 'branch', 'branch', 5, 6),
         ], circle.id)).toBe(28);
+    });
+
+    it('reserves branch rail space beyond nested repeated content', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'nested-branch'
+        );
+        const nodes = [
+            circle,
+            ...pair(circle, 'outer', 'repeat', 0, 6),
+            ...pair(circle, 'branch', 'branch', 1, 5),
+            ...pair(circle, 'inner', 'repeat', 2, 4),
+            attachNodeToCircle(
+                createTestMagicNode('content'),
+                circle,
+                3
+            ),
+        ];
+
+        expect(resolveMagicBranchPairLayouts(nodes, circle.id))
+            .toMatchObject([{
+                lane: 0,
+                startIndentDepth: 1,
+                endIndentDepth: 1,
+                railIndentDepth: 2,
+            }]);
+        expect(resolveMagicBranchPairRailWidth(nodes, circle.id)).toBe(68);
     });
 });

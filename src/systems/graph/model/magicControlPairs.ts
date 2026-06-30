@@ -34,6 +34,12 @@ export interface MagicControlPairLane {
     lane: number;
 }
 
+export interface MagicBranchPairLayout extends MagicControlPairLane {
+    startIndentDepth: number;
+    endIndentDepth: number;
+    railIndentDepth: number;
+}
+
 export function isMagicControlPairType(
     magicType: MagicType
 ): boolean {
@@ -239,6 +245,23 @@ export function resolveMagicBranchPairLanes(
     );
 }
 
+export function resolveMagicBranchPairLayouts(
+    nodes: readonly MagicEditorNode[],
+    circleId: string
+): MagicBranchPairLayout[] {
+    const indentDepths = resolveMagicRepeatIndentDepths(nodes, circleId);
+
+    return resolveMagicBranchPairLanes(nodes, circleId).map(item => ({
+        ...item,
+        startIndentDepth: indentDepths.get(item.pair.startIndex) ?? 0,
+        endIndentDepth: indentDepths.get(item.pair.endIndex) ?? 0,
+        railIndentDepth: resolveIntervalMaximumIndentDepth(
+            item.pair,
+            indentDepths
+        ),
+    }));
+}
+
 function resolvePairLanes(
     controlPairs: readonly MagicControlPair[]
 ): MagicControlPairLane[] {
@@ -297,15 +320,37 @@ function intervalEndIndex(
     return Math.max(pair.startIndex, pair.endIndex);
 }
 
+function resolveIntervalMaximumIndentDepth(
+    pair: Pick<MagicControlPair, 'startIndex' | 'endIndex'>,
+    indentDepths: ReadonlyMap<number, number>
+): number {
+    let maximumDepth = 0;
+    const startIndex = intervalStartIndex(pair);
+    const endIndex = intervalEndIndex(pair);
+
+    for (let index = startIndex; index <= endIndex; index += 1) {
+        maximumDepth = Math.max(
+            maximumDepth,
+            indentDepths.get(index) ?? 0
+        );
+    }
+
+    return maximumDepth;
+}
+
 export function resolveMagicBranchPairRailWidth(
     nodes: readonly MagicEditorNode[],
     circleId: string
 ): number {
-    const lanes = resolveMagicBranchPairLanes(nodes, circleId);
-    if (lanes.length === 0) return 0;
+    const layouts = resolveMagicBranchPairLayouts(nodes, circleId);
+    if (layouts.length === 0) return 0;
 
-    const laneCount = Math.max(...lanes.map(item => item.lane)) + 1;
+    const maximumRailOffset = Math.max(...layouts.map(layout =>
+        layout.railIndentDepth *
+            MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX +
+        layout.lane *
+            MAGIC_CONTROL_PAIR_CONFIG.RAIL_LANE_GAP
+    ));
     return MAGIC_CONTROL_PAIR_CONFIG.RAIL_BASE_WIDTH +
-        Math.max(0, laneCount - 1) *
-            MAGIC_CONTROL_PAIR_CONFIG.RAIL_LANE_GAP;
+        maximumRailOffset;
 }
