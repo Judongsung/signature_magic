@@ -1,7 +1,6 @@
 import {
     MAGIC_CIRCLE_NODE_CONFIG,
     MAGIC_CONTROL_PAIR_ROLES,
-    MAGIC_NODE_HANDLE_CONFIG,
 } from '../../constants/graphConfigs';
 import {
     MAGIC_CIRCLE_METADATA_CONFIG,
@@ -9,9 +8,8 @@ import {
 } from '../../constants/nodeEditorConfigs';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
-    INITIAL_SYSTEM_MAGIC_NODE_CONFIGS,
-    SYSTEM_MAGIC_TYPE_CONFIGS,
-} from '../../constants/systemMagicNodeConfigs';
+    CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
+} from '../../constants/circleSystemMagicNodeConfigs';
 import type { MagicGraphPresetConfig, MagicTypeConfig } from '../../types/magic';
 import { getMagicNodeEditorFields } from '../graph/model/magicNodeData';
 import {
@@ -33,11 +31,6 @@ import {
     result,
     type DataValidationResult,
 } from './commonValidation';
-
-const HANDLE_ID_PATTERN = /^\w+-\d+$/;
-const SYSTEM_NODE_IDS = new Set<string>(
-    INITIAL_SYSTEM_MAGIC_NODE_CONFIGS.map(node => node.id)
-);
 
 export function validateMagicGraphPresets(
     presetsInput: unknown,
@@ -64,7 +57,7 @@ export function validateMagicGraphPresets(
         if (!isNonEmptyString(preset.label)) {
             errors.push(`Missing magic graph preset label: ${preset.id}`);
         }
-        errors.push(...validatePresetSystemNodePositions(preset));
+        errors.push(...validateLegacySystemNodePositions(preset));
         errors.push(...validatePresetCircles(preset, magicTypes));
         errors.push(...validatePresetNodes(preset, magicTypes));
         errors.push(...validatePresetEdges(preset));
@@ -201,7 +194,7 @@ function validatePresetCircleSystemNodeSlots(
             `${circleId}:${slot.magicType}`,
             slot.magicType,
             slot.settings,
-            [...SYSTEM_MAGIC_TYPE_CONFIGS, ...magicTypes]
+            [...CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS, ...magicTypes]
         ));
     });
 
@@ -234,31 +227,16 @@ function isSafeMagicTypesForPresetValidation(
     });
 }
 
-function validatePresetSystemNodePositions(
+function validateLegacySystemNodePositions(
     preset: MagicGraphPresetConfig
 ): string[] {
-    const systemNodePositions = preset.systemNodePositions ?? [];
-    const errors = collectDuplicateErrors(
-        systemNodePositions.map(node => node.id),
-        `magic graph preset system node id: ${preset.id}`
-    );
+    const legacyPositions = (
+        preset as unknown as Record<string, unknown>
+    ).systemNodePositions;
 
-    systemNodePositions.forEach(node => {
-        if (!isNonEmptyString(node.id)) {
-            errors.push(`Invalid magic graph preset system node id: ${preset.id} -> ${node.id}`);
-        }
-        if (isNonEmptyString(node.id) && !SYSTEM_NODE_IDS.has(node.id)) {
-            errors.push(`Unknown magic graph preset system node id: ${preset.id} -> ${node.id}`);
-        }
-        if (!isFiniteNumber(node.position?.x)) {
-            errors.push(`Invalid magic graph preset system node x: ${preset.id} -> ${node.id}`);
-        }
-        if (!isFiniteNumber(node.position?.y)) {
-            errors.push(`Invalid magic graph preset system node y: ${preset.id} -> ${node.id}`);
-        }
-    });
-
-    return errors;
+    return Array.isArray(legacyPositions) && legacyPositions.length > 0
+        ? [`Unsupported magic graph preset system node positions: ${preset.id}`]
+        : [];
 }
 
 function validatePresetNodes(
@@ -273,9 +251,6 @@ function validatePresetNodes(
     preset.nodes.forEach(node => {
         if (!isNonEmptyString(node.id)) {
             errors.push(`Invalid magic graph preset node id: ${preset.id} -> ${node.id}`);
-        }
-        if (SYSTEM_NODE_IDS.has(node.id)) {
-            errors.push(`Reserved magic graph preset node id: ${preset.id} -> ${node.id}`);
         }
         if (!isNonEmptyString(node.magicType)) {
             errors.push(`Invalid magic graph preset node type: ${preset.id} -> ${node.id}`);
@@ -419,19 +394,15 @@ function validatePresetEdges(preset: MagicGraphPresetConfig): string[] {
         }
         if (!isMagicGraphExternalCircleEdge(edge, circleIds)) {
             errors.push(`Invalid magic graph preset external edge: ${preset.id} -> ${edge.id}`);
-        } else if (
-            !isValidHandleId(
-                edge.sourceHandle,
-                MAGIC_NODE_HANDLE_CONFIG.OUTPUT_PREFIX
-            )
-        ) {
+        } else if (!isMagicCirclePortHandleId(
+            edge.sourceHandle,
+            'output'
+        )) {
             errors.push(`Invalid magic graph preset source handle: ${preset.id} -> ${edge.id} -> ${edge.sourceHandle}`);
-        } else if (
-            !isValidHandleId(
-                edge.targetHandle,
-                MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX
-            )
-        ) {
+        } else if (!isMagicCirclePortHandleId(
+            edge.targetHandle,
+            'input'
+        )) {
             errors.push(`Invalid magic graph preset target handle: ${preset.id} -> ${edge.id} -> ${edge.targetHandle}`);
         }
     });
@@ -446,7 +417,6 @@ function validatePresetReferences(
     const errors: string[] = [];
     const magicTypeIds = new Set(magicTypes.map(config => config.type));
     const allowedNodeIds = new Set([
-        ...SYSTEM_NODE_IDS,
         ...preset.circles.map(circle => circle.id),
         ...preset.nodes.map(node => node.id),
     ]);
@@ -473,19 +443,4 @@ function validatePresetReferences(
     });
 
     return errors;
-}
-
-function isValidHandleId(
-    handleId: string,
-    expectedPrefix: string
-): boolean {
-    const isOutput =
-        expectedPrefix === MAGIC_NODE_HANDLE_CONFIG.OUTPUT_PREFIX;
-    const isCircleHandle = isOutput
-        ? isMagicCirclePortHandleId(handleId, 'output')
-        : isMagicCirclePortHandleId(handleId, 'input');
-    if (isCircleHandle) return true;
-    if (!HANDLE_ID_PATTERN.test(handleId)) return false;
-
-    return handleId.startsWith(`${expectedPrefix}-`);
 }

@@ -7,14 +7,12 @@ import {
 } from '../../../constants/nodeEditorConfigs';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
-    INITIAL_SYSTEM_MAGIC_NODE_CONFIGS,
-} from '../../../constants/systemMagicNodeConfigs';
+} from '../../../constants/circleSystemMagicNodeConfigs';
 import type {
     MagicGraphPresetCircleConfig,
     MagicGraphPresetConfig,
     MagicGraphPresetEdgeConfig,
     MagicGraphPresetNodeConfig,
-    MagicGraphPresetSystemNodePositionConfig,
 } from '../../../types/magic';
 import {
     findNonContiguousMagicGraphSequenceCircleIds,
@@ -32,9 +30,9 @@ import {
     type MagicTypeLookup,
 } from '../model/magicTypeLookup';
 
-const SYSTEM_NODE_IDS = new Set(
-    INITIAL_SYSTEM_MAGIC_NODE_CONFIGS.map(node => node.id)
-);
+type StoredMagicGraphPresetShape = MagicGraphPresetConfig & {
+    systemNodePositions?: unknown[];
+};
 
 export function decodeStoredMagicGraphPreset(
     value: unknown,
@@ -43,13 +41,20 @@ export function decodeStoredMagicGraphPreset(
     if (!isStoredMagicGraphPresetShape(value, magicTypes)) return false;
     if (!hasValidStoredMagicGraphPreset(value)) return false;
 
-    return normalizeMagicGraphPresetSettings(value, magicTypes);
+    const preset: MagicGraphPresetConfig = {
+        id: value.id,
+        label: value.label,
+        circles: value.circles,
+        nodes: value.nodes,
+        edges: value.edges,
+    };
+    return normalizeMagicGraphPresetSettings(preset, magicTypes);
 }
 
 function isStoredMagicGraphPresetShape(
     value: unknown,
     magicTypes: MagicTypeLookup
-): value is MagicGraphPresetConfig {
+): value is StoredMagicGraphPresetShape {
     if (!isRecord(value)) return false;
     if (!isNonEmptyString(value.id) || !isNonEmptyString(value.label)) {
         return false;
@@ -60,27 +65,26 @@ function isStoredMagicGraphPresetShape(
         !Array.isArray(value.edges) ||
         (
             value.systemNodePositions !== undefined &&
-            !Array.isArray(value.systemNodePositions)
+            (
+                !Array.isArray(value.systemNodePositions) ||
+                value.systemNodePositions.length > 0
+            )
         )
     ) {
         return false;
     }
 
     return value.circles.every(isStoredCircle) &&
-        (value.systemNodePositions ?? []).every(isStoredSystemNodePosition) &&
         value.nodes.every(node => isStoredNode(node, magicTypes)) &&
         value.edges.every(isStoredEdge);
 }
 
 function hasValidStoredMagicGraphPreset(
-    preset: MagicGraphPresetConfig
+    preset: StoredMagicGraphPresetShape
 ): boolean {
     const circleIds = new Set(preset.circles.map(circle => circle.id));
     const nodeIds = new Set(preset.nodes.map(node => node.id));
     const edgeIds = new Set(preset.edges.map(edge => edge.id));
-    const systemPositionIds = new Set(
-        (preset.systemNodePositions ?? []).map(position => position.id)
-    );
     const graphIds = [
         ...circleIds,
         ...nodeIds,
@@ -89,18 +93,7 @@ function hasValidStoredMagicGraphPreset(
         circleIds.size !== preset.circles.length ||
         nodeIds.size !== preset.nodes.length ||
         edgeIds.size !== preset.edges.length ||
-        systemPositionIds.size !==
-            (preset.systemNodePositions?.length ?? 0) ||
         new Set(graphIds).size !== graphIds.length
-    ) {
-        return false;
-    }
-    if (
-        preset.circles.some(circle => SYSTEM_NODE_IDS.has(circle.id)) ||
-        preset.nodes.some(node => SYSTEM_NODE_IDS.has(node.id)) ||
-        (preset.systemNodePositions ?? []).some(position =>
-            !SYSTEM_NODE_IDS.has(position.id)
-        )
     ) {
         return false;
     }
@@ -164,16 +157,6 @@ function isStoredSystemNodeSlot(value: unknown): boolean {
         Number.isInteger(value.slotIndex) &&
         Number(value.slotIndex) >= 0 &&
         isOptionalStringRecord(value.settings);
-}
-
-function isStoredSystemNodePosition(
-    value: unknown
-): value is MagicGraphPresetSystemNodePositionConfig {
-    return isRecord(value) &&
-        isNonEmptyString(value.id) &&
-        isRecord(value.position) &&
-        isFiniteNumber(value.position.x) &&
-        isFiniteNumber(value.position.y);
 }
 
 function isStoredNode(

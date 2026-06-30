@@ -39,7 +39,7 @@ describe('magicGraphResultPreview', () => {
         expect(preview.aspectRatio).toBeLessThan(1);
     });
 
-    it('keeps system and user nodes in the read-only preview model', () => {
+    it('keeps provided nodes in the read-only preview model', () => {
         const nodes = [
             createTestMagicNode('mana-source', 'manaSource', { nodeKind: 'system' }),
             createTestMagicNode('node-1'),
@@ -59,8 +59,7 @@ describe('magicGraphResultPreview', () => {
             node.draggable === false &&
             node.selectable === false &&
             node.connectable === false &&
-            node.data.showTooltip === false &&
-            node.data.showBadges === false
+            node.data.showTooltip === false
         )).toBe(true);
         expect(preview.edges).toHaveLength(2);
     });

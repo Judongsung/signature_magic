@@ -11,9 +11,6 @@ import {
     type IdFactory,
 } from './graphActions';
 import {
-    type MagicTypeLookup,
-} from './graphRules';
-import {
     getMagicCircleNodes,
     isMagicCirclePortHandleId,
     isMagicCircleNode,
@@ -113,8 +110,7 @@ export function filterExplicitEdgesReplacedByConnection(
 export function isExplicitMagicCircleConnectionValid(
     connection: Connection,
     edges: Edge[],
-    nodes: MagicEditorNode[],
-    _magicTypes: MagicTypeLookup
+    nodes: MagicEditorNode[]
 ): boolean {
     const { source, target } = connection;
     if (!source || !target) return false;
@@ -147,10 +143,9 @@ export function createExplicitMagicCircleEdgeUpdate(
     connection: Connection,
     edges: Edge[],
     nodes: MagicEditorNode[],
-    magicTypes: MagicTypeLookup,
     createId: IdFactory = createUniqueId
 ): { edge: Edge; edges: Edge[] } | false {
-    if (!isExplicitMagicCircleConnectionValid(connection, edges, nodes, magicTypes)) {
+    if (!isExplicitMagicCircleConnectionValid(connection, edges, nodes)) {
         return false;
     }
 

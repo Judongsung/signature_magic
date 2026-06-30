@@ -37,7 +37,6 @@ import {
     resolveMagicCircleRequiredHeight,
     selectOnlyCircle,
 } from './magicCircleGraph';
-import { createInitialSystemNodes } from './systemMagicNodes';
 
 export interface MagicCircleGraphSnapshot {
     nodes: MagicEditorNode[];
@@ -62,7 +61,6 @@ export interface MagicCircleResize {
 export function createInitialMagicCircleGraph(): MagicCircleGraphSnapshot {
     return {
         nodes: normalizeMagicCircleSequences([
-            ...createInitialSystemNodes(),
             createInitialMagicCircleNode(),
         ]),
         edges: [],

@@ -3,15 +3,6 @@ import {
     MAGIC_NODE_RENDERING_CONFIG,
 } from '../../../constants/graphConfigs';
 
-export function resolveHandleLeft(index: number, count: number): string {
-    if (count <= 1) return MAGIC_NODE_RENDERING_CONFIG.SINGLE_HANDLE_LEFT;
-    const offset = index * (
-        MAGIC_NODE_RENDERING_CONFIG.HANDLE_SPREAD_PERCENT / (count - 1)
-    );
-
-    return `${MAGIC_NODE_RENDERING_CONFIG.HANDLE_SPREAD_START_PERCENT + offset}%`;
-}
-
 export function resolveCirclePortLeft(index: number, count: number): string {
     if (count <= 1) return MAGIC_NODE_RENDERING_CONFIG.SINGLE_HANDLE_LEFT;
 

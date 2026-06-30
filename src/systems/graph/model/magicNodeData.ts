@@ -7,10 +7,7 @@ import {
     MAGIC_NODE_WEIGHT_EDITOR_FIELD,
     MAGIC_REPEAT_CONFIG,
 } from '../../../constants/nodeEditorConfigs';
-import {
-    MAGIC_NODE_HANDLE_CONFIG,
-    MAGIC_NODE_KINDS,
-} from '../../../constants/graphConfigs';
+import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
 import type {
     MagicEditorNode,
     MagicNode,
@@ -23,7 +20,9 @@ import type {
 import { readMagicTypeConfig, type MagicTypeLookup } from './magicTypeLookup';
 import { isMagicCircleNode } from './magicCircleGraph';
 import { canMagicTypeUseNodeWeight } from './magicNodeWeight';
-import { isSystemMagicType } from './systemMagicTypePolicy';
+import {
+    isRegisteredCircleSystemMagicType,
+} from './circleSystemMagicTypePolicy';
 
 export function createUserMagicNodeData(
     magicType: MagicType,
@@ -33,10 +32,6 @@ export function createUserMagicNodeData(
         magicType,
         ...(settings ? { settings: { ...settings } } : {}),
         nodeKind: MAGIC_NODE_KINDS.USER,
-        isRoot: true,
-        isLeaf: true,
-        inputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
-        outputHandleCount: MAGIC_NODE_HANDLE_CONFIG.DEFAULT_VISIBLE_COUNT,
     };
 }
 
@@ -54,7 +49,10 @@ export function getMagicNodeEditorFields(
         ? [MAGIC_NODE_WEIGHT_EDITOR_FIELD]
         : [];
 
-    if (isSystemMagicType(config.type) || hasCaptionOverride) {
+    if (
+        isRegisteredCircleSystemMagicType(config.type) ||
+        hasCaptionOverride
+    ) {
         return [...configuredFields, ...commonFields];
     }
 

@@ -6,14 +6,14 @@ import {
     getMagicUnitNodes,
 } from '../systems/graph/model/magicCircleGraph';
 import { isCircleSystemMagicNode } from '../systems/graph/model/circleSystemMagicNodes';
-import { isSystemMagicNode } from '../systems/graph/model/systemMagicNodes';
-import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../constants/systemMagicNodeConfigs';
+import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../constants/circleSystemMagicNodeConfigs';
+import { MAGIC_CIRCLE_HANDLE_IDS } from '../constants/graphConfigs';
 import { MAGIC_GRAPH_SELECTION_MODES } from '../systems/graph/editor/magicGraphSelection';
 import { graphStore } from './graphStore.svelte';
 
 function userNodes() {
     return getMagicUnitNodes(graphStore.nodes)
-        .filter(node => !isSystemMagicNode(node));
+        .filter(node => !isCircleSystemMagicNode(node));
 }
 
 function circleNode() {
@@ -60,13 +60,13 @@ describe('graphStore sequence circles', () => {
     it('keeps multi-circle selection and targets the uppermost circle', () => {
         const firstCircleId = circleNode().id;
         const secondCircleId = graphStore.addCircle({ x: 520, y: -800 });
-        graphStore.nodes = graphStore.nodes.map(node =>
+        graphStore.acceptFlowNodes(graphStore.nodes.map(node =>
             getMagicCircleNodes(graphStore.nodes).some(circle =>
                 circle.id === node.id
             )
                 ? { ...node, selected: true }
                 : node
-        );
+        ));
 
         graphStore.applySelectionScope({
             mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES,
@@ -90,11 +90,11 @@ describe('graphStore sequence circles', () => {
         const secondUnit = userNodes().find(node =>
             node.parentId === secondCircleId
         )!;
-        graphStore.nodes = graphStore.nodes.map(node =>
+        graphStore.acceptFlowNodes(graphStore.nodes.map(node =>
             node.id === firstUnit.id || node.id === secondUnit.id
                 ? { ...node, selected: true }
                 : node
-        );
+        ));
 
         graphStore.syncSelectionForNode(firstUnit.id);
 
@@ -107,11 +107,11 @@ describe('graphStore sequence circles', () => {
         const manifestation = getMagicUnitNodes(graphStore.nodes)
             .find(node => isCircleSystemMagicNode(node))!;
 
-        graphStore.nodes = graphStore.nodes.map(node =>
+        graphStore.acceptFlowNodes(graphStore.nodes.map(node =>
             node.id === manifestation.id
                 ? { ...node, selected: true }
                 : node
-        );
+        ));
         graphStore.syncSelectionForNode(manifestation.id);
 
         expect(getMagicUnitNodes(graphStore.nodes)
@@ -190,6 +190,102 @@ describe('graphStore sequence circles', () => {
         });
     });
 
+    it('keeps the calculation snapshot stable for editor-only changes', () => {
+        graphStore.addNode('ignition');
+        const circle = circleNode();
+        const calculation = graphStore.calculation;
+
+        graphStore.selectCircle(circle.id);
+        graphStore.setSequenceDropPreview({
+            circleId: circle.id,
+            y: 120,
+        });
+        graphStore.resizeCircle(circle.id, { width: 600, height: 640 });
+        graphStore.updateCircleMetadata(circle.id, {
+            name: '표시 이름',
+            caption: '표시 설명',
+        });
+        graphStore.acceptFlowNodes(graphStore.nodes.map(node =>
+            node.id === circle.id
+                ? {
+                    ...node,
+                    position: { x: 320, y: -320 },
+                }
+                : node
+        ));
+
+        expect(graphStore.calculation).toBe(calculation);
+    });
+
+    it('refreshes the calculation snapshot for node content changes', () => {
+        const initialCalculation = graphStore.calculation;
+
+        graphStore.addNode('ignition');
+        expect(graphStore.calculation).not.toBe(initialCalculation);
+
+        const afterAdd = graphStore.calculation;
+        graphStore.updateNodeSettings(userNodes()[0].id, { weight: '2' });
+        expect(graphStore.calculation).not.toBe(afterAdd);
+    });
+
+    it('commits circle layout once after live positions finish changing', () => {
+        graphStore.addNode('ignition');
+        const firstCircleId = circleNode().id;
+        const secondCircleId = graphStore.addCircle({ x: 520, y: -320 });
+        graphStore.addNode('stream', secondCircleId);
+        const calculation = graphStore.calculation;
+
+        graphStore.acceptFlowNodes(graphStore.nodes.map(node => {
+            if (node.id === firstCircleId) {
+                return { ...node, position: { x: 520, y: -320 } };
+            }
+            if (node.id === secondCircleId) {
+                return { ...node, position: { x: -240, y: -320 } };
+            }
+            return node;
+        }));
+
+        expect(graphStore.calculation).toBe(calculation);
+        expect(graphStore.circleStates.map(state => state.circleId))
+            .toEqual([firstCircleId, secondCircleId]);
+
+        graphStore.commitCircleLayoutChanges();
+
+        expect(graphStore.calculation).not.toBe(calculation);
+        expect(graphStore.circleStates.map(state => state.circleId))
+            .toEqual([secondCircleId, firstCircleId]);
+    });
+
+    it('refreshes the calculation snapshot immediately after external edge events', () => {
+        graphStore.addNode('ignition');
+        const firstCircleId = circleNode().id;
+        const secondCircleId = graphStore.addCircle({ x: 520, y: -320 });
+        graphStore.addNode('stream', secondCircleId);
+        const connection = {
+            source: firstCircleId,
+            target: secondCircleId,
+            sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
+            targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
+        };
+        const beforeConnect = graphStore.calculation;
+
+        const preparedEdge = graphStore.prepareEdge(connection);
+        expect(preparedEdge).not.toBe(false);
+        if (!preparedEdge) throw new Error('Expected a prepared edge');
+        graphStore.acceptFlowEdges([...graphStore.edges, preparedEdge]);
+        expect(graphStore.calculation).toBe(beforeConnect);
+
+        graphStore.onEdgeConnected(connection);
+        expect(graphStore.calculation).not.toBe(beforeConnect);
+
+        const deletedEdge = graphStore.edges[0];
+        const beforeDelete = graphStore.calculation;
+        graphStore.acceptFlowEdges([]);
+        graphStore.onDelete([], [deletedEdge]);
+
+        expect(graphStore.calculation).not.toBe(beforeDelete);
+    });
+
     it('moves a selected sequence block to another circle at an insertion index', () => {
         graphStore.addNode('ignition');
         graphStore.addNode('stream');
@@ -237,6 +333,33 @@ describe('graphStore sequence circles', () => {
         expect(userNodes().map(node => node.data.sequenceIndex)).toEqual([0, 1]);
         expect(userNodes().map(node => node.position.y)).toEqual([80, 120]);
         expect(circleNode().height).toBe(circleHeight);
+    });
+
+    it('cleans a control pair after Flow removes one marker first', () => {
+        graphStore.addNode('branch');
+        const [start] = userNodes();
+
+        graphStore.acceptFlowNodes(
+            graphStore.nodes.filter(node => node.id !== start.id)
+        );
+        graphStore.onDelete([start], []);
+
+        expect(userNodes()).toEqual([]);
+    });
+
+    it('cleans circle children after Flow removes the parent first', () => {
+        graphStore.addNode('ignition');
+        const circle = circleNode();
+
+        graphStore.acceptFlowNodes(
+            graphStore.nodes.filter(node => node.id !== circle.id)
+        );
+        graphStore.onDelete([circle], []);
+
+        expect(getMagicCircleNodes(graphStore.nodes)).toEqual([]);
+        expect(graphStore.nodes.some(node =>
+            node.parentId === circle.id
+        )).toBe(false);
     });
 
     it('grows a circle to fit appended nodes and keeps the grown height after deletion', () => {

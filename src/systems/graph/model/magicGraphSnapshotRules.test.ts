@@ -5,7 +5,7 @@ import {
 } from '../../../constants/graphConfigs';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_TYPES,
-} from '../../../constants/systemMagicNodeConfigs';
+} from '../../../constants/circleSystemMagicNodeConfigs';
 import type {
     MagicGraphPresetConfig,
     MagicGraphPresetNodeConfig,

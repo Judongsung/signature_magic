@@ -1,5 +1,4 @@
 import {
-    MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
@@ -7,7 +6,6 @@ import {
 } from '../../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_KEYS,
-    type MagicNodeConnectionRules,
     type MagicNodeInstanceEditorConfig,
     type MagicNodeStatRulesConfig,
     type MagicTypeConfig,
@@ -25,10 +23,7 @@ import {
 } from './commonValidation';
 import {
     getMagicCategoryIds,
-    getMagicConnectionRuleKeys,
-    isValidConnectionLimit,
     MAGIC_STAT_KEY_SET,
-    type MagicTypeValidationOptions,
 } from './magicValidationShared';
 
 const MAGIC_NODE_EDITOR_CONTROL_SET: ReadonlySet<string> =
@@ -38,28 +33,6 @@ const MAGIC_NODE_EDITOR_PRESENTATION_SET: ReadonlySet<string> =
 const MAGIC_NODE_EDITOR_BEHAVIOR_SET: ReadonlySet<string> =
     new Set(Object.values(MAGIC_NODE_EDITOR_BEHAVIORS));
 const MAGIC_STAT_BOUND_OVERRIDE_KEYS = new Set(['minimum', 'maximum']);
-
-function validateMagicConnectionRules(
-    type: string,
-    connectionRules: MagicNodeConnectionRules | undefined
-): string[] {
-    if (!connectionRules) return [];
-
-    const errors: string[] = [];
-    const validKeys = getMagicConnectionRuleKeys();
-
-    Object.entries(connectionRules).forEach(([key, value]) => {
-        if (!validKeys.has(key as keyof MagicNodeConnectionRules)) {
-            errors.push(`Unknown magic connection rule key: ${type} -> ${key}`);
-            return;
-        }
-        if (key === MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT && typeof value !== 'boolean') {
-            errors.push(`Invalid magic connection rule ${MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT}: ${type} -> ${value}`);
-        }
-    });
-
-    return errors;
-}
 
 function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): string[] {
     if (!stats) return [`Missing magic type stats: ${type}`];
@@ -258,8 +231,7 @@ function validateMagicNodeStatRules(type: string, statRules: MagicNodeStatRulesC
 
 function validateMagicTypeConfigs(
     magicTypesInput: unknown,
-    categoriesInput: unknown,
-    options: MagicTypeValidationOptions = {}
+    categoriesInput: unknown
 ): DataValidationResult {
     if (!isPlainObjectArray(magicTypesInput)) {
         return result(['Invalid magic type configs']);
@@ -285,13 +257,6 @@ function validateMagicTypeConfigs(
         if (!isNonEmptyString(magicType.description)) {
             errors.push(`Missing magic type description: ${magicType.type}`);
         }
-        if (!isValidConnectionLimit(magicType.connectionLimits?.maxInputs, options)) {
-            errors.push(`Invalid magic type maxInputs: ${magicType.type} -> ${magicType.connectionLimits?.maxInputs}`);
-        }
-        if (!isValidConnectionLimit(magicType.connectionLimits?.maxOutputs, options)) {
-            errors.push(`Invalid magic type maxOutputs: ${magicType.type} -> ${magicType.connectionLimits?.maxOutputs}`);
-        }
-        errors.push(...validateMagicConnectionRules(magicType.type, magicType.connectionRules));
         errors.push(...validateMagicNodeInstanceEditor(magicType.type, magicType.instanceEditor));
         errors.push(...validateMagicStats(magicType.type, magicType.stats));
         errors.push(...validateMagicNodeStatBounds(magicType.type, magicType.statBounds));
@@ -312,5 +277,5 @@ export function validateSystemMagicTypes(
     magicTypes: unknown,
     categories: unknown
 ): DataValidationResult {
-    return validateMagicTypeConfigs(magicTypes, categories, { allowZeroConnectionLimits: true });
+    return validateMagicTypeConfigs(magicTypes, categories);
 }

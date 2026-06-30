@@ -1,10 +1,8 @@
 import {
-    MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
 } from '../../../constants/nodeEditorConfigs';
-import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import { MAGIC_CONTROL_PAIR_ROLES } from '../../../constants/graphConfigs';
 import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
@@ -12,11 +10,7 @@ import {
     attachNodeToCircle,
     createMagicCircleNode,
 } from '../model/magicCircleGraph';
-import { buildMagicGraphAnalysis } from './magicGraphAnalysis';
-import {
-    buildMagicControlPairExecutionCounts,
-    buildMagicNodeExecutionCounts,
-} from './magicRepeatCalculation';
+import { buildMagicControlPairExecutionCounts } from './magicRepeatCalculation';
 import { buildMagicTypeMap } from './magicStatCalculator';
 
 const magicTypes = buildMagicTypeMap([
@@ -51,7 +45,6 @@ const magicTypes = buildMagicTypeMap([
                 },
             ],
         },
-        connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
         stats: {},
     },
 ] satisfies MagicTypeConfig[]);
@@ -66,10 +59,6 @@ function node(id: string, magicType = 'ignition', repeatCount?: string): MagicNo
             ...(repeatCount ? { settings: { repeatCount } } : {}),
         },
     };
-}
-
-function edge(source: string, target: string): Edge {
-    return { id: `${source}-${target}`, source, target };
 }
 
 function marker(
@@ -91,38 +80,6 @@ function marker(
 }
 
 describe('magicRepeatCalculation', () => {
-    it('multiplies execution counts when finite cycle paths overlap', () => {
-        const nodes = [
-            node('a'),
-            node('b'),
-            node('repeat-2', 'repeat', '2'),
-            node('repeat-3', 'repeat', '3'),
-        ];
-        const edges = [
-            edge('a', 'b'),
-            edge('b', 'repeat-2'),
-            edge('repeat-2', 'a'),
-            edge('b', 'repeat-3'),
-            edge('repeat-3', 'a'),
-        ];
-        const analysis = buildMagicGraphAnalysis(nodes, edges, magicTypes);
-
-        expect(Object.fromEntries(buildMagicNodeExecutionCounts(analysis, magicTypes))).toEqual({
-            a: 6,
-            b: 6,
-            'repeat-2': 2,
-            'repeat-3': 3,
-        });
-    });
-
-    it('uses one calculation pass for an infinite repeat count', () => {
-        const nodes = [node('a'), node('repeat', 'repeat', '0')];
-        const edges = [edge('a', 'repeat'), edge('repeat', 'a')];
-        const analysis = buildMagicGraphAnalysis(nodes, edges, magicTypes);
-
-        expect(buildMagicNodeExecutionCounts(analysis, magicTypes).size).toBe(0);
-    });
-
     it('multiplies only nodes inside nested control-pair intervals', () => {
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },

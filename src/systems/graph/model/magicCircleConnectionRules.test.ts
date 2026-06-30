@@ -5,21 +5,11 @@ import type {
     MagicCircleNode,
     MagicEditorNode,
     MagicNode,
-    MagicTypeConfig,
 } from '../../../types/magic';
 import {
     createExplicitMagicCircleEdgeUpdate,
     isExplicitMagicCircleConnectionValid,
 } from './magicCircleConnectionRules';
-
-const magicTypes: MagicTypeConfig[] = [{
-    type: 'ignition',
-    label: 'Ignition',
-    icon: '',
-    color: '',
-    category: 'basic',
-    description: '',
-}];
 
 function circle(id: string): MagicCircleNode {
     return {
@@ -70,13 +60,13 @@ describe('magicCircleConnectionRules', () => {
             box.id,
             'circle-output',
             'circle-input'
-        ), [], nodes, magicTypes)).toBe(true);
+        ), [], nodes)).toBe(true);
         expect(isExplicitMagicCircleConnectionValid(connection(
             'system-mana-source',
             box.id,
             'output-0',
             'circle-input'
-        ), [], nodes, magicTypes)).toBe(false);
+        ), [], nodes)).toBe(false);
     });
 
     it('rejects all internal and cross-circle unit edges', () => {
@@ -96,13 +86,13 @@ describe('magicCircleConnectionRules', () => {
             secondNode.id,
             'output-0',
             'input-0'
-        ), [], nodes, magicTypes)).toBe(false);
+        ), [], nodes)).toBe(false);
         expect(isExplicitMagicCircleConnectionValid(connection(
             first.id,
             firstNode.id,
             'circle-output',
             'input-0'
-        ), [], nodes, magicTypes)).toBe(false);
+        ), [], nodes)).toBe(false);
     });
 
     it('rejects cycles between circle output and input ports', () => {
@@ -125,7 +115,7 @@ describe('magicCircleConnectionRules', () => {
             first.id,
             'circle-output-1',
             'circle-input-1'
-        ), edges, nodes, magicTypes)).toBe(false);
+        ), edges, nodes)).toBe(false);
     });
 
     it('replaces only an occupied dynamic external port', () => {
@@ -164,7 +154,6 @@ describe('magicCircleConnectionRules', () => {
             ),
             edges,
             nodes,
-            magicTypes,
             () => 'replacement'
         );
 

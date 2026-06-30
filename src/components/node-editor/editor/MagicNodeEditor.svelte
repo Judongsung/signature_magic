@@ -118,6 +118,22 @@
             .find(circle => circle.id === graphStore.activeCircleId)
     );
 
+    function readFlowNodes(): MagicEditorNode[] {
+        return graphStore.nodes;
+    }
+
+    function acceptFlowNodes(nodes: MagicEditorNode[]): void {
+        graphStore.acceptFlowNodes(nodes);
+    }
+
+    function readFlowEdges(): Edge[] {
+        return graphStore.edges;
+    }
+
+    function acceptFlowEdges(edges: Edge[]): void {
+        graphStore.acceptFlowEdges(edges);
+    }
+
     function toggleCategory(categoryId: MagicNodeCategory) {
         activeCategoryIds = activeCategoryIds.includes(categoryId)
             ? activeCategoryIds.filter((id) => id !== categoryId)
@@ -429,7 +445,11 @@
     const onNodeDragStop: NodeTargetEventWithPointer<
         MouseEvent | TouchEvent,
         MagicEditorNode
-    > = () => {
+    > = ({ targetNode }) => {
+        if (targetNode && isMagicCircleNode(targetNode)) {
+            graphStore.commitCircleLayoutChanges();
+            return;
+        }
         if (draggedNodeOrigins.length === 0) return;
         graphStore.moveNodeGroup(
             draggedNodeOrigins,
@@ -490,8 +510,8 @@
         data-tooltip-boundary
     >
         <SvelteFlow
-            bind:nodes={graphStore.nodes}
-            bind:edges={graphStore.edges}
+            bind:nodes={readFlowNodes, acceptFlowNodes}
+            bind:edges={readFlowEdges, acceptFlowEdges}
             {nodeTypes}
             {edgeTypes}
             colorMode="dark"

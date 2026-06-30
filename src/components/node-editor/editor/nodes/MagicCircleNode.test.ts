@@ -60,7 +60,7 @@ describe('MagicCircleNode', () => {
         const [first, second] = graphStore.nodes.filter(node =>
             node.parentId === getMagicCircleNodes(graphStore.nodes)[0].id
         );
-        graphStore.edges = [
+        graphStore.acceptFlowEdges([
             {
                 id: 'stale-internal',
                 source: first.id,
@@ -68,7 +68,7 @@ describe('MagicCircleNode', () => {
                 sourceHandle: 'output-0',
                 targetHandle: 'input-0',
             },
-        ];
+        ]);
 
         const { html } = renderCircle();
 

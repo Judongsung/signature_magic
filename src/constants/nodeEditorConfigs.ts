@@ -41,10 +41,6 @@ export const MAGIC_NODE_WEIGHT_CONFIG = {
 
 export const MAGIC_EDITOR_GUIDE_PATH = './magic-editor-guide.html';
 
-export const MAGIC_CONNECTION_RULE_KEYS = {
-    ALLOW_CYCLE_FROM_OUTPUT: 'allowCycleFromOutput',
-} as const;
-
 export const MAGIC_NODE_EDITOR_CONTROLS = {
     TEXT: 'text',
     STEPPER: 'stepper',

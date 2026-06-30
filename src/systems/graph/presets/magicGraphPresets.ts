@@ -7,20 +7,17 @@ import {
 } from '../../../constants/graphConfigs';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
-    INITIAL_SYSTEM_MAGIC_NODE_CONFIGS,
-} from '../../../constants/systemMagicNodeConfigs';
+} from '../../../constants/circleSystemMagicNodeConfigs';
 import type {
     MagicGraphPresetConfig,
     MagicGraphPresetCircleConfig,
     MagicGraphPresetEdgeConfig,
     MagicGraphPresetNodeConfig,
-    MagicGraphPresetSystemNodePositionConfig,
     MagicCircleNode,
     MagicEditorNode,
     MagicNode,
 } from '../../../types/magic';
 import { createUniqueId } from '../model/graphActions';
-import { createInitialSystemNodes, isSystemMagicNode } from '../model/systemMagicNodes';
 import type { GraphSnapshot } from '../model/graphEventHandlers';
 import { createUserMagicNodeData, normalizeMagicNodeSettings } from '../model/magicNodeData';
 import { readMagicTypeConfigByType, type MagicTypeLookup } from '../model/magicTypeLookup';
@@ -36,6 +33,7 @@ import { normalizeMagicCircleSequences } from '../model/magicCircleGraphActions'
 import {
     createCircleSystemMagicNode,
     getCircleEditableSequenceNodes,
+    isCircleSystemMagicNode,
     normalizeCircleSystemNodeSlots,
     resolveCircleSystemNodeSlots,
     resolveRuntimeSequenceIndex,
@@ -62,10 +60,6 @@ export type MagicGraphPresetIdFactory = () => string;
 const USER_PRESET_ID_PREFIX = 'user-preset';
 const PRESET_OPTION_VALUE_SEPARATOR = ':';
 const USER_PRESET_DEFAULT_ID_SEGMENT = 'custom';
-const SYSTEM_NODE_IDS = [
-    ...INITIAL_SYSTEM_MAGIC_NODE_CONFIGS.map(node => node.id),
-] as const;
-
 export function createMagicGraphPresetOptionValue(
     source: MagicGraphPresetSource,
     presetId: string
@@ -77,11 +71,19 @@ export function createMagicGraphPresetOption(
     preset: MagicGraphPresetConfig,
     source: MagicGraphPresetSource
 ): MagicGraphPresetOption {
+    const currentPreset: MagicGraphPresetConfig = {
+        id: preset.id,
+        label: preset.label,
+        circles: preset.circles,
+        nodes: preset.nodes,
+        edges: preset.edges,
+    };
+
     return {
         value: createMagicGraphPresetOptionValue(source, preset.id),
         label: preset.label,
         source,
-        preset,
+        preset: currentPreset,
     };
 }
 
@@ -95,7 +97,6 @@ export function createMagicGraphFromPreset(
     );
 
     const nodes = normalizeMagicCircleSequences([
-            ...createSystemNodesFromPreset(preset.systemNodePositions),
             ...circles,
             ...createUserNodesFromPreset(
                 preset.nodes,
@@ -124,14 +125,12 @@ export function createMagicGraphPresetSnapshot(
     const trimmedLabel = label.trim();
     const circleNodes = getMagicCircleNodes(snapshot.nodes);
     const unitNodes = getMagicUnitNodes(snapshot.nodes);
-    const userNodes = unitNodes.filter(node => !isSystemMagicNode(node));
-    const systemNodes = unitNodes.filter(node =>
-        isSystemMagicNode(node) && !node.parentId
+    const userNodes = unitNodes.filter(node =>
+        !isCircleSystemMagicNode(node)
     );
     if (!trimmedLabel || userNodes.length === 0) return false;
 
     const allowedNodeIds = new Set([
-        ...SYSTEM_NODE_IDS,
         ...circleNodes.map(circle => circle.id),
         ...userNodes.map(node => node.id),
     ]);
@@ -142,7 +141,6 @@ export function createMagicGraphPresetSnapshot(
         circles: circleNodes.map(circle =>
             createMagicGraphPresetCircleSnapshot(circle, snapshot.nodes)
         ),
-        systemNodePositions: systemNodes.map(createPresetSystemNodePositionFromGraph),
         nodes: circleNodes.flatMap(circle =>
             createMagicGraphPresetNodeSnapshots(snapshot.nodes, circle)
         ),
@@ -165,7 +163,9 @@ export function createMagicGraphPresetSnapshot(
 }
 
 export function hasUserMagicGraphContent(nodes: readonly MagicEditorNode[]): boolean {
-    return getMagicUnitNodes(nodes).some(node => !isSystemMagicNode(node));
+    return getMagicUnitNodes(nodes).some(node =>
+        !isCircleSystemMagicNode(node)
+    );
 }
 
 function createUserNodeFromPreset(
@@ -281,18 +281,6 @@ function createCircleSystemNodesFromPreset(
     });
 }
 
-function createSystemNodesFromPreset(
-    systemNodePositions: MagicGraphPresetSystemNodePositionConfig[] = []
-): MagicNode[] {
-    const positionById = new Map(systemNodePositions.map(item => [item.id, item.position]));
-
-    return createInitialSystemNodes().map(node => ({
-        ...node,
-        position: { ...(positionById.get(node.id) ?? node.position) },
-        data: { ...node.data },
-    }));
-}
-
 function createEdgeFromPreset(edge: MagicGraphPresetEdgeConfig): Edge {
     return {
         id: edge.id,
@@ -301,13 +289,6 @@ function createEdgeFromPreset(edge: MagicGraphPresetEdgeConfig): Edge {
         sourceHandle: edge.sourceHandle,
         targetHandle: edge.targetHandle,
         type: GRAPH_EDGE_TYPES.MAGIC_EDGE,
-    };
-}
-
-function createPresetSystemNodePositionFromGraph(node: MagicNode): MagicGraphPresetSystemNodePositionConfig {
-    return {
-        id: node.id,
-        position: { ...node.position },
     };
 }
 

@@ -4,9 +4,9 @@ import {
 } from '../../../constants/graphConfigs';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
-    SYSTEM_MAGIC_TYPE_CONFIGS,
+    CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
     type CircleSystemMagicNodeConfig,
-} from '../../../constants/systemMagicNodeConfigs';
+} from '../../../constants/circleSystemMagicNodeConfigs';
 import type {
     MagicCircleNode,
     MagicEditorNode,
@@ -264,7 +264,7 @@ function normalizeCircleSystemMagicNode(
     } = existing?.data ?? {
         magicType: config.magicType,
     };
-    const typeConfig = SYSTEM_MAGIC_TYPE_CONFIGS.find(candidate =>
+    const typeConfig = CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS.find(candidate =>
         candidate.type === config.magicType
     );
     const normalizedSettings = normalizeMagicNodeSettings(
@@ -285,12 +285,7 @@ function normalizeCircleSystemMagicNode(
             ...existingData,
             magicType: config.magicType,
             nodeKind: MAGIC_NODE_KINDS.SYSTEM,
-            isRoot: false,
-            isLeaf: false,
-            inputHandleCount: 0,
-            outputHandleCount: 0,
             showTooltip: true,
-            showBadges: false,
             excludeFromStatScaling: true,
             ...(normalizedSettings
                 ? { settings: normalizedSettings }

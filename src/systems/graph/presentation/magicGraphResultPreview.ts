@@ -37,7 +37,7 @@ function clonePreviewNode(node: MagicEditorNode): MagicEditorNode {
 
     return {
         ...node,
-        data: { ...node.data, showTooltip: false, showBadges: false },
+        data: { ...node.data, showTooltip: false },
         position: { ...node.position },
         draggable: false,
         selectable: false,

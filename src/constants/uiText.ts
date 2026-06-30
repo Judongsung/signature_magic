@@ -177,8 +177,6 @@ export const NODE_EDITOR_TEXT = {
     CONTROL_BRANCH_TARGET: '분기 목적지',
     TOOLBAR_HINT: '서클을 선택한 뒤 단위 마법을 추가하세요 · 선택 후 Delete 로 제거',
     CANVAS_ARIA_LABEL: 'magic node canvas',
-    ROOT_BADGE: 'START',
-    LEAF_BADGE: 'END',
     NODE_STATS_ARIA_LABEL: '마법 스탯',
     NODE_DETAILS_DIALOG_TITLE: '단위 마법 정보',
     NODE_DETAILS_DIALOG_CLOSE_ARIA_LABEL: '단위 마법 정보 닫기',

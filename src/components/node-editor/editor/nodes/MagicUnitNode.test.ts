@@ -34,7 +34,6 @@ function renderNode(
                 ...data,
             },
             parentId,
-            isConnectable: false,
         },
     });
 }
@@ -48,31 +47,17 @@ describe('MagicUnitNode', () => {
         expect(html).not.toContain('leaf-badge');
     });
 
-    it('keeps system nodes in the original node variant', () => {
-        const { html } = renderNode({
-            nodeKind: 'system',
-            isRoot: true,
-            isLeaf: false,
-        });
-
-        expect(html).not.toContain('sequence-node');
-        expect(html).toContain('root-badge');
-    });
-
-    it('renders circle-owned system nodes with a tooltip and without badges', () => {
+    it('renders circle system nodes with their dedicated style and tooltip', () => {
         const { html } = renderNode({
             magicType: 'manifestation',
             nodeKind: 'system',
             showTooltip: true,
-            showBadges: false,
             sequenceIndex: 0,
         }, 'circle-a');
 
         expect(html).toContain('sequence-node');
         expect(html).toContain('circle-system-node');
         expect(html).toContain('발현');
-        expect(html).not.toContain('root-badge');
-        expect(html).not.toContain('leaf-badge');
         expect(html).toContain('description-tooltip');
     });
 
@@ -121,18 +106,16 @@ describe('MagicUnitNode', () => {
         expect(html).not.toContain('(+11)');
     });
 
-    it('omits editor-only tooltip and badge DOM for result preview nodes', () => {
+    it('omits editor-only tooltip DOM for result preview nodes', () => {
         const { html } = renderNode({
             magicType: 'detect',
             settings: { caption: '대상이 움직일 때' },
             showTooltip: false,
-            showBadges: false,
         });
 
         expect(html).not.toContain('tooltip-host');
         expect(html).not.toContain('aria-describedby="canvas-node-tooltip-node-1"');
         expect(html).not.toContain('description-tooltip');
-        expect(html).not.toContain('class="badge ');
         expect(html).toContain('대상이 움직일 때');
     });
 

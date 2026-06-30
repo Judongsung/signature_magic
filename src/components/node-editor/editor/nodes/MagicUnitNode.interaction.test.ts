@@ -50,7 +50,6 @@ describe('MagicUnitNode interaction', () => {
                 },
                 parentId: 'circle-1',
                 draggable: true,
-                isConnectable: false,
             },
         });
 
@@ -84,7 +83,6 @@ describe('MagicUnitNode interaction', () => {
                 },
                 parentId: 'circle-1',
                 draggable: true,
-                isConnectable: false,
             },
         });
 
@@ -107,7 +105,6 @@ describe('MagicUnitNode interaction', () => {
                 },
                 parentId: 'circle-1',
                 draggable: true,
-                isConnectable: false,
             },
         });
 

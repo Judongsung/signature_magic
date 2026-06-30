@@ -1,12 +1,8 @@
-import type { Connection, Edge } from '@xyflow/svelte';
+import type { Edge } from '@xyflow/svelte';
 import { expect } from 'vitest';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../constants/nodeEditorConfigs';
-import {
-    GRAPH_NODE_TYPES,
-    MAGIC_NODE_HANDLE_CONFIG,
-} from '../constants/graphConfigs';
+import { GRAPH_NODE_TYPES } from '../constants/graphConfigs';
 import { graphStore } from '../stores/graphStore.svelte';
-import type { CirclePath, MagicNode, MagicType, MagicTypeConfig } from '../types/magic';
+import type { CirclePath, MagicNode, MagicType } from '../types/magic';
 import {
     getMagicCircleNodes,
     getMagicUnitNodes,
@@ -16,37 +12,6 @@ export const EMPTY_MAGIC_STAT_EFFECTS = {
     nodeEffects: [],
     finalEffects: [],
 };
-
-export const BASIC_TEST_MAGIC_TYPES = [
-    { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'basic' },
-    {
-        type: 'split',
-        label: 'Split',
-        icon: '',
-        color: '#fff',
-        category: 'extension',
-        description: 'split',
-        connectionLimits: { maxInputs: 1, maxOutputs: null },
-    },
-    {
-        type: 'merge',
-        label: 'Merge',
-        icon: '',
-        color: '#fff',
-        category: 'extension',
-        description: 'merge',
-        connectionLimits: { maxInputs: null, maxOutputs: 1 },
-    },
-    {
-        type: 'repeat',
-        label: 'Repeat',
-        icon: '',
-        color: '#fff',
-        category: 'control',
-        description: 'repeat',
-        connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
-    },
-] as MagicTypeConfig[];
 
 export function createTestMagicNode(
     id: string,
@@ -64,19 +29,10 @@ export function createTestMagicNode(
 export function createTestMagicEdge(
     source: string,
     target: string,
-    sourceHandle: string = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
-    targetHandle: string = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID
+    sourceHandle?: string,
+    targetHandle?: string
 ): Edge {
     return { id: `${source}-${target}`, source, target, sourceHandle, targetHandle };
-}
-
-export function createTestMagicConnection(
-    source: string,
-    target: string,
-    sourceHandle: string | null = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_OUTPUT_ID,
-    targetHandle: string | null = MAGIC_NODE_HANDLE_CONFIG.DEFAULT_INPUT_ID
-): Connection {
-    return { source, target, sourceHandle, targetHandle };
 }
 
 export function resetGraphStoreFixture(): void {

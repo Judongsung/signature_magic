@@ -11,7 +11,7 @@ import {
 } from './circleSystemMagicNodes';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
-} from '../../../constants/systemMagicNodeConfigs';
+} from '../../../constants/circleSystemMagicNodeConfigs';
 import {
     attachNodeToCircle,
     createMagicCircleNode,

@@ -1,6 +1,5 @@
 import type { MAGIC_NODE_EDITOR_CONTROLS, MagicNodeCategory, MagicNodeEditorBehavior, MagicNodeEditorPresentation } from '../constants/nodeEditorConfigs';
 import type { Node } from '@xyflow/svelte';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
     MAGIC_STAT_BRANCH_AGGREGATIONS,
@@ -121,16 +120,6 @@ export const EMPTY_MAGIC_SIGNATURE_METADATA: MagicSignatureMetadata = {
     description: '',
 };
 
-export interface MagicNodeConnectionLimits {
-    // undefined는 기본 제한, null은 무제한, 0은 시스템 노드의 방향별 연결 금지를 뜻한다.
-    maxInputs?: number | null;
-    maxOutputs?: number | null;
-}
-
-export interface MagicNodeConnectionRules {
-    [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]?: boolean;
-}
-
 interface MagicNodeEditorFieldBaseConfig {
     key: string;
     label: string;
@@ -181,8 +170,6 @@ export interface MagicTypeConfig {
     color: string;
     category: MagicNodeCategory;
     description: string;
-    connectionLimits?: MagicNodeConnectionLimits;
-    connectionRules?: MagicNodeConnectionRules;
     instanceEditor?: MagicNodeInstanceEditorConfig;
     stats?: MagicStatsConfig;
     statBounds?: MagicNodeStatBoundsConfig;
@@ -193,14 +180,7 @@ export interface MagicNodeData extends Record<string, unknown> {
     magicType: MagicType;
     settings?: MagicNodeSettings;
     nodeKind?: MagicNodeKind;
-    isRoot?: boolean;
-    isLeaf?: boolean;
-    inputHandleCount?: number;
-    outputHandleCount?: number;
-    cycleInputHandleIndex?: number;
-    cycleInputHandleConnected?: boolean;
     showTooltip?: boolean;
-    showBadges?: boolean;
     excludeFromStatScaling?: boolean;
     sequenceIndex?: number;
     controlPair?: MagicControlPairRef;
@@ -258,11 +238,6 @@ export interface MagicGraphPresetNodeConfig {
     controlPair?: MagicControlPairRef;
 }
 
-export interface MagicGraphPresetSystemNodePositionConfig {
-    id: string;
-    position: { x: number; y: number };
-}
-
 export interface MagicGraphPresetEdgeConfig {
     id: string;
     source: string;
@@ -275,7 +250,6 @@ export interface MagicGraphPresetConfig {
     id: string;
     label: string;
     circles: MagicGraphPresetCircleConfig[];
-    systemNodePositions?: MagicGraphPresetSystemNodePositionConfig[];
     nodes: MagicGraphPresetNodeConfig[];
     edges: MagicGraphPresetEdgeConfig[];
 }

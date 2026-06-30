@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CYOA_DIALOGUE_TEXT_VARIANTS } from '../../constants/cyoaConfigs';
 import {
-    MAGIC_CONNECTION_RULE_KEYS,
     MAGIC_NODE_CATEGORIES,
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
@@ -13,8 +12,8 @@ import {
 } from '../../constants/magicStatConfigs';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_TYPES,
-    SYSTEM_MAGIC_TYPE_CONFIGS,
-} from '../../constants/systemMagicNodeConfigs';
+    CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
+} from '../../constants/circleSystemMagicNodeConfigs';
 import cyoaDialogueScriptsData from '../../data/cyoaDialogueScripts.json';
 import cyoaRowsData from '../../data/cyoaRows.json';
 import magicGlyphsData from '../../data/magicGlyphs.json';
@@ -103,9 +102,9 @@ describe('dataValidation', () => {
         });
     });
 
-    it('validates system magic types with zero connection limits', () => {
+    it('validates circle system magic types', () => {
         expect(validateSystemMagicTypes(
-            SYSTEM_MAGIC_TYPE_CONFIGS,
+            CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
             MAGIC_NODE_CATEGORIES
         )).toEqual({ valid: true, errors: [] });
     });
@@ -191,7 +190,7 @@ describe('dataValidation', () => {
         });
     });
 
-    it('reports invalid magic type categories, duplicate type ids, and connection limits', () => {
+    it('reports invalid magic type categories and duplicate type ids', () => {
         expect(validateMagicTypes(
             [
                 { type: 'ignition', label: 'Ignition', icon: '', color: '#fff', category: 'basic', description: 'desc', stats },
@@ -204,8 +203,6 @@ describe('dataValidation', () => {
                     description: '',
                     stats: { ...stats, power: Number.NaN },
                     statRules: { castingTime: { branchAggregation: 'fastest' } },
-                    connectionLimits: { maxInputs: 0, maxOutputs: -1 },
-                    connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: 'yes', unknownRule: true },
                     instanceEditor: {
                         fields: [
                             {
@@ -252,10 +249,6 @@ describe('dataValidation', () => {
                 'Duplicate magic type id: ignition',
                 'Unknown magic type category: ignition -> unknown',
                 'Missing magic type description: ignition',
-                'Invalid magic type maxInputs: ignition -> 0',
-                'Invalid magic type maxOutputs: ignition -> -1',
-                `Invalid magic connection rule ${MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT}: ignition -> yes`,
-                'Unknown magic connection rule key: ignition -> unknownRule',
                 'Duplicate magic node editor field key: ignition: duplicate',
                 'Duplicate magic node editor presentation: ignition: nodeLabel',
                 'Invalid magic node editor field label: ignition -> 0',
@@ -353,10 +346,7 @@ describe('dataValidation', () => {
         expect(validation.valid).toBe(false);
         expect(validation.errors).toEqual(expect.arrayContaining([
                 'Missing magic graph preset label: bad-preset',
-                'Duplicate magic graph preset system node id: bad-preset: system-mana-source',
-                'Unknown magic graph preset system node id: bad-preset -> missing-system-node',
-                'Invalid magic graph preset system node x: bad-preset -> missing-system-node',
-                'Invalid magic graph preset system node y: bad-preset -> missing-system-node',
+                'Unsupported magic graph preset system node positions: bad-preset',
                 'Duplicate magic graph preset node id: bad-preset: node-a',
                 'Invalid magic graph preset node type: bad-preset -> node-a',
                 'Invalid magic graph preset node sequence: bad-preset -> node-a',

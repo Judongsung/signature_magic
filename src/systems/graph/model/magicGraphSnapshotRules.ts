@@ -4,8 +4,8 @@ import {
 } from '../../../constants/graphConfigs';
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
-    SYSTEM_MAGIC_TYPE_CONFIGS,
-} from '../../../constants/systemMagicNodeConfigs';
+    CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
+} from '../../../constants/circleSystemMagicNodeConfigs';
 import type {
     MagicGraphPresetCircleSystemNodeSlotConfig,
     MagicGraphPresetConfig,
@@ -35,7 +35,7 @@ const CONTROL_PAIR_NODE_TYPES = new Set<string>(
     Object.values(MAGIC_CONTROL_PAIR_NODE_TYPES)
 );
 const SYSTEM_MAGIC_TYPE_LOOKUP = new Map(
-    SYSTEM_MAGIC_TYPE_CONFIGS.map(config => [config.type, config])
+    CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS.map(config => [config.type, config])
 );
 
 export function findNonContiguousMagicGraphSequenceCircleIds(

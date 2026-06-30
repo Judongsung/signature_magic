@@ -286,7 +286,6 @@
                 }
             ]
         },
-        "stats": { "castingTime": 2, "instability": 2, "power": 0, "range": 1, "manaCost": 3, "duration": 1 },
-        "connectionLimits": { "maxInputs": 1, "maxOutputs": null }
+        "stats": { "castingTime": 2, "instability": 2, "power": 0, "range": 1, "manaCost": 3, "duration": 1 }
     }
 ]

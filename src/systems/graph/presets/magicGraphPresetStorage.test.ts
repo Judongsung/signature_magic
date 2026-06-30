@@ -60,6 +60,40 @@ function setCurrentEnvelope(
 }
 
 describe('magicGraphPresetStorage', () => {
+    it('strips an empty legacy system-node position field', () => {
+        const storage = new MemoryStorage();
+        setCurrentEnvelope(storage, [{
+            ...PRESET,
+            systemNodePositions: [],
+        }]);
+
+        expect(loadStoredMagicGraphPresets(storage)).toEqual({
+            status: 'success',
+            presets: [PRESET],
+            issues: [],
+        });
+    });
+
+    it('rejects legacy system-node positions containing entries', () => {
+        const storage = new MemoryStorage();
+        setCurrentEnvelope(storage, [{
+            ...PRESET,
+            systemNodePositions: [{
+                id: 'legacy-system-node',
+                position: { x: 0, y: 0 },
+            }],
+        }]);
+
+        expect(loadStoredMagicGraphPresets(storage)).toMatchObject({
+            status: 'failure',
+            presets: [],
+            issues: [{
+                code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_PRESETS,
+                invalidPresetCount: 1,
+            }],
+        });
+    });
+
     it('migrates legacy v6 arrays into a versioned v7 envelope', () => {
         const storage = new MemoryStorage();
         const legacy = JSON.stringify([PRESET]);

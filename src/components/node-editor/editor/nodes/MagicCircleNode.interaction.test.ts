@@ -123,7 +123,7 @@ describe('MagicCircleNode interaction', () => {
         graphStore.addCircle({ x: 520, y: -320 });
         const circles = getMagicCircleNodes(graphStore.nodes);
         xyflowMocks.updateNodeInternals.mockImplementation(() => {
-            graphStore.nodes = [...graphStore.nodes];
+            graphStore.acceptFlowNodes([...graphStore.nodes]);
         });
 
         circles.forEach(circle => {

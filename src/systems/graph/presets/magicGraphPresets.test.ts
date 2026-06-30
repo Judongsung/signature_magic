@@ -3,7 +3,7 @@ import {
     MAGIC_CONTROL_PAIR_ROLES,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
-import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../../../constants/systemMagicNodeConfigs';
+import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../../../constants/circleSystemMagicNodeConfigs';
 import magicGraphPresetsData from '../../../data/magicGraphPresets.json';
 import magicTypesData from '../../../data/magicTypes.json';
 import type {
@@ -40,7 +40,6 @@ const preset: MagicGraphPresetConfig = {
         name: '공격 서클',
         caption: '첫 번째 단계',
     }],
-    systemNodePositions: [],
     nodes: [
         {
             id: 'test-ignition',
@@ -198,6 +197,7 @@ describe('magicGraphPresets', () => {
         expect(saved && saved.nodes).toEqual(pairedPreset.nodes);
         expect(saved && saved.circles[0].systemNodeSlots)
             .toEqual(pairedPreset.circles[0].systemNodeSlots);
+        expect(saved).not.toHaveProperty('systemNodePositions');
     });
 
     it('keeps valid weights and removes weights from extension presets', () => {
@@ -364,13 +364,19 @@ describe('magicGraphPresets', () => {
     });
 
     it('creates source-qualified preset options', () => {
-        expect(createMagicGraphPresetOption(
-            preset,
+        const option = createMagicGraphPresetOption(
+            {
+                ...preset,
+                systemNodePositions: [],
+            } as unknown as MagicGraphPresetConfig,
             MAGIC_GRAPH_PRESET_SOURCES.USER
-        )).toMatchObject({
+        );
+
+        expect(option).toMatchObject({
             value: 'user:test-preset',
             label: 'Test Preset',
             source: MAGIC_GRAPH_PRESET_SOURCES.USER,
         });
+        expect(option.preset).not.toHaveProperty('systemNodePositions');
     });
 });

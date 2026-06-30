@@ -1,7 +1,6 @@
 ﻿import type { Edge } from '@xyflow/svelte';
 import {
     MAGIC_STAT_KEYS,
-    type MagicNode,
     type MagicEditorNode,
     type MagicGraphNode,
     type MagicStatEffectBundle,
@@ -11,12 +10,9 @@ import {
     type CirclePath,
     type MagicCalculationResult,
 } from '../../../types/magic';
-import { MAGIC_CIRCLE_ID_PREFIX } from '../../../constants/graphConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
 import { clampMagicStats } from './magicStatRules';
-import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
-import { filterCalculableMagicGraph } from '../model/systemMagicNodes';
 import {
     buildMagicGraphAnalysis,
     type MagicGraphAnalysis,
@@ -26,18 +22,14 @@ import {
     measureGraphOperation,
 } from '../diagnostics/graphPerformance';
 import {
-    buildMagicNodeExecutionCounts,
     buildMagicControlPairExecutionCounts,
     type MagicNodeExecutionCounts,
 } from './magicRepeatCalculation';
 import { createEmptyMagicStatEffectBundle } from './magicStatEffectBundles';
-import { getMagicCircleNodes } from '../model/magicCircleGraph';
 import {
     analyzeExplicitMagicCircleGraph,
     type ExplicitMagicCircleGraphAnalysis,
 } from './explicitMagicCircleGraph';
-
-const SINGLE_PREDECESSOR_COUNT = 1;
 
 type CalculatedCirclePath = Omit<CirclePath, 'statAdjustments'>;
 
@@ -55,9 +47,12 @@ export function calculateMagic(
             nodeEffectCount: statEffects.nodeEffects.length,
             finalEffectCount: statEffects.finalEffects.length,
         },
-        () => getMagicCircleNodes(nodes).length > 0
-            ? calculateExplicitMagicNow(nodes, edges, magicTypes, statEffects)
-            : calculateMagicNow(nodes as MagicNode[], edges, magicTypes, statEffects)
+        () => calculateExplicitMagicNow(
+            nodes,
+            edges,
+            magicTypes,
+            statEffects
+        )
     );
 }
 
@@ -71,8 +66,7 @@ function calculateExplicitMagicNow(
     const explicitAnalysis = analyzeExplicitMagicCircleGraph(nodes, edges);
     const projectedAnalysis = buildMagicGraphAnalysis(
         explicitAnalysis.projectedNodes,
-        explicitAnalysis.projectedEdges,
-        magicTypeMap
+        explicitAnalysis.projectedEdges
     );
     const nodeExecutionCounts = buildMagicControlPairExecutionCounts(
         nodes,
@@ -128,65 +122,6 @@ function calculateExplicitMagicNow(
             adjustedTotalStats,
             baselineTotalStats
         ),
-    };
-}
-
-function calculateMagicNow(
-    nodes: MagicNode[],
-    edges: Edge[],
-    magicTypes: readonly MagicTypeConfig[],
-    statEffects: MagicStatEffectBundle
-): MagicCalculationResult {
-    const magicTypeMap = buildMagicTypeMap(magicTypes);
-    const calculableGraph = filterCalculableMagicGraph(nodes, edges);
-    const analysis = buildMagicGraphAnalysis(
-        calculableGraph.nodes,
-        calculableGraph.edges,
-        magicTypeMap
-    );
-    const nodeExecutionCounts = buildMagicNodeExecutionCounts(analysis, magicTypeMap);
-    const calculatedCircles = calculateCirclesWithMagicTypes(
-        analysis,
-        magicTypeMap,
-        statEffects.nodeEffects,
-        nodeExecutionCounts
-    );
-    const hasNodeEffects = statEffects.nodeEffects.length > 0;
-    const baselineCircles = hasNodeEffects
-        ? calculateCirclesWithMagicTypes(analysis, magicTypeMap, [], nodeExecutionCounts)
-        : calculatedCircles;
-    const circles = attachCircleStatAdjustments(calculatedCircles, baselineCircles);
-    const totalStats = calculateMagicStats(
-        calculableGraph.nodes,
-        calculableGraph.edges,
-        magicTypeMap,
-        'total',
-        statEffects.nodeEffects,
-        analysis,
-        nodeExecutionCounts
-    );
-    const adjustedTotalStats = clampMagicStats(
-        applyMagicStatEffectsToStats(
-            applyCircleInstabilityToTotalStats(totalStats, circles),
-            statEffects.finalEffects
-        )
-    );
-    const baselineTotalStats = calculateBaselineTotalStats(
-        calculableGraph.nodes,
-        calculableGraph.edges,
-        analysis,
-        magicTypeMap,
-        nodeExecutionCounts,
-        baselineCircles,
-        totalStats,
-        hasNodeEffects
-    );
-
-    return {
-        circles,
-        circleStates: [],
-        totalStats: adjustedTotalStats,
-        totalStatAdjustments: subtractMagicStats(adjustedTotalStats, baselineTotalStats),
     };
 }
 
@@ -285,130 +220,4 @@ function applyCircleInstabilityToTotalStats(
             ? 0
             : Math.max(...circles.map(circle => circle.stats.instability)),
     };
-}
-
-export function calculateCircles(
-    nodes: MagicNode[],
-    edges: Edge[],
-    magicTypes: readonly MagicTypeConfig[] = [],
-    nodeStatEffects: readonly MagicStatEffectConfig[] = []
-): CirclePath[] {
-    if (nodes.length === 0) return [];
-
-    const magicTypeMap = buildMagicTypeMap(magicTypes);
-    const analysis = buildMagicGraphAnalysis(nodes, edges, magicTypeMap);
-    const nodeExecutionCounts = buildMagicNodeExecutionCounts(analysis, magicTypeMap);
-    const calculatedCircles = calculateCirclesWithMagicTypes(
-        analysis,
-        magicTypeMap,
-        nodeStatEffects,
-        nodeExecutionCounts
-    );
-    const baselineCircles = nodeStatEffects.length > 0
-        ? calculateCirclesWithMagicTypes(analysis, magicTypeMap, [], nodeExecutionCounts)
-        : calculatedCircles;
-
-    return attachCircleStatAdjustments(calculatedCircles, baselineCircles);
-}
-
-function calculateCirclesWithMagicTypes(
-    analysis: MagicGraphAnalysis,
-    magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
-    nodeStatEffects: readonly MagicStatEffectConfig[] = [],
-    nodeExecutionCounts: MagicNodeExecutionCounts = new Map()
-): CalculatedCirclePath[] {
-    const { topology, circleStartNodes, cycleCirclePaths } = analysis;
-    const cycleChains = cycleCirclePaths.map(path => expandCycleCircleChain(path, topology));
-    const cycleChainNodeIds = new Set(cycleChains.flatMap(chain =>
-        chain.map(node => node.id)
-    ));
-    const regularChains = circleStartNodes
-        .flatMap(startNode => collectCircleChains(startNode, topology))
-        .filter(chain => !chain.some(node => cycleChainNodeIds.has(node.id)));
-
-    // cycle-closing edge가 속한 단일 선행 흐름까지 같은 반복 포함 서클로 확정한다.
-    return [...cycleChains, ...regularChains]
-        .map((chain, index) => ({
-            id: `${MAGIC_CIRCLE_ID_PREFIX}-${index}`,
-            nodes: chain,
-            stats: calculateMagicStats(
-                chain,
-                topology.edges,
-                magicTypeMap,
-                'circle',
-                nodeStatEffects,
-                undefined,
-                nodeExecutionCounts
-            ),
-        }));
-}
-
-function expandCycleCircleChain(
-    cyclePath: MagicGraphAnalysis['cycleCirclePaths'][number],
-    topology: GraphTopology
-): MagicGraphNode[] {
-    const chain = [...cyclePath.nodes];
-    const chainNodeIds = new Set(chain.map(node => node.id));
-
-    while (chain.length > 0) {
-        const firstNode = chain[0];
-        const predecessorEdges = (topology.targetEdges.get(firstNode.id) ?? [])
-            .filter(edge => edge.id !== cyclePath.closingEdge.id);
-        if (predecessorEdges.length !== SINGLE_PREDECESSOR_COUNT) break;
-
-        const predecessor = topology.nodeMap.get(predecessorEdges[0].source);
-        if (!predecessor || chainNodeIds.has(predecessor.id)) break;
-        if ((topology.outEdges.get(predecessor.id)?.length ?? 0) > SINGLE_PREDECESSOR_COUNT) break;
-
-        chain.unshift(predecessor);
-        chainNodeIds.add(predecessor.id);
-    }
-
-    return chain;
-}
-
-function collectCircleChains(
-    startNode: MagicGraphNode,
-    topology: GraphTopology
-): MagicGraphNode[][] {
-    const walk = (
-        currentNode: MagicGraphNode,
-        chain: MagicGraphNode[],
-        visited: Set<string>
-    ): MagicGraphNode[][] => {
-        const nextIds = topology.outEdges.get(currentNode.id) ?? [];
-        if (nextIds.length === 0) return [chain];
-        // 출력이 여러 개인 노드는 현재 원을 끝내고, 각 출력 대상에서 별도 원을 시작한다.
-        if (nextIds.length > 1) return [chain];
-
-        return nextIds.flatMap(nextId => {
-            if (visited.has(nextId)) return [chain];
-            if ((topology.inDegree.get(nextId) ?? 0) > 1) return [chain];
-
-            const nextNode = topology.nodeMap.get(nextId);
-            if (!nextNode) return [chain];
-
-            return walk(nextNode, [...chain, nextNode], new Set([...visited, nextId]));
-        });
-    };
-
-    return walk(startNode, [startNode], new Set([startNode.id]));
-}
-
-export function computeNodeRoles(
-    nodes: MagicNode[],
-    edges: Edge[],
-    topology: GraphTopology = buildGraphTopology(nodes, edges)
-): Map<string, { isRoot: boolean; isLeaf: boolean }> {
-    const hasSomeOutput = new Set(topology.edges.map(edge => edge.source));
-
-    const roles = new Map<string, { isRoot: boolean; isLeaf: boolean }>();
-    nodes.forEach(node => {
-        roles.set(node.id, {
-            isRoot: (topology.inDegree.get(node.id) ?? 0) === 0,
-            isLeaf: !hasSomeOutput.has(node.id),
-        });
-    });
-
-    return roles;
 }

@@ -1,7 +1,6 @@
 import {
     EMPTY_MAGIC_STATS,
     type MagicType,
-    type MagicNode,
     type MagicTypeConfig,
 } from '../types/magic';
 import {
@@ -24,8 +23,7 @@ export const CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS: CircleSystemMagicNodeConfig[] = [
     },
 ];
 
-export const SYSTEM_MAGIC_NODE_CONFIGS = {} as const;
-export const SYSTEM_MAGIC_TYPE_CONFIGS: MagicTypeConfig[] = [
+export const CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS: MagicTypeConfig[] = [
     {
         type: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
         label: '발현',
@@ -33,11 +31,9 @@ export const SYSTEM_MAGIC_TYPE_CONFIGS: MagicTypeConfig[] = [
         color: '#f7d774',
         category: 'control',
         description: '서클에서 형성된 마법을 다른 서클에 전파하거나 최종 발현한다.',
-        connectionLimits: { maxInputs: 0, maxOutputs: 0 },
         instanceEditor: {
             fields: [MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD],
         },
         stats: EMPTY_MAGIC_STATS,
     },
 ];
-export const INITIAL_SYSTEM_MAGIC_NODE_CONFIGS: MagicNode[] = [];

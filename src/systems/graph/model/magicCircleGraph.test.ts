@@ -110,7 +110,7 @@ describe('magicCircleGraph sequence model', () => {
             parentId: circle.id,
             position: { x: 40, y: 160 },
             connectable: false,
-            data: { showBadges: false, sequenceIndex: 2 },
+            data: { sequenceIndex: 2 },
         });
         expect(node.style).toContain('--node-editor-node-width: 400px');
         expect(node.style).toContain('--node-editor-node-height: 40px');

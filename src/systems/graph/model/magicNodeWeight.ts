@@ -9,7 +9,9 @@ import type {
     MagicStatKey,
     MagicTypeConfig,
 } from '../../../types/magic';
-import { isSystemMagicType } from './systemMagicTypePolicy';
+import {
+    isRegisteredCircleSystemMagicType,
+} from './circleSystemMagicTypePolicy';
 
 export type MagicNodeWeightTypeContext = Pick<
     MagicTypeConfig,
@@ -24,7 +26,7 @@ export function canMagicTypeUseNodeWeight(
     return Boolean(
         config &&
         config.category !== MAGIC_NODE_WEIGHT_CONFIG.EXCLUDED_CATEGORY &&
-        !isSystemMagicType(config.type)
+        !isRegisteredCircleSystemMagicType(config.type)
     );
 }
 

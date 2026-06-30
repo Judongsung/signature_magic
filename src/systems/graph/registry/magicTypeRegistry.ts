@@ -1,13 +1,13 @@
 ﻿import magicTypesData from '../../../data/magicTypes.json';
 import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
 import type { MagicType, MagicTypeConfig } from '../../../types/magic';
-import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
+import { CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/circleSystemMagicNodeConfigs';
 
 export const userMagicTypes = magicTypesData as MagicTypeConfig[];
 
 export const magicTypes = [
     ...userMagicTypes,
-    ...SYSTEM_MAGIC_TYPE_CONFIGS,
+    ...CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
 ];
 
 export const magicTypeMap: ReadonlyMap<string, MagicTypeConfig> = new Map(

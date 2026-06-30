@@ -1,24 +1,13 @@
 ﻿import type { Connection, Edge } from '@xyflow/svelte';
 import type { MagicEditorNode } from '../../../types/magic';
-import {
-    isConnectionValid,
-    type MagicTypeLookup,
-} from './graphRules';
-import {
-    createEdgeUpdate,
-    filterEdgesForDeletedNodes,
-    normalizeEdgeHandles,
-    refreshNodeRoles,
-} from './graphActions';
-import { ensureSystemMagicNodes, isSystemMagicNode } from './systemMagicNodes';
+import { filterEdgesForDeletedNodes } from './graphActions';
 import {
     GRAPH_PERFORMANCE_OPERATION_IDS,
     measureGraphOperation,
 } from '../diagnostics/graphPerformance';
 import {
-    getMagicCircleNodes,
-    getMagicUnitNodes,
     isMagicCircleNode,
+    normalizeMagicCirclePortHandles,
     syncMagicCirclePortCounts,
 } from './magicCircleGraph';
 import {
@@ -26,6 +15,7 @@ import {
     isExplicitMagicCircleConnectionValid,
 } from './magicCircleConnectionRules';
 import { collectMagicControlPairDeletionIds } from './magicControlPairs';
+import { isCircleSystemMagicNode } from './circleSystemMagicNodes';
 
 export interface GraphSnapshot {
     nodes: MagicEditorNode[];
@@ -43,43 +33,23 @@ export interface GraphEdgePreparation {
 
 export function isGraphConnectionValid(
     connection: Connection,
-    snapshot: GraphSnapshot,
-    magicTypes: MagicTypeLookup
+    snapshot: GraphSnapshot
 ): boolean {
-    return getMagicCircleNodes(snapshot.nodes).length > 0
-        ? isExplicitMagicCircleConnectionValid(
-            connection,
-            snapshot.edges,
-            snapshot.nodes,
-            magicTypes
-        )
-        : isConnectionValid(
-            connection,
-            snapshot.edges,
-            getMagicUnitNodes(snapshot.nodes),
-            magicTypes
-        );
+    return isExplicitMagicCircleConnectionValid(
+        connection,
+        snapshot.edges,
+        snapshot.nodes
+    );
 }
 
 export function prepareGraphEdge(
     connection: Connection,
-    snapshot: GraphSnapshot,
-    magicTypes: MagicTypeLookup
+    snapshot: GraphSnapshot
 ): GraphEdgePreparation | false {
-    if (getMagicCircleNodes(snapshot.nodes).length > 0) {
-        return createExplicitMagicCircleEdgeUpdate(
-            connection,
-            snapshot.edges,
-            snapshot.nodes,
-            magicTypes
-        );
-    }
-
-    return createEdgeUpdate(
+    return createExplicitMagicCircleEdgeUpdate(
         connection,
         snapshot.edges,
-        getMagicUnitNodes(snapshot.nodes),
-        magicTypes
+        snapshot.nodes
     );
 }
 
@@ -89,12 +59,23 @@ export function removeDeletedGraphElements(
     deletedEdges: Edge[]
 ): GraphSnapshot {
     let { nodes, edges } = snapshot;
-    const shouldMaintainSystemNodes = hasSystemNodes(snapshot.nodes) || deletedNodes.some(isSystemMagicNode);
 
     if (deletedNodes.length) {
         const deletedCircleIds = new Set(
             deletedNodes.filter(isMagicCircleNode).map(node => node.id)
         );
+        const protectedCircleSystemNodes = deletedNodes.filter(node =>
+            isCircleSystemMagicNode(node) &&
+            !deletedCircleIds.has(node.parentId ?? '') &&
+            !nodes.some(candidate => candidate.id === node.id) &&
+            nodes.some(candidate =>
+                isMagicCircleNode(candidate) &&
+                candidate.id === node.parentId
+            )
+        );
+        if (protectedCircleSystemNodes.length > 0) {
+            nodes = [...nodes, ...protectedCircleSystemNodes];
+        }
         const deletionReferenceNodes = [
             ...nodes,
             ...deletedNodes.filter(deletedNode =>
@@ -110,7 +91,7 @@ export function removeDeletedGraphElements(
                 .filter(node => {
                     if (deletedCircleIds.has(node.parentId ?? '')) return true;
                     return explicitlyDeletedIds.has(node.id) &&
-                        !isSystemMagicNode(node);
+                        !isCircleSystemMagicNode(node);
                 })
                 .map(node => node.id)
         );
@@ -124,14 +105,13 @@ export function removeDeletedGraphElements(
     }
 
     return {
-        nodes: shouldMaintainSystemNodes ? ensureSystemMagicNodes(nodes) : nodes,
+        nodes,
         edges,
     };
 }
 
 export function syncGraphTopology(
-    snapshot: GraphSnapshot,
-    magicTypes: MagicTypeLookup
+    snapshot: GraphSnapshot
 ): GraphTopologyUpdate {
     return measureGraphOperation(
         GRAPH_PERFORMANCE_OPERATION_IDS.SYNC_GRAPH_TOPOLOGY,
@@ -139,44 +119,29 @@ export function syncGraphTopology(
             nodeCount: snapshot.nodes.length,
             edgeCount: snapshot.edges.length,
         },
-        () => syncGraphTopologyNow(snapshot, magicTypes)
+        () => syncGraphTopologyNow(snapshot)
     );
 }
 
 function syncGraphTopologyNow(
-    snapshot: GraphSnapshot,
-    magicTypes: MagicTypeLookup
+    snapshot: GraphSnapshot
 ): GraphTopologyUpdate {
-    const nodes = hasSystemNodes(snapshot.nodes)
-        ? ensureSystemMagicNodes(snapshot.nodes)
-        : snapshot.nodes;
-    const edges = normalizeEdgeHandles(snapshot.edges, nodes);
-    const circlePortUpdate = syncMagicCirclePortCounts(nodes, edges);
-    const nodeRoles = refreshNodeRoles(
-        getMagicUnitNodes(circlePortUpdate.nodes),
-        edges,
-        magicTypes
+    const edges = normalizeMagicCirclePortHandles(
+        snapshot.edges,
+        snapshot.nodes
     );
-    const updatedUnitNodeById = new Map(
-        nodeRoles.nodes.map(node => [node.id, node])
+    const circlePortUpdate = syncMagicCirclePortCounts(
+        snapshot.nodes,
+        edges
     );
-    const updatedNodes = circlePortUpdate.nodes.map(node =>
-        updatedUnitNodeById.get(node.id) ?? node
-    );
-    const changed = snapshot.nodes.length !== nodes.length ||
-        !areEdgesEquivalent(snapshot.edges, edges) ||
-        circlePortUpdate.changed ||
-        nodeRoles.changed;
+    const changed = !areEdgesEquivalent(snapshot.edges, edges) ||
+        circlePortUpdate.changed;
 
     return {
-        nodes: updatedNodes,
+        nodes: circlePortUpdate.nodes,
         edges,
         changed,
     };
-}
-
-function hasSystemNodes(nodes: MagicEditorNode[]): boolean {
-    return nodes.some(isSystemMagicNode);
 }
 
 function areEdgesEquivalent(a: Edge[], b: Edge[]): boolean {

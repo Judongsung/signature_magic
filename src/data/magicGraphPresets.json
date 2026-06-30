@@ -1,1 +1,489 @@
-[]
+[
+    {
+        "id": "user-preset-159ecc3f-4c8a-4366-af75-bd4425c11ba4",
+        "label": "화염 구체",
+        "circles": [
+            {
+                "id": "circle-initial",
+                "position": {
+                    "x": -160,
+                    "y": -200
+                },
+                "width": 320,
+                "height": 400,
+                "systemNodeSlots": [
+                    {
+                        "magicType": "manifestation",
+                        "slotIndex": 4
+                    }
+                ],
+                "name": "화염 구체"
+            }
+        ],
+        "systemNodePositions": [],
+        "nodes": [
+            {
+                "id": "node-e2123924-0a66-489c-a9eb-c09e883845b1",
+                "magicType": "soil",
+                "settings": {
+                    "caption": "구체 생성"
+                },
+                "circleId": "circle-initial",
+                "sequenceIndex": 0
+            },
+            {
+                "id": "node-20c3266c-2df9-428b-8f7a-6818ac8aad45",
+                "magicType": "ignition",
+                "settings": {
+                    "caption": "구체 발화"
+                },
+                "circleId": "circle-initial",
+                "sequenceIndex": 1
+            },
+            {
+                "id": "node-903f3448-459e-42a8-9428-daa4602a8926",
+                "magicType": "coordinate",
+                "settings": {
+                    "caption": "방향 지정"
+                },
+                "circleId": "circle-initial",
+                "sequenceIndex": 2
+            },
+            {
+                "id": "node-9e3b455f-5241-45cb-bda2-3eb048ab189d",
+                "magicType": "emit",
+                "settings": {
+                    "caption": "구체 방출"
+                },
+                "circleId": "circle-initial",
+                "sequenceIndex": 3
+            }
+        ],
+        "edges": []
+    },
+    {
+        "id": "user-preset-d2a376ff-b871-4b1d-be86-a58ed4d64fb9",
+        "label": "가속 버프",
+        "circles": [
+            {
+                "id": "circle-initial",
+                "position": {
+                    "x": -240,
+                    "y": -440
+                },
+                "width": 480,
+                "height": 400,
+                "systemNodeSlots": [
+                    {
+                        "magicType": "manifestation",
+                        "slotIndex": 4
+                    }
+                ],
+                "name": "효과 부여"
+            },
+            {
+                "id": "circle-874260c8-53dd-433b-b492-448549ac8167",
+                "position": {
+                    "x": -240,
+                    "y": 40
+                },
+                "width": 480,
+                "height": 400,
+                "systemNodeSlots": [
+                    {
+                        "magicType": "manifestation",
+                        "slotIndex": 1
+                    }
+                ],
+                "name": "효과 유지"
+            }
+        ],
+        "systemNodePositions": [],
+        "nodes": [
+            {
+                "id": "node-b3a8ca7d-a0fe-4334-8560-029f239d2ae3",
+                "magicType": "air",
+                "settings": {
+                    "caption": "경량화"
+                },
+                "circleId": "circle-initial",
+                "sequenceIndex": 0
+            },
+            {
+                "id": "node-b4f5d78a-1dce-45a7-97f0-c5bebed6be03",
+                "magicType": "harmony",
+                "settings": {
+                    "caption": "움직임 보조"
+                },
+                "circleId": "circle-initial",
+                "sequenceIndex": 1
+            },
+            {
+                "id": "node-930ab150-1b92-4f77-9e9e-5beb4ef9c920",
+                "magicType": "amplify",
+                "circleId": "circle-initial",
+                "sequenceIndex": 2
+            },
+            {
+                "id": "node-fe0ed4e7-cf5e-4709-895d-3bad9d27c2c7",
+                "magicType": "imbue",
+                "circleId": "circle-initial",
+                "sequenceIndex": 3
+            },
+            {
+                "id": "node-ef3d2055-098e-4b45-a4a7-956d2b033366",
+                "magicType": "sustain",
+                "settings": {
+                    "weight": "10"
+                },
+                "circleId": "circle-874260c8-53dd-433b-b492-448549ac8167",
+                "sequenceIndex": 0
+            }
+        ],
+        "edges": [
+            {
+                "id": "edge-e57d5e35-a9b7-4925-8986-3498410a543a",
+                "source": "circle-initial",
+                "target": "circle-874260c8-53dd-433b-b492-448549ac8167",
+                "sourceHandle": "circle-output",
+                "targetHandle": "circle-input"
+            }
+        ]
+    },
+    {
+        "id": "user-preset-90a74a46-419c-4801-a410-d33cf6c6bd9c",
+        "label": "루아른 시그니처",
+        "circles": [
+            {
+                "id": "circle-initial",
+                "position": {
+                    "x": -160,
+                    "y": -560
+                },
+                "width": 400,
+                "height": 400,
+                "systemNodeSlots": [
+                    {
+                        "magicType": "manifestation",
+                        "slotIndex": 2,
+                        "settings": {
+                            "caption": "전파"
+                        }
+                    }
+                ],
+                "name": "서클 감지"
+            },
+            {
+                "id": "circle-9608817b-2560-4797-b69e-7c9f9f70416a",
+                "position": {
+                    "x": -600,
+                    "y": -80
+                },
+                "width": 400,
+                "height": 408,
+                "systemNodeSlots": [
+                    {
+                        "magicType": "manifestation",
+                        "slotIndex": 6,
+                        "settings": {
+                            "caption": "서클 발현"
+                        }
+                    }
+                ],
+                "name": "서클 재현 1"
+            },
+            {
+                "id": "circle-44fd9073-2869-4673-b857-0b2a46d3d381",
+                "position": {
+                    "x": -160,
+                    "y": -80
+                },
+                "width": 400,
+                "height": 408,
+                "systemNodeSlots": [
+                    {
+                        "magicType": "manifestation",
+                        "slotIndex": 6,
+                        "settings": {
+                            "caption": "서클 재현"
+                        }
+                    }
+                ],
+                "name": "서클 재현 2"
+            },
+            {
+                "id": "circle-57e0dceb-bc92-48dc-b326-68b03bc0989c",
+                "position": {
+                    "x": 280,
+                    "y": -80
+                },
+                "width": 400,
+                "height": 408,
+                "systemNodeSlots": [
+                    {
+                        "magicType": "manifestation",
+                        "slotIndex": 6,
+                        "settings": {
+                            "caption": "서클 재현"
+                        }
+                    }
+                ],
+                "name": "서클 재현 3"
+            }
+        ],
+        "systemNodePositions": [],
+        "nodes": [
+            {
+                "id": "node-14e8faa3-9edc-4707-bc74-b326cbe68309",
+                "magicType": "repeat",
+                "settings": {
+                    "repeatCount": "3",
+                    "caption": "3서클까지 서클 감지"
+                },
+                "circleId": "circle-initial",
+                "sequenceIndex": 0,
+                "controlPair": {
+                    "id": "control-pair-7de2a0fa-8bc2-46f1-adcf-53b7a1c46b90",
+                    "role": "start"
+                }
+            },
+            {
+                "id": "node-c7a44e1e-cfff-4644-8125-ff77178d3df7",
+                "magicType": "detect",
+                "settings": {
+                    "caption": "서클 감지"
+                },
+                "circleId": "circle-initial",
+                "sequenceIndex": 1
+            },
+            {
+                "id": "node-47ed1866-7f40-43f3-bc7c-bb62bc7185b1",
+                "magicType": "repeat",
+                "circleId": "circle-initial",
+                "sequenceIndex": 2,
+                "controlPair": {
+                    "id": "control-pair-7de2a0fa-8bc2-46f1-adcf-53b7a1c46b90",
+                    "role": "end"
+                }
+            },
+            {
+                "id": "node-f8aa5117-3a7f-460f-b56c-b992efde94ae",
+                "magicType": "repeat",
+                "settings": {
+                    "caption": "단위 마법 반복 재현"
+                },
+                "circleId": "circle-9608817b-2560-4797-b69e-7c9f9f70416a",
+                "sequenceIndex": 0,
+                "controlPair": {
+                    "id": "control-pair-244a8afc-06da-42ae-9d52-7bb3dad173b0",
+                    "role": "start"
+                }
+            },
+            {
+                "id": "node-98316d8c-6979-4b9c-b87c-ba71b9e1e552",
+                "magicType": "detect",
+                "settings": {
+                    "caption": "단위 마법 감지"
+                },
+                "circleId": "circle-9608817b-2560-4797-b69e-7c9f9f70416a",
+                "sequenceIndex": 1
+            },
+            {
+                "id": "node-0d20cdd8-44a8-45a2-8674-ae0b98055519",
+                "magicType": "branch",
+                "settings": {
+                    "caption": "감지된 단위 마법이 없으면"
+                },
+                "circleId": "circle-9608817b-2560-4797-b69e-7c9f9f70416a",
+                "sequenceIndex": 2,
+                "controlPair": {
+                    "id": "control-pair-315dc74c-ef2a-491f-ae7c-23d20233bc98",
+                    "role": "start"
+                }
+            },
+            {
+                "id": "node-49a6fa71-f063-4717-bb75-b259477cc21d",
+                "magicType": "custom",
+                "settings": {
+                    "displayName": "재현",
+                    "caption": "단위 마법 재현"
+                },
+                "circleId": "circle-9608817b-2560-4797-b69e-7c9f9f70416a",
+                "sequenceIndex": 3
+            },
+            {
+                "id": "node-6d65307a-9695-426a-8b38-09f3a77a6a30",
+                "magicType": "repeat",
+                "circleId": "circle-9608817b-2560-4797-b69e-7c9f9f70416a",
+                "sequenceIndex": 4,
+                "controlPair": {
+                    "id": "control-pair-244a8afc-06da-42ae-9d52-7bb3dad173b0",
+                    "role": "end"
+                }
+            },
+            {
+                "id": "node-e4db2c62-e6b5-43f7-8d89-124e1e4d9751",
+                "magicType": "branch",
+                "circleId": "circle-9608817b-2560-4797-b69e-7c9f9f70416a",
+                "sequenceIndex": 5,
+                "controlPair": {
+                    "id": "control-pair-315dc74c-ef2a-491f-ae7c-23d20233bc98",
+                    "role": "end"
+                }
+            },
+            {
+                "id": "node-a0bf23ae-d0fa-4692-9565-b7fed86093e2",
+                "magicType": "repeat",
+                "settings": {
+                    "caption": "단위 마법 반복 재현"
+                },
+                "circleId": "circle-44fd9073-2869-4673-b857-0b2a46d3d381",
+                "sequenceIndex": 0,
+                "controlPair": {
+                    "id": "control-pair-2e386da2-de27-4186-a77c-34eac3ada5fc",
+                    "role": "start"
+                }
+            },
+            {
+                "id": "node-2cece1d3-98c3-4f09-a8a4-6fc1ab3f0913",
+                "magicType": "detect",
+                "settings": {
+                    "caption": "단위 마법 감지"
+                },
+                "circleId": "circle-44fd9073-2869-4673-b857-0b2a46d3d381",
+                "sequenceIndex": 1
+            },
+            {
+                "id": "node-e3e82d74-8073-4b27-a5a4-1c2fc99e5584",
+                "magicType": "branch",
+                "settings": {
+                    "caption": "감지된 단위 마법이 없으면"
+                },
+                "circleId": "circle-44fd9073-2869-4673-b857-0b2a46d3d381",
+                "sequenceIndex": 2,
+                "controlPair": {
+                    "id": "control-pair-bef760ef-4954-44ee-b76f-956c552ab5bc",
+                    "role": "start"
+                }
+            },
+            {
+                "id": "node-4de66632-050f-4418-9e7d-b764fa0e8585",
+                "magicType": "custom",
+                "settings": {
+                    "displayName": "재현",
+                    "caption": "단위 마법 재현"
+                },
+                "circleId": "circle-44fd9073-2869-4673-b857-0b2a46d3d381",
+                "sequenceIndex": 3
+            },
+            {
+                "id": "node-eb1b5e2b-419a-4148-bcbd-fb524ec451dd",
+                "magicType": "repeat",
+                "circleId": "circle-44fd9073-2869-4673-b857-0b2a46d3d381",
+                "sequenceIndex": 4,
+                "controlPair": {
+                    "id": "control-pair-2e386da2-de27-4186-a77c-34eac3ada5fc",
+                    "role": "end"
+                }
+            },
+            {
+                "id": "node-74766f1e-efeb-4749-a762-119e7758f4e4",
+                "magicType": "branch",
+                "circleId": "circle-44fd9073-2869-4673-b857-0b2a46d3d381",
+                "sequenceIndex": 5,
+                "controlPair": {
+                    "id": "control-pair-bef760ef-4954-44ee-b76f-956c552ab5bc",
+                    "role": "end"
+                }
+            },
+            {
+                "id": "node-3cf133ca-6795-48ee-afa9-f1ed6c1907ac",
+                "magicType": "repeat",
+                "settings": {
+                    "caption": "단위 마법 반복 재현"
+                },
+                "circleId": "circle-57e0dceb-bc92-48dc-b326-68b03bc0989c",
+                "sequenceIndex": 0,
+                "controlPair": {
+                    "id": "control-pair-25265a6f-99fe-4f17-94fc-573863d8054e",
+                    "role": "start"
+                }
+            },
+            {
+                "id": "node-9eec2eed-f37e-49eb-b268-013ea03a7c51",
+                "magicType": "detect",
+                "settings": {
+                    "caption": "단위 마법 감지"
+                },
+                "circleId": "circle-57e0dceb-bc92-48dc-b326-68b03bc0989c",
+                "sequenceIndex": 1
+            },
+            {
+                "id": "node-ef079d23-b21d-477b-8774-14a7cc1f245e",
+                "magicType": "branch",
+                "settings": {
+                    "caption": "감지된 단위 마법이 없으면"
+                },
+                "circleId": "circle-57e0dceb-bc92-48dc-b326-68b03bc0989c",
+                "sequenceIndex": 2,
+                "controlPair": {
+                    "id": "control-pair-3354c033-a13f-4394-b4c3-650b61a17dc6",
+                    "role": "start"
+                }
+            },
+            {
+                "id": "node-58b831cd-ae9a-45c0-a22b-75a71f229330",
+                "magicType": "custom",
+                "settings": {
+                    "displayName": "재현",
+                    "caption": "단위 마법 재현"
+                },
+                "circleId": "circle-57e0dceb-bc92-48dc-b326-68b03bc0989c",
+                "sequenceIndex": 3
+            },
+            {
+                "id": "node-65109078-4864-4ab5-9382-ee558fae6914",
+                "magicType": "repeat",
+                "circleId": "circle-57e0dceb-bc92-48dc-b326-68b03bc0989c",
+                "sequenceIndex": 4,
+                "controlPair": {
+                    "id": "control-pair-25265a6f-99fe-4f17-94fc-573863d8054e",
+                    "role": "end"
+                }
+            },
+            {
+                "id": "node-2f482eed-5bad-4820-b7e1-3675f4f26eb6",
+                "magicType": "branch",
+                "circleId": "circle-57e0dceb-bc92-48dc-b326-68b03bc0989c",
+                "sequenceIndex": 5,
+                "controlPair": {
+                    "id": "control-pair-3354c033-a13f-4394-b4c3-650b61a17dc6",
+                    "role": "end"
+                }
+            }
+        ],
+        "edges": [
+            {
+                "id": "edge-ea1c984a-64a2-4a6a-9198-c167aaab4868",
+                "source": "circle-initial",
+                "target": "circle-9608817b-2560-4797-b69e-7c9f9f70416a",
+                "sourceHandle": "circle-output",
+                "targetHandle": "circle-input"
+            },
+            {
+                "id": "edge-1e72f941-4ad1-425e-a4b1-b0fcc3bf4d2e",
+                "source": "circle-initial",
+                "target": "circle-44fd9073-2869-4673-b857-0b2a46d3d381",
+                "sourceHandle": "circle-output-1",
+                "targetHandle": "circle-input"
+            },
+            {
+                "id": "edge-7255b468-f6d2-4029-95db-094e08d28e8c",
+                "source": "circle-initial",
+                "target": "circle-57e0dceb-bc92-48dc-b326-68b03bc0989c",
+                "sourceHandle": "circle-output-2",
+                "targetHandle": "circle-input"
+            }
+        ]
+    }
+]

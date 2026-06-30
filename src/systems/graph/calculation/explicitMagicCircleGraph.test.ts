@@ -4,7 +4,7 @@ import magicTypesData from '../../../data/magicTypes.json';
 import {
     MAGIC_CONTROL_PAIR_ROLES,
 } from '../../../constants/graphConfigs';
-import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
+import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/circleSystemMagicNodeConfigs';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
 import type { MagicTypeConfig } from '../../../types/magic';
 import {
@@ -305,7 +305,52 @@ describe('explicitMagicCircleGraph sequence projection', () => {
         expect(result.circles[0].stats.manaCost).toBe(5);
     });
 
-    it('preserves serial stats without requiring system boundary nodes', () => {
+    it('keeps an upward branch target on the serial static calculation path', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'upward-branch-stats'
+        );
+        const pairId = 'upward-branch-pair';
+        const end = attachNodeToCircle({
+            ...createTestMagicNode('upward-branch-end', 'branch'),
+            data: {
+                ...createTestMagicNode('upward-branch-end', 'branch').data,
+                controlPair: {
+                    id: pairId,
+                    role: MAGIC_CONTROL_PAIR_ROLES.END,
+                },
+                excludeFromStatScaling: true,
+            },
+        }, circle, 0);
+        const content = attachNodeToCircle(
+            createTestMagicNode('upward-branch-content', 'ignition'),
+            circle,
+            1
+        );
+        const start = attachNodeToCircle({
+            ...createTestMagicNode('upward-branch-start', 'branch'),
+            data: {
+                ...createTestMagicNode('upward-branch-start', 'branch').data,
+                settings: { caption: '조건이 충족되면 위로 이동' },
+                controlPair: {
+                    id: pairId,
+                    role: MAGIC_CONTROL_PAIR_ROLES.START,
+                },
+            },
+        }, circle, 2);
+
+        const result = calculateMagic(
+            [circle, end, content, start],
+            [],
+            magicTypesData as MagicTypeConfig[]
+        );
+
+        expect(result.circles[0].nodes.map(node => node.id))
+            .toEqual([content.id, start.id]);
+        expect(result.circles[0].stats.manaCost).toBe(5);
+    });
+
+    it('calculates serial stats without global boundary nodes', () => {
         const magicTypes: MagicTypeConfig[] = [
             {
                 type: 'ignition',
@@ -345,11 +390,6 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             ...createTestMagicNode('second'),
             data: { magicType: 'stream' as const },
         };
-        const generic = calculateMagic(
-            [first, second],
-            [{ id: 'serial', source: first.id, target: second.id }],
-            magicTypes
-        );
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'regression'
@@ -364,7 +404,17 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             magicTypes
         );
 
-        expect(explicit.circles[0].stats).toEqual(generic.circles[0].stats);
-        expect(explicit.totalStats).toEqual(generic.totalStats);
+        expect(explicit.circles[0].nodes.map(node => node.id))
+            .toEqual([first.id, second.id]);
+        expect(explicit.circles[0].stats).toMatchObject({
+            castingTime: 3,
+            power: 5,
+            range: 12,
+            manaCost: 9,
+            duration: 11,
+        });
+        expect(explicit.circles[0].stats.instability)
+            .toBeCloseTo(3.45);
+        expect(explicit.totalStats).toEqual(explicit.circles[0].stats);
     });
 });

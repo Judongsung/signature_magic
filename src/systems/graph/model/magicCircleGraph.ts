@@ -8,10 +8,9 @@ import {
     MAGIC_CIRCLE_PORT_DIRECTIONS,
     MAGIC_CIRCLE_SEQUENCE_CONFIG,
     MAGIC_CONTROL_PAIR_CONFIG,
-    MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
-import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
+import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/circleSystemMagicNodeConfigs';
 import {
     MAGIC_CIRCLE_METADATA_CONFIG,
     MAGIC_SEQUENCE_DISABLED_NODE_TYPES,
@@ -295,20 +294,6 @@ export function isMagicCirclePortHandleId(
     return readMagicCirclePortHandleIndex(handleId, direction) !== undefined;
 }
 
-export function isMagicNodePortHandleId(
-    handleId: string | null | undefined,
-    direction: MagicCirclePortDirection
-): boolean {
-    if (!handleId) return false;
-    const prefix = direction === MAGIC_CIRCLE_PORT_DIRECTIONS.INPUT
-        ? MAGIC_NODE_HANDLE_CONFIG.INPUT_PREFIX
-        : MAGIC_NODE_HANDLE_CONFIG.OUTPUT_PREFIX;
-    const indexText = handleId.slice(prefix.length + 1);
-
-    return handleId.startsWith(`${prefix}-`) &&
-        /^\d+$/.test(indexText);
-}
-
 export function createMagicCirclePortHandleIds(
     direction: MagicCirclePortDirection,
     count: number
@@ -317,6 +302,99 @@ export function createMagicCirclePortHandleIds(
         { length: Math.max(MAGIC_CIRCLE_PORT_CONFIG.DEFAULT_VISIBLE_COUNT, count) },
         (_, index) => createMagicCirclePortHandleId(direction, index)
     );
+}
+
+function buildNormalizedCirclePortHandleIds(
+    edges: readonly Edge[],
+    nodes: readonly MagicEditorNode[],
+    direction: 'source' | 'target'
+): Map<string, string> {
+    const circleIds = new Set(
+        nodes.filter(isMagicCircleNode).map(node => node.id)
+    );
+    const handleKey = direction === 'source'
+        ? 'sourceHandle'
+        : 'targetHandle';
+    const portDirection = direction === 'source'
+        ? MAGIC_CIRCLE_PORT_DIRECTIONS.OUTPUT
+        : MAGIC_CIRCLE_PORT_DIRECTIONS.INPUT;
+    const groupedEdges = new Map<
+        string,
+        { edge: Edge; originalIndex: number }[]
+    >();
+
+    edges.forEach((edge, originalIndex) => {
+        const circleId = edge[direction];
+        if (
+            !circleIds.has(circleId) ||
+            !isMagicCirclePortHandleId(edge[handleKey], portDirection)
+        ) {
+            return;
+        }
+
+        const group = groupedEdges.get(circleId) ?? [];
+        group.push({ edge, originalIndex });
+        groupedEdges.set(circleId, group);
+    });
+
+    const normalizedHandleByEdgeId = new Map<string, string>();
+    groupedEdges.forEach(circleEdges => {
+        circleEdges.sort((left, right) => {
+            const handleIndexDifference =
+                (readMagicCirclePortHandleIndex(
+                    left.edge[handleKey],
+                    portDirection
+                ) ?? 0) -
+                (readMagicCirclePortHandleIndex(
+                    right.edge[handleKey],
+                    portDirection
+                ) ?? 0);
+            return handleIndexDifference ||
+                left.originalIndex - right.originalIndex;
+        });
+
+        circleEdges.forEach(({ edge }, index) => {
+            normalizedHandleByEdgeId.set(
+                edge.id,
+                createMagicCirclePortHandleId(portDirection, index)
+            );
+        });
+    });
+
+    return normalizedHandleByEdgeId;
+}
+
+export function normalizeMagicCirclePortHandles(
+    edges: readonly Edge[],
+    nodes: readonly MagicEditorNode[]
+): Edge[] {
+    const sourceHandleByEdgeId = buildNormalizedCirclePortHandleIds(
+        edges,
+        nodes,
+        'source'
+    );
+    const targetHandleByEdgeId = buildNormalizedCirclePortHandleIds(
+        edges,
+        nodes,
+        'target'
+    );
+
+    return edges.map(edge => {
+        const sourceHandle = sourceHandleByEdgeId.get(edge.id);
+        const targetHandle = targetHandleByEdgeId.get(edge.id);
+        if (
+            (!sourceHandle || edge.sourceHandle === sourceHandle) &&
+            (!targetHandle || edge.targetHandle === targetHandle)
+        ) {
+            return edge;
+        }
+
+        return {
+            ...edge,
+            ...(sourceHandle ? { sourceHandle } : {}),
+            ...(targetHandle ? { targetHandle } : {}),
+        };
+    });
 }
 
 function resolveMagicCirclePortCount(
@@ -422,7 +500,6 @@ export function attachNodeToCircle(
         ),
         data: {
             ...node.data,
-            showBadges: false,
             sequenceIndex,
         },
     };

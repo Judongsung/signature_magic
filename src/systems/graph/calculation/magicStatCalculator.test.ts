@@ -1,7 +1,6 @@
 ﻿import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import type { MagicNode, MagicStats, MagicType, MagicTypeConfig } from '../../../types/magic';
-import { MAGIC_CONNECTION_RULE_KEYS } from '../../../constants/nodeEditorConfigs';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { hasMagicStatRuleForEveryKey } from './magicStatRules';
 
@@ -169,36 +168,6 @@ describe('calculateMagicStats', () => {
             range: 90,
             manaCost: 15,
             duration: 14,
-        });
-    });
-
-    it('counts circular graphs once per node instead of requiring a root', () => {
-        const nodes = [
-            node('ignition', 'ignition'),
-            node('repeat', 'repeat'),
-            node('stream', 'stream'),
-        ];
-        const edges = [
-            edge('ignition', 'repeat'),
-            edge('repeat', 'stream'),
-            edge('stream', 'ignition'),
-        ];
-        const magicTypes = buildMagicTypeMap([
-            magicType('ignition', 1),
-            magicType('repeat', 2, {
-                category: 'control',
-                connectionRules: { [MAGIC_CONNECTION_RULE_KEYS.ALLOW_CYCLE_FROM_OUTPUT]: true },
-            }),
-            magicType('stream', 3),
-        ]);
-
-        expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
-            castingTime: 6,
-            instability: 7.935,
-            power: 6,
-            range: 6,
-            manaCost: 6,
-            duration: 6,
         });
     });
 

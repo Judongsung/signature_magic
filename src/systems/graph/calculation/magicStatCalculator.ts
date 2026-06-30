@@ -53,7 +53,7 @@ export function calculateMagicStats(
 ): MagicStats {
     const result = { ...EMPTY_MAGIC_STATS };
     const graphAnalysis = scope === 'total'
-        ? analysis ?? buildMagicGraphAnalysis(nodes, edges, magicTypes)
+        ? analysis ?? buildMagicGraphAnalysis(nodes, edges)
         : undefined;
     const context: MagicStatCalculationContext = {
         nodeStatEffects,
