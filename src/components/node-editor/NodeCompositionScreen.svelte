@@ -166,6 +166,7 @@
             canLoadPreset={presetController.canLoadPreset}
             canSavePreset={presetController.canSavePreset}
             canDeletePreset={presetController.canDeletePreset}
+            storageNotice={presetController.storageNotice}
             onSelectPreset={(value) => presetController.selectPreset(value)}
             onLoadPreset={() => presetController.loadSelectedPreset()}
             onSavePreset={(label) => presetController.saveCurrentPreset(label)}

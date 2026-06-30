@@ -18,7 +18,6 @@ import type {
     MagicCircleNode,
     MagicEditorNode,
     MagicNode,
-    MagicTypeConfig,
 } from '../../../types/magic';
 import { createUniqueId } from '../model/graphActions';
 import { createInitialSystemNodes, isSystemMagicNode } from '../model/systemMagicNodes';
@@ -30,7 +29,6 @@ import {
     createMagicCircleNodeFromGeometry,
     getMagicCircleNodes,
     getMagicUnitNodes,
-    isMagicTypeAllowedInCircleSequence,
     isMagicCircleNode,
 } from '../model/magicCircleGraph';
 import { isExplicitMagicCircleExternalConnection } from '../model/magicCircleConnectionRules';
@@ -168,48 +166,6 @@ export function createMagicGraphPresetSnapshot(
 
 export function hasUserMagicGraphContent(nodes: readonly MagicEditorNode[]): boolean {
     return getMagicUnitNodes(nodes).some(node => !isSystemMagicNode(node));
-}
-
-export function getPresetAllowedNodeIds(
-    preset: Pick<MagicGraphPresetConfig, 'circles' | 'nodes'>
-): Set<string> {
-    return new Set([
-        ...SYSTEM_NODE_IDS,
-        ...preset.circles.map(circle => circle.id),
-        ...preset.nodes.map(node => node.id),
-    ]);
-}
-
-export function collectMagicGraphPresetReferenceErrors(
-    preset: MagicGraphPresetConfig,
-    magicTypes: readonly MagicTypeConfig[]
-): string[] {
-    const errors: string[] = [];
-    const magicTypeIds = new Set(magicTypes.map(magicType => magicType.type));
-    const allowedNodeIds = getPresetAllowedNodeIds(preset);
-
-    preset.nodes.forEach(node => {
-        if (node.magicType && !magicTypeIds.has(node.magicType)) {
-            errors.push(`Unknown magic graph preset node type: ${preset.id} -> ${node.id} -> ${node.magicType}`);
-        }
-        if (!isMagicTypeAllowedInCircleSequence(node.magicType)) {
-            errors.push(`Disabled magic graph preset node type: ${preset.id} -> ${node.id} -> ${node.magicType}`);
-        }
-        if (!preset.circles.some(circle => circle.id === node.circleId)) {
-            errors.push(`Unknown magic graph preset node circle: ${preset.id} -> ${node.id} -> ${node.circleId}`);
-        }
-    });
-
-    preset.edges.forEach(edge => {
-        if (!allowedNodeIds.has(edge.source)) {
-            errors.push(`Unknown magic graph preset edge source: ${preset.id} -> ${edge.id} -> ${edge.source}`);
-        }
-        if (!allowedNodeIds.has(edge.target)) {
-            errors.push(`Unknown magic graph preset edge target: ${preset.id} -> ${edge.id} -> ${edge.target}`);
-        }
-    });
-
-    return errors;
 }
 
 function createUserNodeFromPreset(

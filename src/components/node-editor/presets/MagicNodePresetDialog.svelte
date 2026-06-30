@@ -6,6 +6,10 @@
     import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
     import { dialogFocus } from '../../shared/dialogFocus';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
+    import {
+        NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS,
+        type NodeCompositionPresetStorageNotice,
+    } from './nodeCompositionPresetController.svelte';
 
     const dialogId = $props.id();
     const dialogTitleId = `${dialogId}-preset-dialog-title`;
@@ -19,6 +23,7 @@
         canLoadPreset,
         canSavePreset,
         canDeletePreset,
+        storageNotice,
         onSelectPreset,
         onLoadPreset,
         onSavePreset,
@@ -30,6 +35,7 @@
         canLoadPreset: boolean;
         canSavePreset: boolean;
         canDeletePreset: boolean;
+        storageNotice?: NodeCompositionPresetStorageNotice;
         onSelectPreset: (value: string) => void;
         onLoadPreset: () => boolean;
         onSavePreset: (label: string) => void;
@@ -45,6 +51,9 @@
         presetOptions.filter(option => option.source === MAGIC_GRAPH_PRESET_SOURCES.USER)
     );
     const canSubmitSave = $derived(canSavePreset && presetName.trim().length > 0);
+    const storageNoticeMessage = $derived(
+        resolveStorageNoticeMessage(storageNotice)
+    );
 
     function loadPreset() {
         if (!canLoadPreset) return;
@@ -63,6 +72,28 @@
         if (!canDeletePreset) return;
 
         onDeletePreset();
+    }
+
+    function resolveStorageNoticeMessage(
+        notice: NodeCompositionPresetStorageNotice | undefined
+    ): string | undefined {
+        if (!notice) return undefined;
+        if (notice.level === 'warning') {
+            return NODE_EDITOR_TEXT.PRESET_STORAGE_WARNING;
+        }
+        if (
+            notice.operation ===
+            NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS.SAVE
+        ) {
+            return NODE_EDITOR_TEXT.PRESET_STORAGE_SAVE_ERROR;
+        }
+        if (
+            notice.operation ===
+            NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS.DELETE
+        ) {
+            return NODE_EDITOR_TEXT.PRESET_STORAGE_DELETE_ERROR;
+        }
+        return NODE_EDITOR_TEXT.PRESET_STORAGE_LOAD_ERROR;
     }
 </script>
 
@@ -98,6 +129,15 @@
         </header>
 
         <div class="preset-dialog-body">
+            {#if storageNotice && storageNoticeMessage}
+                <p
+                    class:warning={storageNotice.level === 'warning'}
+                    class="preset-storage-notice"
+                    role={storageNotice.level === 'error' ? 'alert' : 'status'}
+                >
+                    {storageNoticeMessage}
+                </p>
+            {/if}
             <section class="preset-list-section" aria-labelledby={`${dialogId}-built-in-presets`}>
                 <h3 id={`${dialogId}-built-in-presets`}>{NODE_EDITOR_TEXT.PRESET_BUILT_IN_GROUP_LABEL}</h3>
                 <div class="preset-list">
@@ -294,6 +334,24 @@
         display: grid;
         gap: 16px;
         padding: 18px 20px;
+    }
+
+    .preset-storage-notice {
+        margin: 0;
+        padding: 10px 12px;
+        border: 1px solid rgba(231, 104, 118, 0.52);
+        border-radius: var(--node-editor-radius-md);
+        background: rgba(111, 31, 43, 0.22);
+        color: #ffd4da;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    .preset-storage-notice.warning {
+        border-color: rgba(230, 184, 89, 0.48);
+        background: rgba(112, 78, 24, 0.2);
+        color: #ffe8b0;
     }
 
     .preset-list-section {

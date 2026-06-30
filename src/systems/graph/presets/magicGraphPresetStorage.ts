@@ -1,56 +1,307 @@
 import type { MagicGraphPresetConfig } from '../../../types/magic';
-import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
-import {
-    isMagicCirclePortHandleId,
-    isMagicTypeAllowedInCircleSequence,
-} from '../model/magicCircleGraph';
-import {
-    MAGIC_CONTROL_PAIR_NODE_TYPES,
-    MAGIC_CONTROL_PAIR_ROLES,
-} from '../../../constants/graphConfigs';
+import { magicTypeMap } from '../registry/magicTypeRegistry';
+import { decodeStoredMagicGraphPreset } from './magicGraphStoredPreset';
 
-const MAGIC_GRAPH_PRESET_STORAGE_KEY = 'beautiful-galileo.magicGraphPresets.v6';
+export const MAGIC_GRAPH_PRESET_STORAGE_CONFIG = {
+    CURRENT_KEY: 'beautiful-galileo.magicGraphPresets.v7',
+    LEGACY_V6_KEY: 'beautiful-galileo.magicGraphPresets.v6',
+    ENVELOPE_VERSION: 1,
+} as const;
 
-export function loadStoredMagicGraphPresets(storage: Storage | undefined = getMagicGraphPresetStorage()): MagicGraphPresetConfig[] {
-    if (!storage) return [];
+export const MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES = {
+    UNAVAILABLE: 'unavailable',
+    READ_FAILED: 'read-failed',
+    INVALID_JSON: 'invalid-json',
+    INVALID_ENVELOPE: 'invalid-envelope',
+    INVALID_LEGACY_DATA: 'invalid-legacy-data',
+    UNSUPPORTED_VERSION: 'unsupported-version',
+    INVALID_PRESETS: 'invalid-presets',
+    WRITE_FAILED: 'write-failed',
+    MIGRATION_WRITE_FAILED: 'migration-write-failed',
+} as const;
 
-    try {
-        const parsed = JSON.parse(storage.getItem(MAGIC_GRAPH_PRESET_STORAGE_KEY) ?? '[]');
-        if (!Array.isArray(parsed)) return [];
+export const MAGIC_GRAPH_PRESET_STORAGE_STATUSES = {
+    SUCCESS: 'success',
+    WARNING: 'warning',
+    FAILURE: 'failure',
+} as const;
 
-        return parsed.filter(isMagicGraphPresetConfig);
-    } catch {
-        return [];
+export type MagicGraphPresetStorageIssueCode =
+    (typeof MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES)[keyof typeof MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES];
+
+export interface MagicGraphPresetStorageIssue {
+    code: MagicGraphPresetStorageIssueCode;
+    invalidPresetCount?: number;
+    version?: number;
+}
+
+export type MagicGraphPresetStorageResult =
+    | {
+        status: typeof MAGIC_GRAPH_PRESET_STORAGE_STATUSES.SUCCESS;
+        presets: MagicGraphPresetConfig[];
+        issues: readonly [];
     }
+    | {
+        status: typeof MAGIC_GRAPH_PRESET_STORAGE_STATUSES.WARNING;
+        presets: MagicGraphPresetConfig[];
+        issues: readonly MagicGraphPresetStorageIssue[];
+    }
+    | {
+        status: typeof MAGIC_GRAPH_PRESET_STORAGE_STATUSES.FAILURE;
+        presets: MagicGraphPresetConfig[];
+        issues: readonly MagicGraphPresetStorageIssue[];
+    };
+
+interface StoredMagicGraphPresetEnvelope {
+    version: typeof MAGIC_GRAPH_PRESET_STORAGE_CONFIG.ENVELOPE_VERSION;
+    presets: MagicGraphPresetConfig[];
+}
+
+export function loadStoredMagicGraphPresets(
+    storage: Storage | undefined = getMagicGraphPresetStorage()
+): MagicGraphPresetStorageResult {
+    if (!storage) {
+        return failure({
+            code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.UNAVAILABLE,
+        });
+    }
+
+    const currentRaw = readStorageValue(
+        storage,
+        MAGIC_GRAPH_PRESET_STORAGE_CONFIG.CURRENT_KEY
+    );
+    if (!currentRaw.ok) return failure(currentRaw.issue);
+    if (currentRaw.value !== null) {
+        return decodeCurrentEnvelope(currentRaw.value);
+    }
+
+    const legacyRaw = readStorageValue(
+        storage,
+        MAGIC_GRAPH_PRESET_STORAGE_CONFIG.LEGACY_V6_KEY
+    );
+    if (!legacyRaw.ok) return failure(legacyRaw.issue);
+    if (legacyRaw.value === null) return success([]);
+
+    const migrated = decodeLegacyPresetArray(legacyRaw.value);
+    if (
+        migrated.status === MAGIC_GRAPH_PRESET_STORAGE_STATUSES.FAILURE
+    ) {
+        return migrated;
+    }
+
+    const migrationIssue = writeCurrentEnvelope(storage, migrated.presets);
+    if (!migrationIssue) return migrated;
+
+    return warning(
+        migrated.presets,
+        ...migrated.issues,
+        {
+            code:
+                MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.MIGRATION_WRITE_FAILED,
+        }
+    );
 }
 
 export function saveStoredMagicGraphPreset(
     preset: MagicGraphPresetConfig,
     storage: Storage | undefined = getMagicGraphPresetStorage()
-): MagicGraphPresetConfig[] {
-    if (!storage) return [];
+): MagicGraphPresetStorageResult {
+    const loaded = loadStoredMagicGraphPresets(storage);
+    if (loaded.status === MAGIC_GRAPH_PRESET_STORAGE_STATUSES.FAILURE) {
+        return loaded;
+    }
 
-    const presets = loadStoredMagicGraphPresets(storage);
-    const existingIndex = presets.findIndex(item => item.id === preset.id);
+    const decodedPreset = decodeStoredMagicGraphPreset(
+        preset,
+        magicTypeMap
+    );
+    if (!decodedPreset) {
+        return failure(
+            {
+                code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_PRESETS,
+                invalidPresetCount: 1,
+            },
+            loaded.presets
+        );
+    }
+
+    const normalizedPreset = decodedPreset;
+    const existingIndex = loaded.presets.findIndex(item =>
+        item.id === normalizedPreset.id
+    );
     const nextPresets = existingIndex >= 0
-        ? presets.map(item => item.id === preset.id ? preset : item)
-        : [...presets, preset];
+        ? loaded.presets.map(item =>
+            item.id === normalizedPreset.id ? normalizedPreset : item
+        )
+        : [...loaded.presets, normalizedPreset];
 
-    storage.setItem(MAGIC_GRAPH_PRESET_STORAGE_KEY, JSON.stringify(nextPresets));
-    return nextPresets;
+    return persistMutation(storage, loaded.presets, nextPresets);
 }
 
 export function deleteStoredMagicGraphPreset(
     presetId: string,
     storage: Storage | undefined = getMagicGraphPresetStorage()
-): MagicGraphPresetConfig[] {
-    if (!storage) return [];
+): MagicGraphPresetStorageResult {
+    const loaded = loadStoredMagicGraphPresets(storage);
+    if (loaded.status === MAGIC_GRAPH_PRESET_STORAGE_STATUSES.FAILURE) {
+        return loaded;
+    }
 
-    const nextPresets = loadStoredMagicGraphPresets(storage)
-        .filter(preset => preset.id !== presetId);
+    const nextPresets = loaded.presets.filter(preset =>
+        preset.id !== presetId
+    );
+    return persistMutation(storage, loaded.presets, nextPresets);
+}
 
-    storage.setItem(MAGIC_GRAPH_PRESET_STORAGE_KEY, JSON.stringify(nextPresets));
-    return nextPresets;
+function decodeCurrentEnvelope(
+    serialized: string
+): MagicGraphPresetStorageResult {
+    const parsed = parseJson(serialized);
+    if (!parsed.ok) return failure(parsed.issue);
+    if (!isRecord(parsed.value)) {
+        return failure({
+            code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_ENVELOPE,
+        });
+    }
+    if (
+        parsed.value.version !==
+        MAGIC_GRAPH_PRESET_STORAGE_CONFIG.ENVELOPE_VERSION
+    ) {
+        return failure({
+            code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.UNSUPPORTED_VERSION,
+            ...(typeof parsed.value.version === 'number'
+                ? { version: parsed.value.version }
+                : {}),
+        });
+    }
+    if (!Array.isArray(parsed.value.presets)) {
+        return failure({
+            code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_ENVELOPE,
+        });
+    }
+
+    return decodePresetEntries(parsed.value.presets);
+}
+
+function decodeLegacyPresetArray(
+    serialized: string
+): MagicGraphPresetStorageResult {
+    const parsed = parseJson(serialized);
+    if (!parsed.ok) {
+        return failure({
+            code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_LEGACY_DATA,
+        });
+    }
+    if (!Array.isArray(parsed.value)) {
+        return failure({
+            code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_LEGACY_DATA,
+        });
+    }
+
+    return decodePresetEntries(parsed.value);
+}
+
+function decodePresetEntries(
+    entries: readonly unknown[]
+): MagicGraphPresetStorageResult {
+    const presets: MagicGraphPresetConfig[] = [];
+    let invalidPresetCount = 0;
+
+    entries.forEach(entry => {
+        const decoded = decodeStoredMagicGraphPreset(entry, magicTypeMap);
+        if (decoded) {
+            presets.push(decoded);
+        } else {
+            invalidPresetCount += 1;
+        }
+    });
+
+    if (invalidPresetCount === 0) return success(presets);
+
+    const issue = {
+        code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_PRESETS,
+        invalidPresetCount,
+    } as const;
+    return presets.length > 0
+        ? warning(presets, issue)
+        : failure(issue);
+}
+
+function persistMutation(
+    storage: Storage | undefined,
+    previousPresets: MagicGraphPresetConfig[],
+    nextPresets: MagicGraphPresetConfig[]
+): MagicGraphPresetStorageResult {
+    if (!storage) {
+        return failure(
+            {
+                code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.UNAVAILABLE,
+            },
+            previousPresets
+        );
+    }
+
+    const issue = writeCurrentEnvelope(storage, nextPresets);
+    return issue
+        ? failure(issue, previousPresets)
+        : success(nextPresets);
+}
+
+function writeCurrentEnvelope(
+    storage: Storage,
+    presets: MagicGraphPresetConfig[]
+): MagicGraphPresetStorageIssue | undefined {
+    const envelope: StoredMagicGraphPresetEnvelope = {
+        version: MAGIC_GRAPH_PRESET_STORAGE_CONFIG.ENVELOPE_VERSION,
+        presets,
+    };
+
+    try {
+        storage.setItem(
+            MAGIC_GRAPH_PRESET_STORAGE_CONFIG.CURRENT_KEY,
+            JSON.stringify(envelope)
+        );
+        return undefined;
+    } catch {
+        return {
+            code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.WRITE_FAILED,
+        };
+    }
+}
+
+function readStorageValue(
+    storage: Storage,
+    key: string
+):
+    | { ok: true; value: string | null }
+    | { ok: false; issue: MagicGraphPresetStorageIssue } {
+    try {
+        return { ok: true, value: storage.getItem(key) };
+    } catch {
+        return {
+            ok: false,
+            issue: {
+                code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.READ_FAILED,
+            },
+        };
+    }
+}
+
+function parseJson(
+    serialized: string
+):
+    | { ok: true; value: unknown }
+    | { ok: false; issue: MagicGraphPresetStorageIssue } {
+    try {
+        return { ok: true, value: JSON.parse(serialized) };
+    } catch {
+        return {
+            ok: false,
+            issue: {
+                code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_JSON,
+            },
+        };
+    }
 }
 
 function getMagicGraphPresetStorage(): Storage | undefined {
@@ -59,238 +310,36 @@ function getMagicGraphPresetStorage(): Storage | undefined {
     return localStorage;
 }
 
-function isMagicGraphPresetConfig(value: unknown): value is MagicGraphPresetConfig {
-    if (!isRecord(value)) return false;
-    if (typeof value.id !== 'string' || typeof value.label !== 'string') return false;
-    if (
-        !Array.isArray(value.circles) ||
-        !Array.isArray(value.nodes) ||
-        !Array.isArray(value.edges)
-    ) return false;
-    if (
-        value.systemNodePositions !== undefined &&
-        !Array.isArray(value.systemNodePositions)
-    ) {
-        return false;
-    }
-
-    const hasValidShapes = value.circles.every(isMagicGraphPresetCircleConfig) &&
-        (value.systemNodePositions ?? []).every(isMagicGraphPresetSystemNodePositionConfig) &&
-        value.nodes.every(isMagicGraphPresetNodeConfig) &&
-        value.edges.every(isMagicGraphPresetEdgeConfig);
-    if (!hasValidShapes) return false;
-
-    const preset = value as unknown as MagicGraphPresetConfig;
-    const circleIds = new Set(preset.circles.map(circle => circle.id));
-    const hasKnownParents = preset.nodes.every(node =>
-        circleIds.has(node.circleId)
-    );
-    const hasContiguousSequences = preset.circles.every(circle => {
-        const indexes = preset.nodes
-            .filter(node => node.circleId === circle.id)
-            .map(node => node.sequenceIndex)
-            .sort((left, right) => left - right);
-        return indexes.every((sequenceIndex, expectedIndex) =>
-            sequenceIndex === expectedIndex
-        );
-    });
-    const hasValidSystemNodeSlots = preset.circles.every(circle =>
-        hasValidCircleSystemNodeSlots(
-            circle.systemNodeSlots,
-            preset.nodes.filter(node => node.circleId === circle.id).length
-        )
-    );
-
-    return hasKnownParents &&
-        hasContiguousSequences &&
-        hasValidSystemNodeSlots &&
-        hasValidControlPairs(preset) &&
-        preset.edges.every(edge => isStoredExternalEdge(edge, circleIds));
+function success(
+    presets: MagicGraphPresetConfig[]
+): MagicGraphPresetStorageResult {
+    return {
+        status: MAGIC_GRAPH_PRESET_STORAGE_STATUSES.SUCCESS,
+        presets,
+        issues: [],
+    };
 }
 
-function isStoredExternalEdge(
-    edge: MagicGraphPresetConfig['edges'][number],
-    circleIds: ReadonlySet<string>
-): boolean {
-    const sourceIsCircle = circleIds.has(edge.source);
-    const targetIsCircle = circleIds.has(edge.target);
-
-    return (
-        sourceIsCircle &&
-        targetIsCircle &&
-        isMagicCirclePortHandleId(edge.sourceHandle, 'output') &&
-        isMagicCirclePortHandleId(edge.targetHandle, 'input')
-    );
+function warning(
+    presets: MagicGraphPresetConfig[],
+    ...issues: MagicGraphPresetStorageIssue[]
+): MagicGraphPresetStorageResult {
+    return {
+        status: MAGIC_GRAPH_PRESET_STORAGE_STATUSES.WARNING,
+        presets,
+        issues,
+    };
 }
 
-function isMagicGraphPresetCircleConfig(value: unknown): boolean {
-    if (!isRecord(value) || !isRecord(value.position)) return false;
-
-    return typeof value.id === 'string' &&
-        Number.isFinite(value.position.x) &&
-        Number.isFinite(value.position.y) &&
-        Number.isFinite(value.width) &&
-        Number.isFinite(value.height) &&
-        Array.isArray(value.systemNodeSlots) &&
-        value.systemNodeSlots.every(isMagicGraphPresetCircleSystemNodeSlotConfig);
-}
-
-function isMagicGraphPresetCircleSystemNodeSlotConfig(value: unknown): boolean {
-    if (!isRecord(value)) return false;
-
-    return typeof value.magicType === 'string' &&
-        Number.isInteger(value.slotIndex) &&
-        Number(value.slotIndex) >= 0 &&
-        isOptionalMagicNodeSettings(value.settings);
-}
-
-function hasValidCircleSystemNodeSlots(
-    slots: MagicGraphPresetConfig['circles'][number]['systemNodeSlots'],
-    editableNodeCount: number
-): boolean {
-    const expectedMagicTypes = new Set(
-        CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS.map(config => config.magicType)
-    );
-    const actualMagicTypes = new Set(slots.map(slot => slot.magicType));
-
-    if (slots.length !== expectedMagicTypes.size) return false;
-    if (actualMagicTypes.size !== slots.length) return false;
-
-    return slots.every(slot =>
-        expectedMagicTypes.has(slot.magicType) &&
-        Number.isInteger(slot.slotIndex) &&
-        slot.slotIndex >= 0 &&
-        slot.slotIndex <= editableNodeCount
-    );
-}
-
-function isMagicGraphPresetSystemNodePositionConfig(value: unknown): boolean {
-    if (!isRecord(value) || !isRecord(value.position)) return false;
-
-    return typeof value.id === 'string' &&
-        Number.isFinite(value.position.x) &&
-        Number.isFinite(value.position.y);
-}
-
-function isMagicGraphPresetNodeConfig(value: unknown): boolean {
-    if (!isRecord(value)) return false;
-
-    return typeof value.id === 'string' &&
-        typeof value.magicType === 'string' &&
-        isMagicTypeAllowedInCircleSequence(value.magicType) &&
-        typeof value.circleId === 'string' &&
-        isOptionalMagicNodeSettings(value.settings) &&
-        isOptionalMagicControlPair(value.controlPair) &&
-        Number.isInteger(value.sequenceIndex) &&
-        Number(value.sequenceIndex) >= 0;
-}
-
-function isOptionalMagicControlPair(value: unknown): boolean {
-    if (value === undefined) return true;
-    if (!isRecord(value)) return false;
-
-    return typeof value.id === 'string' &&
-        value.id.length > 0 &&
-        (
-            value.role === MAGIC_CONTROL_PAIR_ROLES.START ||
-            value.role === MAGIC_CONTROL_PAIR_ROLES.END
-        );
-}
-
-function hasValidControlPairs(preset: MagicGraphPresetConfig): boolean {
-    const specialTypes = new Set<string>(
-        Object.values(MAGIC_CONTROL_PAIR_NODE_TYPES)
-    );
-    const specialNodes = preset.nodes.filter(node =>
-        specialTypes.has(node.magicType)
-    );
-    if (specialNodes.some(node => !node.controlPair)) return false;
-    if (preset.nodes.some(node =>
-        !specialTypes.has(node.magicType) && node.controlPair
-    )) return false;
-
-    const pairIds = new Set(
-        specialNodes.map(node => node.controlPair!.id)
-    );
-    const intervals: Array<{
-        magicType: string;
-        circleId: string;
-        start: number;
-        end: number;
-    }> = [];
-
-    for (const pairId of pairIds) {
-        const pairNodes = specialNodes.filter(node =>
-            node.controlPair?.id === pairId
-        );
-        const start = pairNodes.find(node =>
-            node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.START
-        );
-        const end = pairNodes.find(node =>
-            node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.END
-        );
-        if (
-            pairNodes.length !== 2 ||
-            !start ||
-            !end ||
-            start.magicType !== end.magicType ||
-            start.circleId !== end.circleId ||
-            end.settings !== undefined
-        ) {
-            return false;
-        }
-        if (
-            start.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT &&
-            start.sequenceIndex >= end.sequenceIndex
-        ) {
-            return false;
-        }
-        intervals.push({
-            magicType: start.magicType,
-            circleId: start.circleId,
-            start: start.sequenceIndex,
-            end: end.sequenceIndex,
-        });
-    }
-
-    const repeatIntervals = intervals.filter(interval =>
-        interval.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
-    );
-    return repeatIntervals.every((left, index) =>
-        repeatIntervals.slice(index + 1).every(right =>
-            left.circleId !== right.circleId ||
-            !(
-                left.start < right.start &&
-                right.start < left.end &&
-                left.end < right.end
-            ) && !(
-                right.start < left.start &&
-                left.start < right.end &&
-                right.end < left.end
-            )
-        )
-    );
-}
-
-function isOptionalMagicNodeSettings(value: unknown): boolean {
-    if (value === undefined) return true;
-    if (!isRecord(value)) return false;
-
-    return Object.values(value).every(settingValue => typeof settingValue === 'string');
-}
-
-function isMagicGraphPresetEdgeConfig(value: unknown): boolean {
-    if (!isRecord(value)) return false;
-    if (
-        typeof value.id !== 'string' ||
-        typeof value.source !== 'string' ||
-        typeof value.target !== 'string'
-    ) {
-        return false;
-    }
-
-    return typeof value.sourceHandle === 'string' &&
-        typeof value.targetHandle === 'string';
+function failure(
+    issue: MagicGraphPresetStorageIssue,
+    presets: MagicGraphPresetConfig[] = []
+): MagicGraphPresetStorageResult {
+    return {
+        status: MAGIC_GRAPH_PRESET_STORAGE_STATUSES.FAILURE,
+        presets,
+        issues: [issue],
+    };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -11,7 +11,6 @@ import {
     MAGIC_NODE_HANDLE_CONFIG,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
-import { SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/systemMagicNodeConfigs';
 import type {
     MagicEditorNode,
     MagicNode,
@@ -24,10 +23,7 @@ import type {
 import { readMagicTypeConfig, type MagicTypeLookup } from './magicTypeLookup';
 import { isMagicCircleNode } from './magicCircleGraph';
 import { canMagicTypeUseNodeWeight } from './magicNodeWeight';
-
-const SYSTEM_MAGIC_TYPE_IDS = new Set<string>([
-    ...SYSTEM_MAGIC_TYPE_CONFIGS.map(config => config.type),
-]);
+import { isSystemMagicType } from './systemMagicTypePolicy';
 
 export function createUserMagicNodeData(
     magicType: MagicType,
@@ -58,7 +54,7 @@ export function getMagicNodeEditorFields(
         ? [MAGIC_NODE_WEIGHT_EDITOR_FIELD]
         : [];
 
-    if (SYSTEM_MAGIC_TYPE_IDS.has(config.type) || hasCaptionOverride) {
+    if (isSystemMagicType(config.type) || hasCaptionOverride) {
         return [...configuredFields, ...commonFields];
     }
 
@@ -120,12 +116,7 @@ export function resolveMagicNodeLabel(
         return baseLabel;
     }
 
-    const suffix = (
-        suffixField.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT &&
-        Number(suffixValue) === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
-    )
-        ? MAGIC_REPEAT_CONFIG.INFINITE_LABEL
-        : `${MAGIC_REPEAT_CONFIG.FINITE_LABEL_PREFIX}${suffixValue}`;
+    const suffix = formatMagicNodeLabelSuffix(suffixField, suffixValue);
 
     return `${baseLabel} ${suffix}`;
 }
@@ -222,6 +213,22 @@ function resolveMagicNodePresentationValue(
         : undefined;
 
     return value || undefined;
+}
+
+function formatMagicNodeLabelSuffix(
+    field: MagicNodeEditorFieldConfig,
+    value: string
+): string {
+    if (field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.NODE_WEIGHT) {
+        return `${MAGIC_NODE_WEIGHT_CONFIG.LABEL_PREFIX}${value}`;
+    }
+    if (field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT) {
+        return Number(value) === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
+            ? MAGIC_REPEAT_CONFIG.INFINITE_LABEL
+            : `${MAGIC_REPEAT_CONFIG.FINITE_LABEL_PREFIX}${value}`;
+    }
+
+    return value;
 }
 
 function normalizeMagicNodeEditorFieldValue(

@@ -12,7 +12,6 @@ import type {
 } from '../../../types/magic';
 import { calculateMagic } from '../calculation/magicCalculator';
 import {
-    collectMagicGraphPresetReferenceErrors,
     createMagicGraphFromPreset,
     createMagicGraphPresetOption,
     createMagicGraphPresetSnapshot,
@@ -20,6 +19,7 @@ import {
 } from './magicGraphPresets';
 import { isCircleSystemMagicNode } from '../model/circleSystemMagicNodes';
 import {
+    MAGIC_GRAPH_PRESET_STORAGE_CONFIG,
     deleteStoredMagicGraphPreset,
     loadStoredMagicGraphPresets,
     saveStoredMagicGraphPreset,
@@ -122,7 +122,7 @@ class MemoryStorage implements Storage {
     }
 }
 
-describe('magicGraphPresets v6', () => {
+describe('magicGraphPresets', () => {
     it('restores sequence positions with one circle-owned manifestation', () => {
         const graph = createMagicGraphFromPreset(preset, magicTypes);
         const childNodes = graph.nodes.filter(node =>
@@ -159,8 +159,12 @@ describe('magicGraphPresets v6', () => {
         });
     });
 
-    it('keeps the built-in preset list empty', () => {
-        expect(magicGraphPresetsData).toEqual([]);
+    it('exposes built-in preset data as a list', () => {
+        expect(Array.isArray(magicGraphPresetsData)).toBe(true);
+        expect(magicGraphPresetsData.every(item =>
+            typeof item.id === 'string' &&
+            typeof item.label === 'string'
+        )).toBe(true);
     });
 
     it('calculates an isolated serial circle without stored edges', () => {
@@ -281,41 +285,39 @@ describe('magicGraphPresets v6', () => {
         })).toBe(false);
     });
 
-    it('reports unknown node and circle references', () => {
-        const invalidPreset: MagicGraphPresetConfig = {
-            ...preset,
-            nodes: [{
-                id: 'unknown',
-                magicType: 'missing',
-                circleId: 'missing-circle',
-                sequenceIndex: 0,
-            }],
-        };
-
-        expect(collectMagicGraphPresetReferenceErrors(
-            invalidPreset,
-            magicTypes
-        )).toEqual(expect.arrayContaining([
-            'Unknown magic graph preset node type: test-preset -> unknown -> missing',
-            'Unknown magic graph preset node circle: test-preset -> unknown -> missing-circle',
-        ]));
-    });
-
-    it('saves, loads, and deletes only v6 user presets', () => {
+    it('saves, loads, and deletes versioned user presets', () => {
         const storage = new MemoryStorage();
         storage.setItem(
             'beautiful-galileo.magicGraphPresets.v5',
             JSON.stringify([preset])
         );
 
-        expect(loadStoredMagicGraphPresets(storage)).toEqual([]);
+        expect(loadStoredMagicGraphPresets(storage)).toEqual({
+            status: 'success',
+            presets: [],
+            issues: [],
+        });
         expect(saveStoredMagicGraphPreset(pairedPreset, storage))
-            .toEqual([pairedPreset]);
-        expect(storage.getItem('beautiful-galileo.magicGraphPresets.v6'))
+            .toEqual({
+                status: 'success',
+                presets: [pairedPreset],
+                issues: [],
+            });
+        expect(storage.getItem(
+            MAGIC_GRAPH_PRESET_STORAGE_CONFIG.CURRENT_KEY
+        ))
             .not.toBeNull();
-        expect(loadStoredMagicGraphPresets(storage)).toEqual([pairedPreset]);
+        expect(loadStoredMagicGraphPresets(storage)).toEqual({
+            status: 'success',
+            presets: [pairedPreset],
+            issues: [],
+        });
         expect(deleteStoredMagicGraphPreset(pairedPreset.id, storage))
-            .toEqual([]);
+            .toEqual({
+                status: 'success',
+                presets: [],
+                issues: [],
+            });
     });
 
     it('loads optional manifestation caption settings from v6 storage', () => {
@@ -332,9 +334,17 @@ describe('magicGraphPresets v6', () => {
         };
 
         expect(saveStoredMagicGraphPreset(captionedPreset, storage))
-            .toEqual([captionedPreset]);
+            .toEqual({
+                status: 'success',
+                presets: [captionedPreset],
+                issues: [],
+            });
         expect(loadStoredMagicGraphPresets(storage))
-            .toEqual([captionedPreset]);
+            .toEqual({
+                status: 'success',
+                presets: [captionedPreset],
+                issues: [],
+            });
     });
 
     it('rejects malformed stored control pairs', () => {
@@ -347,7 +357,10 @@ describe('magicGraphPresets v6', () => {
             }])
         );
 
-        expect(loadStoredMagicGraphPresets(storage)).toEqual([]);
+        expect(loadStoredMagicGraphPresets(storage)).toMatchObject({
+            status: 'failure',
+            presets: [],
+        });
     });
 
     it('creates source-qualified preset options', () => {

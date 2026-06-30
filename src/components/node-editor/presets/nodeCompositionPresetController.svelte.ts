@@ -9,7 +9,9 @@ import {
 import {
     deleteStoredMagicGraphPreset,
     loadStoredMagicGraphPresets,
+    MAGIC_GRAPH_PRESET_STORAGE_STATUSES,
     saveStoredMagicGraphPreset,
+    type MagicGraphPresetStorageResult,
 } from '../../../systems/graph/presets/magicGraphPresetStorage';
 import type { MagicGraphPresetConfig } from '../../../types/magic';
 
@@ -22,9 +24,27 @@ interface NodeCompositionPresetGraph {
 interface NodeCompositionPresetControllerOptions {
     builtInPresets: readonly MagicGraphPresetConfig[];
     graph: NodeCompositionPresetGraph;
-    loadStoredPresets?: () => MagicGraphPresetConfig[];
-    saveStoredPreset?: (preset: MagicGraphPresetConfig) => MagicGraphPresetConfig[];
-    deleteStoredPreset?: (presetId: string) => MagicGraphPresetConfig[];
+    loadStoredPresets?: () => MagicGraphPresetStorageResult;
+    saveStoredPreset?: (
+        preset: MagicGraphPresetConfig
+    ) => MagicGraphPresetStorageResult;
+    deleteStoredPreset?: (
+        presetId: string
+    ) => MagicGraphPresetStorageResult;
+}
+
+export const NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS = {
+    LOAD: 'load',
+    SAVE: 'save',
+    DELETE: 'delete',
+} as const;
+
+export type NodeCompositionPresetStorageOperation =
+    (typeof NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS)[keyof typeof NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS];
+
+export interface NodeCompositionPresetStorageNotice {
+    level: 'warning' | 'error';
+    operation: NodeCompositionPresetStorageOperation;
 }
 
 const EMPTY_NODE_COMPOSITION_PRESET_GRAPH: NodeCompositionPresetGraph = {
@@ -36,12 +56,19 @@ const EMPTY_NODE_COMPOSITION_PRESET_GRAPH: NodeCompositionPresetGraph = {
 export class NodeCompositionPresetController {
     private builtInPresets: readonly MagicGraphPresetConfig[] = [];
     private graph: NodeCompositionPresetGraph = EMPTY_NODE_COMPOSITION_PRESET_GRAPH;
-    private readonly saveStoredPreset: (preset: MagicGraphPresetConfig) => MagicGraphPresetConfig[];
-    private readonly deleteStoredPreset: (presetId: string) => MagicGraphPresetConfig[];
+    private readonly saveStoredPreset: (
+        preset: MagicGraphPresetConfig
+    ) => MagicGraphPresetStorageResult;
+    private readonly deleteStoredPreset: (
+        presetId: string
+    ) => MagicGraphPresetStorageResult;
 
     readonly initialPresetValue: string;
     userPresets = $state<MagicGraphPresetConfig[]>([]);
     selectedPresetValue = $state('');
+    storageNotice = $state<NodeCompositionPresetStorageNotice | undefined>(
+        undefined
+    );
 
     readonly presetOptions = $derived(
         createMagicGraphPresetOptions(this.builtInPresets, this.userPresets)
@@ -72,18 +99,25 @@ export class NodeCompositionPresetController {
                 builtInPresets[0].id
             )
             : '';
-        this.userPresets = loadStoredPresets();
+        const storedPresets = loadStoredPresets();
+        this.userPresets = storedPresets.presets;
+        this.storageNotice = createStorageNotice(
+            storedPresets,
+            NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS.LOAD
+        );
         this.selectedPresetValue = this.initialPresetValue;
     }
 
     selectPreset(value: string): void {
         this.selectedPresetValue = value;
+        this.storageNotice = undefined;
     }
 
     loadSelectedPreset(): boolean {
         if (!this.selectedPresetOption) return false;
 
         this.graph.loadPreset(this.selectedPresetOption.preset);
+        this.storageNotice = undefined;
         return true;
     }
 
@@ -94,7 +128,18 @@ export class NodeCompositionPresetController {
         const preset = this.graph.createPresetSnapshot(label);
         if (!preset) return;
 
-        this.userPresets = this.saveStoredPreset(preset);
+        const stored = this.saveStoredPreset(preset);
+        this.storageNotice = createStorageNotice(
+            stored,
+            NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS.SAVE
+        );
+        if (
+            stored.status === MAGIC_GRAPH_PRESET_STORAGE_STATUSES.FAILURE
+        ) {
+            return;
+        }
+
+        this.userPresets = stored.presets;
         this.selectedPresetValue = createMagicGraphPresetOptionValue(
             MAGIC_GRAPH_PRESET_SOURCES.USER,
             preset.id
@@ -104,7 +149,20 @@ export class NodeCompositionPresetController {
     deleteSelectedPreset(): void {
         if (!this.selectedPresetOption || !this.selectedPresetIsUser) return;
 
-        this.userPresets = this.deleteStoredPreset(this.selectedPresetOption.preset.id);
+        const stored = this.deleteStoredPreset(
+            this.selectedPresetOption.preset.id
+        );
+        this.storageNotice = createStorageNotice(
+            stored,
+            NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS.DELETE
+        );
+        if (
+            stored.status === MAGIC_GRAPH_PRESET_STORAGE_STATUSES.FAILURE
+        ) {
+            return;
+        }
+
+        this.userPresets = stored.presets;
         this.selectedPresetValue = this.initialPresetValue;
     }
 }
@@ -113,4 +171,20 @@ export function createNodeCompositionPresetController(
     options: NodeCompositionPresetControllerOptions
 ): NodeCompositionPresetController {
     return new NodeCompositionPresetController(options);
+}
+
+function createStorageNotice(
+    result: MagicGraphPresetStorageResult,
+    operation: NodeCompositionPresetStorageNotice['operation']
+): NodeCompositionPresetStorageNotice | undefined {
+    if (result.status === MAGIC_GRAPH_PRESET_STORAGE_STATUSES.SUCCESS) {
+        return undefined;
+    }
+
+    return {
+        level: result.status === MAGIC_GRAPH_PRESET_STORAGE_STATUSES.WARNING
+            ? 'warning'
+            : 'error',
+        operation,
+    };
 }

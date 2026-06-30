@@ -54,6 +54,12 @@ import {
     readMagicTypeConfigByType,
     type MagicTypeLookup,
 } from './magicTypeLookup';
+import {
+    findNonContiguousMagicGraphSequenceCircleIds,
+    hasValidMagicGraphControlPairs,
+    hasValidMagicGraphSystemNodeSlots,
+    isMagicGraphExternalCircleEdge,
+} from './magicGraphSnapshotRules';
 
 export const MAGIC_GRAPH_CLIPBOARD_MIME_TYPE =
     'application/x-beautiful-galileo-magic-graph+json';
@@ -458,27 +464,48 @@ function isMagicGraphClipboardPayload(
         return false;
     }
 
-    const circleIds = new Set(value.circles.map(circle => circle.id));
-    const nodeIds = new Set(value.nodes.map(node => node.id));
+    const payload = value as unknown as MagicGraphClipboardPayload;
+    const circleIds = new Set(payload.circles.map(circle => circle.id));
+    const nodeIds = new Set(payload.nodes.map(node => node.id));
     if (
-        circleIds.size !== value.circles.length ||
-        nodeIds.size !== value.nodes.length
+        circleIds.size !== payload.circles.length ||
+        nodeIds.size !== payload.nodes.length ||
+        payload.nodes.some(node => circleIds.has(node.id)) ||
+        !hasValidMagicGraphControlPairs(payload.nodes)
     ) {
         return false;
     }
 
-    if (value.mode === MAGIC_GRAPH_CLIPBOARD_MODES.UNITS) {
-        return value.circles.length === 0 &&
-            value.edges.length === 0 &&
-            value.nodes.length > 0 &&
-            new Set(value.nodes.map(node => node.circleId)).size === 1;
+    if (payload.mode === MAGIC_GRAPH_CLIPBOARD_MODES.UNITS) {
+        const sourceCircleIds = [...new Set(
+            payload.nodes.map(node => node.circleId)
+        )];
+        return payload.circles.length === 0 &&
+            payload.edges.length === 0 &&
+            payload.nodes.length > 0 &&
+            sourceCircleIds.length === 1 &&
+            findNonContiguousMagicGraphSequenceCircleIds(
+                payload.nodes,
+                sourceCircleIds
+            ).length === 0;
     }
 
-    return value.circles.length > 0 &&
-        value.nodes.every(node => circleIds.has(node.circleId)) &&
-        value.edges.every(edge =>
-            circleIds.has(edge.source) &&
-            circleIds.has(edge.target)
+    return payload.circles.length > 0 &&
+        payload.nodes.every(node => circleIds.has(node.circleId)) &&
+        findNonContiguousMagicGraphSequenceCircleIds(
+            payload.nodes,
+            [...circleIds]
+        ).length === 0 &&
+        payload.circles.every(circle =>
+            hasValidMagicGraphSystemNodeSlots(
+                circle.systemNodeSlots,
+                payload.nodes.filter(node =>
+                    node.circleId === circle.id
+                ).length
+            )
+        ) &&
+        payload.edges.every(edge =>
+            isMagicGraphExternalCircleEdge(edge, circleIds)
         );
 }
 

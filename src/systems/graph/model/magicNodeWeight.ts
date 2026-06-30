@@ -4,14 +4,12 @@ import {
 import {
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
-import {
-    SYSTEM_MAGIC_TYPE_CONFIGS,
-} from '../../../constants/systemMagicNodeConfigs';
 import type {
     MagicNodeData,
     MagicStatKey,
     MagicTypeConfig,
 } from '../../../types/magic';
+import { isSystemMagicType } from './systemMagicTypePolicy';
 
 export type MagicNodeWeightTypeContext = Pick<
     MagicTypeConfig,
@@ -19,9 +17,6 @@ export type MagicNodeWeightTypeContext = Pick<
 >;
 
 const DURATION_STAT_KEY: MagicStatKey = 'duration';
-const SYSTEM_MAGIC_TYPE_IDS = new Set(
-    SYSTEM_MAGIC_TYPE_CONFIGS.map(config => config.type)
-);
 
 export function canMagicTypeUseNodeWeight(
     config: MagicNodeWeightTypeContext | undefined
@@ -29,7 +24,7 @@ export function canMagicTypeUseNodeWeight(
     return Boolean(
         config &&
         config.category !== MAGIC_NODE_WEIGHT_CONFIG.EXCLUDED_CATEGORY &&
-        !SYSTEM_MAGIC_TYPE_IDS.has(config.type)
+        !isSystemMagicType(config.type)
     );
 }
 

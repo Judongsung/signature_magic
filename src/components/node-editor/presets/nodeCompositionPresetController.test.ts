@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { MagicGraphPresetConfig } from '../../../types/magic';
+import type {
+    MagicGraphPresetStorageResult,
+} from '../../../systems/graph/presets/magicGraphPresetStorage';
 import {
     createNodeCompositionPresetController,
 } from './nodeCompositionPresetController.svelte';
@@ -20,6 +23,32 @@ const userPreset = {
     edges: [],
 } satisfies MagicGraphPresetConfig;
 
+function storageSuccess(
+    presets: MagicGraphPresetConfig[] = []
+): MagicGraphPresetStorageResult {
+    return { status: 'success', presets, issues: [] };
+}
+
+function storageWarning(
+    presets: MagicGraphPresetConfig[]
+): MagicGraphPresetStorageResult {
+    return {
+        status: 'warning',
+        presets,
+        issues: [{ code: 'invalid-presets', invalidPresetCount: 1 }],
+    };
+}
+
+function storageFailure(
+    presets: MagicGraphPresetConfig[] = []
+): MagicGraphPresetStorageResult {
+    return {
+        status: 'failure',
+        presets,
+        issues: [{ code: 'write-failed' }],
+    };
+}
+
 function createGraph(hasUserContent = true) {
     return {
         hasUserContent,
@@ -39,7 +68,7 @@ describe('nodeCompositionPresetController', () => {
         const controller = createNodeCompositionPresetController({
             builtInPresets: [builtInPreset],
             graph: createGraph(),
-            loadStoredPresets: () => [userPreset],
+            loadStoredPresets: () => storageSuccess([userPreset]),
         });
 
         expect(controller.presetOptions.map(option => option.value)).toEqual([
@@ -54,7 +83,7 @@ describe('nodeCompositionPresetController', () => {
         const controller = createNodeCompositionPresetController({
             builtInPresets: [builtInPreset],
             graph,
-            loadStoredPresets: () => [userPreset],
+            loadStoredPresets: () => storageSuccess([userPreset]),
         });
 
         controller.selectPreset('user:user-preset');
@@ -64,18 +93,21 @@ describe('nodeCompositionPresetController', () => {
     });
 
     it('saves current graph content and selects the saved user preset', () => {
-        const saveStoredPreset = vi.fn(() => [{
+        const savedPresets = [{
             id: 'saved-preset',
             label: 'Saved Preset',
             circles: [],
             nodes: [],
             edges: [],
-        } satisfies MagicGraphPresetConfig]);
+        } satisfies MagicGraphPresetConfig];
+        const saveStoredPreset = vi.fn(() =>
+            storageSuccess(savedPresets)
+        );
         const graph = createGraph();
         const controller = createNodeCompositionPresetController({
             builtInPresets: [builtInPreset],
             graph,
-            loadStoredPresets: () => [],
+            loadStoredPresets: () => storageSuccess(),
             saveStoredPreset,
         });
 
@@ -105,7 +137,7 @@ describe('nodeCompositionPresetController', () => {
         const controller = createNodeCompositionPresetController({
             builtInPresets: [builtInPreset],
             graph: emptyGraph,
-            loadStoredPresets: () => [],
+            loadStoredPresets: () => storageSuccess(),
             saveStoredPreset,
         });
 
@@ -117,7 +149,7 @@ describe('nodeCompositionPresetController', () => {
         const labelController = createNodeCompositionPresetController({
             builtInPresets: [builtInPreset],
             graph,
-            loadStoredPresets: () => [],
+            loadStoredPresets: () => storageSuccess(),
             saveStoredPreset,
         });
 
@@ -128,11 +160,11 @@ describe('nodeCompositionPresetController', () => {
     });
 
     it('deletes selected user presets and returns to the initial built-in preset', () => {
-        const deleteStoredPreset = vi.fn(() => [] as MagicGraphPresetConfig[]);
+        const deleteStoredPreset = vi.fn(() => storageSuccess());
         const controller = createNodeCompositionPresetController({
             builtInPresets: [builtInPreset],
             graph: createGraph(),
-            loadStoredPresets: () => [userPreset],
+            loadStoredPresets: () => storageSuccess([userPreset]),
             deleteStoredPreset,
         });
 
@@ -149,12 +181,65 @@ describe('nodeCompositionPresetController', () => {
         const controller = createNodeCompositionPresetController({
             builtInPresets: [builtInPreset],
             graph: createGraph(),
-            loadStoredPresets: () => [userPreset],
+            loadStoredPresets: () => storageSuccess([userPreset]),
             deleteStoredPreset,
         });
 
         controller.deleteSelectedPreset();
 
         expect(deleteStoredPreset).not.toHaveBeenCalled();
+    });
+
+    it('surfaces partial load warnings while keeping valid presets', () => {
+        const controller = createNodeCompositionPresetController({
+            builtInPresets: [builtInPreset],
+            graph: createGraph(),
+            loadStoredPresets: () => storageWarning([userPreset]),
+        });
+
+        expect(controller.userPresets).toEqual([userPreset]);
+        expect(controller.storageNotice).toEqual({
+            level: 'warning',
+            operation: 'load',
+        });
+
+        controller.selectPreset('user:user-preset');
+        expect(controller.storageNotice).toBeUndefined();
+    });
+
+    it('preserves preset state when storage mutations fail', () => {
+        const saveStoredPreset = vi.fn(() =>
+            storageFailure([userPreset])
+        );
+        const deleteStoredPreset = vi.fn(() =>
+            storageFailure([userPreset])
+        );
+        const controller = createNodeCompositionPresetController({
+            builtInPresets: [builtInPreset],
+            graph: createGraph(),
+            loadStoredPresets: () => storageSuccess([userPreset]),
+            saveStoredPreset,
+            deleteStoredPreset,
+        });
+
+        controller.saveCurrentPreset('Saved Preset');
+
+        expect(controller.userPresets).toEqual([userPreset]);
+        expect(controller.selectedPresetValue)
+            .toBe('builtIn:built-in-preset');
+        expect(controller.storageNotice).toEqual({
+            level: 'error',
+            operation: 'save',
+        });
+
+        controller.selectPreset('user:user-preset');
+        controller.deleteSelectedPreset();
+
+        expect(controller.userPresets).toEqual([userPreset]);
+        expect(controller.selectedPresetValue).toBe('user:user-preset');
+        expect(controller.storageNotice).toEqual({
+            level: 'error',
+            operation: 'delete',
+        });
     });
 });

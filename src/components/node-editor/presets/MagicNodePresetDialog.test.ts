@@ -68,4 +68,34 @@ describe('MagicNodePresetDialog', () => {
         expect(html).toContain(`>${NODE_EDITOR_TEXT.PRESET_DELETE}</button>`);
         expect(html.match(/disabled/g)?.length).toBeGreaterThanOrEqual(3);
     });
+
+    it('renders storage warnings and errors inside the dialog', () => {
+        const warning = render(MagicNodePresetDialog, {
+            props: {
+                ...props,
+                storageNotice: {
+                    level: 'warning',
+                    operation: 'load',
+                },
+            },
+        });
+        expect(warning.html).toContain('role="status"');
+        expect(warning.html).toContain(
+            NODE_EDITOR_TEXT.PRESET_STORAGE_WARNING
+        );
+
+        const error = render(MagicNodePresetDialog, {
+            props: {
+                ...props,
+                storageNotice: {
+                    level: 'error',
+                    operation: 'save',
+                },
+            },
+        });
+        expect(error.html).toContain('role="alert"');
+        expect(error.html).toContain(
+            NODE_EDITOR_TEXT.PRESET_STORAGE_SAVE_ERROR
+        );
+    });
 });
