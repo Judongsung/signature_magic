@@ -1,4 +1,4 @@
-﻿import type { Edge } from '@xyflow/svelte';
+﻿import type { MagicGraphEdge } from '../magicGraphTypes';
 import {
     MAGIC_STAT_KEYS,
     type MagicEditorNode,
@@ -35,7 +35,7 @@ type CalculatedCirclePath = Omit<CirclePath, 'statAdjustments'>;
 
 export function calculateMagic(
     nodes: MagicEditorNode[],
-    edges: Edge[],
+    edges: MagicGraphEdge[],
     magicTypes: readonly MagicTypeConfig[] = [],
     statEffects: MagicStatEffectBundle = createEmptyMagicStatEffectBundle()
 ): MagicCalculationResult {
@@ -58,7 +58,7 @@ export function calculateMagic(
 
 function calculateExplicitMagicNow(
     nodes: MagicEditorNode[],
-    edges: Edge[],
+    edges: MagicGraphEdge[],
     magicTypes: readonly MagicTypeConfig[],
     statEffects: MagicStatEffectBundle
 ): MagicCalculationResult {
@@ -159,7 +159,7 @@ function calculateExplicitCircles(
 
 function calculateBaselineTotalStats(
     nodes: readonly MagicGraphNode[],
-    edges: readonly Edge[],
+    edges: readonly MagicGraphEdge[],
     analysis: MagicGraphAnalysis,
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
     nodeExecutionCounts: MagicNodeExecutionCounts,

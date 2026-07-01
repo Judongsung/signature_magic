@@ -1,4 +1,3 @@
-import type { Edge } from '@xyflow/svelte';
 import { expect } from 'vitest';
 import { GRAPH_NODE_TYPES } from '../constants/graphConfigs';
 import { graphStore } from '../stores/graphStore.svelte';
@@ -7,6 +6,7 @@ import {
     getMagicCircleNodes,
     getMagicUnitNodes,
 } from '../systems/graph/model/magicCircleGraph';
+import type { MagicGraphEdge } from '../systems/graph/magicGraphTypes';
 
 export const EMPTY_MAGIC_STAT_EFFECTS = {
     nodeEffects: [],
@@ -31,7 +31,7 @@ export function createTestMagicEdge(
     target: string,
     sourceHandle?: string,
     targetHandle?: string
-): Edge {
+): MagicGraphEdge {
     return { id: `${source}-${target}`, source, target, sourceHandle, targetHandle };
 }
 

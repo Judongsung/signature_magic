@@ -1,5 +1,4 @@
 import type { MAGIC_NODE_EDITOR_CONTROLS, MagicNodeCategory, MagicNodeEditorBehavior, MagicNodeEditorPresentation } from '../constants/nodeEditorConfigs';
-import type { Node } from '@xyflow/svelte';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
     MAGIC_STAT_BRANCH_AGGREGATIONS,
@@ -186,15 +185,33 @@ export interface MagicNodeData extends Record<string, unknown> {
     controlPair?: MagicControlPairRef;
 }
 
-export interface MagicGraphNode {
+export interface MagicGraphNode<
+    Data extends Record<string, unknown> = MagicNodeData,
+> {
     id: string;
     type?: string;
     position: { x: number; y: number };
-    data: MagicNodeData;
+    data: Data;
+    parentId?: string;
+    width?: number;
+    height?: number;
+    dragHandle?: string;
+    draggable?: boolean;
+    selectable?: boolean;
+    connectable?: boolean;
     deletable?: boolean;
+    extent?: 'parent' | [[number, number], [number, number]] | null;
+    style?: string;
+    selected?: boolean;
+    dragging?: boolean;
+    measured?: {
+        width?: number;
+        height?: number;
+    };
+    zIndex?: number;
 }
 
-export type MagicNode = Node<MagicNodeData> & MagicGraphNode;
+export type MagicNode = MagicGraphNode<MagicNodeData>;
 
 export interface MagicCircleMetadata {
     name?: string;
@@ -207,7 +224,7 @@ export interface MagicCircleNodeData extends MagicCircleMetadata, Record<string,
     outputHandleCount: number;
 }
 
-export type MagicCircleNode = Node<MagicCircleNodeData> & {
+export type MagicCircleNode = MagicGraphNode<MagicCircleNodeData> & {
     type: 'magicCircle';
     width: number;
     height: number;

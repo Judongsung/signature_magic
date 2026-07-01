@@ -1,9 +1,9 @@
-import type { Edge } from '@xyflow/svelte';
 import {
     GRAPH_NODE_TYPES,
     MAGIC_NODE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
 import type { MagicNode, MagicType } from '../../../types/magic';
+import type { MagicGraphEdge } from '../magicGraphTypes';
 import { createUserMagicNodeData } from './magicNodeData';
 
 export type IdFactory = () => string;
@@ -27,7 +27,7 @@ export function createNode(
 
 export function filterEdgesForDeletedNodes(
     deletedIds: Set<string>,
-    edges: Edge[]
-): Edge[] {
+    edges: MagicGraphEdge[]
+): MagicGraphEdge[] {
     return edges.filter(e => !deletedIds.has(e.source) && !deletedIds.has(e.target));
 }

@@ -1,4 +1,4 @@
-import type { Edge } from '@xyflow/svelte';
+import type { MagicGraphEdge } from '../magicGraphTypes';
 import {
     GRAPH_EDGE_TYPES,
     GRAPH_NODE_TYPES,
@@ -256,7 +256,9 @@ function createCircleSequenceNodesFromPreset(
     });
 }
 
-function createEdgeFromPreset(edge: MagicGraphPresetEdgeConfig): Edge {
+function createEdgeFromPreset(
+    edge: MagicGraphPresetEdgeConfig
+): MagicGraphEdge {
     return {
         id: edge.id,
         source: edge.source,
@@ -329,7 +331,7 @@ export function createMagicGraphPresetNodeSnapshot(
 }
 
 export function createMagicGraphPresetEdgeSnapshot(
-    edge: Edge
+    edge: MagicGraphEdge
 ): MagicGraphPresetEdgeConfig {
     return {
         id: edge.id || `${MAGIC_EDGE_ID_PREFIX}-${createUniqueId()}`,

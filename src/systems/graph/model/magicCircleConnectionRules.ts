@@ -1,9 +1,12 @@
-import type { Connection, Edge } from '@xyflow/svelte';
 import {
     GRAPH_EDGE_TYPES,
     MAGIC_EDGE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
 import type { MagicEditorNode } from '../../../types/magic';
+import type {
+    MagicGraphConnection,
+    MagicGraphEdge,
+} from '../magicGraphTypes';
 import { buildOutEdgeMap } from '../topology/graphTopology';
 import { canReach } from '../topology/graphTraversal';
 import {
@@ -16,7 +19,10 @@ import {
     isMagicCircleNode,
 } from './magicCircleGraph';
 
-function isExactDuplicate(connection: Connection, edges: readonly Edge[]): boolean {
+function isExactDuplicate(
+    connection: MagicGraphConnection,
+    edges: readonly MagicGraphEdge[]
+): boolean {
     return edges.some(edge =>
         edge.source === connection.source &&
         edge.target === connection.target &&
@@ -26,7 +32,7 @@ function isExactDuplicate(connection: Connection, edges: readonly Edge[]): boole
 }
 
 export function isExplicitMagicCircleExternalConnection(
-    connection: Connection,
+    connection: MagicGraphConnection,
     nodes: readonly MagicEditorNode[]
 ): boolean {
     const sourceHandle = connection.sourceHandle;
@@ -44,8 +50,8 @@ export function isExplicitMagicCircleExternalConnection(
 }
 
 function wouldCreateExternalCircleCycle(
-    connection: Connection,
-    edges: readonly Edge[],
+    connection: MagicGraphConnection,
+    edges: readonly MagicGraphEdge[],
     nodes: readonly MagicEditorNode[]
 ): boolean {
     if (
@@ -77,10 +83,10 @@ function wouldCreateExternalCircleCycle(
 }
 
 export function filterExplicitEdgesReplacedByConnection(
-    connection: Connection,
-    edges: readonly Edge[],
+    connection: MagicGraphConnection,
+    edges: readonly MagicGraphEdge[],
     nodes: readonly MagicEditorNode[]
-): Edge[] {
+): MagicGraphEdge[] {
     const nodeById = new Map(nodes.map(node => [node.id, node]));
     const sourceNode = connection.source
         ? nodeById.get(connection.source)
@@ -108,8 +114,8 @@ export function filterExplicitEdgesReplacedByConnection(
 }
 
 export function isExplicitMagicCircleConnectionValid(
-    connection: Connection,
-    edges: Edge[],
+    connection: MagicGraphConnection,
+    edges: MagicGraphEdge[],
     nodes: MagicEditorNode[]
 ): boolean {
     const { source, target } = connection;
@@ -140,11 +146,11 @@ export function isExplicitMagicCircleConnectionValid(
 }
 
 export function createExplicitMagicCircleEdgeUpdate(
-    connection: Connection,
-    edges: Edge[],
+    connection: MagicGraphConnection,
+    edges: MagicGraphEdge[],
     nodes: MagicEditorNode[],
     createId: IdFactory = createUniqueId
-): { edge: Edge; edges: Edge[] } | false {
+): { edge: MagicGraphEdge; edges: MagicGraphEdge[] } | false {
     if (!isExplicitMagicCircleConnectionValid(connection, edges, nodes)) {
         return false;
     }

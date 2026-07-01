@@ -1,4 +1,4 @@
-import type { Edge } from '@xyflow/svelte';
+import type { MagicGraphEdge } from '../magicGraphTypes';
 import type { MagicGraphNode } from '../../../types/magic';
 import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
 import {
@@ -18,7 +18,7 @@ export interface MagicGraphAnalysis {
 
 export function buildMagicGraphAnalysis(
     nodes: readonly MagicGraphNode[],
-    edges: readonly Edge[]
+    edges: readonly MagicGraphEdge[]
 ): MagicGraphAnalysis {
     const topology = buildGraphTopology(nodes, edges);
     const reachabilityCache = createReachabilityCache();

@@ -1,4 +1,4 @@
-﻿import type { Edge } from '@xyflow/svelte';
+﻿import type { MagicGraphEdge } from '../magicGraphTypes';
 import magicStatRulesData from '../../../data/magicStatRules.json';
 import {
     MAGIC_STAT_AGGREGATION_OPERATIONS,
@@ -30,7 +30,7 @@ export interface MagicStatRuleContext {
     statKey: MagicStatKey;
     scope: MagicStatScope;
     nodes: readonly MagicGraphNode[];
-    edges: readonly Edge[];
+    edges: readonly MagicGraphEdge[];
     magicTypes: ReadonlyMap<string, MagicTypeConfig>;
 }
 

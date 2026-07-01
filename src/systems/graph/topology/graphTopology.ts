@@ -1,19 +1,21 @@
-import type { Edge } from '@xyflow/svelte';
 import type { MagicGraphNode } from '../../../types/magic';
+import type { MagicGraphEdge } from '../magicGraphTypes';
 
 export interface GraphTopology {
     nodeMap: ReadonlyMap<string, MagicGraphNode>;
     outEdges: ReadonlyMap<string, readonly string[]>;
     inEdges: ReadonlyMap<string, readonly string[]>;
-    sourceEdges: ReadonlyMap<string, readonly Edge[]>;
-    targetEdges: ReadonlyMap<string, readonly Edge[]>;
+    sourceEdges: ReadonlyMap<string, readonly MagicGraphEdge[]>;
+    targetEdges: ReadonlyMap<string, readonly MagicGraphEdge[]>;
     inDegree: ReadonlyMap<string, number>;
-    edges: readonly Edge[];
+    edges: readonly MagicGraphEdge[];
     nodes: readonly MagicGraphNode[];
     rootIds: readonly string[];
 }
 
-export function buildOutEdgeMap(edges: readonly Edge[]): Map<string, string[]> {
+export function buildOutEdgeMap(
+    edges: readonly MagicGraphEdge[]
+): Map<string, string[]> {
     const outEdges = new Map<string, string[]>();
 
     edges.forEach(edge => {
@@ -26,15 +28,15 @@ export function buildOutEdgeMap(edges: readonly Edge[]): Map<string, string[]> {
 
 export function buildGraphTopology(
     nodes: readonly MagicGraphNode[],
-    edges: readonly Edge[]
+    edges: readonly MagicGraphEdge[]
 ): GraphTopology {
     const nodeMap = new Map<string, MagicGraphNode>();
     const outEdges = new Map<string, string[]>();
     const inEdges = new Map<string, string[]>();
-    const sourceEdges = new Map<string, Edge[]>();
-    const targetEdges = new Map<string, Edge[]>();
+    const sourceEdges = new Map<string, MagicGraphEdge[]>();
+    const targetEdges = new Map<string, MagicGraphEdge[]>();
     const inDegree = new Map<string, number>();
-    const validEdges: Edge[] = [];
+    const validEdges: MagicGraphEdge[] = [];
 
     nodes.forEach(node => {
         nodeMap.set(node.id, node);

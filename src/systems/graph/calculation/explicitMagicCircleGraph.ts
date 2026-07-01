@@ -1,4 +1,4 @@
-import type { Edge } from '@xyflow/svelte';
+import type { MagicGraphEdge } from '../magicGraphTypes';
 import {
     MAGIC_CONTROL_PAIR_ROLES,
     MAGIC_EDGE_ID_PREFIX,
@@ -30,7 +30,7 @@ export interface CircleInternalAnalysis {
     sequenceNodes: readonly MagicNode[];
     calculationNodes: MagicNode[];
     projectedNodes: MagicNode[];
-    projectedEdges: Edge[];
+    projectedEdges: MagicGraphEdge[];
     isInternallyValid: boolean;
 }
 
@@ -39,7 +39,7 @@ export interface ExplicitMagicCircleGraphAnalysis {
     states: MagicCircleState[];
     internalByCircleId: ReadonlyMap<string, CircleInternalAnalysis>;
     projectedNodes: MagicNode[];
-    projectedEdges: Edge[];
+    projectedEdges: MagicGraphEdge[];
     orderedCalculatedCircleIds: string[];
 }
 
@@ -120,7 +120,7 @@ function analyzeCircleInternals(
 }
 
 function externalEdgeEndpoints(
-    edge: Edge,
+    edge: MagicGraphEdge,
     circleById: ReadonlyMap<string, MagicCircleNode>
 ): { source: string; target: string } | undefined {
     const sourceCircle = circleById.get(edge.source);
@@ -197,7 +197,7 @@ function resolveCircleOrder(
 
 export function analyzeExplicitMagicCircleGraph(
     nodes: readonly MagicEditorNode[],
-    edges: readonly Edge[]
+    edges: readonly MagicGraphEdge[]
 ): ExplicitMagicCircleGraphAnalysis {
     const index = createMagicCircleGraphIndex(nodes);
     const circles = index.circles;
@@ -210,7 +210,9 @@ export function analyzeExplicitMagicCircleGraph(
         ),
     ]));
     const externalOutEdges = new Map<string, string[]>();
-    const externalEdges: Array<Edge & { source: string; target: string }> = [];
+    const externalEdges: Array<
+        MagicGraphEdge & { source: string; target: string }
+    > = [];
 
     edges.forEach(edge => {
         const endpoints = externalEdgeEndpoints(edge, circleById);
@@ -243,7 +245,7 @@ export function analyzeExplicitMagicCircleGraph(
         orderedCircleIds.map((circleId, index) => [circleId, index + 1])
     );
     const projectedNodes: MagicNode[] = [];
-    const projectedEdges: Edge[] = [];
+    const projectedEdges: MagicGraphEdge[] = [];
 
     orderedCircleIds.forEach(circleId => {
         if (!calculatedCircleIds.has(circleId)) return;

@@ -1,4 +1,4 @@
-﻿import type { Edge } from '@xyflow/svelte';
+﻿import type { MagicGraphEdge } from '../magicGraphTypes';
 import {
     EMPTY_MAGIC_STATS,
     MAGIC_STAT_KEYS,
@@ -44,7 +44,7 @@ interface MagicStatCalculationContext {
 
 export function calculateMagicStats(
     nodes: readonly MagicGraphNode[],
-    edges: readonly Edge[],
+    edges: readonly MagicGraphEdge[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     scope: MagicStatScope,
     nodeStatEffects: readonly MagicStatEffectConfig[] = [],
@@ -83,7 +83,7 @@ export function calculateMagicStats(
 function calculateFlatStat(
     statKey: MagicStatKey,
     nodes: readonly MagicGraphNode[],
-    edges: readonly Edge[],
+    edges: readonly MagicGraphEdge[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     scope: MagicStatScope,
     context: MagicStatCalculationContext

@@ -1,4 +1,3 @@
-import type { Edge } from '@xyflow/svelte';
 import {
     GRAPH_NODE_TYPES,
     MAGIC_CIRCLE_HANDLE_IDS,
@@ -23,6 +22,7 @@ import type {
     MagicNode,
     MagicType,
 } from '../../../types/magic';
+import type { MagicGraphEdge } from '../magicGraphTypes';
 
 type CircleIdFactory = () => string;
 
@@ -281,7 +281,7 @@ export function createMagicCirclePortHandleIds(
 }
 
 function buildNormalizedCirclePortHandleIds(
-    edges: readonly Edge[],
+    edges: readonly MagicGraphEdge[],
     nodes: readonly MagicEditorNode[],
     direction: 'source' | 'target'
 ): Map<string, string> {
@@ -296,7 +296,7 @@ function buildNormalizedCirclePortHandleIds(
         : MAGIC_CIRCLE_PORT_DIRECTIONS.INPUT;
     const groupedEdges = new Map<
         string,
-        { edge: Edge; originalIndex: number }[]
+        { edge: MagicGraphEdge; originalIndex: number }[]
     >();
 
     edges.forEach((edge, originalIndex) => {
@@ -341,9 +341,9 @@ function buildNormalizedCirclePortHandleIds(
 }
 
 export function normalizeMagicCirclePortHandles(
-    edges: readonly Edge[],
+    edges: readonly MagicGraphEdge[],
     nodes: readonly MagicEditorNode[]
-): Edge[] {
+): MagicGraphEdge[] {
     const sourceHandleByEdgeId = buildNormalizedCirclePortHandleIds(
         edges,
         nodes,
@@ -389,7 +389,7 @@ function resolveMagicCirclePortCount(
 }
 
 function collectMagicCircleConnectedPortIndexes(
-    edges: readonly Edge[]
+    edges: readonly MagicGraphEdge[]
 ): MagicCircleConnectedPortIndexes {
     const inputByCircleId = new Map<string, number>();
     const outputByCircleId = new Map<string, number>();
@@ -434,7 +434,7 @@ export interface MagicCirclePortCountSync {
 
 export function syncMagicCirclePortCounts(
     nodes: MagicEditorNode[],
-    edges: readonly Edge[]
+    edges: readonly MagicGraphEdge[]
 ): MagicCirclePortCountSync {
     let changed = false;
     const connectedPortIndexes =

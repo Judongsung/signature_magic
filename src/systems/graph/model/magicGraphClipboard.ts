@@ -1,4 +1,3 @@
-import type { Edge } from '@xyflow/svelte';
 import {
     GRAPH_EDGE_TYPES,
     MAGIC_CIRCLE_ID_PREFIX,
@@ -15,6 +14,7 @@ import type {
     MagicGraphPresetNodeConfig,
     MagicNode,
 } from '../../../types/magic';
+import type { MagicGraphEdge } from '../magicGraphTypes';
 import {
     createMagicGraphPresetCircleSnapshot,
     createMagicGraphPresetEdgeSnapshot,
@@ -88,7 +88,7 @@ export interface MagicGraphClipboardPayload {
 
 export interface MagicGraphClipboardSnapshot {
     nodes: MagicEditorNode[];
-    edges: Edge[];
+    edges: MagicGraphEdge[];
     selectedNodeIds: ReadonlySet<string>;
 }
 

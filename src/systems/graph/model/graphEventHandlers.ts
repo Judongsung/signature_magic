@@ -1,5 +1,8 @@
-﻿import type { Connection, Edge } from '@xyflow/svelte';
-import type { MagicEditorNode } from '../../../types/magic';
+﻿import type { MagicEditorNode } from '../../../types/magic';
+import type {
+    MagicGraphConnection,
+    MagicGraphEdge,
+} from '../magicGraphTypes';
 import { filterEdgesForDeletedNodes } from './graphActions';
 import {
     GRAPH_PERFORMANCE_OPERATION_IDS,
@@ -19,7 +22,7 @@ import { isCircleSystemMagicNode } from './circleSystemMagicNodes';
 
 export interface GraphSnapshot {
     nodes: MagicEditorNode[];
-    edges: Edge[];
+    edges: MagicGraphEdge[];
 }
 
 export interface GraphTopologyUpdate extends GraphSnapshot {
@@ -27,12 +30,12 @@ export interface GraphTopologyUpdate extends GraphSnapshot {
 }
 
 export interface GraphEdgePreparation {
-    edge: Edge;
-    edges: Edge[];
+    edge: MagicGraphEdge;
+    edges: MagicGraphEdge[];
 }
 
 export function isGraphConnectionValid(
-    connection: Connection,
+    connection: MagicGraphConnection,
     snapshot: GraphSnapshot
 ): boolean {
     return isExplicitMagicCircleConnectionValid(
@@ -43,7 +46,7 @@ export function isGraphConnectionValid(
 }
 
 export function prepareGraphEdge(
-    connection: Connection,
+    connection: MagicGraphConnection,
     snapshot: GraphSnapshot
 ): GraphEdgePreparation | false {
     return createExplicitMagicCircleEdgeUpdate(
@@ -56,7 +59,7 @@ export function prepareGraphEdge(
 export function removeDeletedGraphElements(
     snapshot: GraphSnapshot,
     deletedNodes: MagicEditorNode[],
-    deletedEdges: Edge[]
+    deletedEdges: MagicGraphEdge[]
 ): GraphSnapshot {
     let { nodes, edges } = snapshot;
 
@@ -132,7 +135,10 @@ function syncGraphTopologyNow(
     };
 }
 
-function areEdgesEquivalent(a: Edge[], b: Edge[]): boolean {
+function areEdgesEquivalent(
+    a: MagicGraphEdge[],
+    b: MagicGraphEdge[]
+): boolean {
     if (a.length !== b.length) return false;
     return a.every((edge, index) => {
         const other = b[index];

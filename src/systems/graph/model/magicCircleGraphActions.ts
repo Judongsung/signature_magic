@@ -1,4 +1,3 @@
-import type { Edge } from '@xyflow/svelte';
 import {
     MAGIC_CIRCLE_NODE_CONFIG,
     MAGIC_CONTROL_PAIR_CONFIG,
@@ -11,6 +10,7 @@ import type {
     MagicNode,
     MagicType,
 } from '../../../types/magic';
+import type { MagicGraphEdge } from '../magicGraphTypes';
 import { createNode, createUniqueId } from './graphActions';
 import {
     canMoveMagicControlPairsAcrossCircles,
@@ -40,7 +40,7 @@ import {
 
 export interface MagicCircleGraphSnapshot {
     nodes: MagicEditorNode[];
-    edges: Edge[];
+    edges: MagicGraphEdge[];
 }
 
 export interface MagicNodeSequenceOrigin {
