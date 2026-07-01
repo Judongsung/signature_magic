@@ -27,9 +27,6 @@ import {
     measureGraphOperation,
 } from '../systems/graph/diagnostics/graphPerformance';
 import {
-    createEmptyMagicStatEffectBundle,
-} from '../systems/graph/calculation/magicStatEffectBundles';
-import {
     MAGIC_GRAPH_SELECTION_MODES,
     activateCircleForUnitSelection,
     normalizeMagicGraphSelection,
@@ -86,6 +83,7 @@ import {
     type MagicType,
 } from '../types/magicTypeConfig';
 import {
+    createEmptyMagicStatEffectBundle,
     type MagicStatEffectBundle,
 } from '../types/magicStatEffects';
 import {

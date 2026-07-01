@@ -15,7 +15,9 @@ import {
     createMagicCircleNode,
 } from '../model/magicCircleGraph';
 import { resolveMagicControlPairLayout } from '../model/magicControlPairs';
-import { resolveMagicControlPairConnectors } from './magicControlPairPresentation';
+import { resolveMagicControlPairOverlayPresentation } from './magicControlPairPresentation';
+
+const TEST_CIRCLE_WIDTH = 480;
 
 function marker(
     id: string,
@@ -76,21 +78,31 @@ describe('magicControlPairPresentation', () => {
             ...pair(circle, 'inner', 'repeat', 1, 3),
             ...pair(circle, 'branch', 'branch', 5, 6),
         ].sort(compareMagicCircleSequenceNodes);
-        const connectors = resolveMagicControlPairConnectors(
-            resolveMagicControlPairLayout(children)
+        const overlay = resolveMagicControlPairOverlayPresentation(
+            resolveMagicControlPairLayout(children),
+            TEST_CIRCLE_WIDTH
         );
 
-        expect(connectors).toEqual([
+        expect(overlay.connectors).toEqual([
             {
                 pairId: 'branch',
-                lane: 0,
-                startIndentDepth: 0,
-                endIndentDepth: 0,
-                railIndentDepth: 0,
-                startY: 300,
-                endY: 340,
+                path: [
+                    'M 412 300',
+                    'H 424',
+                    'Q 430 300 430 306',
+                    'V 334',
+                    'Q 430 340 424 340',
+                    'H 412',
+                ].join(' '),
             },
         ]);
+        expect(overlay.marker).toEqual({
+            width: 6,
+            height: 6,
+            refX: 6,
+            refY: 3,
+            path: 'M 0 0 L 6 3 L 0 6',
+        });
     });
 
     it('places a nested branch rail beyond the deepest repeated content', () => {
@@ -108,18 +120,51 @@ describe('magicControlPairPresentation', () => {
                 3
             ),
         ].sort(compareMagicCircleSequenceNodes);
-        const connectors = resolveMagicControlPairConnectors(
-            resolveMagicControlPairLayout(children)
+        const overlay = resolveMagicControlPairOverlayPresentation(
+            resolveMagicControlPairLayout(children),
+            TEST_CIRCLE_WIDTH
         );
 
-        expect(connectors).toEqual([{
+        expect(overlay.connectors).toEqual([{
             pairId: 'branch',
-            lane: 0,
-            startIndentDepth: 1,
-            endIndentDepth: 1,
-            railIndentDepth: 2,
-            startY: 140,
-            endY: 300,
+            path: [
+                'M 392 140',
+                'H 424',
+                'Q 430 140 430 146',
+                'V 294',
+                'Q 430 300 424 300',
+                'H 392',
+            ].join(' '),
+        }]);
+    });
+
+    it('rounds an upward branch toward its target', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'upward-presentation'
+        );
+        const children = pair(
+            circle,
+            'upward',
+            'branch',
+            1,
+            0
+        ).sort(compareMagicCircleSequenceNodes);
+        const overlay = resolveMagicControlPairOverlayPresentation(
+            resolveMagicControlPairLayout(children),
+            TEST_CIRCLE_WIDTH
+        );
+
+        expect(overlay.connectors).toEqual([{
+            pairId: 'upward',
+            path: [
+                'M 412 140',
+                'H 424',
+                'Q 430 140 430 134',
+                'V 106',
+                'Q 430 100 424 100',
+                'H 412',
+            ].join(' '),
         }]);
     });
 });

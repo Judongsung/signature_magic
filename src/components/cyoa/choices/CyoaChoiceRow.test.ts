@@ -48,6 +48,25 @@ describe('CyoaChoiceRow', () => {
         expect(html).toContain('disabled');
     });
 
+    it('formats stat effect labels with the shared magic type catalog', () => {
+        const { html } = render(CyoaChoiceRow, {
+            props: {
+                choices: [{
+                    ...choices[0],
+                    statEffects: [{
+                        phase: 'node',
+                        operation: 'multiply',
+                        stat: 'power',
+                        value: 2,
+                        nodeTarget: { magicTypes: ['harmony'] },
+                    }],
+                }],
+            },
+        });
+
+        expect(html).toContain('순리 노드 출력 ×2');
+    });
+
     it('applies row column and choice span layout values', () => {
         const { html } = render(CyoaChoiceRow, {
             props: {

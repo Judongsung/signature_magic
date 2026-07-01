@@ -56,12 +56,6 @@
         isMagicCircleNode,
     } from '../../../systems/graph/model/magicCircleGraph';
     import {
-        createMagicNodeDragOrigins,
-        resolveMagicCircleSequenceInsertion,
-        resolveMagicNodeSequenceDrop,
-        type MagicNodeSequenceDrop,
-    } from '../../../systems/graph/editor/magicCircleEditorInteraction';
-    import {
         createMagicCircleGraphIndex,
     } from '../../../systems/graph/model/magicCircleGraphIndex';
     import { provideNodeEditorDetails } from './details/nodeDetailsContext';
@@ -77,8 +71,12 @@
         type MagicGraphSelectionScope,
     } from '../../../systems/graph/editor/magicGraphSelection';
     import {
-        MAGIC_GRAPH_CLIPBOARD_MIME_TYPE,
-    } from '../../../systems/graph/model/magicGraphClipboard';
+        createMagicGraphClipboardAdapter,
+    } from './magicGraphClipboardAdapter';
+    import {
+        createMagicGraphDragSessionController,
+        readEventScreenPoint,
+    } from './magicGraphDragSessionController';
 
     let {
         onOpenPresetDialog,
@@ -130,19 +128,34 @@
     const panOnDragButtons = [...EDITOR_CANVAS.PAN_ON_DRAG_BUTTONS];
     const canvasCenter = getExtentCenter(EDITOR_CANVAS.EXTENT);
     const { screenToFlowPosition, setViewport } = useSvelteFlow();
+    const clipboardAdapter = createMagicGraphClipboardAdapter({
+        isInteractionBlocked: () => interactionBlocked,
+        copySelection: () => graphStore.copySelection(),
+        pasteSelection: serialized => graphStore.pasteSelection(serialized),
+    });
+    const dragSession = createMagicGraphDragSessionController({
+        readNodes: () => graphStore.nodes,
+        screenToFlowPosition,
+        applySelectionScope: scope => graphStore.applySelectionScope(scope),
+        setSequenceDropPreview: drop =>
+            graphStore.setSequenceDropPreview(drop),
+        selectCircle: circleId => graphStore.selectCircle(circleId),
+        addNode: (magicType, circleId, insertionIndex) =>
+            graphStore.addNode(magicType, circleId, insertionIndex),
+        moveNodeGroup: (origins, targetCircleId, insertionIndex) =>
+            graphStore.moveNodeGroup(
+                origins,
+                targetCircleId,
+                insertionIndex
+            ),
+        commitCircleLayoutChanges: () =>
+            graphStore.commitCircleLayoutChanges(),
+    });
 
     let activeCategoryIds = $state<MagicNodeCategory[]>([...DEFAULT_ACTIVE_MAGIC_NODE_CATEGORIES]);
     let flowWrapperElement: HTMLDivElement | undefined;
-    let draggedNodeOrigins = $state(createMagicNodeDragOrigins([]));
     let selectionScope = $state<MagicGraphSelectionScope>({
         mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES,
-    });
-    let sequenceDrop = $state<MagicNodeSequenceDrop>({
-        targetCircleId: undefined,
-        insertionIndex: 0,
-        indicatorY: undefined,
-        beforeNodeId: undefined,
-        afterNodeId: undefined,
     });
     const visibleMagicTypes = $derived(
         getMagicTypesByCategory(activeCategoryIds)
@@ -173,11 +186,6 @@
         activeCategoryIds = activeCategoryIds.includes(categoryId)
             ? activeCategoryIds.filter((id) => id !== categoryId)
             : [...activeCategoryIds, categoryId];
-    }
-
-    function onDragStart(event: DragEvent, magicType: MagicType) {
-        event.dataTransfer?.setData('application/magictype', magicType);
-        if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
     }
 
     function addNodeAtCanvasCenter(magicType: MagicType) {
@@ -239,122 +247,7 @@
         });
     }
 
-    function onDragOver(event: DragEvent) {
-        event.preventDefault();
-        if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-        if (
-            !event.dataTransfer?.types.includes('application/magictype')
-        ) {
-            return;
-        }
-
-        const drop = resolveMagicCircleSequenceInsertion(
-            screenToFlowPosition({ x: event.clientX, y: event.clientY }),
-            graphStore.nodes,
-            getMagicCircleNodes(graphStore.nodes)
-        );
-        showSequenceDropPreview(drop);
-    }
-
-    function onDrop(event: DragEvent) {
-        event.preventDefault();
-        const magicType = event.dataTransfer?.getData('application/magictype') as MagicType | undefined;
-        if (!magicType) {
-            graphStore.setSequenceDropPreview(undefined);
-            return;
-        }
-
-        const flowPosition = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-        const drop = resolveMagicCircleSequenceInsertion(
-            flowPosition,
-            graphStore.nodes,
-            getMagicCircleNodes(graphStore.nodes)
-        );
-        if (!drop.targetCircleId) {
-            graphStore.setSequenceDropPreview(undefined);
-            return;
-        }
-
-        graphStore.selectCircle(drop.targetCircleId);
-        graphStore.addNode(
-            magicType,
-            drop.targetCircleId,
-            drop.insertionIndex
-        );
-        graphStore.setSequenceDropPreview(undefined);
-    }
-
-    function onDragLeave(event: DragEvent) {
-        const currentTarget = event.currentTarget;
-        if (
-            currentTarget instanceof HTMLElement &&
-            event.relatedTarget instanceof Node &&
-            currentTarget.contains(event.relatedTarget)
-        ) {
-            return;
-        }
-
-        graphStore.setSequenceDropPreview(undefined);
-    }
-
-    function onToolbarDragEnd() {
-        graphStore.setSequenceDropPreview(undefined);
-    }
-
-    function showSequenceDropPreview(drop: MagicNodeSequenceDrop) {
-        graphStore.setSequenceDropPreview(
-            drop.targetCircleId && drop.indicatorY !== undefined
-                ? drop
-                : undefined
-        );
-    }
-
     function preventCanvasContextMenu(event: MouseEvent) {
-        event.preventDefault();
-    }
-
-    function isEditableClipboardTarget(target: EventTarget | null): boolean {
-        if (!(target instanceof HTMLElement)) return false;
-        return Boolean(target.closest(
-            'input, textarea, select, [contenteditable="true"]'
-        ));
-    }
-
-    function handleCopy(event: ClipboardEvent): void {
-        if (
-            interactionBlocked ||
-            isEditableClipboardTarget(event.target)
-        ) {
-            return;
-        }
-
-        const serialized = graphStore.copySelection();
-        if (!serialized) return;
-
-        event.clipboardData?.setData(
-            MAGIC_GRAPH_CLIPBOARD_MIME_TYPE,
-            serialized
-        );
-        event.clipboardData?.setData('text/plain', serialized);
-        event.preventDefault();
-    }
-
-    function handlePaste(event: ClipboardEvent): void {
-        if (
-            interactionBlocked ||
-            isEditableClipboardTarget(event.target)
-        ) {
-            return;
-        }
-
-        const serialized =
-            event.clipboardData?.getData(
-                MAGIC_GRAPH_CLIPBOARD_MIME_TYPE
-            ) ||
-            event.clipboardData?.getData('text/plain') ||
-            undefined;
-        if (!graphStore.pasteSelection(serialized)) return;
-
         event.preventDefault();
     }
 
@@ -390,55 +283,8 @@
         MouseEvent | TouchEvent,
         MagicEditorNode
     > = ({ targetNode }) => {
-        sequenceDrop = {
-            targetCircleId: undefined,
-            insertionIndex: 0,
-            indicatorY: undefined,
-            beforeNodeId: undefined,
-            afterNodeId: undefined,
-        };
-        graphStore.setSequenceDropPreview(undefined);
-        if (targetNode && isMagicCircleNode(targetNode)) {
-            graphStore.applySelectionScope({
-                mode: MAGIC_GRAPH_SELECTION_MODES.CIRCLES,
-            });
-            draggedNodeOrigins = [];
-            return;
-        }
-
-        if (targetNode?.parentId) {
-            graphStore.applySelectionScope({
-                mode: MAGIC_GRAPH_SELECTION_MODES.UNITS,
-                circleId: targetNode.parentId,
-            });
-        }
-        draggedNodeOrigins = createMagicNodeDragOrigins(graphStore.nodes);
-        if (
-            draggedNodeOrigins.length === 0 &&
-            targetNode &&
-            !isMagicCircleNode(targetNode) &&
-            targetNode.parentId
-        ) {
-            draggedNodeOrigins = [{
-                nodeId: targetNode.id,
-                circleId: targetNode.parentId,
-                sequenceIndex: targetNode.data.sequenceIndex ?? 0,
-            }];
-        }
+        dragSession.startNodeDrag(targetNode);
     };
-
-    function readEventScreenPoint(
-        event: MouseEvent | TouchEvent
-    ): { x: number; y: number } | undefined {
-        if ('touches' in event) {
-            const touch = event.touches[0] ?? event.changedTouches[0];
-            return touch
-                ? { x: touch.clientX, y: touch.clientY }
-                : undefined;
-        }
-
-        return { x: event.clientX, y: event.clientY };
-    }
 
     async function handlePaneClick(
         { event }: { event: MouseEvent }
@@ -460,41 +306,14 @@
         MouseEvent | TouchEvent,
         MagicEditorNode
     > = ({ event }) => {
-        const screenPoint = readEventScreenPoint(event);
-        if (!screenPoint || draggedNodeOrigins.length === 0) return;
-
-        sequenceDrop = resolveMagicNodeSequenceDrop(
-            screenToFlowPosition(screenPoint),
-            draggedNodeOrigins,
-            graphStore.nodes,
-            getMagicCircleNodes(graphStore.nodes)
-        );
-        showSequenceDropPreview(sequenceDrop);
+        dragSession.updateNodeDrag(event);
     };
 
     const onNodeDragStop: NodeTargetEventWithPointer<
         MouseEvent | TouchEvent,
         MagicEditorNode
     > = ({ targetNode }) => {
-        if (targetNode && isMagicCircleNode(targetNode)) {
-            graphStore.commitCircleLayoutChanges();
-            return;
-        }
-        if (draggedNodeOrigins.length === 0) return;
-        graphStore.moveNodeGroup(
-            draggedNodeOrigins,
-            sequenceDrop.targetCircleId,
-            sequenceDrop.insertionIndex
-        );
-        draggedNodeOrigins = [];
-        sequenceDrop = {
-            targetCircleId: undefined,
-            insertionIndex: 0,
-            indicatorY: undefined,
-            beforeNodeId: undefined,
-            afterNodeId: undefined,
-        };
-        graphStore.setSequenceDropPreview(undefined);
+        dragSession.stopNodeDrag(targetNode);
     };
 
     const onNodeContextMenu: NodeEventWithPointer<MouseEvent, MagicEditorNode> = ({ node, event }) => {
@@ -510,7 +329,10 @@
 
 </script>
 
-<svelte:window oncopy={handleCopy} onpaste={handlePaste} />
+<svelte:window
+    oncopy={clipboardAdapter.handleCopy}
+    onpaste={clipboardAdapter.handlePaste}
+/>
 
 <div class="editor-container">
     <MagicNodeToolbar
@@ -521,8 +343,8 @@
         onToggleCategory={toggleCategory}
         onAddNode={addNodeAtCanvasCenter}
         onAddCircle={addCircleAtCanvasCenter}
-        {onDragStart}
-        onDragEnd={onToolbarDragEnd}
+        onDragStart={dragSession.startToolbarDrag}
+        onDragEnd={dragSession.endToolbarDrag}
         onClear={() => graphStore.clear()}
         {onOpenPresetDialog}
     />
@@ -531,9 +353,9 @@
         bind:this={flowWrapperElement}
         class="flow-wrapper"
         onpointerdowncapture={captureSelectionScope}
-        ondragover={onDragOver}
-        ondragleave={onDragLeave}
-        ondrop={onDrop}
+        ondragover={dragSession.updateToolbarDrag}
+        ondragleave={dragSession.leaveToolbarDropArea}
+        ondrop={dragSession.dropToolbarNode}
         oncontextmenu={preventCanvasContextMenu}
         role="region"
         aria-label={NODE_EDITOR_TEXT.CANVAS_ARIA_LABEL}

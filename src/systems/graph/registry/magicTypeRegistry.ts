@@ -1,12 +1,10 @@
-﻿import magicTypesData from '../../../data/magicTypes.json';
 import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
+import { CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/circleSystemMagicNodeConfigs';
 import {
     type MagicType,
     type MagicTypeConfig,
 } from '../../../types/magicTypeConfig';
-import { CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/circleSystemMagicNodeConfigs';
-
-export const userMagicTypes = magicTypesData as MagicTypeConfig[];
+import { userMagicTypes } from '../../magic/magicTypeCatalog';
 
 export const magicTypes = [
     ...userMagicTypes,

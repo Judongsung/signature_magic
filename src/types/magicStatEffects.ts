@@ -2,14 +2,28 @@ import type { MagicNodeCategory } from '../constants/nodeEditorConfigs';
 import type { MagicStatKey } from './magicStats';
 import type { MagicType } from './magicTypeConfig';
 
-export const MAGIC_STAT_EFFECT_PHASES = ['node', 'final'] as const;
+export const MAGIC_STAT_EFFECT_PHASE = {
+    NODE: 'node',
+    FINAL: 'final',
+} as const;
 
-export type MagicStatEffectPhase = (typeof MAGIC_STAT_EFFECT_PHASES)[number];
+export type MagicStatEffectPhase =
+    (typeof MAGIC_STAT_EFFECT_PHASE)[keyof typeof MAGIC_STAT_EFFECT_PHASE];
 
-export const MAGIC_STAT_EFFECT_OPERATIONS = ['add', 'multiply'] as const;
+export const MAGIC_STAT_EFFECT_PHASES: readonly MagicStatEffectPhase[] =
+    Object.values(MAGIC_STAT_EFFECT_PHASE);
 
-export type MagicStatEffectOperation =
-    (typeof MAGIC_STAT_EFFECT_OPERATIONS)[number];
+export const MAGIC_STAT_EFFECT_OPERATION_IDS = {
+    ADD: 'add',
+    MULTIPLY: 'multiply',
+} as const;
+
+export type MagicStatEffectOperation = (typeof MAGIC_STAT_EFFECT_OPERATION_IDS)[
+    keyof typeof MAGIC_STAT_EFFECT_OPERATION_IDS
+];
+
+export const MAGIC_STAT_EFFECT_OPERATIONS: readonly MagicStatEffectOperation[] =
+    Object.values(MAGIC_STAT_EFFECT_OPERATION_IDS);
 
 export const MAGIC_STAT_EFFECT_VALUE_SIGNS = {
     POSITIVE: 'positive',
@@ -36,4 +50,11 @@ export interface MagicStatEffectConfig {
 export interface MagicStatEffectBundle {
     nodeEffects: MagicStatEffectConfig[];
     finalEffects: MagicStatEffectConfig[];
+}
+
+export function createEmptyMagicStatEffectBundle(): MagicStatEffectBundle {
+    return {
+        nodeEffects: [],
+        finalEffects: [],
+    };
 }

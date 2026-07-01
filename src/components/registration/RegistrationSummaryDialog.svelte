@@ -10,7 +10,7 @@
     import { exportBuildResultImage } from '../../systems/export/buildResultImageExport';
     import { buildMagicGraphResultPreview } from '../../systems/graph/presentation/magicGraphResultPreview';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
-    import { dialogFocus } from '../shared/dialogFocus';
+    import DialogShell from '../shared/DialogShell.svelte';
     import RegistrationSummary from './RegistrationSummary.svelte';
 
     const dialogId = $props.id();
@@ -36,88 +36,67 @@
     }
 </script>
 
-<div class="summary-dialog-overlay">
-    <button
-        type="button"
-        class="summary-dialog-backdrop"
-        aria-label={CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_ARIA_LABEL}
-        onclick={onClose}
-    ></button>
-    <div
-        class="summary-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={dialogTitleId}
-        tabindex="-1"
-        use:dialogFocus={{ onClose }}
-    >
-        {#if showSubmitGuidance}
-            <div class="dialog-speech dialog-speech-top">
-                <CharacterSpeechBubble
-                    imageSrc={veraChibiImageSrc}
-                    imageAlt={CYOA_GUIDE_SPEECH_TEXT.IMAGE_ALT}
-                    message={CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_TOP_MESSAGE}
-                />
-            </div>
-        {/if}
+<DialogShell
+    titleId={dialogTitleId}
+    closeLabel={CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_ARIA_LABEL}
+    {onClose}
+    overlayClass="summary-dialog-overlay"
+    backdropClass="summary-dialog-backdrop"
+    surfaceClass="summary-dialog"
+>
+    {#if showSubmitGuidance}
+        <div class="dialog-speech dialog-speech-top">
+            <CharacterSpeechBubble
+                imageSrc={veraChibiImageSrc}
+                imageAlt={CYOA_GUIDE_SPEECH_TEXT.IMAGE_ALT}
+                message={CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_TOP_MESSAGE}
+            />
+        </div>
+    {/if}
 
-        <RegistrationSummary
-            titleId={dialogTitleId}
-            onBack={onClose}
-            onSubmit={showSubmitGuidance ? onSubmit : undefined}
-            onExport={enableExport ? exportRegistrationResult : undefined}
-            backLabel={showSubmitGuidance
-                ? CYOA_REGISTRATION_SUMMARY_TEXT.DEFAULT_BACK_LABEL
-                : CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_LABEL}
-            submitDisabled={!choiceStore.canSubmitRegistration}
-            {supplementalContent}
-        >
-            {#snippet actionLeadIn()}
-                {#if showSubmitGuidance}
-                    <div class="dialog-speech dialog-speech-bottom">
-                        <CharacterSpeechBubble
-                            imageSrc={veraChibiImageSrc}
-                            imageAlt={CYOA_GUIDE_SPEECH_TEXT.IMAGE_ALT}
-                            message={CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_BOTTOM_MESSAGE}
-                        />
-                    </div>
-                {/if}
-            {/snippet}
-        </RegistrationSummary>
-    </div>
-</div>
+    <RegistrationSummary
+        titleId={dialogTitleId}
+        onBack={onClose}
+        onSubmit={showSubmitGuidance ? onSubmit : undefined}
+        onExport={enableExport ? exportRegistrationResult : undefined}
+        backLabel={showSubmitGuidance
+            ? CYOA_REGISTRATION_SUMMARY_TEXT.DEFAULT_BACK_LABEL
+            : CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_CLOSE_LABEL}
+        submitDisabled={!choiceStore.canSubmitRegistration}
+        {supplementalContent}
+    >
+        {#snippet actionLeadIn()}
+            {#if showSubmitGuidance}
+                <div class="dialog-speech dialog-speech-bottom">
+                    <CharacterSpeechBubble
+                        imageSrc={veraChibiImageSrc}
+                        imageAlt={CYOA_GUIDE_SPEECH_TEXT.IMAGE_ALT}
+                        message={CYOA_REGISTRATION_SUMMARY_TEXT.DIALOG_BOTTOM_MESSAGE}
+                    />
+                </div>
+            {/if}
+        {/snippet}
+    </RegistrationSummary>
+</DialogShell>
 
 <style>
-    .summary-dialog-overlay {
-        position: fixed;
-        inset: 0;
+    :global(.summary-dialog-overlay) {
         z-index: 120;
-        display: flex;
         align-items: flex-start;
-        justify-content: center;
         padding: 36px 18px 42px;
         overflow: auto;
-        box-sizing: border-box;
     }
 
-    .summary-dialog-backdrop {
-        position: fixed;
-        inset: 0;
-        padding: 0;
-        border: 0;
+    :global(.summary-dialog-backdrop) {
         background: rgba(26, 18, 11, 0.72);
-        cursor: default;
         backdrop-filter: blur(4px);
     }
 
-    .summary-dialog {
-        position: relative;
-        z-index: 1;
+    :global(.summary-dialog) {
         width: min(900px, 100%);
         display: flex;
         flex-direction: column;
         gap: 14px;
-        outline: none;
     }
 
     .dialog-speech {
@@ -134,7 +113,7 @@
     }
 
     @media (max-width: 720px) {
-        .summary-dialog-overlay {
+        :global(.summary-dialog-overlay) {
             padding: 18px 10px 24px;
         }
 

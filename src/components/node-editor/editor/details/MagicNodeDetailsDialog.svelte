@@ -21,7 +21,7 @@ import { untrack } from 'svelte';
     import {
         type MagicStatEffectConfig,
     } from '../../../../types/magicStatEffects';
-    import { dialogFocus } from '../../../shared/dialogFocus';
+    import DialogShell from '../../../shared/DialogShell.svelte';
     import MagicNodeTooltipStats from '../MagicNodeTooltipStats.svelte';
 
     const dialogId = $props.id();
@@ -91,23 +91,15 @@ import { untrack } from 'svelte';
     }
 </script>
 
-<div class="node-details-overlay">
-    <button
-        type="button"
-        class="node-details-backdrop"
-        aria-label={NODE_EDITOR_TEXT.NODE_DETAILS_DIALOG_CLOSE_ARIA_LABEL}
-        onclick={onClose}
-    ></button>
-
-    <div
-        class="node-details-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={dialogTitleId}
-        aria-describedby={dialogDescriptionId}
-        tabindex="-1"
-        use:dialogFocus={{ onClose }}
-    >
+<DialogShell
+    titleId={dialogTitleId}
+    descriptionId={dialogDescriptionId}
+    closeLabel={NODE_EDITOR_TEXT.NODE_DETAILS_DIALOG_CLOSE_ARIA_LABEL}
+    {onClose}
+    overlayClass="node-details-overlay"
+    backdropClass="node-details-backdrop"
+    surfaceClass="node-details-dialog"
+>
         <header class="node-details-header" style:--node-color={config.color}>
             <span class="node-details-icon" aria-hidden="true">{config.icon}</span>
             <div>
@@ -222,34 +214,21 @@ import { untrack } from 'svelte';
                 </button>
             {/if}
         </footer>
-    </div>
-</div>
+</DialogShell>
 
 <style>
-    .node-details-overlay {
-        position: fixed;
-        inset: 0;
+    :global(.node-details-overlay) {
         z-index: 140;
-        display: flex;
         align-items: center;
-        justify-content: center;
         padding: 18px;
-        box-sizing: border-box;
     }
 
-    .node-details-backdrop {
-        position: fixed;
-        inset: 0;
-        border: 0;
-        padding: 0;
+    :global(.node-details-backdrop) {
         background: rgba(2, 3, 10, 0.78);
         backdrop-filter: blur(5px);
-        cursor: default;
     }
 
-    .node-details-dialog {
-        position: relative;
-        z-index: 1;
+    :global(.node-details-dialog) {
         width: min(460px, 100%);
         max-height: calc(100vh - 36px);
         overflow-y: auto;
@@ -258,7 +237,6 @@ import { untrack } from 'svelte';
         background: var(--node-editor-panel-bg);
         color: var(--node-editor-text);
         box-shadow: var(--node-editor-panel-shadow);
-        outline: none;
     }
 
     .node-details-header {

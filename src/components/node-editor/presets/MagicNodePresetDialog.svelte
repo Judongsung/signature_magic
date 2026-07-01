@@ -4,7 +4,7 @@
         type MagicGraphPresetOption,
     } from '../../../systems/graph/presets/magicGraphPresets';
     import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
-    import { dialogFocus } from '../../shared/dialogFocus';
+    import DialogShell from '../../shared/DialogShell.svelte';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import {
         NODE_COMPOSITION_PRESET_STORAGE_OPERATIONS,
@@ -97,21 +97,14 @@
     }
 </script>
 
-<div class="preset-dialog-overlay">
-    <button
-        type="button"
-        class="preset-dialog-backdrop"
-        aria-label={NODE_EDITOR_TEXT.PRESET_DIALOG_CLOSE_ARIA_LABEL}
-        onclick={onClose}
-    ></button>
-    <div
-        class="preset-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={dialogTitleId}
-        tabindex="-1"
-        use:dialogFocus={{ onClose }}
-    >
+<DialogShell
+    titleId={dialogTitleId}
+    closeLabel={NODE_EDITOR_TEXT.PRESET_DIALOG_CLOSE_ARIA_LABEL}
+    {onClose}
+    overlayClass="preset-dialog-overlay"
+    backdropClass="preset-dialog-backdrop"
+    surfaceClass="preset-dialog"
+>
         <header class="preset-dialog-header">
             <div>
                 <p class="preset-dialog-eyebrow">{NODE_EDITOR_TEXT.PRESET_LABEL}</p>
@@ -237,34 +230,21 @@
                 {NODE_EDITOR_TEXT.PRESET_CLOSE}
             </button>
         </footer>
-    </div>
-</div>
+</DialogShell>
 
 <style>
-    .preset-dialog-overlay {
-        position: fixed;
-        inset: 0;
+    :global(.preset-dialog-overlay) {
         z-index: 130;
-        display: flex;
         align-items: center;
-        justify-content: center;
         padding: 22px;
-        box-sizing: border-box;
     }
 
-    .preset-dialog-backdrop {
-        position: fixed;
-        inset: 0;
-        padding: 0;
-        border: 0;
+    :global(.preset-dialog-backdrop) {
         background: rgba(2, 3, 10, 0.58);
         backdrop-filter: blur(5px);
-        cursor: default;
     }
 
-    .preset-dialog {
-        position: relative;
-        z-index: 1;
+    :global(.preset-dialog) {
         width: min(620px, 100%);
         max-height: min(760px, 100%);
         overflow: auto;
@@ -274,7 +254,6 @@
             linear-gradient(180deg, var(--node-editor-ink), var(--node-editor-obsidian));
         box-shadow: var(--node-editor-panel-shadow);
         color: var(--node-editor-text);
-        outline: none;
     }
 
     .preset-dialog-header {
@@ -296,7 +275,7 @@
         text-transform: uppercase;
     }
 
-    .preset-dialog h2 {
+    :global(.preset-dialog) h2 {
         margin: 0;
         color: var(--node-editor-text-strong);
         font-size: 20px;
@@ -457,7 +436,7 @@
     }
 
     @media (max-width: 620px) {
-        .preset-dialog-overlay {
+        :global(.preset-dialog-overlay) {
             align-items: stretch;
             padding: 12px;
         }

@@ -1,17 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import {
     createEmptyMagicStatEffectBundle,
+    MAGIC_STAT_EFFECT_OPERATION_IDS,
+    MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASE,
-} from './magicStatEffectBundles';
+    MAGIC_STAT_EFFECT_PHASES,
+} from './magicStatEffects';
 
-describe('magicStatEffectBundles', () => {
+describe('magicStatEffects', () => {
     it('creates independent empty stat effect bundles', () => {
         const first = createEmptyMagicStatEffectBundle();
         const second = createEmptyMagicStatEffectBundle();
 
         first.nodeEffects.push({
             phase: MAGIC_STAT_EFFECT_PHASE.NODE,
-            operation: 'add',
+            operation: MAGIC_STAT_EFFECT_OPERATION_IDS.ADD,
             stat: 'power',
             value: 1,
         });
@@ -20,10 +23,12 @@ describe('magicStatEffectBundles', () => {
         expect(second.finalEffects).toEqual([]);
     });
 
-    it('exposes named phase constants for runtime branching', () => {
-        expect(MAGIC_STAT_EFFECT_PHASE).toEqual({
-            NODE: 'node',
-            FINAL: 'final',
-        });
+    it('derives validation values from the named runtime constants', () => {
+        expect(MAGIC_STAT_EFFECT_PHASES).toEqual(
+            Object.values(MAGIC_STAT_EFFECT_PHASE)
+        );
+        expect(MAGIC_STAT_EFFECT_OPERATIONS).toEqual(
+            Object.values(MAGIC_STAT_EFFECT_OPERATION_IDS)
+        );
     });
 });

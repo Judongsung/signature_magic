@@ -1,12 +1,10 @@
 import type { CyoaChoiceRowData, CyoaRowSelections } from '../../types/cyoa';
 import {
+    createEmptyMagicStatEffectBundle,
+    MAGIC_STAT_EFFECT_PHASE,
     type MagicStatEffectBundle,
     type MagicStatEffectConfig,
 } from '../../types/magicStatEffects';
-import {
-    createEmptyMagicStatEffectBundle,
-    MAGIC_STAT_EFFECT_PHASE,
-} from '../graph/calculation/magicStatEffectBundles';
 
 export const createEmptyCyoaStatEffects = createEmptyMagicStatEffectBundle;
 

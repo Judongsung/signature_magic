@@ -4,7 +4,7 @@
     import {
         type MagicSignatureMetadata,
     } from '../../../types/magicSignature';
-    import { dialogFocus } from '../../shared/dialogFocus';
+    import DialogShell from '../../shared/DialogShell.svelte';
     import CharacterSpeechBubble from '../../shared/CharacterSpeechBubble.svelte';
 
     const dialogId = $props.id();
@@ -37,23 +37,15 @@
     }
 </script>
 
-<div class="signature-dialog-overlay">
-    <button
-        type="button"
-        class="signature-dialog-backdrop"
-        aria-label={NODE_COMPOSITION_SIGNATURE_TEXT.CLOSE_ARIA_LABEL}
-        onclick={onClose}
-    ></button>
-
-    <div
-        class="signature-dialog-shell"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={dialogTitleId}
-        aria-describedby={dialogDescriptionId}
-        tabindex="-1"
-        use:dialogFocus={{ onClose }}
-    >
+<DialogShell
+    titleId={dialogTitleId}
+    descriptionId={dialogDescriptionId}
+    closeLabel={NODE_COMPOSITION_SIGNATURE_TEXT.CLOSE_ARIA_LABEL}
+    {onClose}
+    overlayClass="signature-dialog-overlay"
+    backdropClass="signature-dialog-backdrop"
+    surfaceClass="signature-dialog-shell"
+>
         <div class="signature-dialog-speech signature-dialog-speech-top">
             <CharacterSpeechBubble
                 imageSrc={luarnChibiImageSrc}
@@ -132,36 +124,23 @@
                 {NODE_COMPOSITION_SIGNATURE_TEXT.SUBMIT}
             </button>
         </div>
-    </div>
-</div>
+</DialogShell>
 
 <style>
-    .signature-dialog-overlay {
-        position: fixed;
-        inset: 0;
+    :global(.signature-dialog-overlay) {
         z-index: 135;
-        display: flex;
         align-items: center;
-        justify-content: center;
         padding: 28px 18px 34px;
         overflow-x: hidden;
         overflow-y: auto;
-        box-sizing: border-box;
     }
 
-    .signature-dialog-backdrop {
-        position: fixed;
-        inset: 0;
-        padding: 0;
-        border: 0;
+    :global(.signature-dialog-backdrop) {
         background: rgba(26, 18, 11, 0.72);
         backdrop-filter: blur(5px);
-        cursor: default;
     }
 
-    .signature-dialog-shell {
-        position: relative;
-        z-index: 1;
+    :global(.signature-dialog-shell) {
         width: min(680px, 100%);
         max-height: calc(100vh - 56px);
         display: flex;
@@ -169,7 +148,6 @@
         gap: 14px;
         overflow-x: hidden;
         overflow-y: auto;
-        outline: none;
         box-sizing: border-box;
     }
 
@@ -368,7 +346,7 @@
     }
 
     @media (max-width: 720px) {
-        .signature-dialog-overlay {
+        :global(.signature-dialog-overlay) {
             padding: 18px 10px 24px;
         }
 

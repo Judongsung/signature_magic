@@ -7,6 +7,7 @@ import {
     type MagicEditorNode,
 } from '../magicGraphTypes';
 import {
+    createEmptyMagicStatEffectBundle,
     type MagicStatEffectBundle,
     type MagicStatEffectConfig,
 } from '../../../types/magicStatEffects';
@@ -33,7 +34,6 @@ import {
     buildMagicControlPairExecutionCounts,
     type MagicNodeExecutionCounts,
 } from './magicRepeatCalculation';
-import { createEmptyMagicStatEffectBundle } from './magicStatEffectBundles';
 import {
     analyzeExplicitMagicCircleGraph,
     type ExplicitMagicCircleGraphAnalysis,

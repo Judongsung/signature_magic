@@ -12,7 +12,7 @@
         type MagicCircleMetadata,
         type MagicCircleNode,
     } from '../../../../systems/graph/magicGraphTypes';
-    import { dialogFocus } from '../../../shared/dialogFocus';
+    import DialogShell from '../../../shared/DialogShell.svelte';
     import MagicStatsGrid from '../../magic-circle/MagicStatsGrid.svelte';
 
     const dialogId = $props.id();
@@ -49,23 +49,15 @@
     }
 </script>
 
-<div class="circle-details-overlay">
-    <button
-        type="button"
-        class="circle-details-backdrop"
-        aria-label={NODE_EDITOR_TEXT.CIRCLE_DETAILS_DIALOG_CLOSE_ARIA_LABEL}
-        onclick={onClose}
-    ></button>
-
-    <div
-        class="circle-details-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={dialogTitleId}
-        aria-describedby={dialogDescriptionId}
-        tabindex="-1"
-        use:dialogFocus={{ onClose }}
-    >
+<DialogShell
+    titleId={dialogTitleId}
+    descriptionId={dialogDescriptionId}
+    closeLabel={NODE_EDITOR_TEXT.CIRCLE_DETAILS_DIALOG_CLOSE_ARIA_LABEL}
+    {onClose}
+    overlayClass="circle-details-overlay"
+    backdropClass="circle-details-backdrop"
+    surfaceClass="circle-details-dialog"
+>
         <header class="circle-details-header">
             <div>
                 <p>{NODE_EDITOR_TEXT.CIRCLE_DETAILS_DIALOG_TITLE}</p>
@@ -131,34 +123,21 @@
                 {NODE_EDITOR_TEXT.NODE_DETAILS_SAVE}
             </button>
         </footer>
-    </div>
-</div>
+</DialogShell>
 
 <style>
-    .circle-details-overlay {
-        position: fixed;
-        inset: 0;
+    :global(.circle-details-overlay) {
         z-index: 140;
-        display: flex;
         align-items: center;
-        justify-content: center;
         padding: 18px;
-        box-sizing: border-box;
     }
 
-    .circle-details-backdrop {
-        position: fixed;
-        inset: 0;
-        padding: 0;
-        border: 0;
+    :global(.circle-details-backdrop) {
         background: rgba(2, 3, 10, 0.78);
         backdrop-filter: blur(5px);
-        cursor: default;
     }
 
-    .circle-details-dialog {
-        position: relative;
-        z-index: 1;
+    :global(.circle-details-dialog) {
         width: min(460px, 100%);
         max-height: calc(100vh - 36px);
         overflow-y: auto;
@@ -167,7 +146,6 @@
         background: var(--node-editor-panel-bg);
         color: var(--node-editor-text);
         box-shadow: var(--node-editor-panel-shadow);
-        outline: none;
     }
 
     .circle-details-header {

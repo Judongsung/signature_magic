@@ -3,8 +3,6 @@
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import type { CyoaChoice } from '../../../types/cyoa';
     import { CYOA_STAT_EFFECT_TEXT } from '../../../constants/uiText';
-    import { getMagicTypeConfig } from '../../../systems/graph/registry/magicTypeRegistry';
-    import { formatCyoaStatEffect } from '../../../systems/cyoa/cyoaStatEffectFormatting';
 
     const TOOLTIP_ID_SUFFIX = 'tooltip';
 
@@ -15,6 +13,7 @@
         locked = false,
         subChoice = false,
         ariaLabel,
+        statEffectLabels = [],
         onSelect,
     }: {
         choice: CyoaChoice;
@@ -23,6 +22,7 @@
         locked?: boolean;
         subChoice?: boolean;
         ariaLabel?: string;
+        statEffectLabels?: readonly string[];
         onSelect?: (choiceId: string) => void;
     } = $props();
 
@@ -34,12 +34,6 @@
     const tooltipId = $derived(`${choice.id}-${TOOLTIP_ID_SUFFIX}`);
     const imageSize = $derived(choice.imageSize ?? CYOA_CHOICE_IMAGE_SIZES.DEFAULT);
     const imagePlacement = $derived(choice.imagePlacement ?? CYOA_CHOICE_IMAGE_PLACEMENTS.TOP);
-    const statEffectLabels = $derived(
-        choice.statEffects?.map(effect => formatCyoaStatEffect(
-            effect,
-            magicType => getMagicTypeConfig(magicType)?.label
-        )) ?? []
-    );
 </script>
 
 <button

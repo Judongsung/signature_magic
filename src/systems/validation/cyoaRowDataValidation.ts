@@ -6,6 +6,7 @@ import {
 import { MAGIC_NODE_CATEGORIES } from '../../constants/nodeEditorConfigs';
 import type { CyoaChoiceBaseConfig, CyoaChoiceRowConfig, CyoaSubChoiceGroupConfig, } from '../../types/cyoa';
 import {
+    MAGIC_STAT_EFFECT_PHASE,
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
     MAGIC_STAT_EFFECT_VALUE_SIGNS,
@@ -13,7 +14,6 @@ import {
 import {
     MAGIC_STAT_KEYS,
 } from '../../types/magicStats';
-import { MAGIC_STAT_EFFECT_PHASE } from '../graph/calculation/magicStatEffectBundles';
 import { isValidCyoaChoiceWidth } from '../cyoa/cyoaChoiceLayout';
 import {
     collectDuplicateErrors,

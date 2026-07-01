@@ -5,6 +5,8 @@
         CyoaRowSelections,
         CyoaSubChoiceGroupData,
     } from '../../../types/cyoa';
+    import { formatCyoaStatEffect } from '../../../systems/cyoa/cyoaStatEffectFormatting';
+    import { getUserMagicTypeLabel } from '../../../systems/magic/magicTypeCatalog';
 
     let {
         choices,
@@ -25,6 +27,12 @@
         onSelect?: (choiceId: string) => void;
         onSubChoiceSelect?: (group: CyoaSubChoiceGroupData, choiceId: string) => void;
     } = $props();
+
+    function formatStatEffectLabels(choice: CyoaChoice): string[] {
+        return choice.statEffects?.map(effect =>
+            formatCyoaStatEffect(effect, getUserMagicTypeLabel)
+        ) ?? [];
+    }
 </script>
 
 <div class="choice-row" style={`--layout-columns: ${layoutColumns};`} role="list">
@@ -39,6 +47,7 @@
                 selected={selectedChoiceIds.includes(choice.id)}
                 disabled={disabled || choice.disabled}
                 locked={lockedChoiceIds.includes(choice.id)}
+                statEffectLabels={formatStatEffectLabels(choice)}
                 {onSelect}
             />
         </div>
@@ -56,6 +65,7 @@
                         disabled={disabled || subChoice.disabled}
                         subChoice
                         ariaLabel={`${subChoiceGroup.title}: ${subChoice.title}`}
+                        statEffectLabels={formatStatEffectLabels(subChoice)}
                         onSelect={(choiceId) => onSubChoiceSelect?.(subChoiceGroup, choiceId)}
                     />
                 </div>

@@ -89,25 +89,11 @@ describe('CyoaChoiceCard', () => {
     it('renders configured stat effects below the description', () => {
         const { html } = render(CyoaChoiceCard, {
             props: {
-                choice: {
-                    ...choice,
-                    statEffects: [
-                        {
-                            phase: 'node',
-                            operation: 'multiply',
-                            stat: 'instability',
-                            value: 0.9,
-                            nodeTarget: { statValueSign: 'positive' },
-                        },
-                        {
-                            phase: 'node',
-                            operation: 'add',
-                            stat: 'manaCost',
-                            value: -1,
-                            nodeTarget: { categories: ['action'] },
-                        },
-                    ],
-                },
+                choice,
+                statEffectLabels: [
+                    '노드 불안정성 ×0.9',
+                    '행동 노드 마나 소모 −1',
+                ],
             },
         });
 

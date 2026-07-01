@@ -8,6 +8,9 @@ import { getMagicCircleNodes } from '../../../systems/graph/model/magicCircleGra
 import {
     type MagicEditorNode,
 } from '../../../systems/graph/magicGraphTypes';
+import {
+    MAGIC_GRAPH_CLIPBOARD_MIME_TYPE,
+} from '../../../systems/graph/model/magicGraphClipboard';
 import type {
     MagicGraphEditorActions,
     MagicGraphRenderContext,
@@ -129,6 +132,54 @@ describe('MagicNodeEditor interaction', () => {
             width: 640,
             height: 680,
         });
+    });
+
+    it('wires browser clipboard events through the editor adapter', async () => {
+        const target = document.createElement('div');
+        document.body.append(target);
+        mountedEditor = mount(MagicNodeEditor, {
+            target,
+            props: {
+                onOpenPresetDialog: vi.fn(),
+                onOpenNodeDetails: vi.fn(),
+                onConfirmCircleDelete: vi.fn(async () => true),
+            },
+        });
+        await tick();
+
+        const clipboardValues = new Map<string, string>();
+        const clipboardData = {
+            setData: vi.fn((mimeType: string, value: string) => {
+                clipboardValues.set(mimeType, value);
+            }),
+            getData: vi.fn((mimeType: string) =>
+                clipboardValues.get(mimeType) ?? ''
+            ),
+        };
+        const copyEvent = new Event('copy', {
+            cancelable: true,
+        }) as ClipboardEvent;
+        Object.defineProperty(copyEvent, 'clipboardData', {
+            value: clipboardData,
+        });
+
+        window.dispatchEvent(copyEvent);
+
+        expect(clipboardValues.get(MAGIC_GRAPH_CLIPBOARD_MIME_TYPE))
+            .toBeTruthy();
+        expect(copyEvent.defaultPrevented).toBe(true);
+
+        const pasteEvent = new Event('paste', {
+            cancelable: true,
+        }) as ClipboardEvent;
+        Object.defineProperty(pasteEvent, 'clipboardData', {
+            value: clipboardData,
+        });
+        window.dispatchEvent(pasteEvent);
+        await tick();
+
+        expect(pasteEvent.defaultPrevented).toBe(true);
+        expect(getMagicCircleNodes(graphStore.nodes)).toHaveLength(2);
     });
 
     it('commits blank-circle pane selection after the flow deselect pass', async () => {

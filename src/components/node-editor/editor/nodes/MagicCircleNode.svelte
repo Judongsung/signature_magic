@@ -7,8 +7,6 @@
     } from '@xyflow/svelte';
     import {
         MAGIC_CIRCLE_NODE_CONFIG,
-        MAGIC_CIRCLE_SEQUENCE_CONFIG,
-        MAGIC_CONTROL_PAIR_CONFIG,
     } from '../../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
     import {
@@ -16,7 +14,7 @@
     } from '../../../../systems/graph/magicGraphTypes';
     import { resolveMagicCircleViewModel } from '../../../../systems/graph/presentation/magicCirclePresentation';
     import { resolveCirclePortLeft } from '../../../../systems/graph/presentation/magicHandlePresentation';
-    import { resolveMagicControlPairConnectors } from '../../../../systems/graph/presentation/magicControlPairPresentation';
+    import { resolveMagicControlPairOverlayPresentation } from '../../../../systems/graph/presentation/magicControlPairPresentation';
     import { resolveMagicControlPairLayout } from '../../../../systems/graph/model/magicControlPairs';
     import {
         createNodeHandleLayoutKey,
@@ -84,14 +82,11 @@
     const controlPairLayout = $derived(
         resolveMagicControlPairLayout(childNodes)
     );
-    const controlPairConnectors = $derived(
-        resolveMagicControlPairConnectors(controlPairLayout)
-    );
-    const rightRailWidth = $derived(controlPairLayout.rightRailWidth);
-    const cardRight = $derived(
-        width -
-        MAGIC_CIRCLE_SEQUENCE_CONFIG.HORIZONTAL_INSET -
-        rightRailWidth
+    const controlPairOverlay = $derived(
+        resolveMagicControlPairOverlayPresentation(
+            controlPairLayout,
+            width
+        )
     );
     const branchMarkerId = $derived(
         `${componentInstanceId}-branch-arrow-${id}`
@@ -107,49 +102,6 @@
         openDetails?.(id);
     }
 
-    function branchConnectorLaneX(
-        connector: (typeof controlPairConnectors)[number]
-    ): number {
-        return cardRight +
-            connector.railIndentDepth *
-                MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX +
-            MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_HOOK_WIDTH +
-            connector.lane *
-                MAGIC_CONTROL_PAIR_CONFIG.RAIL_LANE_GAP;
-    }
-
-    function connectorPath(
-        connector: (typeof controlPairConnectors)[number]
-    ): string {
-        const {
-            startIndentDepth,
-            endIndentDepth,
-            startY,
-            endY,
-        } = connector;
-        const startAnchorX = cardRight +
-            startIndentDepth *
-                MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX;
-        const endAnchorX = cardRight +
-            endIndentDepth *
-                MAGIC_CONTROL_PAIR_CONFIG.REPEAT_INDENT_PX;
-        const laneX = branchConnectorLaneX(connector);
-        const direction = endY >= startY ? 1 : -1;
-        const cornerRadius = Math.min(
-            MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_CORNER_RADIUS,
-            Math.abs(endY - startY) / 2,
-            laneX - startAnchorX,
-            laneX - endAnchorX
-        );
-        return [
-            `M ${startAnchorX} ${startY}`,
-            `H ${laneX - cornerRadius}`,
-            `Q ${laneX} ${startY} ${laneX} ${startY + direction * cornerRadius}`,
-            `V ${endY - direction * cornerRadius}`,
-            `Q ${laneX} ${endY} ${laneX - cornerRadius} ${endY}`,
-            `H ${endAnchorX}`,
-        ].join(' ');
-    }
 </script>
 
 <div
@@ -216,7 +168,7 @@
         />
     {/each}
 
-    {#if controlPairConnectors.length > 0}
+    {#if controlPairOverlay.connectors.length > 0}
         <svg
             class="control-pair-overlay"
             width={width}
@@ -226,21 +178,21 @@
             <defs>
                 <marker
                     id={branchMarkerId}
-                    markerWidth={MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE}
-                    markerHeight={MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE}
-                    refX={MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE}
-                    refY={MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE / 2}
+                    markerWidth={controlPairOverlay.marker.width}
+                    markerHeight={controlPairOverlay.marker.height}
+                    refX={controlPairOverlay.marker.refX}
+                    refY={controlPairOverlay.marker.refY}
                     orient="auto"
                 >
                     <path
-                        d={`M 0 0 L ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE} ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE / 2} L 0 ${MAGIC_CONTROL_PAIR_CONFIG.CONNECTOR_MARKER_SIZE}`}
+                        d={controlPairOverlay.marker.path}
                     />
                 </marker>
             </defs>
-            {#each controlPairConnectors as connector (connector.pairId)}
+            {#each controlPairOverlay.connectors as connector (connector.pairId)}
                 <path
                     class="control-pair-connector branch-connector"
-                    d={connectorPath(connector)}
+                    d={connector.path}
                     marker-end={`url(#${branchMarkerId})`}
                 />
             {/each}

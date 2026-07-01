@@ -4,14 +4,13 @@ import {
     MAGIC_STAT_LABELS,
 } from '../../constants/uiText';
 import {
+    MAGIC_STAT_EFFECT_OPERATION_IDS,
+    MAGIC_STAT_EFFECT_PHASE,
     type MagicStatEffectConfig,
 } from '../../types/magicStatEffects';
 import {
     type MagicType,
 } from '../../types/magicTypeConfig';
-import { MAGIC_STAT_EFFECT_PHASE } from '../graph/calculation/magicStatEffectBundles';
-import { MAGIC_STAT_EFFECT_OPERATION_IDS } from '../graph/calculation/magicStatEffects';
-
 export type MagicTypeLabelResolver = (magicType: MagicType) => string | undefined;
 
 export function formatCyoaStatEffect(
