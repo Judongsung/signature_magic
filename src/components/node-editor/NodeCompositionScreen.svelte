@@ -4,11 +4,15 @@
     import { MAGIC_CIRCLE_ANIMATION_MODES } from '../../constants/magicCircleConfigs';
     import { graphStore } from '../../stores/graphStore.svelte';
     import { getMagicTypeConfig } from '../../systems/graph/registry/magicTypeRegistry';
-    import type {
-        MagicCircleMetadata,
-        MagicGraphPresetConfig,
-        MagicNodeSettings,
-    } from '../../types/magic';
+    import {
+        type MagicCircleMetadata,
+    } from '../../systems/graph/magicGraphTypes';
+    import {
+        type MagicGraphPresetConfig,
+    } from '../../systems/graph/presets/magicGraphPresetTypes';
+    import {
+        type MagicNodeSettings,
+    } from '../../types/magicTypeConfig';
     import DevPhaseNavigation from '../dev/DevPhaseNavigation.svelte';
     import MagicCirclePanel from './magic-circle/MagicCirclePanel.svelte';
     import NodeCompositionPaneLayout from './NodeCompositionPaneLayout.svelte';

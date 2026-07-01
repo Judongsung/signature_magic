@@ -5,7 +5,9 @@ import type { Edge } from '@xyflow/svelte';
 import { graphStore } from '../../../stores/graphStore.svelte';
 import { resetGraphStoreFixture } from '../../../test-utils/graphFixtures';
 import { getMagicCircleNodes } from '../../../systems/graph/model/magicCircleGraph';
-import type { MagicEditorNode } from '../../../types/magic';
+import {
+    type MagicEditorNode,
+} from '../../../systems/graph/magicGraphTypes';
 import type {
     MagicGraphEditorActions,
     MagicGraphRenderContext,

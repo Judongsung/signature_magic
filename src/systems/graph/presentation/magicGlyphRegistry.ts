@@ -1,5 +1,7 @@
 import magicGlyphData from '../../../data/magicGlyphs.json';
-import type { MagicType } from '../../../types/magic';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import type { GlyphKind } from './magicGlyphShapes';
 
 const DEFAULT_MAGIC_GLYPH_TYPE: MagicType = '__default__';

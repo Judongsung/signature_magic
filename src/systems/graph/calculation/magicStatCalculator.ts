@@ -2,13 +2,17 @@
 import {
     EMPTY_MAGIC_STATS,
     MAGIC_STAT_KEYS,
-    type MagicGraphNode,
     type MagicStatBranchAggregation,
-    type MagicStatEffectConfig,
     type MagicStatKey,
     type MagicStats,
+} from '../../../types/magicStats';
+import type { MagicCalculationNode } from './magicCalculationTypes';
+import {
+    type MagicStatEffectConfig,
+} from '../../../types/magicStatEffects';
+import {
     type MagicTypeConfig,
-} from '../../../types/magic';
+} from '../../../types/magicTypeConfig';
 import { MAGIC_STAT_RULES, type MagicStatScope } from './magicStatRules';
 import {
     applyMagicStatEffectSummary,
@@ -43,7 +47,7 @@ interface MagicStatCalculationContext {
 }
 
 export function calculateMagicStats(
-    nodes: readonly MagicGraphNode[],
+    nodes: readonly MagicCalculationNode[],
     edges: readonly MagicGraphEdge[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     scope: MagicStatScope,
@@ -82,7 +86,7 @@ export function calculateMagicStats(
 
 function calculateFlatStat(
     statKey: MagicStatKey,
-    nodes: readonly MagicGraphNode[],
+    nodes: readonly MagicCalculationNode[],
     edges: readonly MagicGraphEdge[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     scope: MagicStatScope,
@@ -241,7 +245,7 @@ function evaluateFrom(
 function combineSerialValues(
     statKey: MagicStatKey,
     values: readonly number[],
-    graph: GraphTopology,
+    graph: GraphTopology<MagicCalculationNode>,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>
 ): number {
     const [firstValue, ...restValues] = values;
@@ -266,7 +270,7 @@ function combineSerialValues(
 function combineComponentValues(
     statKey: MagicStatKey,
     values: readonly number[],
-    graph: GraphTopology,
+    graph: GraphTopology<MagicCalculationNode>,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>
 ): number {
     return MAGIC_STAT_RULES[statKey].combineNodeValues([...values], {
@@ -279,7 +283,7 @@ function combineComponentValues(
 }
 
 function readNodeStat(
-    node: MagicGraphNode,
+    node: MagicCalculationNode,
     statKey: MagicStatKey,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     context: MagicStatCalculationContext
@@ -288,7 +292,7 @@ function readNodeStat(
 }
 
 function readNodeStats(
-    node: MagicGraphNode,
+    node: MagicCalculationNode,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     context: MagicStatCalculationContext
 ): MagicStats {
@@ -368,7 +372,7 @@ function getNodeStatEffectSummary(
 }
 
 function readBranchAggregation(
-    node: MagicGraphNode,
+    node: MagicCalculationNode,
     statKey: MagicStatKey,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>
 ): MagicStatBranchAggregation | undefined {
@@ -379,7 +383,7 @@ function readBranchAggregationByNodeId(
     nodeId: string,
     statKey: MagicStatKey,
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
-    graph?: GraphTopology
+    graph?: GraphTopology<MagicCalculationNode>
 ): MagicStatBranchAggregation | undefined {
     const node = graph?.nodeMap.get(nodeId);
     if (!node) return undefined;

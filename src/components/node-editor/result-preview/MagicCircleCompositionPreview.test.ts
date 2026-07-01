@@ -1,6 +1,14 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import { EMPTY_MAGIC_STATS, type CirclePath, type MagicType } from '../../../types/magic';
+import {
+    EMPTY_MAGIC_STATS,
+} from '../../../types/magicStats';
+import {
+    type CirclePath,
+} from '../../../systems/graph/calculation/magicCalculationTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
 import MagicCircleCompositionPreview from './MagicCircleCompositionPreview.svelte';
 
@@ -14,7 +22,7 @@ function circle(id: string, magicType: MagicType): CirclePath {
                 id: `${id}-node`,
                 type: 'magicNode',
                 position: { x: 0, y: 0 },
-                data: { magicType },
+                data: { magicType, nodeKind: 'user' },
             },
         ],
     };

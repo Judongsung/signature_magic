@@ -23,7 +23,15 @@ import magicStatRulesData from '../../data/magicStatRules.json';
 import magicTypesData from '../../data/magicTypes.json';
 import type { CyoaChoiceRowConfig } from '../../types/cyoa';
 import type { CyoaDialogueScriptConfig } from '../../types/cyoa';
-import type { MagicGraphPresetConfig, MagicStatRulesConfig, MagicTypeConfig } from '../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+} from '../graph/presets/magicGraphPresetTypes';
+import {
+    type MagicStatRulesConfig,
+} from '../../types/magicStats';
+import {
+    type MagicTypeConfig,
+} from '../../types/magicTypeConfig';
 import type { MagicGlyphConfig } from '../graph/presentation/magicGlyphRegistry';
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
 import {

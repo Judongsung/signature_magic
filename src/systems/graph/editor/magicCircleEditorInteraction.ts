@@ -1,8 +1,8 @@
 import { MAGIC_CIRCLE_SEQUENCE_CONFIG } from '../../../constants/graphConfigs';
-import type {
-    MagicCircleNode,
-    MagicEditorNode,
-} from '../../../types/magic';
+import {
+    type MagicCircleNode,
+    type MagicEditorNode,
+} from '../magicGraphTypes';
 import {
     getCircleChildNodes,
     getMagicUnitNodes,

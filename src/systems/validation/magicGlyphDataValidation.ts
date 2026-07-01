@@ -1,4 +1,6 @@
-import type { MagicTypeConfig } from '../../types/magic';
+import {
+    type MagicTypeConfig,
+} from '../../types/magicTypeConfig';
 import type { MagicGlyphConfig } from '../graph/presentation/magicGlyphRegistry';
 import { isGlyphKind, type GlyphShape } from '../graph/presentation/magicGlyphShapes';
 import {

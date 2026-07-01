@@ -1,4 +1,6 @@
-import type { MagicGraphPresetConfig } from '../../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+} from './magicGraphPresetTypes';
 import { magicTypeMap } from '../registry/magicTypeRegistry';
 import { decodeStoredMagicGraphPreset } from './magicGraphStoredPreset';
 

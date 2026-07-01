@@ -1,7 +1,22 @@
 import { expect } from 'vitest';
-import { GRAPH_NODE_TYPES } from '../constants/graphConfigs';
+import {
+    GRAPH_NODE_TYPES,
+    MAGIC_NODE_KINDS,
+} from '../constants/graphConfigs';
 import { graphStore } from '../stores/graphStore.svelte';
-import type { CirclePath, MagicNode, MagicType } from '../types/magic';
+import {
+    type CirclePath,
+} from '../systems/graph/calculation/magicCalculationTypes';
+import {
+    type MagicCircleSystemNode,
+    type MagicCircleSystemNodeData,
+    type MagicNode,
+    type MagicUserNode,
+    type MagicUserNodeData,
+} from '../systems/graph/magicGraphTypes';
+import {
+    type MagicType,
+} from '../types/magicTypeConfig';
 import {
     getMagicCircleNodes,
     getMagicUnitNodes,
@@ -13,16 +28,53 @@ export const EMPTY_MAGIC_STAT_EFFECTS = {
     finalEffects: [],
 };
 
+type TestMagicUserNodeData =
+    Partial<Omit<MagicUserNodeData, 'magicType' | 'nodeKind'>> & {
+        nodeKind?: 'user';
+    };
+
+type TestMagicCircleSystemNodeData =
+    Partial<Omit<MagicCircleSystemNodeData, 'magicType' | 'nodeKind'>> & {
+        nodeKind: 'system';
+    };
+
+export function createTestMagicNode(
+    id: string,
+    magicType: MagicType,
+    data: TestMagicCircleSystemNodeData
+): MagicCircleSystemNode;
+export function createTestMagicNode(
+    id: string,
+    magicType?: MagicType,
+    data?: TestMagicUserNodeData
+): MagicUserNode;
 export function createTestMagicNode(
     id: string,
     magicType: MagicType = 'ignition',
-    data: Partial<MagicNode['data']> = {}
+    data: TestMagicUserNodeData | TestMagicCircleSystemNodeData = {}
 ): MagicNode {
+    if (data.nodeKind === MAGIC_NODE_KINDS.SYSTEM) {
+        return {
+            id,
+            type: GRAPH_NODE_TYPES.MAGIC_NODE,
+            position: { x: 0, y: 0 },
+            data: {
+                ...data,
+                magicType,
+                nodeKind: MAGIC_NODE_KINDS.SYSTEM,
+            },
+        };
+    }
+
     return {
         id,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position: { x: 0, y: 0 },
-        data: { magicType, ...data },
+        data: {
+            ...data,
+            magicType,
+            nodeKind: MAGIC_NODE_KINDS.USER,
+        },
     };
 }
 
@@ -50,10 +102,22 @@ export function createSingleNodeCircleFixture(): CirclePath[] {
         ...circle,
         stats: { ...circle.stats },
         statAdjustments: { ...circle.statAdjustments },
-        nodes: circle.nodes.map(node => ({
+        nodes: circle.nodes.map(cloneTestMagicNode),
+    }));
+}
+
+function cloneTestMagicNode(node: MagicNode): MagicNode {
+    if (node.data.nodeKind === MAGIC_NODE_KINDS.USER) {
+        return {
             ...node,
             position: { ...node.position },
             data: { ...node.data },
-        })),
-    }));
+        };
+    }
+
+    return {
+        ...node,
+        position: { ...node.position },
+        data: { ...node.data },
+    };
 }

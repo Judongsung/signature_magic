@@ -1,4 +1,6 @@
-import type { MagicStatEffectBundle } from '../../../types/magic';
+import {
+    type MagicStatEffectBundle,
+} from '../../../types/magicStatEffects';
 
 export const MAGIC_STAT_EFFECT_PHASE = {
     NODE: 'node',

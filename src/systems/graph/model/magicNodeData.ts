@@ -8,15 +8,19 @@ import {
     MAGIC_REPEAT_CONFIG,
 } from '../../../constants/nodeEditorConfigs';
 import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
-import type {
-    MagicEditorNode,
-    MagicNode,
-    MagicNodeEditorFieldConfig,
-    MagicNodeSettings,
-    MagicNodeStepperEditorFieldConfig,
-    MagicType,
-    MagicTypeConfig,
-} from '../../../types/magic';
+import {
+    type MagicEditorNode,
+    type MagicNode,
+    type MagicNodeData,
+    type MagicUserNodeData,
+} from '../magicGraphTypes';
+import {
+    type MagicNodeEditorFieldConfig,
+    type MagicNodeSettings,
+    type MagicNodeStepperEditorFieldConfig,
+    type MagicType,
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import { readMagicTypeConfig, type MagicTypeLookup } from './magicTypeLookup';
 import { isMagicCircleNode } from './magicCircleGraph';
 import { canMagicTypeUseNodeWeight } from './magicNodeWeight';
@@ -27,7 +31,7 @@ import {
 export function createUserMagicNodeData(
     magicType: MagicType,
     settings?: MagicNodeSettings
-): MagicNode['data'] {
+): MagicUserNodeData {
     return {
         magicType,
         ...(settings ? { settings: { ...settings } } : {}),
@@ -86,7 +90,7 @@ export function normalizeMagicNodeSettings(
 }
 
 export function resolveMagicNodeLabel(
-    data: MagicNode['data'],
+    data: Pick<MagicNodeData, 'magicType' | 'settings'>,
     config: MagicTypeConfig | undefined
 ): string {
     const customLabel = resolveMagicNodePresentationValue(
@@ -120,7 +124,7 @@ export function resolveMagicNodeLabel(
 }
 
 export function resolveMagicNodeCaption(
-    data: MagicNode['data'],
+    data: Pick<MagicNodeData, 'magicType' | 'settings'>,
     config: MagicTypeConfig | undefined
 ): string | undefined {
     return resolveMagicNodePresentationValue(
@@ -143,7 +147,7 @@ export function getMagicNodeEditorFieldDraftValue(
 }
 
 export function resolveMagicNodeRepeatCount(
-    data: MagicNode['data'],
+    data: Pick<MagicNodeData, 'magicType' | 'settings'>,
     config: MagicTypeConfig | undefined
 ): number | undefined {
     const field = getMagicNodeEditorFields(config).find(
@@ -173,12 +177,33 @@ export function updateMagicNodeSettings(
         if (areMagicNodeSettingsEqual(node.data.settings, normalizedSettings)) return node;
 
         changed = true;
-        const { settings: _currentSettings, ...dataWithoutSettings } = node.data;
+        if (node.data.nodeKind === MAGIC_NODE_KINDS.USER) {
+            const {
+                settings: _currentSettings,
+                ...dataWithoutSettings
+            } = node.data;
+            return {
+                ...node,
+                data: {
+                    ...dataWithoutSettings,
+                    ...(normalizedSettings
+                        ? { settings: normalizedSettings }
+                        : {}),
+                },
+            };
+        }
+
+        const {
+            settings: _currentSettings,
+            ...dataWithoutSettings
+        } = node.data;
         return {
             ...node,
             data: {
                 ...dataWithoutSettings,
-                ...(normalizedSettings ? { settings: normalizedSettings } : {}),
+                ...(normalizedSettings
+                    ? { settings: normalizedSettings }
+                    : {}),
             },
         };
     });
@@ -199,7 +224,7 @@ function areMagicNodeSettingsEqual(
 }
 
 function resolveMagicNodePresentationValue(
-    data: MagicNode['data'],
+    data: Pick<MagicNodeData, 'magicType' | 'settings'>,
     config: MagicTypeConfig | undefined,
     presentation: MagicNodeEditorFieldConfig['presentation']
 ): string | undefined {

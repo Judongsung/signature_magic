@@ -4,7 +4,9 @@ import {
     MAGIC_CIRCLE_STATUSES,
 } from '../../../constants/graphConfigs';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
-import type { MagicCircleState } from '../../../types/magic';
+import {
+    type MagicCircleState,
+} from '../calculation/magicCalculationTypes';
 import {
     attachNodeToCircle,
     createMagicCircleNode,

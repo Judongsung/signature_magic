@@ -6,10 +6,12 @@ import {
     getCircleChildNodes,
     getMagicCircleNodes,
 } from '../../../../systems/graph/model/magicCircleGraph';
-import type {
-    MagicCircleState,
-    MagicNode,
-} from '../../../../types/magic';
+import {
+    type MagicCircleState,
+} from '../../../../systems/graph/calculation/magicCalculationTypes';
+import {
+    type MagicNode,
+} from '../../../../systems/graph/magicGraphTypes';
 import type {
     MagicNodeSequenceDrop,
 } from '../../../../systems/graph/editor/magicCircleEditorInteraction';

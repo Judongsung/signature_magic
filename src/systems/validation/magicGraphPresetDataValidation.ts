@@ -10,7 +10,12 @@ import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
     CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
 } from '../../constants/circleSystemMagicNodeConfigs';
-import type { MagicGraphPresetConfig, MagicTypeConfig } from '../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+} from '../graph/presets/magicGraphPresetTypes';
+import {
+    type MagicTypeConfig,
+} from '../../types/magicTypeConfig';
 import { getMagicNodeEditorFields } from '../graph/model/magicNodeData';
 import {
     isMagicCirclePortHandleId,

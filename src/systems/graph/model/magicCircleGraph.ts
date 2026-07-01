@@ -14,14 +14,18 @@ import {
     MAGIC_CIRCLE_METADATA_CONFIG,
     MAGIC_SEQUENCE_DISABLED_NODE_TYPES,
 } from '../../../constants/nodeEditorConfigs';
-import type {
-    MagicCircleMetadata,
-    MagicCirclePortDirection,
-    MagicCircleNode,
-    MagicEditorNode,
-    MagicNode,
-    MagicType,
-} from '../../../types/magic';
+import {
+    type MagicCircleMetadata,
+    type MagicCirclePortDirection,
+    type MagicCircleNode,
+    type MagicCircleSystemNode,
+    type MagicEditorNode,
+    type MagicNode,
+    type MagicUserNode,
+} from '../magicGraphTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import type { MagicGraphEdge } from '../magicGraphTypes';
 
 type CircleIdFactory = () => string;
@@ -472,21 +476,40 @@ export function syncMagicCirclePortCounts(
     };
 }
 
+interface MagicCircleSequenceLayout {
+    rightRailWidth?: number;
+    indentDepth?: number;
+}
+
+export function attachNodeToCircle(
+    node: MagicUserNode,
+    circle: MagicCircleNode,
+    sequenceIndex: number,
+    layout?: MagicCircleSequenceLayout
+): MagicUserNode;
+export function attachNodeToCircle(
+    node: MagicCircleSystemNode,
+    circle: MagicCircleNode,
+    sequenceIndex: number,
+    layout?: MagicCircleSequenceLayout
+): MagicCircleSystemNode;
 export function attachNodeToCircle(
     node: MagicNode,
     circle: MagicCircleNode,
     sequenceIndex: number,
-    layout: {
-        rightRailWidth?: number;
-        indentDepth?: number;
-    } = {}
+    layout?: MagicCircleSequenceLayout
+): MagicNode;
+export function attachNodeToCircle(
+    node: MagicNode,
+    circle: MagicCircleNode,
+    sequenceIndex: number,
+    layout: MagicCircleSequenceLayout = {}
 ): MagicNode {
     const {
         rightRailWidth = 0,
         indentDepth = 0,
     } = layout;
-
-    return {
+    const attachedNodeFields = {
         ...node,
         parentId: circle.id,
         extent: undefined,
@@ -500,6 +523,20 @@ export function attachNodeToCircle(
             rightRailWidth,
             indentDepth
         ),
+    };
+
+    if (node.data.nodeKind === MAGIC_NODE_KINDS.USER) {
+        return {
+            ...attachedNodeFields,
+            data: {
+                ...node.data,
+                sequenceIndex,
+            },
+        };
+    }
+
+    return {
+        ...attachedNodeFields,
         data: {
             ...node.data,
             sequenceIndex,

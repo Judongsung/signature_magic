@@ -1,5 +1,8 @@
 import type { CyoaChoiceRowData, CyoaRowSelections } from '../../types/cyoa';
-import type { MagicStatEffectBundle, MagicStatEffectConfig } from '../../types/magic';
+import {
+    type MagicStatEffectBundle,
+    type MagicStatEffectConfig,
+} from '../../types/magicStatEffects';
 import {
     createEmptyMagicStatEffectBundle,
     MAGIC_STAT_EFFECT_PHASE,

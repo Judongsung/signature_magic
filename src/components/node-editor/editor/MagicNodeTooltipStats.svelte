@@ -4,11 +4,18 @@
         EMPTY_MAGIC_STATS,
         MAGIC_STAT_KEYS,
         type MagicNodeStatBoundsConfig,
-        type MagicNodeData,
-        type MagicStatEffectConfig,
         type MagicStatsConfig,
+    } from '../../../types/magicStats';
+    import {
+        type MagicNodeKind,
+    } from '../../../systems/graph/magicGraphTypes';
+    import {
+        type MagicStatEffectConfig,
+    } from '../../../types/magicStatEffects';
+    import {
+        type MagicNodeSettings,
         type MagicType,
-    } from '../../../types/magic';
+    } from '../../../types/magicTypeConfig';
     import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
     import {
         applyMagicStatEffects,
@@ -34,7 +41,10 @@
         magicType?: MagicType;
         nodeCategory?: MagicNodeCategory;
         nodeStatBounds?: MagicNodeStatBoundsConfig;
-        nodeData?: Pick<MagicNodeData, 'settings' | 'nodeKind'>;
+        nodeData?: {
+            settings?: Readonly<MagicNodeSettings>;
+            nodeKind?: MagicNodeKind;
+        };
     } = $props();
 
     const applicableNodeStatEffects = $derived(filterMagicStatEffectsForNode(

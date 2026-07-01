@@ -3,12 +3,14 @@ import {
     MAGIC_CIRCLE_PORT_DIRECTIONS,
     MAGIC_CIRCLE_STATUSES,
 } from '../../../constants/graphConfigs';
-import type {
-    MagicCircleNode,
-    MagicCircleState,
-    MagicCircleStatus,
-    MagicNode,
-} from '../../../types/magic';
+import {
+    type MagicCircleNode,
+    type MagicCircleStatus,
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicCircleState,
+} from '../calculation/magicCalculationTypes';
 import {
     createMagicCirclePortHandleIds,
     resolveMagicCircleRequiredHeight,

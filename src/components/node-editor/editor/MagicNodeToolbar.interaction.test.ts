@@ -11,7 +11,10 @@ import {
     NODE_EDITOR_TEXT,
 } from '../../../constants/uiText';
 import { getButtonContainingText } from '../../../test-utils/componentQueries';
-import type { MagicType, MagicTypeConfig } from '../../../types/magic';
+import {
+    type MagicType,
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import MagicNodeToolbar from './MagicNodeToolbar.svelte';
 
 const TEST_MAGIC_TYPE = {

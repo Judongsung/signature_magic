@@ -6,10 +6,12 @@ import {
 import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../../../constants/circleSystemMagicNodeConfigs';
 import magicGraphPresetsData from '../../../data/magicGraphPresets.json';
 import magicTypesData from '../../../data/magicTypes.json';
-import type {
-    MagicGraphPresetConfig,
-    MagicTypeConfig,
-} from '../../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+} from './magicGraphPresetTypes';
+import {
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import { calculateMagic } from '../calculation/magicCalculator';
 import {
     createMagicGraphFromPreset,

@@ -32,7 +32,9 @@ import {
 } from './magicGraphClipboard';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
 import type { Edge } from '@xyflow/svelte';
-import type { MagicEditorNode } from '../../../types/magic';
+import {
+    type MagicEditorNode,
+} from '../magicGraphTypes';
 
 function sequentialIdFactory(): () => string {
     let index = 0;

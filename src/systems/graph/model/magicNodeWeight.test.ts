@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
-import type { MagicNodeData } from '../../../types/magic';
+import {
+    type MagicNodeKind,
+} from '../magicGraphTypes';
+import type { MagicNodeSettings } from '../../../types/magicTypeConfig';
 import {
     applyMagicNodeWeightToStat,
     canMagicTypeUseNodeWeight,
@@ -26,8 +29,11 @@ const SUSTAIN_TYPE = {
 
 function data(
     weight: string | undefined,
-    nodeKind?: MagicNodeData['nodeKind']
-): Pick<MagicNodeData, 'settings' | 'nodeKind'> {
+    nodeKind?: MagicNodeKind
+): {
+    settings?: MagicNodeSettings;
+    nodeKind?: MagicNodeKind;
+} {
     return {
         ...(weight ? { settings: { weight } } : {}),
         ...(nodeKind ? { nodeKind } : {}),

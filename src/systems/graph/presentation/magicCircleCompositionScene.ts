@@ -1,5 +1,7 @@
 import { NODE_COMPOSITION_TRANSITION_CONFIG } from '../../../constants/magicCircleConfigs';
-import type { CirclePath } from '../../../types/magic';
+import {
+    type CirclePath,
+} from '../calculation/magicCalculationTypes';
 import {
     buildMagicCircleRenderModels,
     type MagicCircleRenderModel,

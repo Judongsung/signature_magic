@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { APP_PHASES } from '../../constants/appPhaseConfigs';
-import type { CirclePath } from '../../types/magic';
+import {
+    type CirclePath,
+} from '../graph/calculation/magicCalculationTypes';
 import { createNodeCompositionTransitionPlan } from './appPhaseTransition';
 
 const BASE_CIRCLE: CirclePath = {
@@ -27,6 +29,7 @@ const BASE_CIRCLE: CirclePath = {
             position: { x: 10, y: 20 },
             data: {
                 magicType: 'ignition',
+                nodeKind: 'user',
             },
         },
     ],

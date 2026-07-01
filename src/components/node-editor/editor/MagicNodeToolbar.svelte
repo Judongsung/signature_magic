@@ -8,11 +8,13 @@
         MAGIC_NODE_CATEGORY_LABELS,
         NODE_EDITOR_TEXT,
     } from '../../../constants/uiText';
-    import type {
-        MagicStatEffectConfig,
-        MagicType,
-        MagicTypeConfig,
-    } from '../../../types/magic';
+    import {
+        type MagicStatEffectConfig,
+    } from '../../../types/magicStatEffects';
+    import {
+        type MagicType,
+        type MagicTypeConfig,
+    } from '../../../types/magicTypeConfig';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
     import MagicNodeTooltipStats from './MagicNodeTooltipStats.svelte';
 

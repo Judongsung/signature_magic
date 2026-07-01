@@ -5,7 +5,9 @@ import dialogueScriptsData from '../../../data/cyoaDialogueScripts.json';
 import { mapCyoaDialogueScripts } from '../../../systems/cyoa/cyoaDialogueScripts';
 import { resolveCyoaImagePath } from '../../../systems/cyoa/cyoaImageRegistry';
 import type { CyoaDialogueScriptConfig, CyoaDialogueScriptData } from '../../../types/cyoa';
-import { EMPTY_MAGIC_STATS } from '../../../types/magic';
+import {
+    EMPTY_MAGIC_STATS,
+} from '../../../types/magicStats';
 import CyoaDialogueScript from './CyoaDialogueScript.svelte';
 
 const [guildReceptionScript] = mapCyoaDialogueScripts(

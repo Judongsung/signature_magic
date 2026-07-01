@@ -17,7 +17,9 @@
     import NodeCompositionScreen from './components/node-editor/NodeCompositionScreen.svelte';
     import NodeCompositionSignatureDialog from './components/node-editor/transition/NodeCompositionSignatureDialog.svelte';
     import NodeCompositionTransitionOverlay from './components/node-editor/transition/NodeCompositionTransitionOverlay.svelte';
-    import type { MagicSignatureMetadata } from './types/magic';
+    import {
+        type MagicSignatureMetadata,
+    } from './types/magicSignature';
 
     let pendingNodeCompositionTransition = $state<NodeCompositionTransitionPlan | undefined>();
     let nodeCompositionTransition = $state<NodeCompositionTransitionPlan | undefined>();

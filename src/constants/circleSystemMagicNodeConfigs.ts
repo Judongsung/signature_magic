@@ -1,8 +1,10 @@
 import {
     EMPTY_MAGIC_STATS,
+} from '../types/magicStats';
+import {
     type MagicType,
     type MagicTypeConfig,
-} from '../types/magic';
+} from '../types/magicTypeConfig';
 import {
     MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD,
 } from './nodeEditorConfigs';

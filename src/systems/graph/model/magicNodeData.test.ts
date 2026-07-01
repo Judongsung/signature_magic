@@ -4,7 +4,12 @@ import {
 } from '../../../constants/nodeEditorConfigs';
 import { describe, expect, it } from 'vitest';
 import { MAGIC_NODE_EDITOR_CONTROLS } from '../../../constants/nodeEditorConfigs';
-import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
+import {
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import {
     getMagicNodeEditorFields,
     normalizeMagicNodeSettings,
@@ -52,6 +57,7 @@ function node(settings?: Record<string, string>): MagicNode {
         data: {
             magicType: 'custom',
             settings,
+            nodeKind: 'user',
         },
     };
 }

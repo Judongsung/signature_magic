@@ -4,7 +4,9 @@ import {
     MAGIC_CONTROL_PAIR_ROLES,
 } from '../../../constants/graphConfigs';
 import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
-import type { MagicNode } from '../../../types/magic';
+import {
+    type MagicNode,
+} from '../magicGraphTypes';
 import {
     isMagicControlPairType,
     type MagicControlPairLayout,

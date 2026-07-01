@@ -1,5 +1,7 @@
 import type { MagicGraphEdge } from '../magicGraphTypes';
-import type { MagicGraphNode } from '../../../types/magic';
+import {
+    type MagicCalculationNode,
+} from './magicCalculationTypes';
 import { buildGraphTopology, type GraphTopology } from '../topology/graphTopology';
 import {
     createReachabilityCache,
@@ -9,15 +11,15 @@ import {
 } from '../topology/graphTraversal';
 
 export interface MagicGraphAnalysis {
-    topology: GraphTopology;
+    topology: GraphTopology<MagicCalculationNode>;
     rootIds: readonly string[];
-    unrootedNodes: readonly MagicGraphNode[];
+    unrootedNodes: readonly MagicCalculationNode[];
     mergeNodeId?: string;
     reachabilityCache: ReachabilityCache;
 }
 
 export function buildMagicGraphAnalysis(
-    nodes: readonly MagicGraphNode[],
+    nodes: readonly MagicCalculationNode[],
     edges: readonly MagicGraphEdge[]
 ): MagicGraphAnalysis {
     const topology = buildGraphTopology(nodes, edges);

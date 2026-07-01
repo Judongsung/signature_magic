@@ -1,10 +1,14 @@
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getMagicTypeConfig } from '../../../../systems/graph/registry/magicTypeRegistry';
-import type {
-    MagicNodeData,
-    MagicStatEffectConfig,
-} from '../../../../types/magic';
+import {
+    type MagicCircleSystemNodeData,
+    type MagicNodeData,
+    type MagicUserNodeData,
+} from '../../../../systems/graph/magicGraphTypes';
+import {
+    type MagicStatEffectConfig,
+} from '../../../../types/magicStatEffects';
 import type {
     MagicNodeSequenceDrop,
 } from '../../../../systems/graph/editor/magicCircleEditorInteraction';
@@ -46,16 +50,36 @@ afterEach(() => {
 });
 
 function renderNode(
-    data: Partial<MagicNodeData> = {},
+    data:
+        | (
+            Partial<Omit<MagicUserNodeData, 'nodeKind'>> &
+            { nodeKind?: 'user' }
+        )
+        | (
+            Partial<Omit<MagicCircleSystemNodeData, 'nodeKind'>> &
+            { nodeKind: 'system' }
+        ) = {},
     parentId?: string
 ) {
+    const magicType = typeof data.magicType === 'string'
+        ? data.magicType
+        : 'ignition';
+    const nodeData: MagicNodeData = data.nodeKind === 'system'
+        ? {
+            ...data,
+            magicType,
+            nodeKind: 'system',
+        }
+        : {
+            ...data,
+            magicType,
+            nodeKind: 'user',
+        };
+
     return render(MagicUnitNode, {
         props: {
             id: 'node-1',
-            data: {
-                magicType: 'ignition',
-                ...data,
-            },
+            data: nodeData,
             parentId,
         },
     });

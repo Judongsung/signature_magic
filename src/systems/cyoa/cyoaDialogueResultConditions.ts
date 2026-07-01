@@ -3,7 +3,9 @@ import type {
     CyoaDialogueResultContext,
     CyoaDialogueResultLineConfig,
 } from '../../types/cyoa';
-import type { MagicStatKey } from '../../types/magic';
+import {
+    type MagicStatKey,
+} from '../../types/magicStats';
 
 function matchesNumericRange(value: number, range: { min?: number; max?: number }): boolean {
     if (range.min !== undefined && value < range.min) return false;

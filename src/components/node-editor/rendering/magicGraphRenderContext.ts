@@ -1,9 +1,13 @@
 import { getContext, setContext } from 'svelte';
-import type {
-    MagicCircleState,
-    MagicNode,
-    MagicStatEffectConfig,
-} from '../../../types/magic';
+import {
+    type MagicCircleState,
+} from '../../../systems/graph/calculation/magicCalculationTypes';
+import {
+    type MagicNode,
+} from '../../../systems/graph/magicGraphTypes';
+import {
+    type MagicStatEffectConfig,
+} from '../../../types/magicStatEffects';
 import type {
     MagicNodeSequenceDrop,
 } from '../../../systems/graph/editor/magicCircleEditorInteraction';

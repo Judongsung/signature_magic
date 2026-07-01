@@ -6,12 +6,12 @@ import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
     CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
 } from '../../../constants/circleSystemMagicNodeConfigs';
-import type {
-    MagicGraphPresetCircleSystemNodeSlotConfig,
-    MagicGraphPresetConfig,
-    MagicGraphPresetEdgeConfig,
-    MagicGraphPresetNodeConfig,
-} from '../../../types/magic';
+import {
+    type MagicGraphPresetCircleSystemNodeSlotConfig,
+    type MagicGraphPresetConfig,
+    type MagicGraphPresetEdgeConfig,
+    type MagicGraphPresetNodeConfig,
+} from '../presets/magicGraphPresetTypes';
 import { normalizeMagicNodeSettings } from './magicNodeData';
 import { isMagicCirclePortHandleId } from './magicCircleGraph';
 import {

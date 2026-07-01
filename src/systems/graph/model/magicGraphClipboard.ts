@@ -6,14 +6,16 @@ import {
     MAGIC_EDGE_ID_PREFIX,
     MAGIC_NODE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
-import type {
-    MagicEditorNode,
-    MagicGraphPresetCircleConfig,
-    MagicGraphPresetConfig,
-    MagicGraphPresetEdgeConfig,
-    MagicGraphPresetNodeConfig,
-    MagicNode,
-} from '../../../types/magic';
+import {
+    type MagicEditorNode,
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicGraphPresetCircleConfig,
+    type MagicGraphPresetConfig,
+    type MagicGraphPresetEdgeConfig,
+    type MagicGraphPresetNodeConfig,
+} from '../presets/magicGraphPresetTypes';
 import type { MagicGraphEdge } from '../magicGraphTypes';
 import {
     createMagicGraphPresetCircleSnapshot,

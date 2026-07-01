@@ -9,8 +9,10 @@ import {
     MAGIC_STAT_EFFECT_OPERATIONS,
     MAGIC_STAT_EFFECT_PHASES,
     MAGIC_STAT_EFFECT_VALUE_SIGNS,
+} from '../../types/magicStatEffects';
+import {
     MAGIC_STAT_KEYS,
-} from '../../types/magic';
+} from '../../types/magicStats';
 import { MAGIC_STAT_EFFECT_PHASE } from '../graph/calculation/magicStatEffectBundles';
 import { isValidCyoaChoiceWidth } from '../cyoa/cyoaChoiceLayout';
 import {

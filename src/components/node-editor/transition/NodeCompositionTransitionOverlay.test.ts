@@ -4,12 +4,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     NODE_COMPOSITION_TRANSITION_CONFIG,
 } from '../../../constants/magicCircleConfigs';
+import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
 import { buildNodeCompositionTransitionLayout } from '../../../systems/graph/presentation/nodeCompositionTransitionLayout';
 import {
     createSingleNodeCircleFixture,
     resetGraphStoreFixture,
 } from '../../../test-utils/graphFixtures';
-import type { CirclePath } from '../../../types/magic';
+import {
+    type CirclePath,
+} from '../../../systems/graph/calculation/magicCalculationTypes';
+import type { MagicNode } from '../../../systems/graph/magicGraphTypes';
 import NodeCompositionTransitionOverlay from './NodeCompositionTransitionOverlay.svelte';
 
 const TOTAL_TRANSITION_DURATION_MS =
@@ -34,15 +38,33 @@ function createCircleSet(total: number): CirclePath[] {
     return Array.from({ length: total }, (_, index) => ({
         ...baseCircle,
         id: `${baseCircle.id}-${index}`,
-        nodes: baseCircle.nodes.map(node => ({
+        nodes: baseCircle.nodes.map(node =>
+            cloneTransitionNode(node, index)
+        ),
+        stats: { ...baseCircle.stats },
+        statAdjustments: { ...baseCircle.statAdjustments },
+    }));
+}
+
+function cloneTransitionNode(
+    node: MagicNode,
+    index: number
+): MagicNode {
+    if (node.data.nodeKind === MAGIC_NODE_KINDS.USER) {
+        return {
             ...node,
             id: `${node.id}-${index}`,
             position: { ...node.position },
             data: { ...node.data },
-        })),
-        stats: { ...baseCircle.stats },
-        statAdjustments: { ...baseCircle.statAdjustments },
-    }));
+        };
+    }
+
+    return {
+        ...node,
+        id: `${node.id}-${index}`,
+        position: { ...node.position },
+        data: { ...node.data },
+    };
 }
 
 function setReducedMotionPreference(matches: boolean): void {

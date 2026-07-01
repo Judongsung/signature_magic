@@ -3,7 +3,7 @@ import {
     MAGIC_STAT_KEYS,
     type MagicStatRuleConfig,
     type MagicStatRulesConfig,
-} from '../../types/magic';
+} from '../../types/magicStats';
 import {
     isMagicStatAggregationOperation,
     isMagicStatScalingOperation,

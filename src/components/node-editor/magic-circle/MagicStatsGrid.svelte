@@ -3,7 +3,10 @@
         MAGIC_STAT_CALCULATION_DESCRIPTIONS,
         MAGIC_STAT_LABELS,
     } from '../../../constants/uiText';
-    import { MAGIC_STAT_KEYS, type MagicStats } from '../../../types/magic';
+    import {
+        MAGIC_STAT_KEYS,
+        type MagicStats,
+    } from '../../../types/magicStats';
     import {
         formatMagicStat,
         formatMagicStatAdjustment,

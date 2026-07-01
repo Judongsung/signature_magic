@@ -1,13 +1,17 @@
 import {
     MAGIC_STAT_KEYS,
-    MAGIC_STAT_EFFECT_VALUE_SIGNS,
-    type MagicStatEffectConfig,
-    type MagicStatEffectOperation,
     type MagicStatKey,
     type MagicStats,
     type MagicStatsConfig,
+} from '../../../types/magicStats';
+import {
+    MAGIC_STAT_EFFECT_VALUE_SIGNS,
+    type MagicStatEffectConfig,
+    type MagicStatEffectOperation,
+} from '../../../types/magicStatEffects';
+import {
     type MagicType,
-} from '../../../types/magic';
+} from '../../../types/magicTypeConfig';
 import type { MagicNodeCategory } from '../../../constants/nodeEditorConfigs';
 
 export const MAGIC_STAT_EFFECT_OPERATION_IDS = {

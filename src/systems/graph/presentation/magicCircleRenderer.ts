@@ -1,4 +1,6 @@
-﻿import type { CirclePath, MagicStats, MagicType } from '../../../types/magic';
+﻿import type { MagicStats } from '../../../types/magicStats';
+import type { MagicType } from '../../../types/magicTypeConfig';
+import type { CirclePath } from '../calculation/magicCalculationTypes';
 import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/magicCircleConfigs';
 import {
     DEFAULT_MAGIC_GLYPH_CONFIG,

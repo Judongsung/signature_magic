@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { MagicNode } from '../../../../types/magic';
+import {
+    type MagicNode,
+} from '../../../../systems/graph/magicGraphTypes';
 import { openNodeDetailsFromContextMenu } from './nodeDetailsInteraction';
 
 const node: MagicNode = {
     id: 'node-custom',
     type: 'magicNode',
     position: { x: 0, y: 0 },
-    data: { magicType: 'custom' },
+    data: { magicType: 'custom', nodeKind: 'user' },
 };
 
 describe('nodeDetailsInteraction', () => {

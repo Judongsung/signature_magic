@@ -1,6 +1,11 @@
 import type { Edge, FitViewOptions } from '@xyflow/svelte';
-import { MAGIC_GRAPH_RESULT_PREVIEW_CONFIG } from '../../../constants/graphConfigs';
-import type { MagicEditorNode } from '../../../types/magic';
+import {
+    MAGIC_GRAPH_RESULT_PREVIEW_CONFIG,
+    MAGIC_NODE_KINDS,
+} from '../../../constants/graphConfigs';
+import {
+    type MagicEditorNode,
+} from '../magicGraphTypes';
 import { isMagicCircleNode } from '../model/magicCircleGraph';
 
 type MagicGraphResultPreviewConfig = typeof MAGIC_GRAPH_RESULT_PREVIEW_CONFIG;
@@ -27,6 +32,18 @@ function clonePreviewNode(node: MagicEditorNode): MagicEditorNode {
         return {
             ...node,
             data: { ...node.data },
+            position: { ...node.position },
+            draggable: false,
+            selectable: false,
+            connectable: false,
+            selected: false,
+        };
+    }
+
+    if (node.data.nodeKind === MAGIC_NODE_KINDS.USER) {
+        return {
+            ...node,
+            data: { ...node.data, showTooltip: false },
             position: { ...node.position },
             draggable: false,
             selectable: false,

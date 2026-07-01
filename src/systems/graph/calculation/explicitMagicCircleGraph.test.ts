@@ -6,7 +6,9 @@ import {
 } from '../../../constants/graphConfigs';
 import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/circleSystemMagicNodeConfigs';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
-import type { MagicTypeConfig } from '../../../types/magic';
+import {
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import {
     attachNodeToCircle,
     createMagicCircleNode,
@@ -205,11 +207,20 @@ describe('explicitMagicCircleGraph sequence projection', () => {
 
         expect(internal.calculationNodes.map(node => node.id))
             .toEqual([start.id, middle.id]);
-        expect(internal.projectedNodes.find(node => node.id === end.id)?.data)
-            .toMatchObject({
+        const projectedStart = internal.projectedNodes.find(node =>
+            node.id === start.id
+        );
+        const projectedEnd = internal.projectedNodes.find(node =>
+            node.id === end.id
+        );
+
+        expect(projectedStart?.data.nodeKind).toBe('user');
+        expect(projectedEnd?.data).toMatchObject({
                 magicType: '__circle-anchor__',
                 excludeFromStatScaling: true,
             });
+        expect(projectedEnd?.data).not.toHaveProperty('nodeKind');
+        expect(projectedEnd?.data).not.toHaveProperty('settings');
     });
 
     it('repeats only nodes enclosed by a repeat pair', () => {
@@ -388,7 +399,10 @@ describe('explicitMagicCircleGraph sequence projection', () => {
         const first = createTestMagicNode('first');
         const second = {
             ...createTestMagicNode('second'),
-            data: { magicType: 'stream' as const },
+            data: {
+                magicType: 'stream' as const,
+                nodeKind: 'user' as const,
+            },
         };
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },

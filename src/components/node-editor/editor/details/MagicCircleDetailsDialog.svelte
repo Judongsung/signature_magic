@@ -4,10 +4,14 @@
     import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
     import {
         EMPTY_MAGIC_STATS,
+    } from '../../../../types/magicStats';
+    import {
         type CirclePath,
+    } from '../../../../systems/graph/calculation/magicCalculationTypes';
+    import {
         type MagicCircleMetadata,
         type MagicCircleNode,
-    } from '../../../../types/magic';
+    } from '../../../../systems/graph/magicGraphTypes';
     import { dialogFocus } from '../../../shared/dialogFocus';
     import MagicStatsGrid from '../../magic-circle/MagicStatsGrid.svelte';
 

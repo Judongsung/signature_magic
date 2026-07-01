@@ -66,20 +66,34 @@ import {
     createMagicGraphPresetSnapshot,
     hasUserMagicGraphContent,
 } from '../systems/graph/presets/magicGraphPresets';
-import type {
-    CirclePath,
-    MagicCircleMetadata,
-    MagicCircleState,
-    MagicEditorNode,
-    MagicSignatureMetadata,
-    MagicCalculationResult,
-    MagicGraphPresetConfig,
-    MagicNodeSettings,
-    MagicStatEffectBundle,
-    MagicStats,
-    MagicType,
-} from '../types/magic';
-import { EMPTY_MAGIC_SIGNATURE_METADATA } from '../types/magic';
+import {
+    type CirclePath,
+    type MagicCircleState,
+    type MagicCalculationResult,
+} from '../systems/graph/calculation/magicCalculationTypes';
+import {
+    type MagicCircleMetadata,
+    type MagicEditorNode,
+} from '../systems/graph/magicGraphTypes';
+import {
+    type MagicSignatureMetadata,
+} from '../types/magicSignature';
+import {
+    type MagicGraphPresetConfig,
+} from '../systems/graph/presets/magicGraphPresetTypes';
+import {
+    type MagicNodeSettings,
+    type MagicType,
+} from '../types/magicTypeConfig';
+import {
+    type MagicStatEffectBundle,
+} from '../types/magicStatEffects';
+import {
+    type MagicStats,
+} from '../types/magicStats';
+import {
+    EMPTY_MAGIC_SIGNATURE_METADATA,
+} from '../types/magicSignature';
 
 const CONNECTION_VALIDATION_CACHE_KEY_SEPARATOR = '|';
 

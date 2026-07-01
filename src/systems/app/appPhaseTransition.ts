@@ -1,5 +1,9 @@
 import { APP_PHASES, type AppPhase } from '../../constants/appPhaseConfigs';
-import type { CirclePath } from '../../types/magic';
+import { MAGIC_NODE_KINDS } from '../../constants/graphConfigs';
+import {
+    type CirclePath,
+} from '../graph/calculation/magicCalculationTypes';
+import type { MagicNode } from '../graph/magicGraphTypes';
 
 export interface DirectAppPhaseTransitionRequest {
     currentPhase: AppPhase;
@@ -32,10 +36,22 @@ function snapshotCirclePaths(circles: readonly CirclePath[]): CirclePath[] {
         ...circle,
         stats: { ...circle.stats },
         statAdjustments: { ...circle.statAdjustments },
-        nodes: circle.nodes.map(node => ({
+        nodes: circle.nodes.map(snapshotMagicNode),
+    }));
+}
+
+function snapshotMagicNode(node: MagicNode): MagicNode {
+    if (node.data.nodeKind === MAGIC_NODE_KINDS.USER) {
+        return {
             ...node,
             position: { ...node.position },
             data: { ...node.data },
-        })),
-    }));
+        };
+    }
+
+    return {
+        ...node,
+        position: { ...node.position },
+        data: { ...node.data },
+    };
 }

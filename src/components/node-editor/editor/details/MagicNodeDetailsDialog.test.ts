@@ -3,7 +3,12 @@ import { mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
 import { getMagicTypeConfig } from '../../../../systems/graph/registry/magicTypeRegistry';
-import type { MagicNode, MagicStatEffectConfig } from '../../../../types/magic';
+import {
+    type MagicNode,
+} from '../../../../systems/graph/magicGraphTypes';
+import {
+    type MagicStatEffectConfig,
+} from '../../../../types/magicStatEffects';
 import MagicNodeDetailsDialog from './MagicNodeDetailsDialog.svelte';
 
 let mountedDialog: Record<string, unknown> | undefined;
@@ -16,6 +21,7 @@ function node(magicType: string, settings?: Record<string, string>): MagicNode {
         data: {
             magicType,
             settings,
+            nodeKind: 'user',
         },
     };
 }

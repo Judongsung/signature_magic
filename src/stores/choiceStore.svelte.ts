@@ -21,7 +21,9 @@ import type {
     CyoaRowVisibility,
     CyoaSubChoiceGroupData,
 } from '../types/cyoa';
-import type { MagicStatEffectBundle } from '../types/magic';
+import {
+    type MagicStatEffectBundle,
+} from '../types/magicStatEffects';
 
 class ChoiceStore {
     readonly rows: CyoaChoiceRowData[] = mapCyoaRows(

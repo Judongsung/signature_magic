@@ -3,13 +3,15 @@ import {
     MAGIC_CONTROL_PAIR_CONFIG,
     MAGIC_CONTROL_PAIR_ROLES,
 } from '../../../constants/graphConfigs';
-import type {
-    MagicCircleMetadata,
-    MagicCircleNode,
-    MagicEditorNode,
-    MagicNode,
-    MagicType,
-} from '../../../types/magic';
+import {
+    type MagicCircleMetadata,
+    type MagicCircleNode,
+    type MagicEditorNode,
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import type { MagicGraphEdge } from '../magicGraphTypes';
 import { createNode, createUniqueId } from './graphActions';
 import {

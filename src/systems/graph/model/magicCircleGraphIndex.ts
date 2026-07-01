@@ -1,8 +1,8 @@
-import type {
-    MagicCircleNode,
-    MagicEditorNode,
-    MagicNode,
-} from '../../../types/magic';
+import {
+    type MagicCircleNode,
+    type MagicEditorNode,
+    type MagicNode,
+} from '../magicGraphTypes';
 import {
     compareMagicCircleSequenceNodes,
     isMagicCircleNode,

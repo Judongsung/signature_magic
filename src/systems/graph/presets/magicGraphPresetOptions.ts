@@ -3,7 +3,9 @@ import {
     MAGIC_GRAPH_PRESET_SOURCES,
     type MagicGraphPresetOption,
 } from './magicGraphPresets';
-import type { MagicGraphPresetConfig } from '../../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+} from './magicGraphPresetTypes';
 
 export interface MagicGraphPresetSelection {
     selectedPresetOption?: MagicGraphPresetOption;

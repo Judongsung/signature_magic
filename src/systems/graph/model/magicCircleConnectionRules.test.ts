@@ -1,11 +1,11 @@
 import type { Connection, Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
 import { GRAPH_NODE_TYPES } from '../../../constants/graphConfigs';
-import type {
-    MagicCircleNode,
-    MagicEditorNode,
-    MagicNode,
-} from '../../../types/magic';
+import {
+    type MagicCircleNode,
+    type MagicEditorNode,
+    type MagicNode,
+} from '../magicGraphTypes';
 import {
     createExplicitMagicCircleEdgeUpdate,
     isExplicitMagicCircleConnectionValid,
@@ -32,7 +32,11 @@ function node(id: string, circleId: string): MagicNode {
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         parentId: circleId,
         position: { x: 40, y: 80 },
-        data: { magicType: 'ignition', sequenceIndex: 0 },
+        data: {
+            magicType: 'ignition',
+            nodeKind: 'user',
+            sequenceIndex: 0,
+        },
     };
 }
 

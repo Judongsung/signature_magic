@@ -1,5 +1,7 @@
 import type { MagicNodeCategory } from '../../constants/nodeEditorConfigs';
-import { MAGIC_STAT_KEYS } from '../../types/magic';
+import {
+    MAGIC_STAT_KEYS,
+} from '../../types/magicStats';
 
 export const MAGIC_STAT_KEY_SET = new Set<string>(MAGIC_STAT_KEYS);
 

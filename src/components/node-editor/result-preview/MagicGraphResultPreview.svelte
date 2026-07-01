@@ -19,10 +19,12 @@
         createMagicCircleGraphIndex,
     } from '../../../systems/graph/model/magicCircleGraphIndex';
     import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
-    import type {
-        MagicCircleState,
-        MagicEditorNode,
-    } from '../../../types/magic';
+    import {
+        type MagicCircleState,
+    } from '../../../systems/graph/calculation/magicCalculationTypes';
+    import {
+        type MagicEditorNode,
+    } from '../../../systems/graph/magicGraphTypes';
     import MagicGraphCanvasBackground from '../MagicGraphCanvasBackground.svelte';
     import MagicGraphEdge from '../editor/nodes/MagicGraphEdge.svelte';
     import MagicUnitNode from '../editor/nodes/MagicUnitNode.svelte';

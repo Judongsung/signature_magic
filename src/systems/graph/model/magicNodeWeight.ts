@@ -4,11 +4,16 @@ import {
 import {
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
-import type {
-    MagicNodeData,
-    MagicStatKey,
-    MagicTypeConfig,
-} from '../../../types/magic';
+import {
+    type MagicNodeKind,
+} from '../magicGraphTypes';
+import {
+    type MagicStatKey,
+} from '../../../types/magicStats';
+import {
+    type MagicNodeSettings,
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import {
     isRegisteredCircleSystemMagicType,
 } from './circleSystemMagicTypePolicy';
@@ -19,6 +24,11 @@ export type MagicNodeWeightTypeContext = Pick<
 >;
 
 const DURATION_STAT_KEY: MagicStatKey = 'duration';
+
+interface MagicNodeWeightData {
+    settings?: Readonly<MagicNodeSettings>;
+    nodeKind?: MagicNodeKind;
+}
 
 export function canMagicTypeUseNodeWeight(
     config: MagicNodeWeightTypeContext | undefined
@@ -31,7 +41,7 @@ export function canMagicTypeUseNodeWeight(
 }
 
 export function resolveMagicNodeWeight(
-    data: Pick<MagicNodeData, 'settings' | 'nodeKind'>,
+    data: MagicNodeWeightData,
     config: MagicNodeWeightTypeContext | undefined
 ): number {
     if (
@@ -56,7 +66,7 @@ export function resolveMagicNodeWeight(
 export function applyMagicNodeWeightToStat(
     value: number,
     statKey: MagicStatKey,
-    data: Pick<MagicNodeData, 'settings' | 'nodeKind'>,
+    data: MagicNodeWeightData,
     config: MagicNodeWeightTypeContext | undefined
 ): number {
     const weight = resolveMagicNodeWeight(data, config);

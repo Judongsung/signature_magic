@@ -11,10 +11,12 @@ import {
     resetGraphStoreFixture,
 } from '../../../test-utils/graphFixtures';
 import { graphStore } from '../../../stores/graphStore.svelte';
-import type {
-    MagicCircleState,
-    MagicEditorNode,
-} from '../../../types/magic';
+import {
+    type MagicCircleState,
+} from '../../../systems/graph/calculation/magicCalculationTypes';
+import {
+    type MagicEditorNode,
+} from '../../../systems/graph/magicGraphTypes';
 import { getMagicCircleNodes } from '../../../systems/graph/model/magicCircleGraph';
 import MagicGraphResultPreview from './MagicGraphResultPreview.svelte';
 

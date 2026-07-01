@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { resetGraphStoreFixture } from '../test-utils/graphFixtures';
-import type { MagicGraphPresetConfig } from '../types/magic';
+import {
+    type MagicGraphPresetConfig,
+} from '../systems/graph/presets/magicGraphPresetTypes';
+import {
+    type MagicUserNode,
+} from '../systems/graph/magicGraphTypes';
 import {
     getMagicCircleNodes,
     getMagicUnitNodes,
@@ -8,13 +13,18 @@ import {
 } from '../systems/graph/model/magicCircleGraph';
 import { isCircleSystemMagicNode } from '../systems/graph/model/circleSystemMagicNodes';
 import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../constants/circleSystemMagicNodeConfigs';
-import { MAGIC_CIRCLE_HANDLE_IDS } from '../constants/graphConfigs';
+import {
+    MAGIC_CIRCLE_HANDLE_IDS,
+    MAGIC_NODE_KINDS,
+} from '../constants/graphConfigs';
 import { MAGIC_GRAPH_SELECTION_MODES } from '../systems/graph/editor/magicGraphSelection';
 import { graphStore } from './graphStore.svelte';
 
 function userNodes() {
     return getMagicUnitNodes(graphStore.nodes)
-        .filter(node => !isCircleSystemMagicNode(node));
+        .filter((node): node is MagicUserNode =>
+            !isCircleSystemMagicNode(node)
+        );
 }
 
 function circleNode() {
@@ -223,7 +233,8 @@ describe('graphStore sequence circles', () => {
             }
             if (
                 node.id === userNode.id &&
-                !isMagicCircleNode(node)
+                !isMagicCircleNode(node) &&
+                node.data.nodeKind === MAGIC_NODE_KINDS.USER
             ) {
                 return {
                     ...node,

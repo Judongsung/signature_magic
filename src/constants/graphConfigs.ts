@@ -1,9 +1,9 @@
-import type {
-    MagicCirclePortDirection,
-    MagicCircleStatus,
-    MagicControlPairRole,
-    MagicEditorNodeKind,
-} from '../types/magic';
+import {
+    type MagicCirclePortDirection,
+    type MagicCircleStatus,
+    type MagicControlPairRole,
+    type MagicEditorNodeKind,
+} from '../systems/graph/magicGraphTypes';
 import { EDITOR_GRID_SIZE } from './nodeEditorConfigs';
 
 export const GRAPH_NODE_TYPES = {

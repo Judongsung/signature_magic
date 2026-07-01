@@ -5,7 +5,13 @@ import {
 } from '../../../constants/nodeEditorConfigs';
 import { describe, expect, it } from 'vitest';
 import { MAGIC_CONTROL_PAIR_ROLES } from '../../../constants/graphConfigs';
-import type { MagicNode, MagicTypeConfig } from '../../../types/magic';
+import {
+    type MagicNode,
+    type MagicUserNode,
+} from '../magicGraphTypes';
+import {
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import {
     attachNodeToCircle,
     createMagicCircleNode,
@@ -49,13 +55,18 @@ const magicTypes = buildMagicTypeMap([
     },
 ] satisfies MagicTypeConfig[]);
 
-function node(id: string, magicType = 'ignition', repeatCount?: string): MagicNode {
+function node(
+    id: string,
+    magicType = 'ignition',
+    repeatCount?: string
+): MagicUserNode {
     return {
         id,
         type: 'magicNode',
         position: { x: 0, y: 0 },
         data: {
             magicType,
+            nodeKind: 'user',
             ...(repeatCount ? { settings: { repeatCount } } : {}),
         },
     };
@@ -66,7 +77,7 @@ function marker(
     pairId: string,
     role: 'start' | 'end',
     repeatCount?: string
-): MagicNode {
+): MagicUserNode {
     return {
         ...node(id, 'repeat', repeatCount),
         data: {

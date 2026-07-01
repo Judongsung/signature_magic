@@ -1,7 +1,7 @@
 import type { Edge } from '@xyflow/svelte';
-import type {
-    MagicEditorNode,
-} from '../../../types/magic';
+import {
+    type MagicEditorNode,
+} from '../magicGraphTypes';
 import {
     isMagicCircleNode,
 } from '../model/magicCircleGraph';

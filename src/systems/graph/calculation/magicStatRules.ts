@@ -10,7 +10,6 @@ import {
 } from '../../../constants/magicStatConfigs';
 import {
     MAGIC_STAT_KEYS,
-    type MagicGraphNode,
     type MagicStatAggregationOperation,
     type MagicStatBoundsConfig,
     type MagicStatBoundsOverrideConfig,
@@ -21,15 +20,18 @@ import {
     type MagicStatScalingConfig,
     type MagicNodeStatBoundsConfig,
     type MagicStats,
+} from '../../../types/magicStats';
+import type { MagicCalculationNode } from './magicCalculationTypes';
+import {
     type MagicTypeConfig,
-} from '../../../types/magic';
+} from '../../../types/magicTypeConfig';
 
 export type MagicStatScope = 'circle' | 'total';
 
 export interface MagicStatRuleContext {
     statKey: MagicStatKey;
     scope: MagicStatScope;
-    nodes: readonly MagicGraphNode[];
+    nodes: readonly MagicCalculationNode[];
     edges: readonly MagicGraphEdge[];
     magicTypes: ReadonlyMap<string, MagicTypeConfig>;
 }

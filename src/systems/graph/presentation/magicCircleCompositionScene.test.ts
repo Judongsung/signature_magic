@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { NODE_COMPOSITION_TRANSITION_CONFIG } from '../../../constants/magicCircleConfigs';
-import { EMPTY_MAGIC_STATS, type CirclePath, type MagicType } from '../../../types/magic';
+import {
+    EMPTY_MAGIC_STATS,
+} from '../../../types/magicStats';
+import {
+    type CirclePath,
+} from '../calculation/magicCalculationTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import { buildMagicCircleCompositionScene } from './magicCircleCompositionScene';
 
 function circle(id: string, magicType: MagicType = 'ignition'): CirclePath {
@@ -13,7 +21,7 @@ function circle(id: string, magicType: MagicType = 'ignition'): CirclePath {
                 id: `${id}-node`,
                 type: 'magicNode',
                 position: { x: 0, y: 0 },
-                data: { magicType },
+                data: { magicType, nodeKind: 'user' },
             },
         ],
     };

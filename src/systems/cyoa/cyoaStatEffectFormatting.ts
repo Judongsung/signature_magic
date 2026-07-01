@@ -3,7 +3,12 @@ import {
     MAGIC_NODE_CATEGORY_LABELS,
     MAGIC_STAT_LABELS,
 } from '../../constants/uiText';
-import type { MagicStatEffectConfig, MagicType } from '../../types/magic';
+import {
+    type MagicStatEffectConfig,
+} from '../../types/magicStatEffects';
+import {
+    type MagicType,
+} from '../../types/magicTypeConfig';
 import { MAGIC_STAT_EFFECT_PHASE } from '../graph/calculation/magicStatEffectBundles';
 import { MAGIC_STAT_EFFECT_OPERATION_IDS } from '../graph/calculation/magicStatEffects';
 

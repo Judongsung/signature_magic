@@ -11,7 +11,9 @@
         MAGIC_CONTROL_PAIR_CONFIG,
     } from '../../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
-    import type { MagicCircleNodeData } from '../../../../types/magic';
+    import {
+        type MagicCircleNodeData,
+    } from '../../../../systems/graph/magicGraphTypes';
     import { resolveMagicCircleViewModel } from '../../../../systems/graph/presentation/magicCirclePresentation';
     import { resolveCirclePortLeft } from '../../../../systems/graph/presentation/magicHandlePresentation';
     import { resolveMagicControlPairConnectors } from '../../../../systems/graph/presentation/magicControlPairPresentation';

@@ -2,7 +2,10 @@
 import { mount, unmount } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import { MAGIC_STAT_CALCULATION_DESCRIPTIONS } from '../../../constants/uiText';
-import { MAGIC_STAT_KEYS, type MagicStats } from '../../../types/magic';
+import {
+    MAGIC_STAT_KEYS,
+    type MagicStats,
+} from '../../../types/magicStats';
 import MagicStatsGrid from './MagicStatsGrid.svelte';
 
 const stats: MagicStats = {

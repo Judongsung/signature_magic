@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { MagicGraphPresetConfig } from '../../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+} from './magicGraphPresetTypes';
 import {
     MAGIC_GRAPH_PRESET_SOURCES,
     createMagicGraphPresetOptionValue,

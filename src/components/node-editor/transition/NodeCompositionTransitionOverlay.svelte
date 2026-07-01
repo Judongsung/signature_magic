@@ -5,7 +5,9 @@
         MAGIC_CIRCLE_ANIMATION_MODES,
         NODE_COMPOSITION_TRANSITION_CONFIG,
     } from '../../../constants/magicCircleConfigs';
-    import type { CirclePath } from '../../../types/magic';
+    import {
+        type CirclePath,
+    } from '../../../systems/graph/calculation/magicCalculationTypes';
     import {
         buildMagicCircleCompositionScene,
         type MagicCircleCompositionSceneCircle,

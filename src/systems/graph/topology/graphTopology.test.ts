@@ -1,6 +1,11 @@
 import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
-import type { MagicNode, MagicType } from '../../../types/magic';
+import {
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import { buildGraphTopology, buildOutEdgeMap } from './graphTopology';
 import {
     canReach,
@@ -14,7 +19,7 @@ function node(id: string, magicType: MagicType = 'ignition'): MagicNode {
         id,
         type: 'magicNode',
         position: { x: 0, y: 0 },
-        data: { magicType },
+        data: { magicType, nodeKind: 'user' },
     };
 }
 

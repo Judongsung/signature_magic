@@ -3,7 +3,13 @@ import {
     MAGIC_CONTROL_PAIR_ROLES,
 } from '../../../constants/graphConfigs';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
-import type { MagicNode, MagicType } from '../../../types/magic';
+import {
+    type MagicNode,
+    type MagicUserNode,
+} from '../magicGraphTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import {
     attachNodeToCircle,
     compareMagicCircleSequenceNodes,
@@ -25,7 +31,7 @@ function marker(
     magicType: MagicType,
     pairId: string,
     role: 'start' | 'end'
-): MagicNode {
+): MagicUserNode {
     return {
         ...createTestMagicNode(id, magicType),
         data: {
@@ -44,7 +50,7 @@ function pair(
     magicType: MagicType,
     startIndex: number,
     endIndex: number
-): MagicNode[] {
+): [MagicUserNode, MagicUserNode] {
     return [
         attachNodeToCircle(
             marker(

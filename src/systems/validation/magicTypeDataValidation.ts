@@ -6,11 +6,13 @@ import {
 } from '../../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_KEYS,
-    type MagicNodeInstanceEditorConfig,
     type MagicNodeStatRulesConfig,
-    type MagicTypeConfig,
     type MagicStatsConfig,
-} from '../../types/magic';
+} from '../../types/magicStats';
+import {
+    type MagicNodeInstanceEditorConfig,
+    type MagicTypeConfig,
+} from '../../types/magicTypeConfig';
 import { isMagicStatBranchAggregation } from '../graph/calculation/magicStatRules';
 import {
     collectDuplicateErrors,

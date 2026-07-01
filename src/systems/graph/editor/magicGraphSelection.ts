@@ -1,7 +1,7 @@
-import type {
-    MagicCircleNode,
-    MagicEditorNode,
-} from '../../../types/magic';
+import {
+    type MagicCircleNode,
+    type MagicEditorNode,
+} from '../magicGraphTypes';
 import {
     getMagicCircleNodes,
     getMagicUnitNodes,

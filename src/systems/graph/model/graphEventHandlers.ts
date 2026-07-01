@@ -1,4 +1,4 @@
-﻿import type { MagicEditorNode } from '../../../types/magic';
+﻿import type { MagicEditorNode } from '../magicGraphTypes';
 import type {
     MagicGraphConnection,
     MagicGraphEdge,

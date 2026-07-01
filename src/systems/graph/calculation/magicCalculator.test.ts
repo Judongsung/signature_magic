@@ -1,12 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
     EMPTY_MAGIC_STATS,
-    type MagicCalculationResult,
-    type MagicNode,
-    type MagicStatEffectBundle,
     type MagicStats,
+} from '../../../types/magicStats';
+import {
+    type MagicCalculationResult,
+} from './magicCalculationTypes';
+import {
+    type MagicNode,
+    type MagicUserNode,
+} from '../magicGraphTypes';
+import {
+    type MagicStatEffectBundle,
+} from '../../../types/magicStatEffects';
+import {
     type MagicTypeConfig,
-} from '../../../types/magic';
+} from '../../../types/magicTypeConfig';
 import {
     attachNodeToCircle,
     createMagicCircleNode,
@@ -22,13 +31,14 @@ function node(
     id: string,
     magicType: string,
     settings?: Record<string, string>
-): MagicNode {
+): MagicUserNode {
     return {
         id,
         type: 'magicNode',
         position: { x: 0, y: 0 },
         data: {
             magicType,
+            nodeKind: 'user',
             ...(settings ? { settings } : {}),
         },
     };

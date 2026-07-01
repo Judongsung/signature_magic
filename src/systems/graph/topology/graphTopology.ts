@@ -1,15 +1,20 @@
-import type { MagicGraphNode } from '../../../types/magic';
 import type { MagicGraphEdge } from '../magicGraphTypes';
 
-export interface GraphTopology {
-    nodeMap: ReadonlyMap<string, MagicGraphNode>;
+export interface GraphTopologyNode {
+    id: string;
+}
+
+export interface GraphTopology<
+    Node extends GraphTopologyNode = GraphTopologyNode,
+> {
+    nodeMap: ReadonlyMap<string, Node>;
     outEdges: ReadonlyMap<string, readonly string[]>;
     inEdges: ReadonlyMap<string, readonly string[]>;
     sourceEdges: ReadonlyMap<string, readonly MagicGraphEdge[]>;
     targetEdges: ReadonlyMap<string, readonly MagicGraphEdge[]>;
     inDegree: ReadonlyMap<string, number>;
     edges: readonly MagicGraphEdge[];
-    nodes: readonly MagicGraphNode[];
+    nodes: readonly Node[];
     rootIds: readonly string[];
 }
 
@@ -26,11 +31,11 @@ export function buildOutEdgeMap(
     return outEdges;
 }
 
-export function buildGraphTopology(
-    nodes: readonly MagicGraphNode[],
+export function buildGraphTopology<Node extends GraphTopologyNode>(
+    nodes: readonly Node[],
     edges: readonly MagicGraphEdge[]
-): GraphTopology {
-    const nodeMap = new Map<string, MagicGraphNode>();
+): GraphTopology<Node> {
+    const nodeMap = new Map<string, Node>();
     const outEdges = new Map<string, string[]>();
     const inEdges = new Map<string, string[]>();
     const sourceEdges = new Map<string, MagicGraphEdge[]>();

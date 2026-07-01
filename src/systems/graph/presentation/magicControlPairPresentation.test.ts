@@ -3,7 +3,12 @@ import {
     MAGIC_CONTROL_PAIR_ROLES,
 } from '../../../constants/graphConfigs';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
-import type { MagicNode, MagicType } from '../../../types/magic';
+import {
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import {
     attachNodeToCircle,
     compareMagicCircleSequenceNodes,

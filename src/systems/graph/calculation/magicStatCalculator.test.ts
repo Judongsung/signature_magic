@@ -1,6 +1,15 @@
 ﻿import type { Edge } from '@xyflow/svelte';
 import { describe, expect, it } from 'vitest';
-import type { MagicNode, MagicStats, MagicType, MagicTypeConfig } from '../../../types/magic';
+import {
+    type MagicUserNode,
+} from '../magicGraphTypes';
+import {
+    type MagicStats,
+} from '../../../types/magicStats';
+import {
+    type MagicType,
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { hasMagicStatRuleForEveryKey } from './magicStatRules';
 
@@ -8,12 +17,12 @@ function node(
     id: string,
     magicType: MagicType,
     settings?: Record<string, string>
-): MagicNode {
+): MagicUserNode {
     return {
         id,
         type: 'magicNode',
         position: { x: 0, y: 0 },
-        data: { magicType, settings },
+        data: { magicType, settings, nodeKind: 'user' },
     };
 }
 

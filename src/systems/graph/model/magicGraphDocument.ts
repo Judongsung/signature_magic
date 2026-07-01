@@ -1,8 +1,8 @@
-import type {
-    MagicCircleNode,
-    MagicEditorNode,
-    MagicNode,
-} from '../../../types/magic';
+import {
+    type MagicCircleNode,
+    type MagicEditorNode,
+    type MagicNode,
+} from '../magicGraphTypes';
 import type { MagicGraphEdge } from '../magicGraphTypes';
 
 type MagicGraphNodeViewKey =
@@ -11,7 +11,9 @@ type MagicGraphNodeViewKey =
     | 'measured';
 
 type WithoutMagicGraphNodeView<T> =
-    Omit<T, MagicGraphNodeViewKey>;
+    T extends unknown
+        ? Omit<T, MagicGraphNodeViewKey>
+        : never;
 
 export type MagicGraphDocumentNode =
     | WithoutMagicGraphNodeView<MagicNode>

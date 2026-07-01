@@ -3,7 +3,9 @@ import type {
     CyoaDialogueScriptConfig,
     CyoaDialogueTextSegment,
 } from '../../types/cyoa';
-import { MAGIC_STAT_KEYS } from '../../types/magic';
+import {
+    MAGIC_STAT_KEYS,
+} from '../../types/magicStats';
 import { getCyoaDialogueLineText } from '../cyoa/cyoaDialogueText';
 import { getCyoaDialogueOptionRowConfigs } from '../cyoa/cyoaDialogueScripts';
 import {

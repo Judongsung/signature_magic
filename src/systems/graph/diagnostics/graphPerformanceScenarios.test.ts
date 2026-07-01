@@ -4,13 +4,17 @@ import {
     GRAPH_NODE_TYPES,
     MAGIC_CIRCLE_HANDLE_IDS,
 } from '../../../constants/graphConfigs';
-import type {
-    MagicEditorNode,
-    MagicNode,
-    MagicStats,
-    MagicType,
-    MagicTypeConfig,
-} from '../../../types/magic';
+import {
+    type MagicEditorNode,
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicStats,
+} from '../../../types/magicStats';
+import {
+    type MagicType,
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import { calculateMagic } from '../calculation/magicCalculator';
 import {
     attachNodeToCircle,
@@ -69,7 +73,7 @@ function node(id: string, magicType: MagicType): MagicNode {
         id,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position: { x: 0, y: 0 },
-        data: { magicType },
+        data: { magicType, nodeKind: 'user' },
     };
 }
 

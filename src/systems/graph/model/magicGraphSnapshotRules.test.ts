@@ -6,10 +6,10 @@ import {
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_TYPES,
 } from '../../../constants/circleSystemMagicNodeConfigs';
-import type {
-    MagicGraphPresetConfig,
-    MagicGraphPresetNodeConfig,
-} from '../../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+    type MagicGraphPresetNodeConfig,
+} from '../presets/magicGraphPresetTypes';
 import { magicTypeMap } from '../registry/magicTypeRegistry';
 import {
     analyzeMagicGraphControlPairs,

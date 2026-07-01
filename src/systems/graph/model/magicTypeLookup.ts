@@ -1,9 +1,12 @@
-import type { MagicGraphNode, MagicType, MagicTypeConfig } from '../../../types/magic';
+import {
+    type MagicType,
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 
 export type MagicTypeLookup = readonly MagicTypeConfig[] | ReadonlyMap<string, MagicTypeConfig>;
 
 export function readMagicTypeConfig(
-    node: MagicGraphNode,
+    node: { data: { magicType: MagicType } },
     magicTypes: MagicTypeLookup
 ): MagicTypeConfig | undefined {
     return readMagicTypeConfigByType(node.data.magicType, magicTypes);

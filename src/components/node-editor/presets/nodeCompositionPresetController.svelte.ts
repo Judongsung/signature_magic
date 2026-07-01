@@ -13,7 +13,9 @@ import {
     saveStoredMagicGraphPreset,
     type MagicGraphPresetStorageResult,
 } from '../../../systems/graph/presets/magicGraphPresetStorage';
-import type { MagicGraphPresetConfig } from '../../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+} from '../../../systems/graph/presets/magicGraphPresetTypes';
 
 interface NodeCompositionPresetGraph {
     readonly hasUserContent: boolean;

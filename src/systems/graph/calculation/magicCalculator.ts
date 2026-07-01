@@ -1,15 +1,23 @@
 ﻿import type { MagicGraphEdge } from '../magicGraphTypes';
 import {
     MAGIC_STAT_KEYS,
+    type MagicStats,
+} from '../../../types/magicStats';
+import {
     type MagicEditorNode,
-    type MagicGraphNode,
+} from '../magicGraphTypes';
+import {
     type MagicStatEffectBundle,
     type MagicStatEffectConfig,
-    type MagicStats,
+} from '../../../types/magicStatEffects';
+import {
     type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
+import {
     type CirclePath,
+    type MagicCalculationNode,
     type MagicCalculationResult,
-} from '../../../types/magic';
+} from './magicCalculationTypes';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
 import { clampMagicStats } from './magicStatRules';
@@ -158,7 +166,7 @@ function calculateExplicitCircles(
 }
 
 function calculateBaselineTotalStats(
-    nodes: readonly MagicGraphNode[],
+    nodes: readonly MagicCalculationNode[],
     edges: readonly MagicGraphEdge[],
     analysis: MagicGraphAnalysis,
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,

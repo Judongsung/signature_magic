@@ -1,9 +1,11 @@
 import { MAGIC_REPEAT_CONFIG } from '../../../constants/nodeEditorConfigs';
 import { MAGIC_CONTROL_PAIR_NODE_TYPES } from '../../../constants/graphConfigs';
-import type {
-    MagicEditorNode,
-    MagicTypeConfig,
-} from '../../../types/magic';
+import {
+    type MagicEditorNode,
+} from '../magicGraphTypes';
+import {
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import { resolveMagicNodeRepeatCount } from '../model/magicNodeData';
 import {
     isMagicControlPairNode,

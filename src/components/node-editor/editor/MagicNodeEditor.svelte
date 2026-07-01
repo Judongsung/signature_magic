@@ -44,10 +44,12 @@
     import MagicGraphEdge from './nodes/MagicGraphEdge.svelte';
     import MagicNodeToolbar from './MagicNodeToolbar.svelte';
     import { openNodeDetailsFromContextMenu } from './details/nodeDetailsInteraction';
-    import type {
-        MagicEditorNode,
-        MagicType,
-    } from '../../../types/magic';
+    import {
+        type MagicEditorNode,
+    } from '../../../systems/graph/magicGraphTypes';
+    import {
+        type MagicType,
+    } from '../../../types/magicTypeConfig';
     import {
         getMagicCircleNodes,
         isMagicTypeAllowedInCircleSequence,

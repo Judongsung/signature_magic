@@ -2,7 +2,12 @@ import {
     GRAPH_NODE_TYPES,
     MAGIC_NODE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
-import type { MagicNode, MagicType } from '../../../types/magic';
+import {
+    type MagicUserNode,
+} from '../magicGraphTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import type { MagicGraphEdge } from '../magicGraphTypes';
 import { createUserMagicNodeData } from './magicNodeData';
 
@@ -16,7 +21,7 @@ export function createNode(
     magicType: MagicType,
     position: { x: number; y: number },
     createId: IdFactory = createUniqueId
-): MagicNode {
+): MagicUserNode {
     return {
         id: `${MAGIC_NODE_ID_PREFIX}-${createId()}`,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,

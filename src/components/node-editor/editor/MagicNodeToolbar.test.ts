@@ -6,7 +6,9 @@ import {
 } from '../../../constants/nodeEditorConfigs';
 import { NODE_EDITOR_TEXT } from '../../../constants/uiText';
 import { CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS } from '../../../constants/circleSystemMagicNodeConfigs';
-import type { MagicTypeConfig } from '../../../types/magic';
+import {
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
 import { getMagicTypesByCategory } from '../../../systems/graph/registry/magicTypeRegistry';
 import MagicNodeToolbar from './MagicNodeToolbar.svelte';
 

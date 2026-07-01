@@ -1,4 +1,6 @@
-import type { MagicNode } from '../../../../types/magic';
+import {
+    type MagicNode,
+} from '../../../../systems/graph/magicGraphTypes';
 
 export function openNodeDetailsFromContextMenu(
     node: MagicNode,

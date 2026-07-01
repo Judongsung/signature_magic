@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
-import type { MagicEditorNode } from '../../../types/magic';
+import {
+    type MagicEditorNode,
+} from '../magicGraphTypes';
 import {
     attachNodeToCircle,
     createMagicCircleNode,

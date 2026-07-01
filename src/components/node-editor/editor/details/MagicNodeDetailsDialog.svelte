@@ -10,13 +10,17 @@ import { untrack } from 'svelte';
         normalizeMagicNodeSettings,
         resolveMagicNodeLabel,
     } from '../../../../systems/graph/model/magicNodeData';
-    import type {
-        MagicNode,
-        MagicNodeSettings,
-        MagicStatEffectConfig,
-        MagicNodeStepperEditorFieldConfig,
-        MagicTypeConfig,
-    } from '../../../../types/magic';
+    import {
+        type MagicNode,
+    } from '../../../../systems/graph/magicGraphTypes';
+    import {
+        type MagicNodeSettings,
+        type MagicNodeStepperEditorFieldConfig,
+        type MagicTypeConfig,
+    } from '../../../../types/magicTypeConfig';
+    import {
+        type MagicStatEffectConfig,
+    } from '../../../../types/magicStatEffects';
     import { dialogFocus } from '../../../shared/dialogFocus';
     import MagicNodeTooltipStats from '../MagicNodeTooltipStats.svelte';
 

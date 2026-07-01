@@ -7,7 +7,9 @@ import {
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
 } from '../../../constants/circleSystemMagicNodeConfigs';
-import type { MagicNode } from '../../../types/magic';
+import {
+    type MagicUserNode,
+} from '../magicGraphTypes';
 import {
     attachNodeToCircle,
     createMagicCircleNode,
@@ -21,12 +23,12 @@ import {
 
 const circleSystemNodeConfig = CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS[0];
 
-function node(id: string, magicType = 'ignition'): MagicNode {
+function node(id: string, magicType = 'ignition'): MagicUserNode {
     return {
         id,
         type: 'magicNode',
         position: { x: 0, y: 0 },
-        data: { magicType },
+        data: { magicType, nodeKind: 'user' },
     };
 }
 

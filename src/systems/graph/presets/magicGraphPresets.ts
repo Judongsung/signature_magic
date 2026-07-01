@@ -8,15 +8,17 @@ import {
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
 } from '../../../constants/circleSystemMagicNodeConfigs';
-import type {
-    MagicGraphPresetConfig,
-    MagicGraphPresetCircleConfig,
-    MagicGraphPresetEdgeConfig,
-    MagicGraphPresetNodeConfig,
-    MagicCircleNode,
-    MagicEditorNode,
-    MagicNode,
-} from '../../../types/magic';
+import {
+    type MagicGraphPresetConfig,
+    type MagicGraphPresetCircleConfig,
+    type MagicGraphPresetEdgeConfig,
+    type MagicGraphPresetNodeConfig,
+} from './magicGraphPresetTypes';
+import {
+    type MagicCircleNode,
+    type MagicEditorNode,
+    type MagicNode,
+} from '../magicGraphTypes';
 import { createUniqueId } from '../model/graphActions';
 import type { GraphSnapshot } from '../model/graphEventHandlers';
 import { createUserMagicNodeData, normalizeMagicNodeSettings } from '../model/magicNodeData';

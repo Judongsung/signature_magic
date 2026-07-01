@@ -1,10 +1,12 @@
 import { APP_PHASES, type AppPhase } from './appPhaseConfigs';
 import type { MagicNodeCategory } from './nodeEditorConfigs';
-import type {
-    MagicStatEffectOperation,
-    MagicStatEffectPhase,
-    MagicStatKey,
-} from '../types/magic';
+import {
+    type MagicStatEffectOperation,
+    type MagicStatEffectPhase,
+} from '../types/magicStatEffects';
+import {
+    type MagicStatKey,
+} from '../types/magicStats';
 
 // 앱 단계와 전역 내비게이션 문구
 export const DIALOGUE_SCREEN_TEXT = {

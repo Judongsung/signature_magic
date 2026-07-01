@@ -3,12 +3,16 @@ import {
     MAGIC_CONTROL_PAIR_ROLES,
     MAGIC_EDGE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
-import type {
-    MagicCircleNode,
-    MagicCircleState,
-    MagicEditorNode,
-    MagicNode,
-} from '../../../types/magic';
+import {
+    type MagicCircleNode,
+    type MagicEditorNode,
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicCalculationAnchorNode,
+    type MagicCalculationNode,
+    type MagicCircleState,
+} from './magicCalculationTypes';
 import {
     isMagicCirclePortHandleId,
 } from '../model/magicCircleGraph';
@@ -29,7 +33,7 @@ export interface CircleInternalAnalysis {
     circle: MagicCircleNode;
     sequenceNodes: readonly MagicNode[];
     calculationNodes: MagicNode[];
-    projectedNodes: MagicNode[];
+    projectedNodes: MagicCalculationNode[];
     projectedEdges: MagicGraphEdge[];
     isInternallyValid: boolean;
 }
@@ -38,7 +42,7 @@ export interface ExplicitMagicCircleGraphAnalysis {
     circles: readonly MagicCircleNode[];
     states: MagicCircleState[];
     internalByCircleId: ReadonlyMap<string, CircleInternalAnalysis>;
-    projectedNodes: MagicNode[];
+    projectedNodes: MagicCalculationNode[];
     projectedEdges: MagicGraphEdge[];
     orderedCalculatedCircleIds: string[];
 }
@@ -51,7 +55,7 @@ function endAnchorId(circleId: string): string {
     return `${circleId}:${VIRTUAL_END_SUFFIX}`;
 }
 
-function createVirtualAnchor(id: string): MagicNode {
+function createVirtualAnchor(id: string): MagicCalculationAnchorNode {
     return {
         id,
         position: { x: 0, y: 0 },
@@ -244,7 +248,7 @@ export function analyzeExplicitMagicCircleGraph(
     const displayOrderById = new Map(
         orderedCircleIds.map((circleId, index) => [circleId, index + 1])
     );
-    const projectedNodes: MagicNode[] = [];
+    const projectedNodes: MagicCalculationNode[] = [];
     const projectedEdges: MagicGraphEdge[] = [];
 
     orderedCircleIds.forEach(circleId => {

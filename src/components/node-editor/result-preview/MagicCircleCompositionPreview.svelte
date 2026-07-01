@@ -7,7 +7,9 @@
     import {
         buildMagicCircleCompositionScene,
     } from '../../../systems/graph/presentation/magicCircleCompositionScene';
-    import type { CirclePath } from '../../../types/magic';
+    import {
+        type CirclePath,
+    } from '../../../systems/graph/calculation/magicCalculationTypes';
     import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
     import MagicCircleSvg from '../magic-circle/MagicCircleSvg.svelte';
 

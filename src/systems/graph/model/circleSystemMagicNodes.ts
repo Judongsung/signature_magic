@@ -7,28 +7,27 @@ import {
     CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS,
     type CircleSystemMagicNodeConfig,
 } from '../../../constants/circleSystemMagicNodeConfigs';
-import type {
-    MagicCircleNode,
-    MagicEditorNode,
-    MagicGraphPresetCircleSystemNodeSlotConfig,
-    MagicNode,
-    MagicNodeData,
-    MagicNodeSettings,
-    MagicType,
-} from '../../../types/magic';
+import {
+    type MagicCircleNode,
+    type MagicCircleSystemNode,
+    type MagicCircleSystemNodeData,
+    type MagicEditorNode,
+    type MagicNode,
+    type MagicNodeData,
+} from '../magicGraphTypes';
+import {
+    type MagicGraphPresetCircleSystemNodeSlotConfig,
+} from '../presets/magicGraphPresetTypes';
+import {
+    type MagicNodeSettings,
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import {
     attachNodeToCircle,
     getCircleChildNodes,
     isMagicCircleNode,
 } from './magicCircleGraph';
 import { normalizeMagicNodeSettings } from './magicNodeData';
-
-type CircleSystemMagicNode = MagicNode & {
-    data: MagicNodeData & {
-        magicType: MagicType;
-        nodeKind: typeof MAGIC_NODE_KINDS.SYSTEM;
-    };
-};
 
 const DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS =
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS;
@@ -52,16 +51,16 @@ export function isCircleSystemMagicNode(
     node: MagicEditorNode,
     configs: readonly CircleSystemMagicNodeConfig[] =
         DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
-): node is CircleSystemMagicNode {
+): node is MagicCircleSystemNode {
     return !isMagicCircleNode(node) &&
         isCircleSystemMagicNodeData(node.data, configs);
 }
 
 export function isCircleSystemMagicNodeData(
-    data: Pick<MagicNodeData, 'magicType' | 'nodeKind'>,
+    data: MagicNodeData,
     configs: readonly CircleSystemMagicNodeConfig[] =
         DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
-): boolean {
+): data is MagicCircleSystemNodeData {
     return data.nodeKind === MAGIC_NODE_KINDS.SYSTEM &&
         isCircleSystemMagicType(data.magicType, configs);
 }
@@ -266,7 +265,7 @@ function normalizeCircleSystemMagicNode(
     circle: MagicCircleNode,
     config: CircleSystemMagicNodeConfig,
     settings = existing?.data.settings
-): MagicNode {
+): MagicCircleSystemNode {
     const {
         settings: _settings,
         controlPair: _controlPair,

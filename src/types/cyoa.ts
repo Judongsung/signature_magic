@@ -1,5 +1,6 @@
 import type { CyoaChoiceImagePlacement, CyoaChoiceImageSize, CyoaDialogueTextVariant, CyoaInputRole, CyoaSelectionMode } from '../constants/cyoaConfigs';
-import type { MagicStatEffectConfig, MagicStatKey, MagicStats } from './magic';
+import type { MagicStatEffectConfig } from './magicStatEffects';
+import type { MagicStatKey, MagicStats } from './magicStats';
 
 export interface CyoaRowVisibilityCondition {
     choiceSelected?: string;

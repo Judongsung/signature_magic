@@ -2,7 +2,9 @@ import {
     GRAPH_EDGE_TYPES,
     MAGIC_EDGE_ID_PREFIX,
 } from '../../../constants/graphConfigs';
-import type { MagicEditorNode } from '../../../types/magic';
+import {
+    type MagicEditorNode,
+} from '../magicGraphTypes';
 import type {
     MagicGraphConnection,
     MagicGraphEdge,

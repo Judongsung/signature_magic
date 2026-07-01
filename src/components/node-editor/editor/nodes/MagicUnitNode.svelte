@@ -1,5 +1,7 @@
 <script lang="ts">
-    import type { MagicNodeData } from '../../../../types/magic';
+    import {
+        type MagicNodeData,
+    } from '../../../../systems/graph/magicGraphTypes';
     import {
         MAGIC_NODE_KINDS,
         MAGIC_NODE_RENDERING_CONFIG,

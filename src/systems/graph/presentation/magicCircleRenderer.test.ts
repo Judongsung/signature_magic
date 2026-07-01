@@ -1,7 +1,18 @@
 ﻿import { describe, expect, it } from 'vitest';
 import { MAGIC_CIRCLE_RENDERING_CONFIG } from '../../../constants/magicCircleConfigs';
 import { buildMagicCircleRenderModels } from './magicCircleRenderer';
-import { EMPTY_MAGIC_STATS, type CirclePath, type MagicNode, type MagicType } from '../../../types/magic';
+import {
+    EMPTY_MAGIC_STATS,
+} from '../../../types/magicStats';
+import {
+    type CirclePath,
+} from '../calculation/magicCalculationTypes';
+import {
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicType,
+} from '../../../types/magicTypeConfig';
 import { DEFAULT_MAGIC_GLYPH_CONFIG } from './magicGlyphRegistry';
 
 function node(id: string, magicType: MagicType): MagicNode {
@@ -9,7 +20,7 @@ function node(id: string, magicType: MagicType): MagicNode {
         id,
         type: 'magicNode',
         position: { x: 0, y: 0 },
-        data: { magicType },
+        data: { magicType, nodeKind: 'user' },
     };
 }
 

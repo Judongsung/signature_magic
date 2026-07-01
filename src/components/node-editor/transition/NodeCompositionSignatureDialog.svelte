@@ -1,7 +1,9 @@
 <script lang="ts">
     import luarnChibiImageSrc from '../../../assets/images/luarn_chibi.png';
     import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../../constants/uiText';
-    import type { MagicSignatureMetadata } from '../../../types/magic';
+    import {
+        type MagicSignatureMetadata,
+    } from '../../../types/magicSignature';
     import { dialogFocus } from '../../shared/dialogFocus';
     import CharacterSpeechBubble from '../../shared/CharacterSpeechBubble.svelte';
 

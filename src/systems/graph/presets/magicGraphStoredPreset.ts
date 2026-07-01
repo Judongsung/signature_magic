@@ -8,12 +8,12 @@ import {
 import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
 } from '../../../constants/circleSystemMagicNodeConfigs';
-import type {
-    MagicGraphPresetCircleConfig,
-    MagicGraphPresetConfig,
-    MagicGraphPresetEdgeConfig,
-    MagicGraphPresetNodeConfig,
-} from '../../../types/magic';
+import {
+    type MagicGraphPresetCircleConfig,
+    type MagicGraphPresetConfig,
+    type MagicGraphPresetEdgeConfig,
+    type MagicGraphPresetNodeConfig,
+} from './magicGraphPresetTypes';
 import {
     findNonContiguousMagicGraphSequenceCircleIds,
     hasValidMagicGraphControlPairs,
