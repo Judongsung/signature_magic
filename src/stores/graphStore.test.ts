@@ -197,8 +197,11 @@ describe('graphStore sequence circles', () => {
 
         graphStore.selectCircle(circle.id);
         graphStore.setSequenceDropPreview({
-            circleId: circle.id,
-            y: 120,
+            targetCircleId: circle.id,
+            insertionIndex: 0,
+            indicatorY: 120,
+            beforeNodeId: undefined,
+            afterNodeId: undefined,
         });
         graphStore.resizeCircle(circle.id, { width: 600, height: 640 });
         graphStore.updateCircleMetadata(circle.id, {

@@ -6,7 +6,22 @@ import {
     getCircleChildNodes,
     getMagicCircleNodes,
 } from '../../../../systems/graph/model/magicCircleGraph';
+import type {
+    MagicCircleState,
+    MagicNode,
+} from '../../../../types/magic';
+import type {
+    MagicNodeSequenceDrop,
+} from '../../../../systems/graph/editor/magicCircleEditorInteraction';
 import MagicCircleNode from './MagicCircleNode.svelte';
+
+const renderContextMocks = vi.hoisted(() => ({
+    children: [] as MagicNode[],
+    circleState: undefined as MagicCircleState | undefined,
+    activeCircleId: undefined as string | undefined,
+    sequenceDropPreview: undefined as MagicNodeSequenceDrop | undefined,
+    resizeCircle: vi.fn(),
+}));
 
 vi.mock('@xyflow/svelte', () => ({
     Handle: () => '',
@@ -20,13 +35,41 @@ vi.mock('@xyflow/svelte', () => ({
 vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => undefined,
 }));
+vi.mock('../../rendering/magicGraphRenderContext', () => ({
+    useMagicGraphRenderContext: () => ({
+        getCircleChildren: () => renderContextMocks.children,
+        getCircleState: () => renderContextMocks.circleState,
+        get activeCircleId() {
+            return renderContextMocks.activeCircleId;
+        },
+        get sequenceDropPreview() {
+            return renderContextMocks.sequenceDropPreview;
+        },
+        nodeStatEffects: [],
+    }),
+    useMagicGraphEditorActions: () => ({
+        resizeCircle: renderContextMocks.resizeCircle,
+    }),
+}));
 
 afterEach(() => {
     graphStore.clear();
+    renderContextMocks.resizeCircle.mockReset();
+    renderContextMocks.sequenceDropPreview = undefined;
 });
 
 function renderCircle(selected = false, draggable = true) {
     const circle = getMagicCircleNodes(graphStore.nodes)[0];
+    renderContextMocks.children = getCircleChildNodes(
+        graphStore.nodes,
+        circle.id
+    );
+    renderContextMocks.circleState = graphStore.circleStates.find(state =>
+        state.circleId === circle.id
+    );
+    renderContextMocks.activeCircleId = graphStore.activeCircleId;
+    renderContextMocks.sequenceDropPreview =
+        graphStore.sequenceDropPreview;
     return render(MagicCircleNode, {
         props: {
             id: circle.id,
@@ -84,7 +127,13 @@ describe('MagicCircleNode', () => {
 
     it('renders the active insertion indicator only for its circle', () => {
         const circle = getMagicCircleNodes(graphStore.nodes)[0];
-        graphStore.setSequenceDropPreview({ circleId: circle.id, y: 120 });
+        graphStore.setSequenceDropPreview({
+            targetCircleId: circle.id,
+            insertionIndex: 0,
+            indicatorY: 120,
+            beforeNodeId: undefined,
+            afterNodeId: undefined,
+        });
 
         expect(renderCircle().html).toContain('sequence-insertion-indicator');
     });

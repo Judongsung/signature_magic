@@ -31,7 +31,11 @@
 
     <article class="result-section">
         <h3>{CYOA_REGISTRATION_RESULT_TEXT.GRAPH_TITLE}</h3>
-        <MagicGraphResultPreview nodes={graphStore.nodes} edges={graphStore.edges} />
+        <MagicGraphResultPreview
+            nodes={graphStore.nodes}
+            edges={graphStore.edges}
+            circleStates={graphStore.circleStates}
+        />
     </article>
 
     <article class="result-section">

@@ -19,6 +19,15 @@ vi.mock('@xyflow/svelte', () => ({
 vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => interactionMocks.openDetails,
 }));
+vi.mock('../../rendering/magicGraphRenderContext', () => ({
+    useMagicGraphRenderContext: () => ({
+        getCircleChildren: () => [],
+        getCircleState: () => undefined,
+        activeCircleId: undefined,
+        sequenceDropPreview: undefined,
+        nodeStatEffects: [],
+    }),
+}));
 
 let mountedNode: Record<string, unknown> | undefined;
 

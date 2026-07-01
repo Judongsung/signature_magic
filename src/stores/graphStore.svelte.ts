@@ -38,6 +38,9 @@ import {
     resolveMagicGraphSelectionTargetCircleId,
     type MagicGraphSelectionScope,
 } from '../systems/graph/editor/magicGraphSelection';
+import type {
+    MagicNodeSequenceDrop,
+} from '../systems/graph/editor/magicCircleEditorInteraction';
 import {
     createMagicGraphClipboardPayload,
     parseMagicGraphClipboardPayload,
@@ -121,12 +124,7 @@ class GraphStore {
     activeCircleId = $state<string | undefined>(
         getMagicCircleNodes(this.nodes)[0]?.id
     );
-    sequenceDropPreview = $state<{
-        circleId: string;
-        y: number;
-        beforeNodeId?: string;
-        afterNodeId?: string;
-    } | undefined>();
+    sequenceDropPreview = $state<MagicNodeSequenceDrop | undefined>();
 
     acceptFlowNodes(nodes: MagicEditorNode[]): void {
         this.editorNodes = nodes;
@@ -311,12 +309,7 @@ class GraphStore {
     }
 
     setSequenceDropPreview(
-        preview: {
-            circleId: string;
-            y: number;
-            beforeNodeId?: string;
-            afterNodeId?: string;
-        } | undefined
+        preview: MagicNodeSequenceDrop | undefined
     ): void {
         this.sequenceDropPreview = preview;
     }

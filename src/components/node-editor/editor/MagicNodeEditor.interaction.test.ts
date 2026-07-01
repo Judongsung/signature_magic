@@ -6,11 +6,19 @@ import { graphStore } from '../../../stores/graphStore.svelte';
 import { resetGraphStoreFixture } from '../../../test-utils/graphFixtures';
 import { getMagicCircleNodes } from '../../../systems/graph/model/magicCircleGraph';
 import type { MagicEditorNode } from '../../../types/magic';
+import type {
+    MagicGraphEditorActions,
+    MagicGraphRenderContext,
+} from '../rendering/magicGraphRenderContext';
 import MagicNodeEditor from './MagicNodeEditor.svelte';
 
 const flowMocks = vi.hoisted(() => ({
     props: undefined as Record<string, unknown> | undefined,
     setViewport: vi.fn(),
+}));
+const renderContextMocks = vi.hoisted(() => ({
+    context: undefined as MagicGraphRenderContext | undefined,
+    actions: undefined as MagicGraphEditorActions | undefined,
 }));
 
 vi.mock('@xyflow/svelte', () => ({
@@ -25,6 +33,14 @@ vi.mock('@xyflow/svelte', () => ({
         screenToFlowPosition: (point: { x: number; y: number }) => point,
         setViewport: flowMocks.setViewport,
     }),
+}));
+vi.mock('../rendering/magicGraphRenderContext', () => ({
+    provideMagicGraphRenderContext: (context: MagicGraphRenderContext) => {
+        renderContextMocks.context = context;
+    },
+    provideMagicGraphEditorActions: (actions: MagicGraphEditorActions) => {
+        renderContextMocks.actions = actions;
+    },
 }));
 
 let mountedEditor: Record<string, unknown> | undefined;
@@ -45,6 +61,8 @@ beforeEach(() => {
     resetGraphStoreFixture();
     flowMocks.props = undefined;
     flowMocks.setViewport.mockReset();
+    renderContextMocks.context = undefined;
+    renderContextMocks.actions = undefined;
 });
 
 afterEach(async () => {
@@ -57,6 +75,60 @@ afterEach(async () => {
 });
 
 describe('MagicNodeEditor interaction', () => {
+    it('provides reactive graph data and editor actions to node renderers', async () => {
+        const target = document.createElement('div');
+        document.body.append(target);
+        mountedEditor = mount(MagicNodeEditor, {
+            target,
+            props: {
+                onOpenPresetDialog: vi.fn(),
+                onOpenNodeDetails: vi.fn(),
+                onConfirmCircleDelete: vi.fn(async () => true),
+            },
+        });
+        await tick();
+
+        const circle = getMagicCircleNodes(graphStore.nodes)[0];
+        expect(renderContextMocks.context?.getCircleChildren(circle.id))
+            .toEqual(graphStore.nodes.filter(node =>
+                node.parentId === circle.id
+            ));
+        expect(renderContextMocks.context?.getCircleState(circle.id))
+            .toEqual(graphStore.circleStates[0]);
+        expect(renderContextMocks.context?.activeCircleId).toBe(circle.id);
+
+        graphStore.setSequenceDropPreview({
+            targetCircleId: circle.id,
+            insertionIndex: 0,
+            indicatorY: 120,
+            beforeNodeId: undefined,
+            afterNodeId: undefined,
+        });
+        graphStore.setExternalStatEffects({
+            nodeEffects: [{
+                phase: 'node',
+                operation: 'add',
+                stat: 'power',
+                value: 1,
+            }],
+            finalEffects: [],
+        });
+
+        expect(renderContextMocks.context?.sequenceDropPreview)
+            .toBe(graphStore.sequenceDropPreview);
+        expect(renderContextMocks.context?.nodeStatEffects)
+            .toBe(graphStore.externalStatEffects.nodeEffects);
+
+        renderContextMocks.actions?.resizeCircle(
+            circle.id,
+            { width: 640, height: 680 }
+        );
+        expect(getMagicCircleNodes(graphStore.nodes)[0]).toMatchObject({
+            width: 640,
+            height: 680,
+        });
+    });
+
     it('commits blank-circle pane selection after the flow deselect pass', async () => {
         const target = document.createElement('div');
         document.body.append(target);

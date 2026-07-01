@@ -5,7 +5,6 @@
         MAGIC_NODE_RENDERING_CONFIG,
     } from '../../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
-    import { graphStore } from '../../../../stores/graphStore.svelte';
     import { getMagicTypeConfig } from '../../../../systems/graph/registry/magicTypeRegistry';
     import {
         resolveMagicNodeCaption,
@@ -16,6 +15,9 @@
     import DescriptionTooltip from '../../../shared/DescriptionTooltip.svelte';
     import MagicNodeTooltipStats from '../MagicNodeTooltipStats.svelte';
     import { useNodeEditorDetails } from '../details/nodeDetailsContext';
+    import {
+        useMagicGraphRenderContext,
+    } from '../../rendering/magicGraphRenderContext';
 
     let {
         id,
@@ -57,18 +59,19 @@
     const isCircleSystemNode = $derived(
         isCircleSystemMagicNodeData(data)
     );
+    const renderContext = useMagicGraphRenderContext();
     const isSequenceInsertionBefore = $derived(
-        graphStore.sequenceDropPreview?.circleId === parentId &&
-        graphStore.sequenceDropPreview?.beforeNodeId === id
+        renderContext.sequenceDropPreview?.targetCircleId === parentId &&
+        renderContext.sequenceDropPreview?.beforeNodeId === id
     );
     const isSequenceInsertionAfter = $derived(
-        graphStore.sequenceDropPreview?.circleId === parentId &&
-        graphStore.sequenceDropPreview?.afterNodeId === id
+        renderContext.sequenceDropPreview?.targetCircleId === parentId &&
+        renderContext.sequenceDropPreview?.afterNodeId === id
     );
     const nodeStatEffects = $derived(
         data.nodeKind === MAGIC_NODE_KINDS.SYSTEM
             ? []
-            : graphStore.externalStatEffects.nodeEffects
+            : renderContext.nodeStatEffects
     );
     const openDetails = useNodeEditorDetails();
 

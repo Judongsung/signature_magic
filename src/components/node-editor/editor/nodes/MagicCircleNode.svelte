@@ -12,17 +12,19 @@
     } from '../../../../constants/graphConfigs';
     import { NODE_EDITOR_TEXT } from '../../../../constants/uiText';
     import type { MagicCircleNodeData } from '../../../../types/magic';
-    import { graphStore } from '../../../../stores/graphStore.svelte';
     import { resolveMagicCircleViewModel } from '../../../../systems/graph/presentation/magicCirclePresentation';
     import { resolveCirclePortLeft } from '../../../../systems/graph/presentation/magicHandlePresentation';
     import { resolveMagicControlPairConnectors } from '../../../../systems/graph/presentation/magicControlPairPresentation';
     import { resolveMagicControlPairLayout } from '../../../../systems/graph/model/magicControlPairs';
-    import { getCircleChildNodes } from '../../../../systems/graph/model/magicCircleGraph';
     import {
         createNodeHandleLayoutKey,
         createNodeInternalsRefresh,
     } from './nodeInternalsRefresh';
     import { useNodeEditorDetails } from '../details/nodeDetailsContext';
+    import {
+        useMagicGraphEditorActions,
+        useMagicGraphRenderContext,
+    } from '../../rendering/magicGraphRenderContext';
 
     const componentInstanceId = $props.id();
 
@@ -44,11 +46,11 @@
         isConnectable?: boolean;
     } = $props();
 
-    const circleState = $derived(
-        graphStore.circleStates.find(state => state.circleId === id)
-    );
+    const renderContext = useMagicGraphRenderContext();
+    const editorActions = useMagicGraphEditorActions();
+    const circleState = $derived(renderContext.getCircleState(id));
     const childNodes = $derived(
-        getCircleChildNodes(graphStore.nodes, id)
+        renderContext.getCircleChildren(id)
     );
     const viewModel = $derived(resolveMagicCircleViewModel(
         { id, data, width, height },
@@ -56,11 +58,11 @@
         circleState
     ));
     const isActiveTarget = $derived(
-        draggable && graphStore.activeCircleId === id
+        draggable && renderContext.activeCircleId === id
     );
     const insertionIndicatorY = $derived(
-        graphStore.sequenceDropPreview?.circleId === id
-            ? graphStore.sequenceDropPreview.y
+        renderContext.sequenceDropPreview?.targetCircleId === id
+            ? renderContext.sequenceDropPreview.indicatorY
             : undefined
     );
     const updateNodeInternals = useUpdateNodeInternals();
@@ -161,10 +163,11 @@
     style:--circle-port-offset={`${MAGIC_CIRCLE_NODE_CONFIG.PORT_OFFSET}px`}
 >
     <NodeResizer
-        isVisible={draggable && selected}
+        isVisible={draggable && selected && Boolean(editorActions)}
         minWidth={viewModel.minimumWidth}
         minHeight={viewModel.minimumHeight}
-        onResizeEnd={(_event, params) => graphStore.resizeCircle(id, params)}
+        onResizeEnd={(_event, params) =>
+            editorActions?.resizeCircle(id, params)}
     />
 
     <div

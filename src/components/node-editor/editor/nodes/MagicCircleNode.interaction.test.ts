@@ -8,14 +8,30 @@ import MagicCircleNode from './MagicCircleNode.svelte';
 
 const xyflowMocks = vi.hoisted(() => ({
     updateNodeInternals: vi.fn<(nodeId?: string | string[]) => void>(),
+    resizeEnd: undefined as ((
+        event: unknown,
+        size: { width: number; height: number }
+    ) => void) | undefined,
 }));
 const detailsMocks = vi.hoisted(() => ({
     openDetails: vi.fn<(nodeId: string) => void>(),
+    resizeCircle: vi.fn<(
+        circleId: string,
+        size: { width: number; height: number }
+    ) => void>(),
 }));
 
 vi.mock('@xyflow/svelte', () => ({
     Handle: () => undefined,
-    NodeResizer: () => undefined,
+    NodeResizer: (_anchor: unknown, props: {
+        onResizeEnd?: (
+            event: unknown,
+            size: { width: number; height: number }
+        ) => void;
+    }) => {
+        xyflowMocks.resizeEnd = props.onResizeEnd;
+        return undefined;
+    },
     Position: {
         Top: 'top',
         Bottom: 'bottom',
@@ -24,6 +40,18 @@ vi.mock('@xyflow/svelte', () => ({
 }));
 vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => detailsMocks.openDetails,
+}));
+vi.mock('../../rendering/magicGraphRenderContext', () => ({
+    useMagicGraphRenderContext: () => ({
+        getCircleChildren: () => [],
+        getCircleState: () => undefined,
+        activeCircleId: undefined,
+        sequenceDropPreview: undefined,
+        nodeStatEffects: [],
+    }),
+    useMagicGraphEditorActions: () => ({
+        resizeCircle: detailsMocks.resizeCircle,
+    }),
 }));
 
 const mountedCircles: Record<string, unknown>[] = [];
@@ -37,7 +65,9 @@ async function flushInternalsRefresh(): Promise<void> {
 beforeEach(() => {
     resetGraphStoreFixture();
     xyflowMocks.updateNodeInternals.mockReset();
+    xyflowMocks.resizeEnd = undefined;
     detailsMocks.openDetails.mockReset();
+    detailsMocks.resizeCircle.mockReset();
 });
 
 afterEach(async () => {
@@ -117,6 +147,32 @@ describe('MagicCircleNode interaction', () => {
 
         expect(contextMenuEvent.defaultPrevented).toBe(true);
         expect(detailsMocks.openDetails).toHaveBeenCalledWith(circle.id);
+    });
+
+    it('routes resize completion through the editor action context', () => {
+        const [circle] = getMagicCircleNodes(graphStore.nodes);
+        const target = document.createElement('div');
+        document.body.append(target);
+        mountedCircles.push(mount(MagicCircleNode, {
+            target,
+            props: {
+                id: circle.id,
+                data: circle.data,
+                width: circle.width,
+                height: circle.height,
+                selected: true,
+            },
+        }));
+
+        xyflowMocks.resizeEnd?.(
+            {},
+            { width: 640, height: 680 }
+        );
+
+        expect(detailsMocks.resizeCircle).toHaveBeenCalledWith(
+            circle.id,
+            { width: 640, height: 680 }
+        );
     });
 
     it('does not create a feedback loop when two circles write measured nodes back to the store', async () => {

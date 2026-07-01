@@ -15,21 +15,33 @@
     import {
         buildMagicGraphResultPreview,
     } from '../../../systems/graph/presentation/magicGraphResultPreview';
+    import {
+        createMagicCircleGraphIndex,
+    } from '../../../systems/graph/model/magicCircleGraphIndex';
     import { BUILD_RESULT_EXPORT_ROLES } from '../../../systems/export/buildResultExportContract';
-    import type { MagicEditorNode } from '../../../types/magic';
+    import type {
+        MagicCircleState,
+        MagicEditorNode,
+    } from '../../../types/magic';
     import MagicGraphCanvasBackground from '../MagicGraphCanvasBackground.svelte';
     import MagicGraphEdge from '../editor/nodes/MagicGraphEdge.svelte';
     import MagicUnitNode from '../editor/nodes/MagicUnitNode.svelte';
     import MagicCircleNode from '../editor/nodes/MagicCircleNode.svelte';
+    import {
+        provideMagicGraphRenderContext,
+    } from '../rendering/magicGraphRenderContext';
 
     let {
         nodes,
         edges,
+        circleStates,
     }: {
         nodes: MagicEditorNode[];
         edges: Edge[];
+        circleStates: readonly MagicCircleState[];
     } = $props();
 
+    const EMPTY_NODE_STAT_EFFECTS = [] as const;
     const nodeTypes = {
         [GRAPH_NODE_TYPES.MAGIC_NODE]: MagicUnitNode,
         [GRAPH_NODE_TYPES.MAGIC_CIRCLE]: MagicCircleNode,
@@ -37,6 +49,21 @@
     const edgeTypes = { [GRAPH_EDGE_TYPES.MAGIC_EDGE]: MagicGraphEdge };
     const proOptions = { hideAttribution: true };
     const preview = $derived(buildMagicGraphResultPreview(nodes, edges));
+    const previewGraphIndex = $derived(
+        createMagicCircleGraphIndex(preview.nodes)
+    );
+    const previewCircleStateById = $derived(new Map(
+        circleStates.map(state => [state.circleId, state])
+    ));
+    provideMagicGraphRenderContext({
+        getCircleChildren: circleId =>
+            previewGraphIndex.childrenByCircleId.get(circleId) ?? [],
+        getCircleState: circleId =>
+            previewCircleStateById.get(circleId),
+        activeCircleId: undefined,
+        sequenceDropPreview: undefined,
+        nodeStatEffects: EMPTY_NODE_STAT_EFFECTS,
+    });
 </script>
 
 <div

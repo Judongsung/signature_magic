@@ -1,9 +1,19 @@
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { graphStore } from '../../../../stores/graphStore.svelte';
 import { getMagicTypeConfig } from '../../../../systems/graph/registry/magicTypeRegistry';
-import type { MagicNodeData } from '../../../../types/magic';
+import type {
+    MagicNodeData,
+    MagicStatEffectConfig,
+} from '../../../../types/magic';
+import type {
+    MagicNodeSequenceDrop,
+} from '../../../../systems/graph/editor/magicCircleEditorInteraction';
 import MagicUnitNode from './MagicUnitNode.svelte';
+
+const renderContextMocks = vi.hoisted(() => ({
+    sequenceDropPreview: undefined as MagicNodeSequenceDrop | undefined,
+    nodeStatEffects: [] as MagicStatEffectConfig[],
+}));
 
 vi.mock('@xyflow/svelte', () => ({
     Handle: () => '',
@@ -16,10 +26,23 @@ vi.mock('@xyflow/svelte', () => ({
 vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => undefined,
 }));
+vi.mock('../../rendering/magicGraphRenderContext', () => ({
+    useMagicGraphRenderContext: () => ({
+        getCircleChildren: () => [],
+        getCircleState: () => undefined,
+        activeCircleId: undefined,
+        get sequenceDropPreview() {
+            return renderContextMocks.sequenceDropPreview;
+        },
+        get nodeStatEffects() {
+            return renderContextMocks.nodeStatEffects;
+        },
+    }),
+}));
 
 afterEach(() => {
-    graphStore.setExternalStatEffects({ nodeEffects: [], finalEffects: [] });
-    graphStore.setSequenceDropPreview(undefined);
+    renderContextMocks.sequenceDropPreview = undefined;
+    renderContextMocks.nodeStatEffects = [];
 });
 
 function renderNode(
@@ -62,11 +85,13 @@ describe('MagicUnitNode', () => {
     });
 
     it('renders insertion feedback on the adjacent sequence card', () => {
-        graphStore.setSequenceDropPreview({
-            circleId: 'circle-a',
-            y: 136,
+        renderContextMocks.sequenceDropPreview = {
+            targetCircleId: 'circle-a',
+            insertionIndex: 1,
+            indicatorY: 136,
             beforeNodeId: 'node-1',
-        });
+            afterNodeId: undefined,
+        };
 
         expect(renderNode(
             { nodeKind: 'user', sequenceIndex: 1 },
@@ -83,21 +108,16 @@ describe('MagicUnitNode', () => {
     });
 
     it('shows active node stat effects in canvas tooltips', () => {
-        graphStore.setExternalStatEffects({
-            nodeEffects: [
-                { phase: 'node', operation: 'add', stat: 'power', value: 1 },
-                {
-                    phase: 'node',
-                    operation: 'add',
-                    stat: 'power',
-                    value: 10,
-                    nodeTarget: { categories: ['action'] },
-                },
-            ],
-            finalEffects: [
-                { phase: 'final', operation: 'add', stat: 'power', value: 10 },
-            ],
-        });
+        renderContextMocks.nodeStatEffects = [
+            { phase: 'node', operation: 'add', stat: 'power', value: 1 },
+            {
+                phase: 'node',
+                operation: 'add',
+                stat: 'power',
+                value: 10,
+                nodeTarget: { categories: ['action'] },
+            },
+        ];
 
         const { html } = renderNode();
 

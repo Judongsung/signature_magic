@@ -11,7 +11,11 @@ import {
     resetGraphStoreFixture,
 } from '../../../test-utils/graphFixtures';
 import { graphStore } from '../../../stores/graphStore.svelte';
-import type { MagicEditorNode } from '../../../types/magic';
+import type {
+    MagicCircleState,
+    MagicEditorNode,
+} from '../../../types/magic';
+import { getMagicCircleNodes } from '../../../systems/graph/model/magicCircleGraph';
 import MagicGraphResultPreview from './MagicGraphResultPreview.svelte';
 
 let mountedPreview: Record<string, unknown> | undefined;
@@ -33,6 +37,7 @@ function installDomAPIs(): void {
 async function mountPreview(props: {
     nodes: MagicEditorNode[];
     edges: Edge[];
+    circleStates?: readonly MagicCircleState[];
 } = {
     nodes: [
         { ...createTestMagicNode('source'), position: { x: 0, y: 0 } },
@@ -45,7 +50,10 @@ async function mountPreview(props: {
 
     mountedPreview = mount(MagicGraphResultPreview, {
         target,
-        props,
+        props: {
+            ...props,
+            circleStates: props.circleStates ?? [],
+        },
     });
     await tick();
 
@@ -116,6 +124,7 @@ describe('MagicGraphResultPreview', () => {
         const target = await mountPreview({
             nodes: graphStore.nodes,
             edges: graphStore.edges,
+            circleStates: graphStore.circleStates,
         });
 
         await vi.waitFor(() => {
@@ -125,6 +134,35 @@ describe('MagicGraphResultPreview', () => {
         expect(target.textContent).toContain('OUTPUT');
         expect(target.textContent).not.toContain('START');
         expect(target.textContent).not.toContain('END');
+    });
+
+    it('renders only the supplied snapshot when the global store differs', async () => {
+        resetGraphStoreFixture();
+        const [previewCircle] = getMagicCircleNodes(graphStore.nodes);
+        graphStore.updateCircleMetadata(previewCircle.id, {
+            name: '스냅샷 서클',
+            caption: '',
+        });
+        graphStore.addNode('branch', previewCircle.id);
+        const snapshot = {
+            nodes: graphStore.nodes,
+            edges: graphStore.edges,
+            circleStates: graphStore.circleStates,
+        };
+
+        resetGraphStoreFixture();
+        const [storeCircle] = getMagicCircleNodes(graphStore.nodes);
+        graphStore.updateCircleMetadata(storeCircle.id, {
+            name: '전역 store 서클',
+            caption: '',
+        });
+        const target = await mountPreview(snapshot);
+
+        await vi.waitFor(() => {
+            expect(target.textContent).toContain('스냅샷 서클');
+            expect(target.querySelector('.branch-connector')).not.toBeNull();
+        });
+        expect(target.textContent).not.toContain('전역 store 서클');
     });
 
     it('renders the existing fallback for an empty graph', async () => {

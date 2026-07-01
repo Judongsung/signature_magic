@@ -59,7 +59,14 @@
         resolveMagicNodeSequenceDrop,
         type MagicNodeSequenceDrop,
     } from '../../../systems/graph/editor/magicCircleEditorInteraction';
+    import {
+        createMagicCircleGraphIndex,
+    } from '../../../systems/graph/model/magicCircleGraphIndex';
     import { provideNodeEditorDetails } from './details/nodeDetailsContext';
+    import {
+        provideMagicGraphEditorActions,
+        provideMagicGraphRenderContext,
+    } from '../rendering/magicGraphRenderContext';
     import { isMagicControlPairNode } from '../../../systems/graph/model/magicControlPairs';
     import {
         MAGIC_GRAPH_SELECTION_MODES,
@@ -84,6 +91,32 @@
     } = $props();
 
     provideNodeEditorDetails((nodeId) => onOpenNodeDetails(nodeId));
+
+    const renderGraphIndex = $derived(
+        createMagicCircleGraphIndex(graphStore.nodes)
+    );
+    const renderCircleStateById = $derived(new Map(
+        graphStore.circleStates.map(state => [state.circleId, state])
+    ));
+    provideMagicGraphRenderContext({
+        getCircleChildren: circleId =>
+            renderGraphIndex.childrenByCircleId.get(circleId) ?? [],
+        getCircleState: circleId =>
+            renderCircleStateById.get(circleId),
+        get activeCircleId() {
+            return graphStore.activeCircleId;
+        },
+        get sequenceDropPreview() {
+            return graphStore.sequenceDropPreview;
+        },
+        get nodeStatEffects() {
+            return graphStore.externalStatEffects.nodeEffects;
+        },
+    });
+    provideMagicGraphEditorActions({
+        resizeCircle: (circleId, size) =>
+            graphStore.resizeCircle(circleId, size),
+    });
 
     const nodeTypes = {
         [GRAPH_NODE_TYPES.MAGIC_NODE]: MagicUnitNode,
@@ -269,12 +302,7 @@
     function showSequenceDropPreview(drop: MagicNodeSequenceDrop) {
         graphStore.setSequenceDropPreview(
             drop.targetCircleId && drop.indicatorY !== undefined
-                ? {
-                    circleId: drop.targetCircleId,
-                    y: drop.indicatorY,
-                    beforeNodeId: drop.beforeNodeId,
-                    afterNodeId: drop.afterNodeId,
-                }
+                ? drop
                 : undefined
         );
     }
