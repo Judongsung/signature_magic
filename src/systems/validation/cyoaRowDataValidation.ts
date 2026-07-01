@@ -35,11 +35,29 @@ import {
 
 const VALID_CYOA_INPUT_ROLES = new Set<string>(Object.values(CYOA_INPUT_ROLES));
 const VALID_MAGIC_NODE_CATEGORIES = new Set<string>(MAGIC_NODE_CATEGORIES);
+const VALID_MAGIC_STAT_EFFECT_PHASES =
+    new Set<string>(MAGIC_STAT_EFFECT_PHASES);
+const VALID_MAGIC_STAT_EFFECT_OPERATIONS =
+    new Set<string>(MAGIC_STAT_EFFECT_OPERATIONS);
+const VALID_MAGIC_STAT_KEYS = new Set<string>(MAGIC_STAT_KEYS);
 const VALID_MAGIC_STAT_EFFECT_VALUE_SIGNS =
     new Set<string>(Object.values(MAGIC_STAT_EFFECT_VALUE_SIGNS));
 const DEFAULT_MAGIC_TYPE_CHECK = (_magicType: string): boolean => true;
 
 type MagicTypeCheck = (magicType: string) => boolean;
+type ImagePathCheck = (imagePath: string) => boolean;
+
+interface CyoaRowValidationContext {
+    rows: readonly CyoaChoiceRowConfig[];
+    rowIds: string[];
+    subChoiceGroupIds: string[];
+    choiceIds: string[];
+    choiceIdSet: ReadonlySet<string>;
+    inputIds: string[];
+    inputRoles: string[];
+    isKnownImagePath: ImagePathCheck;
+    isKnownMagicType: MagicTypeCheck;
+}
 
 function getCyoaSubChoiceGroup(
     choice: CyoaChoiceBaseConfig
@@ -194,10 +212,6 @@ function validateCyoaStatEffects(
     }
 
     const errors: string[] = [];
-    const validPhases = new Set<string>(MAGIC_STAT_EFFECT_PHASES);
-    const validOperations = new Set<string>(MAGIC_STAT_EFFECT_OPERATIONS);
-    const validStatKeys = new Set<string>(MAGIC_STAT_KEYS);
-
     statEffects.forEach((effect, index) => {
         if (!isPlainObject(effect)) {
             errors.push(formatValidationError('Invalid', 'CYOA stat effect', choiceId, index));
@@ -206,7 +220,7 @@ function validateCyoaStatEffects(
 
         const { phase, operation, stat, value, nodeTarget } = effect;
 
-        if (!validPhases.has(String(phase))) {
+        if (!VALID_MAGIC_STAT_EFFECT_PHASES.has(String(phase))) {
             errors.push(formatValidationError(
                 'Invalid',
                 'CYOA stat effect phase',
@@ -215,7 +229,7 @@ function validateCyoaStatEffects(
                 String(phase)
             ));
         }
-        if (!validOperations.has(String(operation))) {
+        if (!VALID_MAGIC_STAT_EFFECT_OPERATIONS.has(String(operation))) {
             errors.push(formatValidationError(
                 'Invalid',
                 'CYOA stat effect operation',
@@ -224,7 +238,7 @@ function validateCyoaStatEffects(
                 String(operation)
             ));
         }
-        if (!validStatKeys.has(String(stat))) {
+        if (!VALID_MAGIC_STAT_KEYS.has(String(stat))) {
             errors.push(formatValidationError(
                 'Unknown',
                 'CYOA stat effect key',
@@ -257,7 +271,7 @@ function validateCyoaStatEffects(
 
 function validateCyoaChoice(
     choice: CyoaChoiceBaseConfig,
-    isKnownImagePath: (imagePath: string) => boolean,
+    isKnownImagePath: ImagePathCheck,
     isKnownMagicType: MagicTypeCheck
 ): string[] {
     const errors: string[] = [];
@@ -306,7 +320,7 @@ function validateCyoaChoice(
 
 function validateCyoaSubChoiceGroup(
     group: CyoaSubChoiceGroupConfig,
-    isKnownImagePath: (imagePath: string) => boolean,
+    isKnownImagePath: ImagePathCheck,
     isKnownMagicType: MagicTypeCheck
 ): string[] {
     const errors: string[] = [];
@@ -365,17 +379,39 @@ function validateCyoaSubChoiceGroup(
 
 export function validateCyoaRows(
     rowsInput: unknown,
-    isKnownImagePath: (imagePath: string) => boolean,
+    isKnownImagePath: ImagePathCheck,
     isKnownMagicType: MagicTypeCheck = DEFAULT_MAGIC_TYPE_CHECK
 ): DataValidationResult {
-    if (!isCyoaRowArray(rowsInput)) {
+    const rows = decodeCyoaRows(rowsInput);
+    if (!rows) {
         return result(['Invalid CYOA row configs']);
     }
-
-    const rows = rowsInput as unknown as CyoaChoiceRowConfig[];
     if (rows.length === 0) return success();
 
+    const context = createCyoaRowValidationContext(
+        rows,
+        isKnownImagePath,
+        isKnownMagicType
+    );
     const errors: string[] = [];
+    errors.push(...validateCyoaCollectionIdentity(context));
+    context.rows.forEach(row => {
+        errors.push(...validateCyoaRow(row, context));
+    });
+
+    return result(errors);
+}
+
+function decodeCyoaRows(value: unknown): CyoaChoiceRowConfig[] | undefined {
+    if (!isSafeCyoaRowArray(value)) return undefined;
+    return value as unknown as CyoaChoiceRowConfig[];
+}
+
+function createCyoaRowValidationContext(
+    rows: readonly CyoaChoiceRowConfig[],
+    isKnownImagePath: ImagePathCheck,
+    isKnownMagicType: MagicTypeCheck
+): CyoaRowValidationContext {
     const rowIds = rows.map(row => row.id);
     const subChoiceGroups = rows.flatMap(row =>
         (row.choices ?? []).flatMap(choice => {
@@ -388,178 +424,281 @@ export function validateCyoaRows(
         choice.id,
         ...getCyoaSubChoices(getCyoaSubChoiceGroup(choice)).map(subChoice => subChoice.id),
     ]));
-    const choiceIdSet = new Set(choiceIds);
     const inputIds = rows.flatMap(row => row.input ? [row.input.id] : []);
     const inputRoles = rows.flatMap(row => row.input?.role ? [String(row.input.role)] : []);
 
-    errors.push(...collectDuplicateErrors(rowIds, 'CYOA row id'));
-    errors.push(...collectDuplicateErrors(subChoiceGroupIds, 'CYOA sub-choice group id'));
-    [...new Set(subChoiceGroupIds.filter(groupId => rowIds.includes(groupId)))].forEach(groupId => {
-        errors.push(formatValidationError('Duplicate', 'CYOA selection group id', groupId));
-    });
-    errors.push(...collectDuplicateErrors(choiceIds, 'CYOA choice id'));
-    errors.push(...collectDuplicateErrors(inputIds, 'CYOA input id'));
-    errors.push(...collectDuplicateErrors(inputRoles, 'CYOA input role'));
-
-    rows.forEach(row => {
-        const rawChoices = row.choices ?? [];
-        const rowChoiceById = new Map(rawChoices.map(choice => [choice.id, choice]));
-        const lockedChoiceIds = Array.isArray(row.lockedChoiceIds) ? row.lockedChoiceIds : [];
-        const validLockedChoiceIds = lockedChoiceIds.filter((choiceId): choiceId is string =>
-            typeof choiceId === 'string'
-        );
-        const maxSelectedCount = row.maxSelectedCount;
-        const selectionMode = row.selectionMode ?? CYOA_SELECTION_MODES.SINGLE;
-        const requiredCount = row.requiredCount ?? CYOA_SELECTION_POLICY.DEFAULT_REQUIRED_COUNT;
-
-        if (row.description !== undefined && typeof row.description !== 'string') {
-            errors.push(formatValidationError('Invalid', 'CYOA row description', row.id));
-        }
-        if (row.npcDescription !== undefined && typeof row.npcDescription !== 'string') {
-            errors.push(formatValidationError('Invalid', 'CYOA row NPC description', row.id));
-        }
-        if (row.requiredCount !== undefined && (!Number.isInteger(row.requiredCount) || row.requiredCount < 0)) {
-            errors.push(formatValidationError(
-                'Invalid',
-                'CYOA required count',
-                row.id,
-                row.requiredCount
-            ));
-        }
-        if (row.selectionMode !== undefined && !isValidCyoaSelectionMode(row.selectionMode)) {
-            errors.push(formatValidationError(
-                'Invalid',
-                'CYOA selection mode',
-                row.id,
-                String(row.selectionMode)
-            ));
-        }
-        if (row.lockedChoiceIds !== undefined && !Array.isArray(row.lockedChoiceIds)) {
-            errors.push(formatValidationError('Invalid', 'CYOA locked choice ids', row.id));
-        }
-        lockedChoiceIds.forEach((choiceId, index) => {
-            if (typeof choiceId !== 'string') {
-                errors.push(formatValidationError('Invalid', 'CYOA locked choice id', row.id, index));
-                return;
-            }
-
-            const lockedChoice = rowChoiceById.get(choiceId);
-            if (!lockedChoice) {
-                errors.push(formatValidationError('Unknown', 'CYOA locked choice', row.id, choiceId));
-                return;
-            }
-            if (lockedChoice.disabled) {
-                errors.push(formatValidationError('Invalid', 'disabled CYOA locked choice', row.id, choiceId));
-            }
-        });
-        findDuplicates(validLockedChoiceIds).forEach(choiceId => {
-            errors.push(formatValidationError('Duplicate', 'CYOA locked choice id', row.id, choiceId));
-        });
-        if (maxSelectedCount !== undefined && (!Number.isInteger(maxSelectedCount) || maxSelectedCount < 0)) {
-            errors.push(formatValidationError(
-                'Invalid',
-                'CYOA max selected count',
-                row.id,
-                maxSelectedCount
-            ));
-        }
-        if (selectionMode === CYOA_SELECTION_MODES.SINGLE && maxSelectedCount !== undefined && maxSelectedCount > 1) {
-            errors.push(formatValidationError(
-                'Invalid',
-                'CYOA single-select max selected count',
-                row.id,
-                maxSelectedCount
-            ));
-        }
-        if (maxSelectedCount !== undefined && Number.isInteger(maxSelectedCount) && maxSelectedCount >= 0) {
-            if (requiredCount > maxSelectedCount) {
-                errors.push(formatValidationError(
-                    'Invalid',
-                    'CYOA required count exceeds max selected count',
-                    row.id,
-                    requiredCount
-                ));
-            }
-            if (validLockedChoiceIds.length > maxSelectedCount) {
-                errors.push(formatValidationError(
-                    'Invalid',
-                    'CYOA locked choice count exceeds max selected count',
-                    row.id,
-                    validLockedChoiceIds.length
-                ));
-            }
-        }
-        if (row.input && (row.choices?.length ?? 0) > 0) {
-            errors.push(`CYOA row cannot mix input and choices: ${row.id}`);
-        }
-        if (row.input?.role !== undefined && !VALID_CYOA_INPUT_ROLES.has(String(row.input.role))) {
-            errors.push(formatValidationError(
-                'Unknown',
-                'CYOA input role',
-                row.id,
-                String(row.input.role)
-            ));
-        }
-        if (row.input && (row.requiredCount ?? 0) > CYOA_SELECTION_POLICY.INPUT_REQUIRED_COUNT) {
-            errors.push(formatValidationError(
-                'Invalid',
-                'CYOA input required count',
-                row.id,
-                row.requiredCount ?? 0
-            ));
-        }
-        if (!row.input && row.requiredCount !== undefined && row.requiredCount > (row.choices?.length ?? 0)) {
-            errors.push(`CYOA required count exceeds choices: ${formatValidationPath(row.id, row.requiredCount)}`);
-        }
-        if (row.visibleWhen?.choiceSelected && !choiceIdSet.has(row.visibleWhen.choiceSelected)) {
-            errors.push(formatValidationError(
-                'Unknown',
-                'CYOA visibleWhen choice',
-                row.id,
-                row.visibleWhen.choiceSelected
-            ));
-        }
-        row.visibleWhen?.anyChoiceSelected?.forEach(choiceId => {
-            if (!choiceIdSet.has(choiceId)) {
-                errors.push(formatValidationError(
-                    'Unknown',
-                    'CYOA visibleWhen any choice',
-                    row.id,
-                    choiceId
-                ));
-            }
-        });
-        row.visibleWhen?.allChoicesSelected?.forEach(choiceId => {
-            if (!choiceIdSet.has(choiceId)) {
-                errors.push(formatValidationError(
-                    'Unknown',
-                    'CYOA visibleWhen all choice',
-                    row.id,
-                    choiceId
-                ));
-            }
-        });
-
-        (row.choices ?? []).forEach(choice => {
-            errors.push(...validateCyoaChoice(choice, isKnownImagePath, isKnownMagicType));
-            const rawSubChoiceGroup = (choice as typeof choice & { subChoiceGroup?: unknown }).subChoiceGroup;
-            const subChoiceGroup = getCyoaSubChoiceGroup(choice);
-            if (rawSubChoiceGroup !== undefined && !subChoiceGroup) {
-                errors.push(formatValidationError('Invalid', 'CYOA sub-choice group', choice.id));
-            } else if (subChoiceGroup) {
-                errors.push(...validateCyoaSubChoiceGroup(
-                    subChoiceGroup,
-                    isKnownImagePath,
-                    isKnownMagicType
-                ));
-            }
-        });
-    });
-
-    return result(errors);
+    return {
+        rows,
+        rowIds,
+        subChoiceGroupIds,
+        choiceIds,
+        choiceIdSet: new Set(choiceIds),
+        inputIds,
+        inputRoles,
+        isKnownImagePath,
+        isKnownMagicType,
+    };
 }
 
-function isCyoaRowArray(value: unknown): value is Record<string, unknown>[] {
+function validateCyoaCollectionIdentity(
+    context: CyoaRowValidationContext
+): string[] {
+    const errors: string[] = [];
+
+    errors.push(...collectDuplicateErrors(context.rowIds, 'CYOA row id'));
+    errors.push(...collectDuplicateErrors(
+        context.subChoiceGroupIds,
+        'CYOA sub-choice group id'
+    ));
+    [...new Set(context.subChoiceGroupIds.filter(groupId =>
+        context.rowIds.includes(groupId)
+    ))].forEach(groupId => {
+        errors.push(formatValidationError('Duplicate', 'CYOA selection group id', groupId));
+    });
+    errors.push(...collectDuplicateErrors(context.choiceIds, 'CYOA choice id'));
+    errors.push(...collectDuplicateErrors(context.inputIds, 'CYOA input id'));
+    errors.push(...collectDuplicateErrors(context.inputRoles, 'CYOA input role'));
+
+    return errors;
+}
+
+function validateCyoaRow(
+    row: CyoaChoiceRowConfig,
+    context: CyoaRowValidationContext
+): string[] {
+    const errors = validateCyoaRowDefinition(row);
+    const lockedChoices = validateCyoaLockedChoices(row);
+
+    errors.push(...lockedChoices.errors);
+    errors.push(...validateCyoaRowSelectionBounds(
+        row,
+        lockedChoices.validChoiceIds
+    ));
+    errors.push(...validateCyoaRowInputPolicy(row));
+    errors.push(...validateCyoaVisibilityReferences(row, context));
+    errors.push(...validateCyoaRowChoices(row, context));
+
+    return errors;
+}
+
+function validateCyoaRowDefinition(row: CyoaChoiceRowConfig): string[] {
+    const errors: string[] = [];
+
+    if (row.description !== undefined && typeof row.description !== 'string') {
+        errors.push(formatValidationError('Invalid', 'CYOA row description', row.id));
+    }
+    if (row.npcDescription !== undefined && typeof row.npcDescription !== 'string') {
+        errors.push(formatValidationError('Invalid', 'CYOA row NPC description', row.id));
+    }
+    if (row.requiredCount !== undefined && (!Number.isInteger(row.requiredCount) || row.requiredCount < 0)) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA required count',
+            row.id,
+            row.requiredCount
+        ));
+    }
+    if (row.selectionMode !== undefined && !isValidCyoaSelectionMode(row.selectionMode)) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA selection mode',
+            row.id,
+            String(row.selectionMode)
+        ));
+    }
+    if (row.lockedChoiceIds !== undefined && !Array.isArray(row.lockedChoiceIds)) {
+        errors.push(formatValidationError('Invalid', 'CYOA locked choice ids', row.id));
+    }
+
+    return errors;
+}
+
+function validateCyoaLockedChoices(row: CyoaChoiceRowConfig): {
+    errors: string[];
+    validChoiceIds: string[];
+} {
+    const errors: string[] = [];
+    const rowChoiceById = new Map(
+        (row.choices ?? []).map(choice => [choice.id, choice])
+    );
+    const lockedChoiceIds: unknown[] = Array.isArray(row.lockedChoiceIds)
+        ? row.lockedChoiceIds
+        : [];
+    const validChoiceIds = lockedChoiceIds.filter(
+        (choiceId): choiceId is string => typeof choiceId === 'string'
+    );
+
+    lockedChoiceIds.forEach((choiceId, index) => {
+        if (typeof choiceId !== 'string') {
+            errors.push(formatValidationError('Invalid', 'CYOA locked choice id', row.id, index));
+            return;
+        }
+
+        const lockedChoice = rowChoiceById.get(choiceId);
+        if (!lockedChoice) {
+            errors.push(formatValidationError('Unknown', 'CYOA locked choice', row.id, choiceId));
+            return;
+        }
+        if (lockedChoice.disabled) {
+            errors.push(formatValidationError('Invalid', 'disabled CYOA locked choice', row.id, choiceId));
+        }
+    });
+    findDuplicates(validChoiceIds).forEach(choiceId => {
+        errors.push(formatValidationError('Duplicate', 'CYOA locked choice id', row.id, choiceId));
+    });
+
+    return { errors, validChoiceIds };
+}
+
+function validateCyoaRowSelectionBounds(
+    row: CyoaChoiceRowConfig,
+    validLockedChoiceIds: readonly string[]
+): string[] {
+    const errors: string[] = [];
+    const maxSelectedCount = row.maxSelectedCount;
+    const selectionMode = row.selectionMode ?? CYOA_SELECTION_MODES.SINGLE;
+    const requiredCount = row.requiredCount ??
+        CYOA_SELECTION_POLICY.DEFAULT_REQUIRED_COUNT;
+
+    if (maxSelectedCount !== undefined && (!Number.isInteger(maxSelectedCount) || maxSelectedCount < 0)) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA max selected count',
+            row.id,
+            maxSelectedCount
+        ));
+    }
+    if (selectionMode === CYOA_SELECTION_MODES.SINGLE && maxSelectedCount !== undefined && maxSelectedCount > 1) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA single-select max selected count',
+            row.id,
+            maxSelectedCount
+        ));
+    }
+    if (maxSelectedCount !== undefined && Number.isInteger(maxSelectedCount) && maxSelectedCount >= 0) {
+        if (requiredCount > maxSelectedCount) {
+            errors.push(formatValidationError(
+                'Invalid',
+                'CYOA required count exceeds max selected count',
+                row.id,
+                requiredCount
+            ));
+        }
+        if (validLockedChoiceIds.length > maxSelectedCount) {
+            errors.push(formatValidationError(
+                'Invalid',
+                'CYOA locked choice count exceeds max selected count',
+                row.id,
+                validLockedChoiceIds.length
+            ));
+        }
+    }
+
+    return errors;
+}
+
+function validateCyoaRowInputPolicy(row: CyoaChoiceRowConfig): string[] {
+    const errors: string[] = [];
+
+    if (row.input && (row.choices?.length ?? 0) > 0) {
+        errors.push(`CYOA row cannot mix input and choices: ${row.id}`);
+    }
+    if (row.input?.role !== undefined && !VALID_CYOA_INPUT_ROLES.has(String(row.input.role))) {
+        errors.push(formatValidationError(
+            'Unknown',
+            'CYOA input role',
+            row.id,
+            String(row.input.role)
+        ));
+    }
+    if (row.input && (row.requiredCount ?? 0) > CYOA_SELECTION_POLICY.INPUT_REQUIRED_COUNT) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA input required count',
+            row.id,
+            row.requiredCount ?? 0
+        ));
+    }
+    if (!row.input && row.requiredCount !== undefined && row.requiredCount > (row.choices?.length ?? 0)) {
+        errors.push(`CYOA required count exceeds choices: ${formatValidationPath(row.id, row.requiredCount)}`);
+    }
+
+    return errors;
+}
+
+function validateCyoaVisibilityReferences(
+    row: CyoaChoiceRowConfig,
+    context: CyoaRowValidationContext
+): string[] {
+    const errors: string[] = [];
+
+    if (
+        row.visibleWhen?.choiceSelected &&
+        !context.choiceIdSet.has(row.visibleWhen.choiceSelected)
+    ) {
+        errors.push(formatValidationError(
+            'Unknown',
+            'CYOA visibleWhen choice',
+            row.id,
+            row.visibleWhen.choiceSelected
+        ));
+    }
+    row.visibleWhen?.anyChoiceSelected?.forEach(choiceId => {
+        if (!context.choiceIdSet.has(choiceId)) {
+            errors.push(formatValidationError(
+                'Unknown',
+                'CYOA visibleWhen any choice',
+                row.id,
+                choiceId
+            ));
+        }
+    });
+    row.visibleWhen?.allChoicesSelected?.forEach(choiceId => {
+        if (!context.choiceIdSet.has(choiceId)) {
+            errors.push(formatValidationError(
+                'Unknown',
+                'CYOA visibleWhen all choice',
+                row.id,
+                choiceId
+            ));
+        }
+    });
+
+    return errors;
+}
+
+function validateCyoaRowChoices(
+    row: CyoaChoiceRowConfig,
+    context: CyoaRowValidationContext
+): string[] {
+    const errors: string[] = [];
+
+    (row.choices ?? []).forEach(choice => {
+        errors.push(...validateCyoaChoice(
+            choice,
+            context.isKnownImagePath,
+            context.isKnownMagicType
+        ));
+        const rawSubChoiceGroup = (
+            choice as typeof choice & { subChoiceGroup?: unknown }
+        ).subChoiceGroup;
+        const subChoiceGroup = getCyoaSubChoiceGroup(choice);
+        if (rawSubChoiceGroup !== undefined && !subChoiceGroup) {
+            errors.push(formatValidationError('Invalid', 'CYOA sub-choice group', choice.id));
+        } else if (subChoiceGroup) {
+            errors.push(...validateCyoaSubChoiceGroup(
+                subChoiceGroup,
+                context.isKnownImagePath,
+                context.isKnownMagicType
+            ));
+        }
+    });
+
+    return errors;
+}
+
+function isSafeCyoaRowArray(value: unknown): value is Record<string, unknown>[] {
     if (!isPlainObjectArray(value)) return false;
 
     return value.every(row =>
