@@ -105,7 +105,7 @@ describe('graphEventHandlers', () => {
             });
     });
 
-    it('restores a circle system node removed by the Flow binding', () => {
+    it('preserves a circle system node requested for direct deletion', () => {
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'manifestation'
@@ -117,7 +117,7 @@ describe('graphEventHandlers', () => {
         );
 
         expect(removeDeletedGraphElements(
-            { nodes: [circle], edges: [] },
+            { nodes: [circle, systemNode], edges: [] },
             [systemNode],
             []
         ).nodes.map(item => item.id)).toEqual([

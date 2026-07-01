@@ -31,6 +31,8 @@ import {
     serializeMagicGraphClipboardPayload,
 } from './magicGraphClipboard';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
+import type { Edge } from '@xyflow/svelte';
+import type { MagicEditorNode } from '../../../types/magic';
 
 function sequentialIdFactory(): () => string {
     let index = 0;
@@ -53,6 +55,18 @@ function requirePasteResult(
     return value;
 }
 
+function clipboardSnapshot(
+    nodes: MagicEditorNode[],
+    edges: Edge[],
+    selectedNodeIds: readonly string[]
+) {
+    return {
+        nodes,
+        edges,
+        selectedNodeIds: new Set(selectedNodeIds),
+    };
+}
+
 describe('magicGraphClipboard', () => {
     it('copies selected circles and remaps every graph identity on paste', () => {
         const first = {
@@ -64,12 +78,11 @@ describe('magicGraphClipboard', () => {
                 ).data,
                 name: '첫 번째',
             },
-            selected: true,
         };
-        const second = {
-            ...createMagicCircleNode({ x: 520, y: 200 }, () => 'second'),
-            selected: true,
-        };
+        const second = createMagicCircleNode(
+            { x: 520, y: 200 },
+            () => 'second'
+        );
         const firstNode = attachNodeToCircle(
             createTestMagicNode('first-node', 'ignition', {
                 settings: { caption: '복사됨' },
@@ -95,11 +108,16 @@ describe('magicGraphClipboard', () => {
             sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
             targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
         }];
+        const selectedNodeIds = [first.id, second.id];
         const payload = requirePayload(
-            createMagicGraphClipboardPayload({ nodes, edges })
+            createMagicGraphClipboardPayload(clipboardSnapshot(
+                nodes,
+                edges,
+                selectedNodeIds
+            ))
         );
         const result = requirePasteResult(pasteMagicGraphClipboardPayload(
-            { nodes, edges },
+            clipboardSnapshot(nodes, edges, selectedNodeIds),
             payload,
             magicTypeMap,
             1,
@@ -107,7 +125,16 @@ describe('magicGraphClipboard', () => {
         ));
 
         const circles = getMagicCircleNodes(result.nodes);
-        const pastedCircles = circles.filter(circle => circle.selected);
+        const pastedCircleIds = new Set(result.selectedNodeIds);
+        const pastedCircles = circles.filter(circle =>
+            pastedCircleIds.has(circle.id)
+        );
+        expect(result.nodes.every(node =>
+            node.selected === undefined
+        )).toBe(true);
+        expect(result.edges.every(edge =>
+            edge.selected === undefined
+        )).toBe(true);
         expect(pastedCircles).toHaveLength(2);
         expect(pastedCircles.map(circle => circle.position)).toEqual([
             { x: 40, y: 40 },
@@ -118,9 +145,6 @@ describe('magicGraphClipboard', () => {
         )).toBe(true);
         expect(pastedCircles[0].data.name).toBe('첫 번째');
 
-        const pastedCircleIds = new Set(
-            pastedCircles.map(circle => circle.id)
-        );
         const pastedUserNodes = getMagicUnitNodes(result.nodes)
             .filter(node =>
                 node.parentId &&
@@ -161,20 +185,20 @@ describe('magicGraphClipboard', () => {
             manifestation,
         ]);
         const payload = requirePayload(
-            createMagicGraphClipboardPayload({ nodes, edges: [] })
+            createMagicGraphClipboardPayload(clipboardSnapshot(
+                nodes,
+                [],
+                [circle.id]
+            ))
         );
         const result = requirePasteResult(pasteMagicGraphClipboardPayload(
-            { nodes, edges: [] },
+            clipboardSnapshot(nodes, [], [circle.id]),
             payload,
             magicTypeMap,
             1,
             sequentialIdFactory()
         ));
-        const selectedCircleIds = new Set(
-            getMagicCircleNodes(result.nodes)
-                .filter(candidate => candidate.selected)
-                .map(candidate => candidate.id)
-        );
+        const selectedCircleIds = new Set(result.selectedNodeIds);
         const pastedManifestation = getMagicUnitNodes(result.nodes)
             .find(node =>
                 node.parentId &&
@@ -201,14 +225,9 @@ describe('magicGraphClipboard', () => {
             withRepeat,
             circle.id
         );
-        const selectedNodes = withRepeat.map(node => ({
-            ...node,
-            selected: node.id === start.id,
-        }));
-        const payload = createMagicGraphClipboardPayload({
-            nodes: selectedNodes,
-            edges: [],
-        });
+        const payload = createMagicGraphClipboardPayload(
+            clipboardSnapshot(withRepeat, [], [start.id])
+        );
 
         expect(payload).toMatchObject({
             mode: MAGIC_GRAPH_CLIPBOARD_MODES.UNITS,
@@ -243,19 +262,19 @@ describe('magicGraphClipboard', () => {
             sourceNodes,
             source.id
         );
-        const payload = requirePayload(createMagicGraphClipboardPayload({
-            nodes: sourceNodes.map(node => ({
-                ...node,
-                selected: node.id === sourceStart.id,
-            })),
-            edges: [],
-        }));
+        const payload = requirePayload(createMagicGraphClipboardPayload(
+            clipboardSnapshot(sourceNodes, [], [sourceStart.id])
+        ));
         const target = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'target'
         );
         const result = requirePasteResult(pasteMagicGraphClipboardPayload(
-            { nodes: normalizeMagicCircleSequences([target]), edges: [] },
+            clipboardSnapshot(
+                normalizeMagicCircleSequences([target]),
+                [],
+                [target.id]
+            ),
             payload,
             magicTypeMap,
             1,
@@ -267,7 +286,8 @@ describe('magicGraphClipboard', () => {
             target.id
         );
         expect(pasted).toHaveLength(2);
-        expect(pasted.every(node => node.selected)).toBe(true);
+        expect(new Set(result.selectedNodeIds))
+            .toEqual(new Set(pasted.map(node => node.id)));
         expect(pasted.map(node => node.id)).not.toContain(sourceStart.id);
         expect(pasted[0].data.controlPair?.id)
             .toBe(pasted[1].data.controlPair?.id);
@@ -280,42 +300,39 @@ describe('magicGraphClipboard', () => {
             { x: 0, y: 0 },
             () => 'source-unit'
         );
-        const sourceUnit = {
-            ...attachNodeToCircle(
-                createTestMagicNode('copied', 'stream'),
-                sourceCircle,
-                0
-            ),
-            selected: true,
-        };
-        const payload = requirePayload(createMagicGraphClipboardPayload({
-            nodes: [{ ...sourceCircle, selected: false }, sourceUnit],
-            edges: [],
-        }));
+        const sourceUnit = attachNodeToCircle(
+            createTestMagicNode('copied', 'stream'),
+            sourceCircle,
+            0
+        );
+        const payload = requirePayload(createMagicGraphClipboardPayload(
+            clipboardSnapshot(
+                [sourceCircle, sourceUnit],
+                [],
+                [sourceUnit.id]
+            )
+        ));
         const targetCircle = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'target-unit'
         );
-        const first = {
-            ...attachNodeToCircle(
-                createTestMagicNode('first', 'ignition'),
-                targetCircle,
-                0
-            ),
-            selected: true,
-        };
+        const first = attachNodeToCircle(
+            createTestMagicNode('first', 'ignition'),
+            targetCircle,
+            0
+        );
         const second = attachNodeToCircle(
             createTestMagicNode('second', 'cooling'),
             targetCircle,
             1
         );
         const targetNodes = normalizeMagicCircleSequences([
-            { ...targetCircle, selected: false },
+            targetCircle,
             first,
             second,
         ]);
         const result = requirePasteResult(pasteMagicGraphClipboardPayload(
-            { nodes: targetNodes, edges: [] },
+            clipboardSnapshot(targetNodes, [], [first.id]),
             payload,
             magicTypeMap,
             1,
@@ -337,32 +354,30 @@ describe('magicGraphClipboard', () => {
             { x: 0, y: 0 },
             () => 'source-weight'
         );
-        const sourceNode = {
-            ...attachNodeToCircle(
-                createTestMagicNode('weighted-detect', 'detect', {
-                    settings: { weight: '7' },
-                }),
-                sourceCircle,
-                0
-            ),
-            selected: true,
-        };
-        const payload = requirePayload(createMagicGraphClipboardPayload({
-            nodes: [{ ...sourceCircle, selected: false }, sourceNode],
-            edges: [],
-        }));
-        const targetCircle = {
-            ...createMagicCircleNode(
-                { x: 0, y: 0 },
-                () => 'target-weight'
-            ),
-            selected: true,
-        };
+        const sourceNode = attachNodeToCircle(
+            createTestMagicNode('weighted-detect', 'detect', {
+                settings: { weight: '7' },
+            }),
+            sourceCircle,
+            0
+        );
+        const payload = requirePayload(createMagicGraphClipboardPayload(
+            clipboardSnapshot(
+                [sourceCircle, sourceNode],
+                [],
+                [sourceNode.id]
+            )
+        ));
+        const targetCircle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'target-weight'
+        );
         const result = requirePasteResult(pasteMagicGraphClipboardPayload(
-            {
-                nodes: normalizeMagicCircleSequences([targetCircle]),
-                edges: [],
-            },
+            clipboardSnapshot(
+                normalizeMagicCircleSequences([targetCircle]),
+                [],
+                [targetCircle.id]
+            ),
             payload,
             magicTypeMap,
             1,
@@ -380,10 +395,9 @@ describe('magicGraphClipboard', () => {
             { x: 0, y: 0 },
             () => 'serialize'
         );
-        const payload = requirePayload(createMagicGraphClipboardPayload({
-            nodes: [circle],
-            edges: [],
-        }));
+        const payload = requirePayload(createMagicGraphClipboardPayload(
+            clipboardSnapshot([circle], [], [circle.id])
+        ));
         const serialized = serializeMagicGraphClipboardPayload(payload);
 
         expect(parseMagicGraphClipboardPayload(serialized))

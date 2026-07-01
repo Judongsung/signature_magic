@@ -32,7 +32,6 @@ import {
     normalizeMagicCircleMetadata,
     orderMagicEditorNodes,
     resolveMagicCircleRequiredHeight,
-    selectOnlyCircle,
 } from './magicCircleGraph';
 import {
     createMagicCircleGraphIndex,
@@ -76,7 +75,7 @@ export function addMagicCircle(
 
     return {
         nodes: normalizeMagicCircleSequences(orderMagicEditorNodes([
-            ...selectOnlyCircle(nodes, undefined),
+            ...nodes,
             circle,
         ])),
         circleId: circle.id,

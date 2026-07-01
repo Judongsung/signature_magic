@@ -113,7 +113,11 @@ describe('magicGraphSelection', () => {
             lower,
             upperBack,
             upperFront,
-        ])?.id).toBe(upperFront.id);
+        ], new Set([
+            lower.id,
+            upperBack.id,
+            upperFront.id,
+        ]))?.id).toBe(upperFront.id);
         expect(resolveMagicGraphSelectionTargetCircleId([
             lower,
             upperBack,

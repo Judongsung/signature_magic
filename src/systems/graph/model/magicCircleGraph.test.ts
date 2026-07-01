@@ -5,7 +5,6 @@ import {
 } from '../../../constants/graphConfigs';
 import { createTestMagicNode } from '../../../test-utils/graphFixtures';
 import {
-    activateCircleForUnitSelection,
     attachNodeToCircle,
     createMagicCircleNode,
     createMagicCirclePortHandleIds,
@@ -15,13 +14,16 @@ import {
     orderMagicEditorNodes,
     readMagicCirclePortHandleIndex,
     resolveMagicCircleRequiredHeight,
-    resolveSelectedUnitCircleId,
-    selectOnlyCircle,
     syncMagicCirclePortCounts,
 } from './magicCircleGraph';
+import {
+    activateCircleForUnitSelection,
+    resolveSelectedUnitCircleId,
+    selectOnlyCircle,
+} from '../editor/magicGraphSelection';
 
 describe('magicCircleGraph sequence model', () => {
-    it('creates a selected circle with configured geometry', () => {
+    it('creates a document circle without editor selection state', () => {
         expect(createMagicCircleNode({ x: 80, y: 120 }, () => 'fixed')).toMatchObject({
             id: 'circle-fixed',
             type: 'magicCircle',
@@ -30,13 +32,16 @@ describe('magicCircleGraph sequence model', () => {
             height: MAGIC_CIRCLE_NODE_CONFIG.DEFAULT_SIZE.height,
             dragHandle: MAGIC_CIRCLE_NODE_CONFIG.DRAG_HANDLE_SELECTOR,
             selectable: true,
-            selected: true,
             data: {
                 nodeKind: MAGIC_NODE_KINDS.CIRCLE,
                 inputHandleCount: 1,
                 outputHandleCount: 1,
             },
         });
+        expect(createMagicCircleNode(
+            { x: 80, y: 120 },
+            () => 'selection'
+        ).selected).toBeUndefined();
     });
 
     it('synchronizes connected circle ports and preserves references when unchanged', () => {
@@ -150,7 +155,9 @@ describe('magicCircleGraph sequence model', () => {
         expect(selected.find(node => node.id === child.id)?.selected).toBe(false);
 
         const active = activateCircleForUnitSelection([first, child]);
-        expect(active.find(node => node.id === first.id)?.selected).toBe(false);
+        expect(Boolean(active.find(node =>
+            node.id === first.id
+        )?.selected)).toBe(false);
         expect(active.find(node => node.id === child.id)?.selected).toBe(true);
     });
 

@@ -64,18 +64,6 @@ export function removeDeletedGraphElements(
         const deletedCircleIds = new Set(
             deletedNodes.filter(isMagicCircleNode).map(node => node.id)
         );
-        const protectedCircleSystemNodes = deletedNodes.filter(node =>
-            isCircleSystemMagicNode(node) &&
-            !deletedCircleIds.has(node.parentId ?? '') &&
-            !nodes.some(candidate => candidate.id === node.id) &&
-            nodes.some(candidate =>
-                isMagicCircleNode(candidate) &&
-                candidate.id === node.parentId
-            )
-        );
-        if (protectedCircleSystemNodes.length > 0) {
-            nodes = [...nodes, ...protectedCircleSystemNodes];
-        }
         const deletionReferenceNodes = [
             ...nodes,
             ...deletedNodes.filter(deletedNode =>

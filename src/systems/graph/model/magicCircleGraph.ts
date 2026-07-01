@@ -50,13 +50,12 @@ export function createMagicCircleNode(
         position,
         width: MAGIC_CIRCLE_NODE_CONFIG.DEFAULT_SIZE.width,
         height: MAGIC_CIRCLE_NODE_CONFIG.DEFAULT_SIZE.height,
-    }, true);
+    });
 }
 
 export function createMagicCircleNodeFromGeometry(
     geometry: Pick<MagicCircleNode, 'id' | 'position' | 'width' | 'height'> &
-        MagicCircleMetadata,
-    selected = false
+        MagicCircleMetadata
 ): MagicCircleNode {
     const metadata = normalizeMagicCircleMetadata(geometry);
 
@@ -68,7 +67,6 @@ export function createMagicCircleNodeFromGeometry(
         height: geometry.height,
         dragHandle: MAGIC_CIRCLE_NODE_CONFIG.DRAG_HANDLE_SELECTOR,
         selectable: true,
-        selected,
         data: {
             nodeKind: MAGIC_NODE_KINDS.CIRCLE,
             inputHandleCount: MAGIC_CIRCLE_PORT_CONFIG.DEFAULT_VISIBLE_COUNT,
@@ -524,42 +522,6 @@ export function layoutMagicCircleSequenceNode(
         sequenceIndex,
         layout
     );
-}
-
-export function selectOnlyCircle(
-    nodes: readonly MagicEditorNode[],
-    circleId: string | undefined
-): MagicEditorNode[] {
-    return nodes.map(node => {
-        const selected = isMagicCircleNode(node)
-            ? node.id === circleId
-            : false;
-        return node.selected === selected ? node : { ...node, selected };
-    });
-}
-
-export function activateCircleForUnitSelection(
-    nodes: readonly MagicEditorNode[]
-): MagicEditorNode[] {
-    return nodes.map(node =>
-        isMagicCircleNode(node) && node.selected
-            ? { ...node, selected: false }
-            : node
-    );
-}
-
-export function resolveSelectedUnitCircleId(
-    nodes: readonly MagicEditorNode[]
-): string | undefined {
-    const selectedCircleIds = new Set(
-        getMagicUnitNodes(nodes)
-            .filter(node => node.selected && node.parentId)
-            .map(node => node.parentId!)
-    );
-
-    return selectedCircleIds.size === 1
-        ? selectedCircleIds.values().next().value
-        : undefined;
 }
 
 export function orderMagicEditorNodes(

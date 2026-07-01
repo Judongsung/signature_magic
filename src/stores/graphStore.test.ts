@@ -4,6 +4,7 @@ import type { MagicGraphPresetConfig } from '../types/magic';
 import {
     getMagicCircleNodes,
     getMagicUnitNodes,
+    isMagicCircleNode,
 } from '../systems/graph/model/magicCircleGraph';
 import { isCircleSystemMagicNode } from '../systems/graph/model/circleSystemMagicNodes';
 import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../constants/circleSystemMagicNodeConfigs';
@@ -144,6 +145,9 @@ describe('graphStore sequence circles', () => {
         ]);
         expect(new Set(circles.map(circle => circle.id)).size).toBe(3);
         expect(graphStore.activeCircleId).toBe(circles[2].id);
+        expect(circles.filter(circle => circle.selected).map(circle =>
+            circle.id
+        )).toEqual([circles[2].id]);
     });
 
     it('ignores unrelated clipboard text without mutating the graph', () => {
@@ -193,6 +197,7 @@ describe('graphStore sequence circles', () => {
     it('keeps the calculation snapshot stable for editor-only changes', () => {
         graphStore.addNode('ignition');
         const circle = circleNode();
+        const userNode = userNodes()[0];
         const calculation = graphStore.calculation;
 
         graphStore.selectCircle(circle.id);
@@ -208,16 +213,52 @@ describe('graphStore sequence circles', () => {
             name: '표시 이름',
             caption: '표시 설명',
         });
-        graphStore.acceptFlowNodes(graphStore.nodes.map(node =>
-            node.id === circle.id
-                ? {
+        graphStore.acceptFlowNodes(graphStore.nodes.map(node => {
+            if (node.id === circle.id) {
+                return {
                     ...node,
                     position: { x: 320, y: -320 },
-                }
-                : node
-        ));
+                    measured: { width: 600, height: 640 },
+                };
+            }
+            if (
+                node.id === userNode.id &&
+                !isMagicCircleNode(node)
+            ) {
+                return {
+                    ...node,
+                    parentId: 'forged-circle',
+                    data: {
+                        ...node.data,
+                        magicType: 'stream',
+                        sequenceIndex: 99,
+                    },
+                    selected: true,
+                };
+            }
+            return node;
+        }));
 
         expect(graphStore.calculation).toBe(calculation);
+        expect(graphStore.nodes.find(node =>
+            node.id === userNode.id
+        )).toMatchObject({
+            parentId: circle.id,
+            data: {
+                magicType: 'ignition',
+                sequenceIndex: 0,
+            },
+            selected: true,
+        });
+        expect(graphStore.createPresetSnapshot('Stable document'))
+            .toMatchObject({
+                nodes: [{
+                    id: userNode.id,
+                    magicType: 'ignition',
+                    circleId: circle.id,
+                    sequenceIndex: 0,
+                }],
+            });
     });
 
     it('refreshes the calculation snapshot for node content changes', () => {
@@ -237,13 +278,29 @@ describe('graphStore sequence circles', () => {
         const secondCircleId = graphStore.addCircle({ x: 520, y: -320 });
         graphStore.addNode('stream', secondCircleId);
         const calculation = graphStore.calculation;
+        const beforeMovePreset =
+            graphStore.createPresetSnapshot('Before move');
+        expect(beforeMovePreset).not.toBe(false);
+        if (!beforeMovePreset) {
+            throw new Error('Expected a preset before moving circles');
+        }
 
         graphStore.acceptFlowNodes(graphStore.nodes.map(node => {
             if (node.id === firstCircleId) {
-                return { ...node, position: { x: 520, y: -320 } };
+                return {
+                    ...node,
+                    position: { x: 520, y: -320 },
+                    width: 999,
+                    height: 999,
+                };
             }
             if (node.id === secondCircleId) {
-                return { ...node, position: { x: -240, y: -320 } };
+                return {
+                    ...node,
+                    position: { x: -240, y: -320 },
+                    width: 999,
+                    height: 999,
+                };
             }
             return node;
         }));
@@ -251,12 +308,33 @@ describe('graphStore sequence circles', () => {
         expect(graphStore.calculation).toBe(calculation);
         expect(graphStore.circleStates.map(state => state.circleId))
             .toEqual([firstCircleId, secondCircleId]);
+        expect(graphStore.createPresetSnapshot('During move'))
+            .toMatchObject({
+                circles: beforeMovePreset.circles,
+            });
 
         graphStore.commitCircleLayoutChanges();
 
         expect(graphStore.calculation).not.toBe(calculation);
         expect(graphStore.circleStates.map(state => state.circleId))
             .toEqual([secondCircleId, firstCircleId]);
+        expect(graphStore.createPresetSnapshot('After move'))
+            .toMatchObject({
+                circles: [
+                    expect.objectContaining({
+                        id: firstCircleId,
+                        position: { x: 520, y: -320 },
+                        width: 480,
+                        height: 640,
+                    }),
+                    expect.objectContaining({
+                        id: secondCircleId,
+                        position: { x: -240, y: -320 },
+                        width: 480,
+                        height: 640,
+                    }),
+                ],
+            });
     });
 
     it('refreshes the calculation snapshot immediately after external edge events', () => {
@@ -276,6 +354,7 @@ describe('graphStore sequence circles', () => {
         expect(preparedEdge).not.toBe(false);
         if (!preparedEdge) throw new Error('Expected a prepared edge');
         graphStore.acceptFlowEdges([...graphStore.edges, preparedEdge]);
+        expect(graphStore.edges).toHaveLength(1);
         expect(graphStore.calculation).toBe(beforeConnect);
 
         graphStore.onEdgeConnected(connection);

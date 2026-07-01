@@ -227,7 +227,7 @@ describe('MagicNodeEditor interaction', () => {
         expect(graphStore.calculation).not.toBe(calculation);
     });
 
-    it('routes Flow node and edge writes through the binding gateway', async () => {
+    it('accepts node view writes and rejects unknown Flow topology', async () => {
         const target = document.createElement('div');
         document.body.append(target);
         mountedEditor = mount(MagicNodeEditor, {
@@ -265,7 +265,7 @@ describe('MagicNodeEditor interaction', () => {
             position: { x: 80, y: 120 },
             measured: { width: 480, height: 640 },
         });
-        expect(graphStore.edges).toEqual([flowEdge]);
+        expect(graphStore.edges).toEqual([]);
         expect(graphStore.calculation).toBe(calculation);
     });
 });

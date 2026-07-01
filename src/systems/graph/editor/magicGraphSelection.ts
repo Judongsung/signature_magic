@@ -4,6 +4,7 @@ import type {
 } from '../../../types/magic';
 import {
     getMagicCircleNodes,
+    getMagicUnitNodes,
     isMagicCircleNode,
 } from '../model/magicCircleGraph';
 import type { Point } from './editorCanvas';
@@ -20,6 +21,44 @@ export type MagicGraphSelectionScope =
         mode: typeof MAGIC_GRAPH_SELECTION_MODES.UNITS;
         circleId: string;
     };
+
+export function selectOnlyCircle(
+    nodes: readonly MagicEditorNode[],
+    circleId: string | undefined
+): MagicEditorNode[] {
+    return nodes.map(node => {
+        const selected = isMagicCircleNode(node)
+            ? node.id === circleId
+            : false;
+        return Boolean(node.selected) === selected
+            ? node
+            : { ...node, selected };
+    });
+}
+
+export function activateCircleForUnitSelection(
+    nodes: readonly MagicEditorNode[]
+): MagicEditorNode[] {
+    return nodes.map(node =>
+        isMagicCircleNode(node) && node.selected
+            ? { ...node, selected: false }
+            : node
+    );
+}
+
+export function resolveSelectedUnitCircleId(
+    nodes: readonly MagicEditorNode[]
+): string | undefined {
+    const selectedCircleIds = new Set(
+        getMagicUnitNodes(nodes)
+            .filter(node => node.selected && node.parentId)
+            .map(node => node.parentId!)
+    );
+
+    return selectedCircleIds.size === 1
+        ? selectedCircleIds.values().next().value
+        : undefined;
+}
 
 export function resolveMagicGraphSelectionScope(
     point: Point,
@@ -74,24 +113,31 @@ function shouldKeepNodeSelected(
 export function resolveMagicGraphSelectionTargetCircleId(
     nodes: readonly MagicEditorNode[]
 ): string | undefined {
+    const selectedNodeIds = new Set(
+        nodes.filter(node => node.selected).map(node => node.id)
+    );
     const selectedUnitCircleId = nodes.find(node =>
         !isMagicCircleNode(node) &&
-        node.selected &&
+        selectedNodeIds.has(node.id) &&
         node.parentId
     )?.parentId;
     if (selectedUnitCircleId) return selectedUnitCircleId;
 
-    return resolveUppermostSelectedCircle(getMagicCircleNodes(nodes))?.id;
+    return resolveUppermostSelectedCircle(
+        getMagicCircleNodes(nodes),
+        selectedNodeIds
+    )?.id;
 }
 
 export function resolveUppermostSelectedCircle(
-    circles: readonly MagicCircleNode[]
+    circles: readonly MagicCircleNode[],
+    selectedNodeIds: ReadonlySet<string>
 ): MagicCircleNode | undefined {
     return circles.reduce<{
         circle: MagicCircleNode;
         index: number;
     } | undefined>((current, circle, index) => {
-        if (!circle.selected) return current;
+        if (!selectedNodeIds.has(circle.id)) return current;
         if (!current) return { circle, index };
         if (circle.position.y < current.circle.position.y) {
             return { circle, index };

@@ -33,7 +33,6 @@ import {
 import {
     getMagicCircleNodes,
     getMagicUnitNodes,
-    isMagicCircleNode,
     isMagicTypeAllowedInCircleSequence,
     orderMagicEditorNodes,
     readMagicCircleSequenceIndex,
@@ -90,11 +89,13 @@ export interface MagicGraphClipboardPayload {
 export interface MagicGraphClipboardSnapshot {
     nodes: MagicEditorNode[];
     edges: Edge[];
+    selectedNodeIds: ReadonlySet<string>;
 }
 
 export interface MagicGraphClipboardPasteResult
-    extends MagicGraphClipboardSnapshot {
+    extends Omit<MagicGraphClipboardSnapshot, 'selectedNodeIds'> {
     activeCircleId: string;
+    selectedNodeIds: string[];
 }
 
 export type MagicGraphClipboardIdFactory = () => string;
@@ -103,12 +104,15 @@ export function createMagicGraphClipboardPayload(
     snapshot: MagicGraphClipboardSnapshot
 ): MagicGraphClipboardPayload | false {
     const selectedCircles = getMagicCircleNodes(snapshot.nodes)
-        .filter(circle => circle.selected);
+        .filter(circle => snapshot.selectedNodeIds.has(circle.id));
     if (selectedCircles.length > 0) {
         return createCircleClipboardPayload(snapshot, selectedCircles);
     }
 
-    return createUnitClipboardPayload(snapshot.nodes);
+    return createUnitClipboardPayload(
+        snapshot.nodes,
+        snapshot.selectedNodeIds
+    );
 }
 
 function createCircleClipboardPayload(
@@ -142,11 +146,12 @@ type MagicGraphPresetSourceCircle =
     ReturnType<typeof getMagicCircleNodes>[number];
 
 function createUnitClipboardPayload(
-    nodes: readonly MagicEditorNode[]
+    nodes: readonly MagicEditorNode[],
+    selectedNodeIds: ReadonlySet<string>
 ): MagicGraphClipboardPayload | false {
     const selectedUnits = getMagicUnitNodes(nodes)
         .filter(node =>
-            node.selected &&
+            selectedNodeIds.has(node.id) &&
             node.parentId &&
             !isCircleSystemMagicNode(node)
         );
@@ -287,31 +292,25 @@ function pasteCircleClipboardPayload(
 
     const pastedCircleIds = new Set(circleIdMap.values());
     const nodes = normalizeMagicCircleSequences(orderMagicEditorNodes([
-        ...snapshot.nodes.map(node =>
-            node.selected ? { ...node, selected: false } : node
-        ),
-        ...pasted.nodes.map(node =>
-            isMagicCircleNode(node) && pastedCircleIds.has(node.id)
-                ? { ...node, selected: true }
-                : node
-        ),
+        ...snapshot.nodes,
+        ...pasted.nodes,
     ]));
+    const selectedNodeIds = [...pastedCircleIds];
 
     return {
         nodes,
         edges: [
-            ...snapshot.edges.map(edge =>
-                edge.selected ? { ...edge, selected: false } : edge
-            ),
+            ...snapshot.edges,
             ...pasted.edges.map(edge => ({
                 ...edge,
                 type: GRAPH_EDGE_TYPES.MAGIC_EDGE,
-                selected: false,
             })),
         ],
         activeCircleId: resolveUppermostSelectedCircle(
-            getMagicCircleNodes(nodes)
+            getMagicCircleNodes(nodes),
+            new Set(selectedNodeIds)
         )!.id,
+        selectedNodeIds,
     };
 }
 
@@ -321,7 +320,10 @@ function pasteUnitClipboardPayload(
     magicTypes: MagicTypeLookup,
     createId: MagicGraphClipboardIdFactory
 ): MagicGraphClipboardPasteResult | false {
-    const target = resolveUnitPasteTarget(snapshot.nodes);
+    const target = resolveUnitPasteTarget(
+        snapshot.nodes,
+        snapshot.selectedNodeIds
+    );
     if (!target) return false;
 
     const pairIdMap = createControlPairIdMap(payload.nodes, createId);
@@ -333,11 +335,8 @@ function pasteUnitClipboardPayload(
             magicTypes,
             createId
         ));
-    const deselectedNodes = snapshot.nodes.map(node =>
-        node.selected ? { ...node, selected: false } : node
-    );
     const update = insertMagicNodesIntoCircle(
-        deselectedNodes,
+        snapshot.nodes,
         insertedNodes,
         target.circleId,
         target.insertionIndex
@@ -346,10 +345,9 @@ function pasteUnitClipboardPayload(
 
     return {
         nodes: update.nodes,
-        edges: snapshot.edges.map(edge =>
-            edge.selected ? { ...edge, selected: false } : edge
-        ),
+        edges: snapshot.edges,
         activeCircleId: target.circleId,
+        selectedNodeIds: insertedNodes.map(node => node.id),
     };
 }
 
@@ -365,7 +363,6 @@ function createPastedUnitNode(
 
     return {
         ...created,
-        selected: true,
         data: {
             ...createUserMagicNodeData(node.magicType, settings),
             ...(node.controlPair
@@ -385,13 +382,14 @@ function createPastedUnitNode(
 }
 
 function resolveUnitPasteTarget(
-    nodes: readonly MagicEditorNode[]
+    nodes: readonly MagicEditorNode[],
+    selectedNodeIds: ReadonlySet<string>
 ): {
     circleId: string;
     insertionIndex?: number;
 } | undefined {
     const selectedUnits = getMagicUnitNodes(nodes).filter(node =>
-        node.selected &&
+        selectedNodeIds.has(node.id) &&
         node.parentId &&
         !isCircleSystemMagicNode(node)
     );
@@ -410,7 +408,8 @@ function resolveUnitPasteTarget(
     }
 
     const circle = resolveUppermostSelectedCircle(
-        getMagicCircleNodes(nodes)
+        getMagicCircleNodes(nodes),
+        selectedNodeIds
     );
     return circle ? { circleId: circle.id } : undefined;
 }
