@@ -28,6 +28,7 @@ import {
 import { findNearestCommonReachableNode } from '../topology/graphTraversal';
 import type { MagicNodeExecutionCounts } from './magicRepeatCalculation';
 import { applyMagicNodeWeightToStat } from '../model/magicNodeWeight';
+import { isMagicControlPairType } from '../model/magicControlPairs';
 
 const EMPTY_NODE_EXECUTION_COUNTS: MagicNodeExecutionCounts = new Map();
 const DEFAULT_NODE_EXECUTION_COUNT = 1;
@@ -77,6 +78,7 @@ export function calculateMagicStats(
             nodes,
             edges,
             magicTypes,
+            nodeExecutionCounts,
         });
         result[statKey] = MAGIC_STAT_RULES[statKey].clampValue(scaledValue);
     });
@@ -298,13 +300,11 @@ function readNodeStats(
 ): MagicStats {
     const cached = context.nodeStatsById.get(node.id);
     if (cached) return cached;
-    if (node.data.excludeFromStatScaling === true) {
-        const identityStats = Object.fromEntries(
-            MAGIC_STAT_KEYS.map(statKey => [
-                statKey,
-                MAGIC_STAT_RULES[statKey].serialIdentity,
-            ])
-        ) as MagicStats;
+    if (
+        node.data.excludeFromStatScaling === true ||
+        isMagicControlPairType(node.data.magicType)
+    ) {
+        const identityStats = createSerialIdentityStats();
         context.nodeStatsById.set(node.id, identityStats);
         return identityStats;
     }
@@ -345,6 +345,15 @@ function readNodeStats(
 
     context.nodeStatsById.set(node.id, stats);
     return stats;
+}
+
+function createSerialIdentityStats(): MagicStats {
+    return Object.fromEntries(
+        MAGIC_STAT_KEYS.map(statKey => [
+            statKey,
+            MAGIC_STAT_RULES[statKey].serialIdentity,
+        ])
+    ) as MagicStats;
 }
 
 function getNodeStatEffectSummary(

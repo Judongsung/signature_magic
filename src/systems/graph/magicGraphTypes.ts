@@ -14,6 +14,11 @@ export interface MagicControlPairRef {
     role: MagicControlPairRole;
 }
 
+export interface MagicCircleConnectionJoinRef {
+    edgeId: string;
+    sourceCircleId: string;
+}
+
 interface MagicNodeDataBase extends Record<string, unknown> {
     magicType: MagicType;
     settings?: MagicNodeSettings;
@@ -30,6 +35,7 @@ export interface MagicUserNodeData extends MagicNodeDataBase {
 export interface MagicCircleSystemNodeData extends MagicNodeDataBase {
     nodeKind: 'system';
     controlPair?: never;
+    connectionJoin?: MagicCircleConnectionJoinRef;
 }
 
 export type MagicNodeData =

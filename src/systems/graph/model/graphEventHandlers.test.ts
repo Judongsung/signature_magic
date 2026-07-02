@@ -16,6 +16,9 @@ import {
 } from './magicCircleGraph';
 import { createCircleSystemMagicNode } from './circleSystemMagicNodes';
 import {
+    isMagicCircleConnectionJoinNode,
+} from './magicCircleConnectionNodes';
+import {
     prepareGraphEdge,
     removeDeletedGraphElements,
     syncGraphTopology,
@@ -203,6 +206,13 @@ describe('graphEventHandlers', () => {
             ?.data.outputHandleCount).toBe(2);
         expect(firstSync.nodes.find(node => node.id === sourceB.id)
             ?.data.outputHandleCount).toBe(2);
+        expect(firstSync.nodes
+            .filter(isMagicCircleConnectionJoinNode)
+            .map(join => join.data.connectionJoin.sourceCircleId)
+            .sort()).toEqual([
+                sourceA.id,
+                sourceB.id,
+            ].sort());
 
         const secondSync = syncGraphTopology({
             nodes: firstSync.nodes,
@@ -217,5 +227,52 @@ describe('graphEventHandlers', () => {
             ?.data.outputHandleCount).toBe(1);
         expect(secondSync.nodes.find(node => node.id === sourceB.id)
             ?.data.outputHandleCount).toBe(2);
+        expect(secondSync.nodes
+            .filter(isMagicCircleConnectionJoinNode)
+            .map(join => join.data.connectionJoin.edgeId))
+            .toEqual(['input-1']);
+    });
+
+    it('restores a directly deleted join and removes it with its edge', () => {
+        const source = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'source'
+        );
+        const target = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'target'
+        );
+        const edge = externalEdge(
+            'edge-connection',
+            source.id,
+            target.id
+        );
+        const connected = syncGraphTopology({
+            nodes: [source, target],
+            edges: [edge],
+        });
+        const join = connected.nodes.find(
+            isMagicCircleConnectionJoinNode
+        )!;
+
+        const directDeletion = removeDeletedGraphElements(
+            {
+                nodes: connected.nodes,
+                edges: connected.edges,
+            },
+            [join],
+            []
+        );
+        expect(directDeletion.nodes.some(node =>
+            node.id === join.id
+        )).toBe(true);
+
+        const disconnected = syncGraphTopology({
+            nodes: connected.nodes,
+            edges: [],
+        });
+        expect(disconnected.nodes.some(
+            isMagicCircleConnectionJoinNode
+        )).toBe(false);
     });
 });

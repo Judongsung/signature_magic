@@ -62,8 +62,12 @@
     import {
         provideMagicGraphEditorActions,
         provideMagicGraphRenderContext,
+        resolveMagicCircleRenderTitle,
     } from '../rendering/magicGraphRenderContext';
     import { isMagicControlPairNode } from '../../../systems/graph/model/magicControlPairs';
+    import {
+        isMagicCircleConnectionJoinNode,
+    } from '../../../systems/graph/model/magicCircleConnectionNodes';
     import {
         MAGIC_GRAPH_SELECTION_MODES,
         resolveMagicGraphCircleClickTargetId,
@@ -98,11 +102,22 @@
     const renderCircleStateById = $derived(new Map(
         graphStore.circleStates.map(state => [state.circleId, state])
     ));
+    const renderCircleTitleById = $derived(new Map(
+        renderGraphIndex.circles.map(circle => [
+            circle.id,
+            resolveMagicCircleRenderTitle(
+                circle,
+                renderCircleStateById.get(circle.id)
+            ),
+        ])
+    ));
     provideMagicGraphRenderContext({
         getCircleChildren: circleId =>
             renderGraphIndex.childrenByCircleId.get(circleId) ?? [],
         getCircleState: circleId =>
             renderCircleStateById.get(circleId),
+        getCircleTitle: circleId =>
+            renderCircleTitleById.get(circleId),
         get activeCircleId() {
             return graphStore.activeCircleId;
         },
@@ -190,7 +205,7 @@
 
     function addNodeAtCanvasCenter(magicType: MagicType) {
         if (!selectedCircle) return;
-        graphStore.addNode(magicType, selectedCircle.id);
+        graphStore.addNodeAfterSelection(magicType, selectedCircle.id);
     }
 
     function addCircleAtCanvasCenter() {
@@ -318,6 +333,7 @@
 
     const onNodeContextMenu: NodeEventWithPointer<MouseEvent, MagicEditorNode> = ({ node, event }) => {
         if (isMagicCircleNode(node)) return;
+        if (isMagicCircleConnectionJoinNode(node)) return;
         if (
             isMagicControlPairNode(node) &&
             node.data.controlPair.role === MAGIC_CONTROL_PAIR_ROLES.END

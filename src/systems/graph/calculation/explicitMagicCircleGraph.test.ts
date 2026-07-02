@@ -266,10 +266,12 @@ describe('explicitMagicCircleGraph sequence projection', () => {
         expect(result.circles[0].nodes.map(node => node.id))
             .toEqual([start.id, content.id]);
         expect(result.circles[0].stats).toMatchObject({
-            castingTime: 5,
+            castingTime: 3,
             power: 12,
-            manaCost: 10,
+            manaCost: 6,
         });
+        expect(result.circles[0].stats.instability)
+            .toBeCloseTo(2 * (1.1 ** 2));
     });
 
     it('keeps branch pairs on the default serial calculation path', () => {
@@ -313,10 +315,13 @@ describe('explicitMagicCircleGraph sequence projection', () => {
 
         expect(result.circles[0].nodes.map(node => node.id))
             .toEqual([start.id, content.id]);
-        expect(result.circles[0].stats.manaCost).toBe(5);
+        expect(result.circles[0].stats).toMatchObject({
+            instability: 2,
+            manaCost: 2,
+        });
     });
 
-    it('keeps an upward branch target on the serial static calculation path', () => {
+    it('rejects an upward branch target from static calculation', () => {
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'upward-branch-stats'
@@ -356,9 +361,8 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             magicTypesData as MagicTypeConfig[]
         );
 
-        expect(result.circles[0].nodes.map(node => node.id))
-            .toEqual([content.id, start.id]);
-        expect(result.circles[0].stats.manaCost).toBe(5);
+        expect(result.circles).toEqual([]);
+        expect(result.circleStates[0].isInternallyValid).toBe(false);
     });
 
     it('calculates serial stats without global boundary nodes', () => {
@@ -428,7 +432,7 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             duration: 11,
         });
         expect(explicit.circles[0].stats.instability)
-            .toBeCloseTo(3.45);
+            .toBeCloseTo(3.3);
         expect(explicit.totalStats).toEqual(explicit.circles[0].stats);
     });
 });

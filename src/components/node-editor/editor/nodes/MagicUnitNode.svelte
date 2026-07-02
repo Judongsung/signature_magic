@@ -14,6 +14,9 @@
     } from '../../../../systems/graph/model/magicNodeData';
     import { resolveMagicControlPairNodePresentation } from '../../../../systems/graph/presentation/magicControlPairPresentation';
     import { isCircleSystemMagicNodeData } from '../../../../systems/graph/model/circleSystemMagicNodes';
+    import {
+        isMagicCircleConnectionJoinData,
+    } from '../../../../systems/graph/model/magicCircleConnectionNodes';
     import DescriptionTooltip from '../../../shared/DescriptionTooltip.svelte';
     import MagicNodeTooltipStats from '../MagicNodeTooltipStats.svelte';
     import { useNodeEditorDetails } from '../details/nodeDetailsContext';
@@ -37,7 +40,21 @@
 
     const color = $derived(nodeConfig?.color || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_COLOR);
     const icon = $derived(nodeConfig?.icon || MAGIC_NODE_RENDERING_CONFIG.FALLBACK_ICON);
-    const defaultLabel = $derived(resolveMagicNodeLabel(data, nodeConfig));
+    const renderContext = useMagicGraphRenderContext();
+    const isConnectionJoin = $derived(
+        isMagicCircleConnectionJoinData(data)
+    );
+    const connectionJoinSourceCircleId = $derived.by(() => {
+        if (!isMagicCircleConnectionJoinData(data)) return undefined;
+        return data.connectionJoin.sourceCircleId;
+    });
+    const defaultLabel = $derived(
+        connectionJoinSourceCircleId
+            ? renderContext.getCircleTitle(
+                connectionJoinSourceCircleId
+            ) ?? resolveMagicNodeLabel(data, nodeConfig)
+            : resolveMagicNodeLabel(data, nodeConfig)
+    );
     const controlPairPresentation = $derived(
         resolveMagicControlPairNodePresentation(
             { data },
@@ -61,7 +78,6 @@
     const isCircleSystemNode = $derived(
         isCircleSystemMagicNodeData(data)
     );
-    const renderContext = useMagicGraphRenderContext();
     const isSequenceInsertionBefore = $derived(
         renderContext.sequenceDropPreview?.targetCircleId === parentId &&
         renderContext.sequenceDropPreview?.beforeNodeId === id
@@ -83,13 +99,14 @@
     }
 </script>
 
-<div
+    <div
     class="custom-node sequence-node"
     class:tooltip-host={shouldShowTooltip}
     class:sequence-insertion-before={isSequenceInsertionBefore}
     class:sequence-insertion-after={isSequenceInsertionAfter}
     class:control-pair-end={controlPairPresentation.isEnd}
-    class:circle-system-node={isCircleSystemNode}
+    class:circle-system-node={isCircleSystemNode && !isConnectionJoin}
+    class:connection-join-node={isConnectionJoin}
     aria-describedby={shouldShowTooltip ? tooltipId : undefined}
     style="--c: {color};"
 >
@@ -99,7 +116,7 @@
         {#if caption}<div class="caption">{caption}</div>{/if}
     </div>
 
-    {#if draggable && openDetails && controlPairPresentation.showDetails}
+    {#if draggable && openDetails && controlPairPresentation.showDetails && !isConnectionJoin}
         <button
             type="button"
             class="node-details-trigger nodrag nopan"
@@ -116,14 +133,16 @@
             id={tooltipId}
             {description}
         >
-            <MagicNodeTooltipStats
-                stats={nodeConfig.stats}
-                {nodeStatEffects}
-                magicType={nodeConfig.type}
-                nodeCategory={nodeConfig.category}
-                nodeStatBounds={nodeConfig.statBounds}
-                nodeData={data}
-            />
+            {#if nodeConfig.stats && !isConnectionJoin}
+                <MagicNodeTooltipStats
+                    stats={nodeConfig.stats}
+                    {nodeStatEffects}
+                    magicType={nodeConfig.type}
+                    nodeCategory={nodeConfig.category}
+                    nodeStatBounds={nodeConfig.statBounds}
+                    nodeData={data}
+                />
+            {/if}
         </DescriptionTooltip>
     {/if}
 </div>
@@ -204,6 +223,11 @@
 
     .custom-node.circle-system-node::after {
         border-color: var(--node-editor-manifestation-inner-border);
+    }
+
+    .custom-node.connection-join-node {
+        border-width: 2px;
+        border-style: dashed;
     }
 
     .custom-node.sequence-insertion-before {

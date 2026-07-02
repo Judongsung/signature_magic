@@ -11,7 +11,6 @@ import {
     isMagicControlPairNode,
     resolveMagicControlPairs,
 } from '../model/magicControlPairs';
-import { isCircleSystemMagicNode } from '../model/circleSystemMagicNodes';
 
 export type MagicNodeExecutionCounts = ReadonlyMap<string, number>;
 
@@ -30,12 +29,9 @@ export function buildMagicControlPairExecutionCounts(
             pair.start.data,
             magicTypes.get(pair.start.data.magicType)
         );
-        const effectiveCount =
-            configuredCount === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
-                ? MAGIC_REPEAT_CONFIG.INFINITE_CALCULATION_COUNT
-                : configuredCount ??
-                    MAGIC_REPEAT_CONFIG.INFINITE_CALCULATION_COUNT;
-        if (effectiveCount <= MAGIC_REPEAT_CONFIG.INFINITE_CALCULATION_COUNT) {
+        const effectiveCount = configuredCount ??
+            MAGIC_REPEAT_CONFIG.DEFAULT_COUNT;
+        if (effectiveCount <= MAGIC_REPEAT_CONFIG.DEFAULT_COUNT) {
             return;
         }
 
@@ -43,9 +39,6 @@ export function buildMagicControlPairExecutionCounts(
             const sequenceIndex = typeof node.data.sequenceIndex === 'number'
                 ? node.data.sequenceIndex
                 : undefined;
-            if (isCircleSystemMagicNode(node)) {
-                return;
-            }
             if (
                 isMagicControlPairNode(node) &&
                 node.data.controlPair.id === pair.id
@@ -64,7 +57,7 @@ export function buildMagicControlPairExecutionCounts(
             executionCounts.set(
                 node.id,
                 (executionCounts.get(node.id) ??
-                    MAGIC_REPEAT_CONFIG.INFINITE_CALCULATION_COUNT) *
+                    MAGIC_REPEAT_CONFIG.DEFAULT_COUNT) *
                     effectiveCount
             );
         });

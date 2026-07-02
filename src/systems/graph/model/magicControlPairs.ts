@@ -127,14 +127,13 @@ export function isMagicControlPairGraphValid(
     );
     if (unpairedSpecialNodeExists) return false;
 
-    const repeatPairs = pairs
-        .filter(pair =>
-            pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
-        );
-    if (repeatPairs.some(pair => pair.startIndex >= pair.endIndex)) {
+    if (pairs.some(pair => pair.startIndex >= pair.endIndex)) {
         return false;
     }
 
+    const repeatPairs = pairs.filter(pair =>
+        pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
+    );
     return repeatPairs.every((left, leftIndex) =>
         repeatPairs.slice(leftIndex + 1).every(right =>
             left.circleId !== right.circleId ||

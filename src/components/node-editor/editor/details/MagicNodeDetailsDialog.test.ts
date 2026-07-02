@@ -124,13 +124,13 @@ describe('MagicNodeDetailsDialog', () => {
     });
 
     it('renders and saves the default caption field for a regular node', () => {
-        const { target, onSave } = mountDialog('ignition', { caption: '기존 캡션' });
+        const { target, onSave } = mountDialog('ignition', { caption: '기존 메모' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;
 
-        expect(target.textContent).toContain('캡션');
-        expect(input.value).toBe('기존 캡션');
+        expect(target.textContent).toContain('메모');
+        expect(input.value).toBe('기존 메모');
         expect(input.maxLength).toBe(80);
-        expect(input.placeholder).toBe('노드 캡션을 입력하세요.');
+        expect(input.placeholder).toBe('노드 메모를 입력하세요.');
 
         setInputValue(input, '  불꽃을 일으킨다  ');
         target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
@@ -150,25 +150,24 @@ describe('MagicNodeDetailsDialog', () => {
         const increase = stepper.querySelector<HTMLButtonElement>(
             `button[aria-label="횟수 ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INCREASE}"]`
         )!;
-        const output = stepper.querySelector<HTMLOutputElement>('output')!;
+        const input = stepper.querySelector<HTMLInputElement>('input[type="number"]')!;
 
-        expect(stepper.querySelector('input')).toBeNull();
-        expect(output.textContent).toBe('∞');
+        expect(input.value).toBe('1');
         expect(decrease.disabled).toBe(true);
-        expect(target.textContent).toContain('0은 무한 반복이며 스탯은 1회 기준으로 계산됩니다.');
+        expect(target.textContent).toContain('반복 시작과 끝 사이의 단위 마법에 적용됩니다.');
 
         increase.click();
         increase.click();
         await tick();
 
-        expect(output.textContent).toBe('2');
+        expect(input.value).toBe('3');
         expect(decrease.disabled).toBe(false);
         target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
             bubbles: true,
             cancelable: true,
         }));
 
-        expect(onSave).toHaveBeenCalledWith({ repeatCount: '2', caption: '되풀이' });
+        expect(onSave).toHaveBeenCalledWith({ repeatCount: '3', caption: '되풀이' });
     });
 
     it('disables the repeat stepper at its maximum value', () => {
@@ -178,8 +177,30 @@ describe('MagicNodeDetailsDialog', () => {
             `button[aria-label="횟수 ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INCREASE}"]`
         )!;
 
-        expect(stepper.querySelector('output')?.textContent).toBe('99');
+        expect(stepper.querySelector<HTMLInputElement>('input')?.value).toBe('99');
         expect(increase.disabled).toBe(true);
+    });
+
+    it('accepts a repeat count through direct numeric input', () => {
+        const { target, onSave } = mountDialog('repeat');
+        const input = target.querySelector<HTMLInputElement>(
+            '.node-details-stepper input[type="number"]'
+        )!;
+
+        setInputValue(input, '7');
+        target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
+            bubbles: true,
+            cancelable: true,
+        }));
+
+        expect(onSave).toHaveBeenCalledWith({ repeatCount: '7' });
+    });
+
+    it('hides the stat grid for statless control nodes', () => {
+        const { target } = mountDialog('branch');
+
+        expect(target.querySelector('.node-details-stats')).toBeNull();
+        expect(target.querySelector('.node-tooltip-stats')).toBeNull();
     });
 
     it('edits an eligible node weight and previews weighted stats', async () => {
@@ -191,13 +212,13 @@ describe('MagicNodeDetailsDialog', () => {
             `button[aria-label="가중치 ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INCREASE}"]`
         )!;
 
-        expect(stepper.querySelector('output')?.textContent).toBe('1');
+        expect(stepper.querySelector<HTMLInputElement>('input')?.value).toBe('1');
         expect(target.querySelector('.stat-adjustment')).toBeNull();
 
         increase.click();
         await tick();
 
-        expect(stepper.querySelector('output')?.textContent).toBe('2');
+        expect(stepper.querySelector<HTMLInputElement>('input')?.value).toBe('2');
         expect(target.querySelector('.stat-adjustment')).not.toBeNull();
 
         target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
@@ -255,13 +276,13 @@ describe('MagicNodeDetailsDialog', () => {
 
     it('uses the default caption field for a regular node', () => {
         const magicType = 'detect';
-        const { target, onSave } = mountDialog(magicType, { caption: '기존 캡션' });
+        const { target, onSave } = mountDialog(magicType, { caption: '기존 메모' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;
 
-        expect(target.textContent).toContain('캡션');
-        expect(input.value).toBe('기존 캡션');
+        expect(target.textContent).toContain('메모');
+        expect(input.value).toBe('기존 메모');
         expect(input.maxLength).toBe(80);
-        expect(input.placeholder).toBe('노드 캡션을 입력하세요.');
+        expect(input.placeholder).toBe('노드 메모를 입력하세요.');
 
         setInputValue(input, '  대상이 움직일 때  ');
         target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
@@ -286,7 +307,7 @@ describe('MagicNodeDetailsDialog', () => {
     });
 
     it('removes an empty caption setting', () => {
-        const { target, onSave } = mountDialog('detect', { caption: '기존 캡션' });
+        const { target, onSave } = mountDialog('detect', { caption: '기존 메모' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;
 
         setInputValue(input, '   ');
@@ -299,7 +320,7 @@ describe('MagicNodeDetailsDialog', () => {
     });
 
     it('cancels caption editing without saving', () => {
-        const { target, onSave, onClose } = mountDialog('branch', { caption: '기존 캡션' });
+        const { target, onSave, onClose } = mountDialog('branch', { caption: '기존 메모' });
         const cancelButton = [...target.querySelectorAll('button')].find(
             button => button.textContent?.trim() === NODE_EDITOR_TEXT.NODE_DETAILS_CANCEL
         );

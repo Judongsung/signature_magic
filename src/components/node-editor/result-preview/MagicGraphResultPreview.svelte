@@ -31,6 +31,7 @@
     import MagicCircleNode from '../editor/nodes/MagicCircleNode.svelte';
     import {
         provideMagicGraphRenderContext,
+        resolveMagicCircleRenderTitle,
     } from '../rendering/magicGraphRenderContext';
 
     let {
@@ -57,11 +58,22 @@
     const previewCircleStateById = $derived(new Map(
         circleStates.map(state => [state.circleId, state])
     ));
+    const previewCircleTitleById = $derived(new Map(
+        previewGraphIndex.circles.map(circle => [
+            circle.id,
+            resolveMagicCircleRenderTitle(
+                circle,
+                previewCircleStateById.get(circle.id)
+            ),
+        ])
+    ));
     provideMagicGraphRenderContext({
         getCircleChildren: circleId =>
             previewGraphIndex.childrenByCircleId.get(circleId) ?? [],
         getCircleState: circleId =>
             previewCircleStateById.get(circleId),
+        getCircleTitle: circleId =>
+            previewCircleTitleById.get(circleId),
         activeCircleId: undefined,
         sequenceDropPreview: undefined,
         nodeStatEffects: EMPTY_NODE_STAT_EFFECTS,

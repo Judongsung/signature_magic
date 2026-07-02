@@ -42,10 +42,10 @@ const magicTypes = buildMagicTypeMap([
                     key: 'repeatCount',
                     label: 'Count',
                     control: MAGIC_NODE_EDITOR_CONTROLS.STEPPER,
-                    min: 0,
+                    min: 1,
                     max: 99,
                     step: 1,
-                    defaultValue: 0,
+                    defaultValue: 1,
                     presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX,
                     behavior: MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT,
                 },
@@ -127,6 +127,42 @@ describe('magicRepeatCalculation', () => {
             'inner-start': 3,
             content: 6,
             'inner-end': 3,
+        });
+    });
+
+    it('repeats manifestation when it is inside the repeat interval', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'manifestation-repeat'
+        );
+        const manifestation: MagicNode = {
+            id: 'manifestation',
+            type: 'magicNode',
+            position: { x: 0, y: 0 },
+            data: {
+                magicType: 'manifestation',
+                nodeKind: 'system',
+            },
+        };
+        const nodes = [
+            circle,
+            attachNodeToCircle(
+                marker('repeat-start', 'repeat', 'start', '3'),
+                circle,
+                0
+            ),
+            attachNodeToCircle(manifestation, circle, 1),
+            attachNodeToCircle(
+                marker('repeat-end', 'repeat', 'end'),
+                circle,
+                2
+            ),
+        ];
+
+        expect(Object.fromEntries(
+            buildMagicControlPairExecutionCounts(nodes, magicTypes)
+        )).toEqual({
+            manifestation: 3,
         });
     });
 });

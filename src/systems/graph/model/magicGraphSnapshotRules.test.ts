@@ -14,6 +14,7 @@ import { magicTypeMap } from '../registry/magicTypeRegistry';
 import {
     analyzeMagicGraphControlPairs,
     findNonContiguousMagicGraphSequenceCircleIds,
+    hasValidMagicGraphConnectionJoinSlots,
     hasValidMagicGraphSystemNodeSlots,
     isMagicGraphExternalCircleEdge,
     normalizeMagicGraphPresetSettings,
@@ -77,6 +78,30 @@ describe('magicGraphSnapshotRules', () => {
         expect(crossed.hasCrossedRepeatPairs).toBe(true);
     });
 
+    it('reports a reverse branch pair as invalid', () => {
+        const start = {
+            ...pairedNode(
+                'branch-start',
+                'reverse-branch',
+                MAGIC_CONTROL_PAIR_ROLES.START,
+                2
+            ),
+            magicType: 'branch',
+        };
+        const end = {
+            ...pairedNode(
+                'branch-end',
+                'reverse-branch',
+                MAGIC_CONTROL_PAIR_ROLES.END,
+                1
+            ),
+            magicType: 'branch',
+        };
+
+        expect(analyzeMagicGraphControlPairs([start, end]).invalidPairIds)
+            .toEqual(['reverse-branch']);
+    });
+
     it('validates circle system slots and external edges', () => {
         expect(hasValidMagicGraphSystemNodeSlots([{
             magicType: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
@@ -91,6 +116,53 @@ describe('magicGraphSnapshotRules', () => {
             sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
             targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
         }, new Set(['circle-a', 'circle-b']))).toBe(true);
+    });
+
+    it('rejects connection join slots inside repeat intervals', () => {
+        const nodes = [
+            pairedNode(
+                'repeat-start',
+                'repeat',
+                MAGIC_CONTROL_PAIR_ROLES.START,
+                0
+            ),
+            {
+                id: 'middle',
+                magicType: 'ignition',
+                circleId: 'circle-a',
+                sequenceIndex: 1,
+            },
+            pairedNode(
+                'repeat-end',
+                'repeat',
+                MAGIC_CONTROL_PAIR_ROLES.END,
+                2
+            ),
+        ];
+        const edge = {
+            id: 'edge',
+            source: 'circle-b',
+            target: 'circle-a',
+            sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
+            targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
+        };
+
+        expect(hasValidMagicGraphConnectionJoinSlots(
+            [{ ...edge, joinSlotIndex: 0 }],
+            nodes
+        )).toBe(true);
+        expect(hasValidMagicGraphConnectionJoinSlots(
+            [{ ...edge, joinSlotIndex: 1 }],
+            nodes
+        )).toBe(false);
+        expect(hasValidMagicGraphConnectionJoinSlots(
+            [{ ...edge, joinSlotIndex: 2 }],
+            nodes
+        )).toBe(false);
+        expect(hasValidMagicGraphConnectionJoinSlots(
+            [{ ...edge, joinSlotIndex: 3 }],
+            nodes
+        )).toBe(true);
     });
 
     it('normalizes stored user and system settings', () => {

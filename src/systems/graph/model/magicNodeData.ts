@@ -246,9 +246,7 @@ function formatMagicNodeLabelSuffix(
         return `${MAGIC_NODE_WEIGHT_CONFIG.LABEL_PREFIX}${value}`;
     }
     if (field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT) {
-        return Number(value) === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
-            ? MAGIC_REPEAT_CONFIG.INFINITE_LABEL
-            : `${MAGIC_REPEAT_CONFIG.FINITE_LABEL_PREFIX}${value}`;
+        return `${MAGIC_REPEAT_CONFIG.COUNT_LABEL_PREFIX}${value}`;
     }
 
     return value;

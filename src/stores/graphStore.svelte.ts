@@ -20,6 +20,7 @@ import {
     normalizeMagicCircleSequences,
     resizeMagicCircleSequence,
     updateMagicCircleMetadata,
+    type MagicNodeInsertionResult,
     type MagicNodeSequenceOrigin,
 } from '../systems/graph/model/magicCircleGraphActions';
 import {
@@ -32,6 +33,7 @@ import {
     normalizeMagicGraphSelection,
     resolveSelectedUnitCircleId,
     resolveMagicGraphSelectionTargetCircleId,
+    resolveSelectedUnitInsertionIndex,
     selectOnlyCircle,
     type MagicGraphSelectionScope,
 } from '../systems/graph/editor/magicGraphSelection';
@@ -303,18 +305,56 @@ class GraphStore {
         circleId: string | undefined = this.activeCircleId,
         insertionIndex?: number
     ): boolean {
+        return Boolean(this.insertNodeAtIndex(
+            magicType,
+            circleId,
+            insertionIndex
+        ));
+    }
+
+    addNodeAfterSelection(
+        magicType: MagicType,
+        circleId: string | undefined = this.activeCircleId
+    ): boolean {
+        const insertionIndex = circleId
+            ? resolveSelectedUnitInsertionIndex(
+                this.graphDocument.nodes,
+                circleId,
+                this.selectedNodeIds
+            )
+            : undefined;
+        const update = this.insertNodeAtIndex(
+            magicType,
+            circleId,
+            insertionIndex
+        );
+        const primaryInsertedNodeId = update?.insertedNodeIds[0];
+        if (!primaryInsertedNodeId) return Boolean(update);
+
+        this.replaceFlowNodes(selectMagicGraphFlowNodes(
+            this.flowNodes,
+            new Set([primaryInsertedNodeId])
+        ));
+        return true;
+    }
+
+    private insertNodeAtIndex(
+        magicType: MagicType,
+        circleId: string | undefined,
+        insertionIndex: number | undefined
+    ): MagicNodeInsertionResult | undefined {
         const update = addMagicNodeToCircle(
             this.graphDocument.nodes,
             magicType,
             circleId,
             insertionIndex
         );
-        if (!update.added) return false;
+        if (!update.added) return undefined;
 
         this.replaceDocumentNodes(update.nodes);
         this.syncTopology();
         this.commitCalculationSnapshot();
-        return true;
+        return update;
     }
 
     moveNodeGroup(

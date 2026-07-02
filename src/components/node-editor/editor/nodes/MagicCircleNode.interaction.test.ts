@@ -42,6 +42,10 @@ vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => detailsMocks.openDetails,
 }));
 vi.mock('../../rendering/magicGraphRenderContext', () => ({
+    resolveMagicCircleRenderTitle: (
+        circle: { data: { name?: string } },
+        state: { displayOrder: number } | undefined
+    ) => circle.data.name || `서클 ${state?.displayOrder ?? '—'}`,
     useMagicGraphRenderContext: () => ({
         getCircleChildren: () => [],
         getCircleState: () => undefined,

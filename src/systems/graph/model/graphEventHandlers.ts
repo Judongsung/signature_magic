@@ -19,6 +19,12 @@ import {
 } from './magicCircleConnectionRules';
 import { collectMagicControlPairDeletionIds } from './magicControlPairs';
 import { isCircleSystemMagicNode } from './circleSystemMagicNodes';
+import {
+    syncMagicCircleConnectionNodes,
+} from './magicCircleConnectionNodes';
+import {
+    normalizeMagicCircleSequences,
+} from './magicCircleGraphActions';
 
 export interface GraphSnapshot {
     nodes: MagicEditorNode[];
@@ -121,11 +127,19 @@ function syncGraphTopologyNow(
         snapshot.edges,
         snapshot.nodes
     );
-    const circlePortUpdate = syncMagicCirclePortCounts(
+    const connectionNodeUpdate = syncMagicCircleConnectionNodes(
         snapshot.nodes,
         edges
     );
+    const sequenceNodes = connectionNodeUpdate.changed
+        ? normalizeMagicCircleSequences(connectionNodeUpdate.nodes)
+        : connectionNodeUpdate.nodes;
+    const circlePortUpdate = syncMagicCirclePortCounts(
+        sequenceNodes,
+        edges
+    );
     const changed = !areEdgesEquivalent(snapshot.edges, edges) ||
+        connectionNodeUpdate.changed ||
         circlePortUpdate.changed;
 
     return {

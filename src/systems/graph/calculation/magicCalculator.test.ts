@@ -130,7 +130,7 @@ describe('calculateMagic explicit circle integration', () => {
         );
         const expected: MagicStats = {
             castingTime: 2,
-            instability: 2.3,
+            instability: 2.2,
             power: 4,
             range: 1,
             manaCost: 2,

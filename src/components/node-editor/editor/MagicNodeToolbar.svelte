@@ -88,13 +88,15 @@
                 {description}
                 placement="bottom"
             >
-                <MagicNodeTooltipStats
-                    {stats}
-                    {nodeStatEffects}
-                    magicType={type}
-                    nodeCategory={category}
-                    nodeStatBounds={statBounds}
-                />
+                {#if stats}
+                    <MagicNodeTooltipStats
+                        {stats}
+                        {nodeStatEffects}
+                        magicType={type}
+                        nodeCategory={category}
+                        nodeStatBounds={statBounds}
+                    />
+                {/if}
             </DescriptionTooltip>
         </button>
     {/each}

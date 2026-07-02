@@ -20,7 +20,13 @@ export const EDITOR_CANVAS = {
     EDGE_SELECTED_GLOW_STROKE_WIDTH: 9,
 } as const;
 
-export const MAGIC_NODE_CATEGORIES = ['basic', 'action', 'control', 'extension'] as const;
+export const MAGIC_CONTROL_NODE_CATEGORY = 'extension' as const;
+export const MAGIC_NODE_CATEGORIES = [
+    'basic',
+    'action',
+    'control',
+    MAGIC_CONTROL_NODE_CATEGORY,
+] as const;
 export const MAGIC_SEQUENCE_DISABLED_NODE_TYPES = [] as const;
 
 export type MagicNodeCategory = (typeof MAGIC_NODE_CATEGORIES)[number];
@@ -35,7 +41,7 @@ export const MAGIC_NODE_WEIGHT_CONFIG = {
     DEFAULT: 1,
     LABEL: '가중치',
     LABEL_PREFIX: '×',
-    EXCLUDED_CATEGORY: 'extension',
+    EXCLUDED_CATEGORY: MAGIC_CONTROL_NODE_CATEGORY,
     DURATION_WEIGHTED_MAGIC_TYPE: 'sustain',
 } as const;
 
@@ -67,10 +73,8 @@ export type MagicNodeEditorBehavior =
     (typeof MAGIC_NODE_EDITOR_BEHAVIORS)[keyof typeof MAGIC_NODE_EDITOR_BEHAVIORS];
 
 export const MAGIC_REPEAT_CONFIG = {
-    INFINITE_COUNT: 0,
-    INFINITE_CALCULATION_COUNT: 1,
-    INFINITE_LABEL: '∞',
-    FINITE_LABEL_PREFIX: '×',
+    DEFAULT_COUNT: 1,
+    COUNT_LABEL_PREFIX: '×',
 } as const;
 
 export const MAGIC_CIRCLE_METADATA_CONFIG = {
@@ -80,10 +84,10 @@ export const MAGIC_CIRCLE_METADATA_CONFIG = {
 
 export const MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD = {
     key: 'caption',
-    label: '캡션',
+    label: '메모',
     control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
     maxLength: 80,
-    placeholder: '노드 캡션을 입력하세요.',
+    placeholder: '노드 메모를 입력하세요.',
     presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_CAPTION,
 } as const;
 

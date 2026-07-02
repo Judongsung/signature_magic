@@ -17,6 +17,7 @@ import MagicUnitNode from './MagicUnitNode.svelte';
 const renderContextMocks = vi.hoisted(() => ({
     sequenceDropPreview: undefined as MagicNodeSequenceDrop | undefined,
     nodeStatEffects: [] as MagicStatEffectConfig[],
+    circleTitles: new Map<string, string>(),
 }));
 
 vi.mock('@xyflow/svelte', () => ({
@@ -34,6 +35,8 @@ vi.mock('../../rendering/magicGraphRenderContext', () => ({
     useMagicGraphRenderContext: () => ({
         getCircleChildren: () => [],
         getCircleState: () => undefined,
+        getCircleTitle: (circleId: string) =>
+            renderContextMocks.circleTitles.get(circleId),
         activeCircleId: undefined,
         get sequenceDropPreview() {
             return renderContextMocks.sequenceDropPreview;
@@ -47,6 +50,7 @@ vi.mock('../../rendering/magicGraphRenderContext', () => ({
 afterEach(() => {
     renderContextMocks.sequenceDropPreview = undefined;
     renderContextMocks.nodeStatEffects = [];
+    renderContextMocks.circleTitles.clear();
 });
 
 function renderNode(
@@ -106,6 +110,27 @@ describe('MagicUnitNode', () => {
         expect(html).toContain('circle-system-node');
         expect(html).toContain('발현');
         expect(html).toContain('description-tooltip');
+    });
+
+    it('renders a connection join with its source circle title', () => {
+        renderContextMocks.circleTitles.set(
+            'circle-source',
+            '수원 서클'
+        );
+        const { html } = renderNode({
+            magicType: 'circleJoin',
+            nodeKind: 'system',
+            showTooltip: true,
+            sequenceIndex: 0,
+            connectionJoin: {
+                edgeId: 'edge-join',
+                sourceCircleId: 'circle-source',
+            },
+        }, 'circle-target');
+
+        expect(html).toContain('connection-join-node');
+        expect(html).toContain('수원 서클');
+        expect(html).not.toContain('circle-system-node');
     });
 
     it('renders insertion feedback on the adjacent sequence card', () => {
@@ -196,7 +221,8 @@ describe('MagicUnitNode', () => {
 
         expect(finite).toContain('반복 시작 ×3');
         expect(finite).toContain('되풀이');
-        expect(infinite).toContain('반복 시작 ∞');
+        expect(infinite).toContain('반복 시작 ×1');
+        expect(infinite).not.toContain('node-tooltip-stats');
     });
 
     it('renders control-pair end markers without caption or tooltip', () => {

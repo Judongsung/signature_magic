@@ -67,6 +67,20 @@ describe('CyoaChoiceRow', () => {
         expect(html).toContain('순리 노드 출력 ×2');
     });
 
+    it('formats maximum mana modifiers with other choice effects', () => {
+        const { html } = render(CyoaChoiceRow, {
+            props: {
+                choices: [{
+                    ...choices[0],
+                    maximumManaModifier: -12.5,
+                }],
+            },
+        });
+
+        expect(html).toContain('최대 마나 −12.5');
+        expect(html).toContain('aria-label="선택 효과"');
+    });
+
     it('applies row column and choice span layout values', () => {
         const { html } = render(CyoaChoiceRow, {
             props: {

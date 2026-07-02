@@ -20,15 +20,31 @@
     import {
         type MagicSignatureMetadata,
     } from './types/magicSignature';
+    import {
+        isManaCostWithinMaximum,
+    } from './systems/magic/magicMana';
 
     let pendingNodeCompositionTransition = $state<NodeCompositionTransitionPlan | undefined>();
     let nodeCompositionTransition = $state<NodeCompositionTransitionPlan | undefined>();
+    let nodeCompositionSignatureDraft = $state.raw<MagicSignatureMetadata>({
+        ...graphStore.signatureMetadata,
+    });
 
     $effect(() => {
         graphStore.setExternalStatEffects(choiceStore.statEffects);
     });
 
+    $effect(() => {
+        nodeCompositionSignatureDraft = {
+            ...graphStore.signatureMetadata,
+        };
+    });
+
     const activePhaseConfig = $derived(getAppPhaseConfig(appStore.phase));
+    const isWithinMaximumMana = $derived(isManaCostWithinMaximum(
+        graphStore.totalStats.manaCost,
+        choiceStore.maximumMana
+    ));
     const dialogueResultContext = $derived(
         activePhaseConfig?.screen === APP_PHASE_SCREEN_KINDS.DIALOGUE
         && activePhaseConfig.usesGraphResultContext
@@ -53,9 +69,19 @@
         pendingNodeCompositionTransition = undefined;
     }
 
+    function updateNodeCompositionSignatureDraft(
+        metadata: MagicSignatureMetadata
+    ) {
+        nodeCompositionSignatureDraft = {
+            name: metadata.name,
+            description: metadata.description,
+        };
+    }
+
     function submitNodeCompositionSignatureDialog(metadata: MagicSignatureMetadata) {
         if (!pendingNodeCompositionTransition) return;
 
+        updateNodeCompositionSignatureDraft(metadata);
         graphStore.setSignatureMetadata(metadata);
         nodeCompositionTransition = pendingNodeCompositionTransition;
         pendingNodeCompositionTransition = undefined;
@@ -85,6 +111,8 @@
 
 {#if pendingNodeCompositionTransition}
     <NodeCompositionSignatureDialog
+        initialMetadata={nodeCompositionSignatureDraft}
+        onDraftChange={updateNodeCompositionSignatureDraft}
         onSubmit={submitNodeCompositionSignatureDialog}
         onClose={cancelNodeCompositionSignatureDialog}
     />
@@ -100,5 +128,9 @@
 <AppPhaseNavigationBar
     canSubmitRegistration={choiceStore.canSubmitRegistration}
     canCompleteNodeComposition={graphStore.circles.length > 0}
+    showMaximumMana={activePhaseConfig.showsMaximumMana}
+    maximumMana={choiceStore.maximumMana}
+    manaCost={graphStore.totalStats.manaCost}
+    {isWithinMaximumMana}
     onDirectNextPhaseRequest={handleDirectNextPhaseRequest}
 />

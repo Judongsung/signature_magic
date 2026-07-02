@@ -38,6 +38,10 @@ vi.mock('../details/nodeDetailsContext', () => ({
     useNodeEditorDetails: () => undefined,
 }));
 vi.mock('../../rendering/magicGraphRenderContext', () => ({
+    resolveMagicCircleRenderTitle: (
+        circle: { data: { name?: string } },
+        state: { displayOrder: number } | undefined
+    ) => circle.data.name || `서클 ${state?.displayOrder ?? '—'}`,
     useMagicGraphRenderContext: () => ({
         getCircleChildren: () => renderContextMocks.children,
         getCircleState: () => renderContextMocks.circleState,
@@ -152,7 +156,7 @@ describe('MagicCircleNode', () => {
         expect(graphStore.edges).toEqual([]);
     });
 
-    it('renders an upward branch connector when the target is above the condition marker', () => {
+    it('rejects moving a branch target above its condition marker', () => {
         graphStore.addNode('branch');
         const circle = getMagicCircleNodes(graphStore.nodes)[0];
         const branchEnd = getCircleChildNodes(graphStore.nodes, circle.id)
@@ -162,13 +166,14 @@ describe('MagicCircleNode', () => {
             nodeId: branchEnd.id,
             circleId: circle.id,
             sequenceIndex: branchEnd.data.sequenceIndex ?? 0,
-        }], circle.id, 0)).toBe(true);
+        }], circle.id, 0)).toBe(false);
 
         const { html } = renderCircle();
 
         expect(html).toContain('branch-connector');
-        expect(html).toContain('Q ');
-        expect(html).toContain('M 0 0 L 6 3 L 0 6');
+        expect(getCircleChildNodes(graphStore.nodes, circle.id)
+            .map(node => node.data.controlPair?.role)
+        ).toEqual(['start', 'end', undefined]);
     });
 
     it('keeps a visible horizontal hook without repeat indentation', () => {

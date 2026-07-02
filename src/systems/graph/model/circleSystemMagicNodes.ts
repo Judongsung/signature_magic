@@ -34,10 +34,13 @@ const DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS =
 
 export function isCircleSystemMagicType(
     magicType: MagicType,
-    configs: readonly CircleSystemMagicNodeConfig[] =
-        DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
+    configs?: readonly CircleSystemMagicNodeConfig[]
 ): boolean {
-    return configs.some(config => config.magicType === magicType);
+    return configs
+        ? configs.some(config => config.magicType === magicType)
+        : CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS.some(config =>
+            config.type === magicType
+        );
 }
 
 export function createCircleSystemMagicNodeId(
@@ -49,8 +52,7 @@ export function createCircleSystemMagicNodeId(
 
 export function isCircleSystemMagicNode(
     node: MagicEditorNode,
-    configs: readonly CircleSystemMagicNodeConfig[] =
-        DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
+    configs?: readonly CircleSystemMagicNodeConfig[]
 ): node is MagicCircleSystemNode {
     return !isMagicCircleNode(node) &&
         isCircleSystemMagicNodeData(node.data, configs);
@@ -58,8 +60,7 @@ export function isCircleSystemMagicNode(
 
 export function isCircleSystemMagicNodeData(
     data: MagicNodeData,
-    configs: readonly CircleSystemMagicNodeConfig[] =
-        DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
+    configs?: readonly CircleSystemMagicNodeConfig[]
 ): data is MagicCircleSystemNodeData {
     return data.nodeKind === MAGIC_NODE_KINDS.SYSTEM &&
         isCircleSystemMagicType(data.magicType, configs);
@@ -91,7 +92,8 @@ export function resolveCircleSystemNodeSlotsFromChildren(
         DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
 ): MagicGraphPresetCircleSystemNodeSlotConfig[] {
     const editableChildren = children.filter(node =>
-        !isCircleSystemMagicNode(node, configs)
+        !isCircleSystemMagicNode(node, configs) &&
+        !node.data.connectionJoin
     );
 
     return configs.map(config => {
@@ -109,7 +111,10 @@ export function resolveCircleSystemNodeSlotsFromChildren(
             magicType: config.magicType,
             slotIndex: children
                 .slice(0, systemNodeIndex)
-                .filter(node => !isCircleSystemMagicNode(node, configs))
+                .filter(node =>
+                    !isCircleSystemMagicNode(node, configs) &&
+                    !node.data.connectionJoin
+                )
                 .length,
             ...(children[systemNodeIndex].data.settings
                 ? {

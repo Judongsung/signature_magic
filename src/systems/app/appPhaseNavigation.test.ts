@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { APP_PHASES } from '../../constants/appPhaseConfigs';
+import {
+    APP_PHASES,
+    getAppPhaseConfig,
+} from '../../constants/appPhaseConfigs';
 import { UI_BUTTON_TEXT } from '../../constants/uiText';
 import { getNextAppPhase, getPreviousAppPhase } from './appPhaseNavigation';
 import {
@@ -24,6 +27,17 @@ describe('appPhaseNavigation', () => {
         expect(getNextAppPhase(APP_PHASES.NODE_COMPOSITION)).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
         expect(getNextAppPhase(APP_PHASES.NODE_RESULT_DIALOGUE)).toBeUndefined();
     });
+
+    it('shows maximum mana from the CYOA phase onward', () => {
+        expect(getAppPhaseConfig(APP_PHASES.INTRO_DIALOGUE).showsMaximumMana)
+            .toBe(false);
+        expect(getAppPhaseConfig(APP_PHASES.CYOA).showsMaximumMana)
+            .toBe(true);
+        expect(getAppPhaseConfig(APP_PHASES.NODE_COMPOSITION).showsMaximumMana)
+            .toBe(true);
+        expect(getAppPhaseConfig(APP_PHASES.NODE_RESULT_DIALOGUE).showsMaximumMana)
+            .toBe(true);
+    });
 });
 
 describe('appPhaseNavigationPolicy', () => {
@@ -32,16 +46,19 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.CYOA,
             canSubmitRegistration: true,
             canCompleteNodeComposition: false,
+            isWithinMaximumMana: true,
         });
         const nodeCompositionPolicy = resolveAppPhaseNavigationPolicy({
             phase: APP_PHASES.NODE_COMPOSITION,
             canSubmitRegistration: true,
             canCompleteNodeComposition: true,
+            isWithinMaximumMana: true,
         });
         const finalPolicy = resolveAppPhaseNavigationPolicy({
             phase: APP_PHASES.NODE_RESULT_DIALOGUE,
             canSubmitRegistration: true,
             canCompleteNodeComposition: true,
+            isWithinMaximumMana: true,
         });
 
         expect(cyoaPolicy.canReviewRegistration).toBe(false);
@@ -54,6 +71,7 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.CYOA,
             canSubmitRegistration: false,
             canCompleteNodeComposition: false,
+            isWithinMaximumMana: true,
         });
 
         expect(policy.previousPhase).toBe(APP_PHASES.INTRO_DIALOGUE);
@@ -73,6 +91,7 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.CYOA,
             canSubmitRegistration: true,
             canCompleteNodeComposition: false,
+            isWithinMaximumMana: true,
         });
 
         expect(policy.isNextDisabled).toBe(false);
@@ -87,6 +106,7 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.NODE_COMPOSITION,
             canSubmitRegistration: false,
             canCompleteNodeComposition: false,
+            isWithinMaximumMana: true,
         });
 
         expect(policy.nextPhase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
@@ -103,6 +123,7 @@ describe('appPhaseNavigationPolicy', () => {
             phase: APP_PHASES.NODE_COMPOSITION,
             canSubmitRegistration: false,
             canCompleteNodeComposition: true,
+            isWithinMaximumMana: true,
         });
 
         expect(policy.nextPhase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
@@ -111,11 +132,28 @@ describe('appPhaseNavigationPolicy', () => {
         expect(policy.nextAction).toBe(APP_PHASE_NAVIGATION_NEXT_ACTIONS.MOVE_TO_NEXT_PHASE);
     });
 
+    it('blocks node composition completion when mana exceeds the maximum', () => {
+        const policy = resolveAppPhaseNavigationPolicy({
+            phase: APP_PHASES.NODE_COMPOSITION,
+            canSubmitRegistration: false,
+            canCompleteNodeComposition: true,
+            isWithinMaximumMana: false,
+        });
+
+        expect(policy.isNextDisabled).toBe(true);
+        expect(policy.nextDisabledFeedback).toEqual({
+            message: UI_BUTTON_TEXT.MAXIMUM_MANA_EXCEEDED_TOOLTIP,
+            presentation: APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS.TOOLTIP,
+        });
+        expect(policy.nextAction).toBeUndefined();
+    });
+
     it('does not expose a next action on the final phase', () => {
         const policy = resolveAppPhaseNavigationPolicy({
             phase: APP_PHASES.NODE_RESULT_DIALOGUE,
             canSubmitRegistration: true,
             canCompleteNodeComposition: false,
+            isWithinMaximumMana: true,
         });
 
         expect(policy.nextPhase).toBeUndefined();

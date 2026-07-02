@@ -4,6 +4,7 @@ import {
 } from '../magicGraphTypes';
 import {
     getMagicCircleNodes,
+    getCircleChildNodes,
     getMagicUnitNodes,
     isMagicCircleNode,
 } from '../model/magicCircleGraph';
@@ -79,6 +80,21 @@ export function resolveMagicGraphCircleClickTargetId(
     circles: readonly MagicCircleNode[]
 ): string | undefined {
     return findMagicCircleAtPoint(circles, point)?.id;
+}
+
+export function resolveSelectedUnitInsertionIndex(
+    nodes: readonly MagicEditorNode[],
+    circleId: string,
+    selectedNodeIds: ReadonlySet<string>
+): number | undefined {
+    const children = getCircleChildNodes(nodes, circleId);
+    const lastSelectedIndex = children.findLastIndex(node =>
+        selectedNodeIds.has(node.id)
+    );
+
+    return lastSelectedIndex < 0
+        ? undefined
+        : lastSelectedIndex + 1;
 }
 
 export function normalizeMagicGraphSelection(

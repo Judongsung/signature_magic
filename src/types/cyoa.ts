@@ -27,6 +27,7 @@ export interface CyoaChoiceCommon {
     width?: string;
     disabled?: boolean;
     statEffects?: MagicStatEffectConfig[];
+    maximumManaModifier?: number;
 }
 
 export interface CyoaChoiceBaseConfig extends CyoaChoiceCommon {

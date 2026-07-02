@@ -90,14 +90,14 @@ describe('CyoaChoiceCard', () => {
         const { html } = render(CyoaChoiceCard, {
             props: {
                 choice,
-                statEffectLabels: [
+                effectLabels: [
                     '노드 불안정성 ×0.9',
                     '행동 노드 마나 소모 −1',
                 ],
             },
         });
 
-        expect(html).toContain('aria-label="스탯 효과"');
+        expect(html).toContain('aria-label="선택 효과"');
         expect(html).toContain('노드 불안정성 ×0.9');
         expect(html).toContain('행동 노드 마나 소모 −1');
     });

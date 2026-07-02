@@ -110,7 +110,7 @@ describe('magicControlPairs', () => {
         ])).toBe(true);
     });
 
-    it('allows a branch target above its condition marker', () => {
+    it('rejects a branch target above its condition marker', () => {
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'branch-up'
@@ -119,7 +119,7 @@ describe('magicControlPairs', () => {
         expect(isMagicControlPairGraphValid([
             circle,
             ...pair(circle, 'inverted', 'branch', 3, 1),
-        ])).toBe(true);
+        ])).toBe(false);
     });
 
     it('requires complete ordered pairs in one circle', () => {
@@ -191,8 +191,8 @@ describe('magicControlPairs', () => {
         const children = ordered([
             ...pair(circle, 'first', 'branch', 0, 2),
             ...pair(circle, 'overlap', 'branch', 1, 3),
-            ...pair(circle, 'inverted', 'branch', 6, 4),
             ...pair(circle, 'later', 'branch', 4, 5),
+            ...pair(circle, 'long', 'branch', 4, 6),
         ]);
 
         expect(resolveMagicControlPairLayout(children).branchLayouts
@@ -201,7 +201,7 @@ describe('magicControlPairs', () => {
             ['first', 0],
             ['overlap', 1],
             ['later', 0],
-            ['inverted', 1],
+            ['long', 1],
         ]);
     });
 

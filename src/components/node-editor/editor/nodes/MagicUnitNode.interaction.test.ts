@@ -23,6 +23,7 @@ vi.mock('../../rendering/magicGraphRenderContext', () => ({
     useMagicGraphRenderContext: () => ({
         getCircleChildren: () => [],
         getCircleState: () => undefined,
+        getCircleTitle: () => undefined,
         activeCircleId: undefined,
         sequenceDropPreview: undefined,
         nodeStatEffects: [],
@@ -72,6 +73,31 @@ describe('MagicUnitNode interaction', () => {
         expect(interactionMocks.openDetails).toHaveBeenCalledWith(
             'node-details-target'
         );
+    });
+
+    it('does not expose details for a connection join', () => {
+        const target = document.createElement('div');
+        document.body.append(target);
+        mountedNode = mount(MagicUnitNode, {
+            target,
+            props: {
+                id: 'join-edge-a',
+                data: {
+                    magicType: 'circleJoin',
+                    nodeKind: 'system',
+                    sequenceIndex: 0,
+                    connectionJoin: {
+                        edgeId: 'edge-a',
+                        sourceCircleId: 'circle-source',
+                    },
+                },
+                parentId: 'circle-target',
+                draggable: true,
+            },
+        });
+
+        expect(target.querySelector('.node-details-trigger'))
+            .toBeNull();
     });
 
     it('does not expose details from a pair end marker', () => {

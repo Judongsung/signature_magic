@@ -1,7 +1,6 @@
 <script lang="ts">
-    import { MAGIC_NODE_EDITOR_CONTROLS, MAGIC_REPEAT_CONFIG } from '../../../../constants/nodeEditorConfigs';
-import { untrack } from 'svelte';
-    import { MAGIC_NODE_EDITOR_BEHAVIORS } from '../../../../constants/nodeEditorConfigs';
+    import { MAGIC_NODE_EDITOR_CONTROLS } from '../../../../constants/nodeEditorConfigs';
+    import { untrack } from 'svelte';
     import { MAGIC_NODE_CATEGORY_LABELS, NODE_EDITOR_TEXT } from '../../../../constants/uiText';
     import { MAGIC_NODE_KINDS } from '../../../../constants/graphConfigs';
     import {
@@ -67,8 +66,12 @@ import { untrack } from 'svelte';
     }
 
     function readStepperValue(field: MagicNodeStepperEditorFieldConfig): number {
-        const value = Number(draftSettings[field.key]);
-        return Number.isFinite(value) ? value : field.defaultValue;
+        const parsedValue = Number(draftSettings[field.key]);
+        if (!Number.isFinite(parsedValue)) return field.defaultValue;
+
+        const steppedValue = field.min +
+            Math.round((parsedValue - field.min) / field.step) * field.step;
+        return Math.min(field.max, Math.max(field.min, steppedValue));
     }
 
     function adjustStepperValue(field: MagicNodeStepperEditorFieldConfig, direction: -1 | 1): void {
@@ -76,18 +79,15 @@ import { untrack } from 'svelte';
         draftSettings[field.key] = String(Math.min(field.max, Math.max(field.min, nextValue)));
     }
 
-    function formatStepperValue(field: MagicNodeStepperEditorFieldConfig): string {
-        const value = readStepperValue(field);
-        return field.behavior === MAGIC_NODE_EDITOR_BEHAVIORS.REPEAT_COUNT &&
-            value === MAGIC_REPEAT_CONFIG.INFINITE_COUNT
-            ? MAGIC_REPEAT_CONFIG.INFINITE_LABEL
-            : String(value);
+    function updateStepperValue(
+        field: MagicNodeStepperEditorFieldConfig,
+        event: Event
+    ): void {
+        draftSettings[field.key] = (event.currentTarget as HTMLInputElement).value;
     }
 
-    function getStepperValueAriaLabel(field: MagicNodeStepperEditorFieldConfig): string {
-        return formatStepperValue(field) === MAGIC_REPEAT_CONFIG.INFINITE_LABEL
-            ? NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INFINITE_VALUE
-            : `${field.label} ${formatStepperValue(field)}`;
+    function normalizeStepperDraft(field: MagicNodeStepperEditorFieldConfig): void {
+        draftSettings[field.key] = String(readStepperValue(field));
     }
 </script>
 
@@ -120,17 +120,19 @@ import { untrack } from 'svelte';
                 </div>
             </dl>
 
-            <section class="node-details-stats" aria-label={NODE_EDITOR_TEXT.NODE_DETAILS_STATS_LABEL}>
-                <h3>{NODE_EDITOR_TEXT.NODE_DETAILS_STATS_LABEL}</h3>
-                <MagicNodeTooltipStats
-                    stats={config.stats}
-                    nodeStatEffects={applicableNodeStatEffects}
-                    magicType={config.type}
-                    nodeCategory={config.category}
-                    nodeStatBounds={config.statBounds}
-                    nodeData={draftNodeData}
-                />
-            </section>
+            {#if config.stats}
+                <section class="node-details-stats" aria-label={NODE_EDITOR_TEXT.NODE_DETAILS_STATS_LABEL}>
+                    <h3>{NODE_EDITOR_TEXT.NODE_DETAILS_STATS_LABEL}</h3>
+                    <MagicNodeTooltipStats
+                        stats={config.stats}
+                        nodeStatEffects={applicableNodeStatEffects}
+                        magicType={config.type}
+                        nodeCategory={config.category}
+                        nodeStatBounds={config.statBounds}
+                        nodeData={draftNodeData}
+                    />
+                </section>
+            {/if}
 
             {#if isEditable}
                 <section class="node-details-settings">
@@ -160,10 +162,16 @@ import { untrack } from 'svelte';
                                         disabled={readStepperValue(field) <= field.min}
                                         onclick={() => adjustStepperValue(field, -1)}
                                     >−</button>
-                                    <output
-                                        aria-live="polite"
-                                        aria-label={getStepperValueAriaLabel(field)}
-                                    >{formatStepperValue(field)}</output>
+                                    <input
+                                        type="number"
+                                        min={field.min}
+                                        max={field.max}
+                                        step={field.step}
+                                        value={draftSettings[field.key]}
+                                        aria-label={field.label}
+                                        oninput={(event) => updateStepperValue(field, event)}
+                                        onblur={() => normalizeStepperDraft(field)}
+                                    />
                                     <button
                                         type="button"
                                         aria-label={`${field.label} ${NODE_EDITOR_TEXT.NODE_DETAILS_STEPPER_INCREASE}`}
@@ -343,7 +351,7 @@ import { untrack } from 'svelte';
     }
 
     .node-details-stepper button,
-    .node-details-stepper output {
+    .node-details-stepper input {
         min-height: 38px;
         border: 1px solid var(--node-editor-button-border);
         border-radius: var(--node-editor-radius-sm);
@@ -368,11 +376,19 @@ import { untrack } from 'svelte';
         outline-offset: 2px;
     }
 
-    .node-details-stepper output {
-        display: grid;
-        place-items: center;
+    .node-details-stepper input {
+        width: 100%;
+        padding: 0 6px;
+        text-align: center;
         font-weight: 800;
         font-variant-numeric: tabular-nums;
+        appearance: textfield;
+    }
+
+    .node-details-stepper input::-webkit-inner-spin-button,
+    .node-details-stepper input::-webkit-outer-spin-button {
+        margin: 0;
+        appearance: none;
     }
 
     .node-details-setting small {

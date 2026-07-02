@@ -5,8 +5,85 @@ import {
     clampMagicStatValue,
     resolveMagicStatBounds,
 } from './magicStatRules';
+import {
+    type MagicNode,
+} from '../magicGraphTypes';
+import {
+    type MagicTypeConfig,
+} from '../../../types/magicTypeConfig';
+
+function calculationNode(
+    id: string,
+    magicType = 'test',
+    options: {
+        excludeFromStatScaling?: boolean;
+        nodeKind?: 'user' | 'system';
+    } = {}
+): MagicNode {
+    const base = {
+        id,
+        type: 'magicNode',
+        position: { x: 0, y: 0 },
+    };
+    const scalingData = options.excludeFromStatScaling
+        ? { excludeFromStatScaling: true as const }
+        : {};
+
+    return options.nodeKind === 'system'
+        ? {
+            ...base,
+            data: {
+                magicType,
+                nodeKind: 'system',
+                ...scalingData,
+            },
+        }
+        : {
+            ...base,
+            data: {
+                magicType,
+                nodeKind: 'user',
+                ...scalingData,
+            },
+        };
+}
 
 describe('magicStatRules', () => {
+    const magicTypes = new Map<string, MagicTypeConfig>([
+        ['test', {
+            type: 'test',
+            label: 'Test',
+            icon: '',
+            color: '',
+            category: 'basic',
+            description: '',
+        }],
+        ['detect', {
+            type: 'detect',
+            label: 'Detect',
+            icon: '',
+            color: '',
+            category: 'extension',
+            description: '',
+        }],
+        ['repeat', {
+            type: 'repeat',
+            label: 'Repeat',
+            icon: '',
+            color: '',
+            category: 'extension',
+            description: '',
+        }],
+        ['manifestation', {
+            type: 'manifestation',
+            label: 'Manifestation',
+            icon: '',
+            color: '',
+            category: 'control',
+            description: '',
+        }],
+    ]);
+
     it('clamps values to configured minimum and maximum bounds', () => {
         expect(clampMagicStatValue(-2, { minimum: 0 })).toBe(0);
         expect(clampMagicStatValue(12, { maximum: 10 })).toBe(10);
@@ -46,5 +123,54 @@ describe('magicStatRules', () => {
             instability: { minimum: null },
         })).toBe(-4);
         expect(MAGIC_STAT_RULES.instability.clampValue(-4)).toBe(0);
+    });
+
+    it('excludes control and system nodes from the node-count exponent', () => {
+        const nodes = [
+            calculationNode('detect', 'detect'),
+            calculationNode('repeat', 'repeat'),
+            calculationNode('manifestation', 'manifestation', {
+                nodeKind: 'system',
+            }),
+        ];
+        const scaled = MAGIC_STAT_RULES.instability.scaleFinalValue(2, {
+            statKey: 'instability',
+            scope: 'circle',
+            nodes,
+            edges: [],
+            magicTypes,
+            nodeExecutionCounts: new Map(nodes.map(node => [node.id, 9])),
+        });
+
+        expect(scaled).toBe(2);
+    });
+
+    it('uses nested execution counts only for ordinary unit nodes', () => {
+        const nodes = [
+            calculationNode('outside'),
+            calculationNode('nested-repeat-start', 'repeat'),
+            calculationNode('nested-content'),
+            calculationNode('repeat-end', 'repeat', {
+                excludeFromStatScaling: true,
+            }),
+            calculationNode('manifestation', 'manifestation', {
+                nodeKind: 'system',
+            }),
+        ];
+        const scaled = MAGIC_STAT_RULES.instability.scaleFinalValue(2, {
+            statKey: 'instability',
+            scope: 'circle',
+            nodes,
+            edges: [],
+            magicTypes,
+            nodeExecutionCounts: new Map([
+                ['nested-repeat-start', 3],
+                ['nested-content', 6],
+                ['repeat-end', 3],
+                ['manifestation', 6],
+            ]),
+        });
+
+        expect(scaled).toBeCloseTo(2 * (1.1 ** 6));
     });
 });

@@ -90,8 +90,8 @@ function analyzeCircleInternals(
         ...childNodes.map(node => node.id),
         endId,
     ];
-    // 내부 분기는 런타임 이동 규칙이다. 조건을 평가할 수 없는 정적 빌드
-    // 스탯에서는 위쪽·교차 목적지를 포함해 모든 시퀀스 노드를 1회 직렬 계산한다.
+    // 내부 분기는 런타임의 정방향 이동 규칙이다. 조건을 평가할 수 없는
+    // 정적 빌드 스탯은 분기하지 않은 전체 시퀀스를 직렬 계산한다.
     const projectedEdges = childNodes.length === 0
         ? []
         : sequenceIds.slice(0, -1).map((source, index) => ({

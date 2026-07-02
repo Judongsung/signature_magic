@@ -25,6 +25,7 @@ import {
 import {
     analyzeMagicGraphControlPairs,
     findNonContiguousMagicGraphSequenceCircleIds,
+    hasValidMagicGraphConnectionJoinSlots,
     isMagicGraphExternalCircleEdge,
 } from '../graph/model/magicGraphSnapshotRules';
 import {
@@ -409,6 +410,13 @@ function validatePresetEdges(preset: MagicGraphPresetConfig): string[] {
             'input'
         )) {
             errors.push(`Invalid magic graph preset target handle: ${preset.id} -> ${edge.id} -> ${edge.targetHandle}`);
+        } else if (
+            !hasValidMagicGraphConnectionJoinSlots(
+                [edge],
+                preset.nodes
+            )
+        ) {
+            errors.push(`Invalid magic graph preset join slot: ${preset.id} -> ${edge.id} -> ${edge.joinSlotIndex}`);
         }
     });
 

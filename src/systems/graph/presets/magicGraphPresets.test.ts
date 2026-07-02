@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    MAGIC_CIRCLE_HANDLE_IDS,
     MAGIC_CONTROL_PAIR_ROLES,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
@@ -20,6 +21,10 @@ import {
     MAGIC_GRAPH_PRESET_SOURCES,
 } from './magicGraphPresets';
 import { isCircleSystemMagicNode } from '../model/circleSystemMagicNodes';
+import {
+    isMagicCircleConnectionJoinNode,
+    resolveMagicCircleConnectionJoinSlotIndex,
+} from '../model/magicCircleConnectionNodes';
 import {
     MAGIC_GRAPH_PRESET_STORAGE_CONFIG,
     deleteStoredMagicGraphPreset,
@@ -274,6 +279,73 @@ describe('magicGraphPresets', () => {
         expect(saved && saved.nodes.map(node => node.sequenceIndex))
             .toEqual([0, 1]);
         expect(saved && saved.edges).toEqual([]);
+    });
+
+    it('round-trips a connection join display slot through its edge', () => {
+        const connectedPreset: MagicGraphPresetConfig = {
+            ...preset,
+            id: 'connected-preset',
+            circles: [
+                preset.circles[0],
+                {
+                    id: 'target-circle',
+                    position: { x: 320, y: -320 },
+                    width: 480,
+                    height: 640,
+                    systemNodeSlots: [{
+                        magicType:
+                            CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
+                        slotIndex: 2,
+                    }],
+                },
+            ],
+            nodes: [
+                ...preset.nodes,
+                {
+                    id: 'target-first',
+                    magicType: 'cooling',
+                    circleId: 'target-circle',
+                    sequenceIndex: 0,
+                },
+                {
+                    id: 'target-second',
+                    magicType: 'stream',
+                    circleId: 'target-circle',
+                    sequenceIndex: 1,
+                },
+            ],
+            edges: [{
+                id: 'edge-connected',
+                source: 'test-circle',
+                target: 'target-circle',
+                sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
+                targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
+                joinSlotIndex: 1,
+            }],
+        };
+        const graph = createMagicGraphFromPreset(
+            connectedPreset,
+            magicTypes
+        );
+        const join = graph.nodes.find(
+            isMagicCircleConnectionJoinNode
+        );
+        const saved = createMagicGraphPresetSnapshot(
+            'Connected',
+            graph,
+            () => 'connected'
+        );
+
+        expect(join).toBeDefined();
+        expect(resolveMagicCircleConnectionJoinSlotIndex(
+            graph.nodes,
+            'edge-connected'
+        )).toBe(1);
+        expect(saved && saved.edges[0].joinSlotIndex).toBe(1);
+        expect(saved && saved.nodes.some(node =>
+            node.magicType ===
+                CIRCLE_SYSTEM_MAGIC_NODE_TYPES.CONNECTION_JOIN
+        )).toBe(false);
     });
 
     it('does not create a user preset without a label or user node', () => {

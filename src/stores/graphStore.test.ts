@@ -12,6 +12,9 @@ import {
     isMagicCircleNode,
 } from '../systems/graph/model/magicCircleGraph';
 import { isCircleSystemMagicNode } from '../systems/graph/model/circleSystemMagicNodes';
+import {
+    isMagicCircleConnectionJoinNode,
+} from '../systems/graph/model/magicCircleConnectionNodes';
 import { CIRCLE_SYSTEM_MAGIC_NODE_TYPES } from '../constants/circleSystemMagicNodeConfigs';
 import {
     MAGIC_CIRCLE_HANDLE_IDS,
@@ -179,6 +182,51 @@ describe('graphStore sequence circles', () => {
             { x: 40, y: 120 },
         ]);
         expect(userNodes().every(node => node.connectable === false)).toBe(true);
+    });
+
+    it('adds toolbar nodes below the lowest selected unit and selects the new node', () => {
+        graphStore.addNode('ignition');
+        graphStore.addNode('stream');
+        const [ignition] = userNodes();
+        graphStore.acceptFlowNodes(graphStore.nodes.map(node => ({
+            ...node,
+            selected: node.id === ignition.id,
+        })));
+
+        expect(graphStore.addNodeAfterSelection('light')).toBe(true);
+        expect(userNodes().map(node => node.data.magicType))
+            .toEqual(['ignition', 'light', 'stream']);
+        expect(userNodes().filter(node => node.selected).map(node =>
+            node.data.magicType
+        )).toEqual(['light']);
+
+        expect(graphStore.addNodeAfterSelection('air')).toBe(true);
+        expect(userNodes().map(node => node.data.magicType))
+            .toEqual(['ignition', 'light', 'air', 'stream']);
+    });
+
+    it('selects a new control start so the next toolbar node enters its range', () => {
+        graphStore.addNode('ignition');
+        const [ignition] = userNodes();
+        graphStore.acceptFlowNodes(graphStore.nodes.map(node => ({
+            ...node,
+            selected: node.id === ignition.id,
+        })));
+
+        graphStore.addNodeAfterSelection('repeat');
+        expect(userNodes().filter(node => node.selected)[0]?.data.controlPair?.role)
+            .toBe('start');
+
+        graphStore.addNodeAfterSelection('light');
+        expect(userNodes().map(node => [
+            node.data.magicType,
+            node.data.controlPair?.role,
+        ])).toEqual([
+            ['ignition', undefined],
+            ['repeat', 'start'],
+            ['light', undefined],
+            ['repeat', 'end'],
+        ]);
     });
 
     it('requires an active circle and creates repeat markers as a pair', () => {
@@ -370,6 +418,14 @@ describe('graphStore sequence circles', () => {
 
         graphStore.onEdgeConnected(connection);
         expect(graphStore.calculation).not.toBe(beforeConnect);
+        const join = graphStore.nodes.find(
+            isMagicCircleConnectionJoinNode
+        );
+        expect(join?.data.connectionJoin).toMatchObject({
+            sourceCircleId: firstCircleId,
+        });
+        expect(join && graphStore.deleteEditorNodeById(join.id))
+            .toBe(false);
 
         const deletedEdge = graphStore.edges[0];
         const beforeDelete = graphStore.calculation;
@@ -377,6 +433,9 @@ describe('graphStore sequence circles', () => {
         graphStore.onDelete([], [deletedEdge]);
 
         expect(graphStore.calculation).not.toBe(beforeDelete);
+        expect(graphStore.nodes.some(
+            isMagicCircleConnectionJoinNode
+        )).toBe(false);
     });
 
     it('moves a selected sequence block to another circle at an insertion index', () => {

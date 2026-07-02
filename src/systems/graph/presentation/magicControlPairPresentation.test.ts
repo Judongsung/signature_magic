@@ -138,7 +138,7 @@ describe('magicControlPairPresentation', () => {
         }]);
     });
 
-    it('rounds an upward branch toward its target', () => {
+    it('renders a malformed legacy upward pair defensively', () => {
         const circle = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'upward-presentation'

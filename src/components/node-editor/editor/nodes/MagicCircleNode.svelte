@@ -24,6 +24,7 @@
     import {
         useMagicGraphEditorActions,
         useMagicGraphRenderContext,
+        resolveMagicCircleRenderTitle,
     } from '../../rendering/magicGraphRenderContext';
 
     const componentInstanceId = $props.id();
@@ -76,8 +77,10 @@
         data.outputHandleCount,
     ]));
     const circleTitle = $derived(
-        data.name ||
-        `${NODE_EDITOR_TEXT.CIRCLE_TITLE} ${viewModel.displayOrder ?? '—'}`
+        resolveMagicCircleRenderTitle(
+            { data },
+            circleState
+        )
     );
     const controlPairLayout = $derived(
         resolveMagicControlPairLayout(childNodes)

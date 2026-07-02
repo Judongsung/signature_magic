@@ -30,7 +30,7 @@ function mountDialog() {
         data: {
             ...createMagicCircleNode({ x: 0, y: 0 }, () => 'details-data').data,
             name: '기존 서클',
-            caption: '기존 캡션',
+            caption: '기존 메모',
         },
     };
     const circlePath: CirclePath = {
@@ -87,7 +87,7 @@ describe('MagicCircleDetailsDialog', () => {
         expect(target.querySelector('[role="dialog"]')).not.toBeNull();
         expect(nameInput.value).toBe('기존 서클');
         expect(nameInput.maxLength).toBe(MAGIC_CIRCLE_METADATA_CONFIG.NAME_MAX_LENGTH);
-        expect(captionInput.value).toBe('기존 캡션');
+        expect(captionInput.value).toBe('기존 메모');
         expect(captionInput.maxLength).toBe(MAGIC_CIRCLE_METADATA_CONFIG.CAPTION_MAX_LENGTH);
         expect(target.textContent).toContain(NODE_EDITOR_TEXT.CIRCLE_DETAILS_STATS_LABEL);
         expect(target.textContent).toContain('5');
@@ -97,7 +97,7 @@ describe('MagicCircleDetailsDialog', () => {
     it('submits changed circle name and caption', async () => {
         const { target, onSave } = mountDialog();
         setFieldValue(target.querySelector<HTMLInputElement>('input')!, '새 서클');
-        setFieldValue(target.querySelector<HTMLTextAreaElement>('textarea')!, '새 캡션');
+        setFieldValue(target.querySelector<HTMLTextAreaElement>('textarea')!, '새 메모');
 
         target.querySelector<HTMLFormElement>('form')!
             .dispatchEvent(new SubmitEvent('submit', {
@@ -108,7 +108,7 @@ describe('MagicCircleDetailsDialog', () => {
 
         expect(onSave).toHaveBeenCalledWith({
             name: '새 서클',
-            caption: '새 캡션',
+            caption: '새 메모',
         });
     });
 });

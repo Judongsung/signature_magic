@@ -9,6 +9,12 @@ import {
     MAGIC_STAT_SCALING_OPERATION_VALUES,
 } from '../../../constants/magicStatConfigs';
 import {
+    MAGIC_CONTROL_NODE_CATEGORY,
+} from '../../../constants/nodeEditorConfigs';
+import {
+    MAGIC_NODE_KINDS,
+} from '../../../constants/graphConfigs';
+import {
     MAGIC_STAT_KEYS,
     type MagicStatAggregationOperation,
     type MagicStatBoundsConfig,
@@ -34,6 +40,7 @@ export interface MagicStatRuleContext {
     nodes: readonly MagicCalculationNode[];
     edges: readonly MagicGraphEdge[];
     magicTypes: ReadonlyMap<string, MagicTypeConfig>;
+    nodeExecutionCounts?: ReadonlyMap<string, number>;
 }
 
 export interface MagicStatRule {
@@ -49,6 +56,7 @@ export interface MagicStatRule {
 
 const FIRST_NODE_SCALING_EXPONENT_OFFSET = 1;
 const DEFAULT_EXPONENTIAL_FACTOR = 1;
+const DEFAULT_NODE_EXECUTION_COUNT = 1;
 
 function sum(values: number[]): number {
     return values.reduce((total, value) => total + value, 0);
@@ -104,9 +112,21 @@ function scaleByNodeCount(
     config: MagicStatScalingConfig
 ): number {
     const factor = config.factor ?? DEFAULT_EXPONENTIAL_FACTOR;
-    const countedNodeTotal = context.nodes.filter(
-        node => node.data.excludeFromStatScaling !== true
-    ).length;
+    const countedNodeTotal = context.nodes.reduce((total, node) => {
+        if (
+            node.data.excludeFromStatScaling === true ||
+            node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM ||
+            context.magicTypes.get(node.data.magicType)?.category ===
+                MAGIC_CONTROL_NODE_CATEGORY
+        ) {
+            return total;
+        }
+
+        return total + (
+            context.nodeExecutionCounts?.get(node.id) ??
+            DEFAULT_NODE_EXECUTION_COUNT
+        );
+    }, 0);
     const exponent = Math.max(
         0,
         countedNodeTotal - FIRST_NODE_SCALING_EXPONENT_OFFSET

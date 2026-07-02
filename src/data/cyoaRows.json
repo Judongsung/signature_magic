@@ -530,15 +530,8 @@
                 "imageSize": "large",
                 "imagePlacement": "top",
                 "title": "보석",
-                "description": "마나를 머금고 보존하는 성질을 지닌 결정체이다. 받아들인 마나가 흩어지지 않고 내부에서 끊임없이 순환하도록 가두어 두며, 축적된 마나를 단숨에 해방하여 폭발적인 출력을 이끌어내는 데 특화되어 있다.",
-                "statEffects": [
-                    {
-                        "phase": "final",
-                        "operation": "multiply",
-                        "stat": "power",
-                        "value": 1.5
-                    }
-                ],
+                "description": "마나를 머금고 보존하는 성질을 지닌 결정체이다. 받아들인 마나가 흩어지지 않고 내부에서 끊임없이 순환하도록 가두어 두어, 마법사가 평소보다 훨씬 많은 마나를 안정적으로 저장하고 운용할 수 있게 한다.",
+                "maximumManaModifier": 40,
                 "width": "1/3"
             },
             {

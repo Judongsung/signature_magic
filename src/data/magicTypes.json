@@ -72,6 +72,15 @@
         "stats": { "castingTime": 2, "instability": 0, "power": 2, "range": 1, "manaCost": 3, "duration": 5 }
     },
     {
+        "type": "light",
+        "label": "발광",
+        "icon": "☼",
+        "color": "#f7dc6f",
+        "category": "basic",
+        "description": "빛을 만들어 주변을 밝히고 대상을 드러내는 기초 속성이다.",
+        "stats": { "castingTime": 1, "instability": 1, "power": 1, "range": 3, "manaCost": 2, "duration": 5 }
+    },
+    {
         "type": "custom",
         "label": "커스텀",
         "icon": "◈",
@@ -170,7 +179,7 @@
         "icon": "▭",
         "color": "#f5b041",
         "category": "control",
-        "description": "마법의 효과를 붙잡아 소멸을 늦춘다.",
+        "description": "마법이 흩어지지 않도록 붙잡아 소멸을 늦춘다.",
         "stats": { "castingTime": 2, "instability": 1, "power": 1, "range": 1, "manaCost": 3, "duration": 6 }
     },
     {
@@ -212,7 +221,7 @@
         "icon": "◍",
         "color": "#d35400",
         "category": "control",
-        "description": "효과를 좁은 범위에 밀집시켜 응축한다.",
+        "description": "마법을 좁은 범위에 응집한다.",
         "stats": { "castingTime": 2, "instability": 3, "power": 3, "range": 0.5, "manaCost": 3, "duration": 1 }
     },
     {
@@ -255,17 +264,16 @@
                     "key": "repeatCount",
                     "label": "횟수",
                     "control": "stepper",
-                    "min": 0,
+                    "min": 1,
                     "max": 99,
                     "step": 1,
-                    "defaultValue": 0,
-                    "helpText": "0은 무한 반복이며 스탯은 1회 기준으로 계산됩니다.",
+                    "defaultValue": 1,
+                    "helpText": "반복 시작과 끝 사이의 단위 마법에 적용됩니다.",
                     "presentation": "nodeLabelSuffix",
                     "behavior": "repeatCount"
                 }
             ]
-        },
-        "stats": { "castingTime": 2, "instability": 2, "power": 0, "range": 1, "manaCost": 4, "duration": 4 }
+        }
     },
     {
         "type": "branch",
@@ -273,7 +281,7 @@
         "icon": "∨",
         "color": "#f4d03f",
         "category": "extension",
-        "description": "조건이 충족되면 쌍으로 지정한 목적지로 이동한다.",
+        "description": "조건이 충족되면 단계를 건너뛴다.",
         "instanceEditor": {
             "fields": [
                 {
@@ -285,7 +293,6 @@
                     "presentation": "nodeCaption"
                 }
             ]
-        },
-        "stats": { "castingTime": 2, "instability": 2, "power": 0, "range": 1, "manaCost": 3, "duration": 1 }
+        }
     }
 ]

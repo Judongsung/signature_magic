@@ -12,9 +12,9 @@ import type {
 import { buildOutEdgeMap } from '../topology/graphTopology';
 import { canReach } from '../topology/graphTraversal';
 import {
-    createUniqueId,
     type IdFactory,
 } from './graphActions';
+import { createMagicGraphIdSegment } from './magicGraphIds';
 import {
     getMagicCircleNodes,
     isMagicCirclePortHandleId,
@@ -151,7 +151,7 @@ export function createExplicitMagicCircleEdgeUpdate(
     connection: MagicGraphConnection,
     edges: MagicGraphEdge[],
     nodes: MagicEditorNode[],
-    createId: IdFactory = createUniqueId
+    createId: IdFactory = createMagicGraphIdSegment
 ): { edge: MagicGraphEdge; edges: MagicGraphEdge[] } | false {
     if (!isExplicitMagicCircleConnectionValid(connection, edges, nodes)) {
         return false;

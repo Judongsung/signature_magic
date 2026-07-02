@@ -30,6 +30,7 @@ export interface AppPhaseNavigationPolicyInput {
     phase: AppPhase;
     canSubmitRegistration: boolean;
     canCompleteNodeComposition: boolean;
+    isWithinMaximumMana: boolean;
 }
 
 export interface AppPhaseNavigationPolicy {
@@ -54,19 +55,30 @@ const NEXT_DISABLED_FEEDBACK_RESOLVERS: Partial<Record<AppPhase, NextDisabledFee
                 message: UI_BUTTON_TEXT.COMPLETE_REQUIRED_FIELDS_TOOLTIP,
                 presentation: APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS.CHARACTER_SPEECH,
             },
-    [APP_PHASES.NODE_COMPOSITION]: ({ canCompleteNodeComposition }) =>
-        canCompleteNodeComposition
-            ? undefined
-            : {
+    [APP_PHASES.NODE_COMPOSITION]: ({
+        canCompleteNodeComposition,
+        isWithinMaximumMana,
+    }) => {
+        if (!canCompleteNodeComposition) {
+            return {
                 message: UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP,
                 presentation: APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS.TOOLTIP,
-            },
+            };
+        }
+        return isWithinMaximumMana
+            ? undefined
+            : {
+                message: UI_BUTTON_TEXT.MAXIMUM_MANA_EXCEEDED_TOOLTIP,
+                presentation: APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS.TOOLTIP,
+            };
+    },
 };
 
 export function resolveAppPhaseNavigationPolicy({
     phase,
     canSubmitRegistration,
     canCompleteNodeComposition,
+    isWithinMaximumMana,
 }: AppPhaseNavigationPolicyInput): AppPhaseNavigationPolicy {
     const previousPhase = getPreviousAppPhase(phase);
     const nextPhase = getNextAppPhase(phase);
@@ -75,6 +87,7 @@ export function resolveAppPhaseNavigationPolicy({
         phase,
         canSubmitRegistration,
         canCompleteNodeComposition,
+        isWithinMaximumMana,
     };
     const nextDisabledFeedback = NEXT_DISABLED_FEEDBACK_RESOLVERS[phase]?.(input);
     const isNextDisabled = nextDisabledFeedback !== undefined;

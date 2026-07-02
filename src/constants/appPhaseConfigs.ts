@@ -23,10 +23,12 @@ interface DialogueAppPhaseConfig {
     screen: typeof APP_PHASE_SCREEN_KINDS.DIALOGUE;
     dialogueScriptId: CyoaDialogueScriptId;
     usesGraphResultContext?: boolean;
+    showsMaximumMana: boolean;
 }
 
 interface StandardAppPhaseConfig {
     screen: Exclude<AppPhaseScreenKind, typeof APP_PHASE_SCREEN_KINDS.DIALOGUE>;
+    showsMaximumMana: boolean;
 }
 
 export type AppPhaseConfig = DialogueAppPhaseConfig | StandardAppPhaseConfig;
@@ -35,21 +37,26 @@ export const APP_PHASE_CONFIGS = {
     [APP_PHASES.INTRO_DIALOGUE]: {
         screen: APP_PHASE_SCREEN_KINDS.DIALOGUE,
         dialogueScriptId: CYOA_DIALOGUE_SCRIPT_IDS.GUILD_RECEPTION,
+        showsMaximumMana: false,
     },
     [APP_PHASES.CYOA]: {
         screen: APP_PHASE_SCREEN_KINDS.CYOA,
+        showsMaximumMana: true,
     },
     [APP_PHASES.NODE_INTRO_DIALOGUE]: {
         screen: APP_PHASE_SCREEN_KINDS.DIALOGUE,
         dialogueScriptId: CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_INTRO,
+        showsMaximumMana: true,
     },
     [APP_PHASES.NODE_COMPOSITION]: {
         screen: APP_PHASE_SCREEN_KINDS.NODE_COMPOSITION,
+        showsMaximumMana: true,
     },
     [APP_PHASES.NODE_RESULT_DIALOGUE]: {
         screen: APP_PHASE_SCREEN_KINDS.DIALOGUE,
         dialogueScriptId: CYOA_DIALOGUE_SCRIPT_IDS.NODE_COMPOSITION_RESULT,
         usesGraphResultContext: true,
+        showsMaximumMana: true,
     },
 } satisfies Record<AppPhase, AppPhaseConfig>;
 

@@ -10,17 +10,17 @@ import {
 } from '../../../types/magicTypeConfig';
 import type { MagicGraphEdge } from '../magicGraphTypes';
 import { createUserMagicNodeData } from './magicNodeData';
+import {
+    createMagicGraphIdSegment,
+    type MagicGraphIdFactory,
+} from './magicGraphIds';
 
-export type IdFactory = () => string;
-
-export function createUniqueId(): string {
-    return crypto.randomUUID();
-}
+export type IdFactory = MagicGraphIdFactory;
 
 export function createNode(
     magicType: MagicType,
     position: { x: number; y: number },
-    createId: IdFactory = createUniqueId
+    createId: IdFactory = createMagicGraphIdSegment
 ): MagicUserNode {
     return {
         id: `${MAGIC_NODE_ID_PREFIX}-${createId()}`,

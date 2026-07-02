@@ -13,7 +13,8 @@ import {
     type MagicType,
 } from '../../../types/magicTypeConfig';
 import type { MagicGraphEdge } from '../magicGraphTypes';
-import { createNode, createUniqueId } from './graphActions';
+import { createNode } from './graphActions';
+import { createMagicGraphIdSegment } from './magicGraphIds';
 import {
     canMoveMagicControlPairsAcrossCircles,
     createMagicControlPairData,
@@ -22,9 +23,15 @@ import {
     resolveMagicControlPairLayout,
 } from './magicControlPairs';
 import {
+    CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
+} from '../../../constants/circleSystemMagicNodeConfigs';
+import {
     isCircleSystemMagicNode,
     normalizeCircleSystemNodeChildren,
 } from './circleSystemMagicNodes';
+import {
+    hasValidMagicCircleConnectionNodePlacement,
+} from './magicCircleConnectionNodes';
 import {
     createInitialMagicCircleNode,
     createMagicCircleNode,
@@ -58,6 +65,12 @@ export interface MagicNodeGroupMoveResult extends MagicCircleGraphSnapshot {
 export interface MagicCircleResize {
     width: number;
     height: number;
+}
+
+export interface MagicNodeInsertionResult {
+    nodes: MagicEditorNode[];
+    added: boolean;
+    insertedNodeIds: string[];
 }
 
 export function createInitialMagicCircleGraph(): MagicCircleGraphSnapshot {
@@ -225,9 +238,13 @@ export function addMagicNodeToCircle(
     magicType: MagicType,
     circleId: string | undefined,
     insertionIndex?: number
-): { nodes: MagicEditorNode[]; added: boolean } {
+): MagicNodeInsertionResult {
     if (!isMagicTypeAllowedInCircleSequence(magicType)) {
-        return { nodes: [...nodes], added: false };
+        return {
+            nodes: [...nodes],
+            added: false,
+            insertedNodeIds: [],
+        };
     }
 
     return insertMagicNodesIntoCircle(
@@ -243,7 +260,7 @@ export function insertMagicNodesIntoCircle(
     insertedNodes: readonly MagicNode[],
     circleId: string | undefined,
     insertionIndex?: number
-): { nodes: MagicEditorNode[]; added: boolean } {
+): MagicNodeInsertionResult {
     const index = createMagicCircleGraphIndex(nodes);
     const circle = circleId
         ? index.nodeById.get(circleId)
@@ -260,7 +277,11 @@ export function insertMagicNodesIntoCircle(
             isCircleSystemMagicNode(node)
         )
     ) {
-        return { nodes: [...nodes], added: false };
+        return {
+            nodes: [...nodes],
+            added: false,
+            insertedNodeIds: [],
+        };
     }
 
     const children = index.childrenByCircleId.get(circle.id) ?? [];
@@ -277,13 +298,21 @@ export function insertMagicNodesIntoCircle(
         new Map([[circle.id, nextChildren]]),
         index
     );
-    if (!isMagicControlPairGraphValid(candidateNodes)) {
-        return { nodes: [...nodes], added: false };
+    if (
+        !isMagicControlPairGraphValid(candidateNodes) ||
+        !hasValidMagicCircleConnectionNodePlacement(candidateNodes)
+    ) {
+        return {
+            nodes: [...nodes],
+            added: false,
+            insertedNodeIds: [],
+        };
     }
 
     return {
         nodes: candidateNodes,
         added: true,
+        insertedNodeIds: insertedNodes.map(node => node.id),
     };
 }
 
@@ -291,7 +320,10 @@ function resolveDefaultMagicNodeInsertionIndex(
     children: readonly MagicNode[]
 ): number {
     const systemNodeIndex = children.findIndex(node =>
-        isCircleSystemMagicNode(node)
+        isCircleSystemMagicNode(
+            node,
+            CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS
+        )
     );
     return systemNodeIndex < 0 ? children.length : systemNodeIndex;
 }
@@ -300,7 +332,7 @@ function createSequenceNodes(magicType: MagicType): MagicNode[] {
     const start = createNode(magicType, { x: 0, y: 0 });
     if (!isMagicControlPairType(magicType)) return [start];
 
-    const pairId = `${MAGIC_CONTROL_PAIR_CONFIG.ID_PREFIX}-${createUniqueId()}`;
+    const pairId = `${MAGIC_CONTROL_PAIR_CONFIG.ID_PREFIX}-${createMagicGraphIdSegment()}`;
     const end = createNode(magicType, { x: 0, y: 0 });
 
     return [
@@ -422,7 +454,10 @@ export function moveMagicNodeGroup(
         replacements,
         index
     );
-    if (!isMagicControlPairGraphValid(nextNodes)) {
+    if (
+        !isMagicControlPairGraphValid(nextNodes) ||
+        !hasValidMagicCircleConnectionNodePlacement(nextNodes)
+    ) {
         return restoreSequencePositions(snapshot);
     }
 

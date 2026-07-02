@@ -88,6 +88,27 @@ describe('AppPhaseNavigationBar', () => {
         expect(html).not.toContain(UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP);
     });
 
+    it('renders the centered mana status and blocks completion when exceeded', () => {
+        appStore.setPhase(APP_PHASES.NODE_COMPOSITION);
+
+        const { html } = render(AppPhaseNavigationBar, {
+            props: {
+                canCompleteNodeComposition: true,
+                showMaximumMana: true,
+                manaCost: 105.5,
+                maximumMana: 100,
+                isWithinMaximumMana: false,
+            },
+        });
+
+        expect(html).toContain('마나 소모 105.5');
+        expect(html).toContain('최대 100');
+        expect(html).toContain('mana-status');
+        expect(html).toContain('exceeded');
+        expect(html).toContain('disabled');
+        expect(html).toContain(UI_BUTTON_TEXT.MAXIMUM_MANA_EXCEEDED_TOOLTIP);
+    });
+
     it('renders the registration review and previous tabs on the final phase', () => {
         appStore.setPhase(APP_PHASES.NODE_RESULT_DIALOGUE);
 

@@ -36,6 +36,7 @@ export interface MagicGraphPresetEdgeConfig {
     target: string;
     sourceHandle: string;
     targetHandle: string;
+    joinSlotIndex?: number;
 }
 
 export interface MagicGraphPresetConfig {

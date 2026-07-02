@@ -66,10 +66,10 @@ describe('magicNodeData', () => {
     it('provides a default caption field for user types without a caption override', () => {
         expect(getMagicNodeEditorFields(plainType)).toContainEqual({
             key: 'caption',
-            label: '캡션',
+            label: '메모',
             control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
             maxLength: 80,
-            placeholder: '노드 캡션을 입력하세요.',
+            placeholder: '노드 메모를 입력하세요.',
             presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_CAPTION,
         });
         expect(normalizeMagicNodeSettings(plainType, {
@@ -147,7 +147,7 @@ describe('magicNodeData', () => {
         expect(normalizeMagicNodeSettings(repeatType, { repeatCount: '0' })).toBeUndefined();
         expect(resolveMagicNodeRepeatCount(repeatNode.data, repeatType)).toBe(3);
         expect(resolveMagicNodeLabel(repeatNode.data, repeatType)).toBe('반복 ×3');
-        expect(resolveMagicNodeLabel({ magicType: 'repeat' }, repeatType)).toBe('반복 ∞');
+        expect(resolveMagicNodeLabel({ magicType: 'repeat' }, repeatType)).toBe('반복 ×1');
     });
 
     it('updates one node without changing its graph identity or position', () => {

@@ -16,6 +16,7 @@ import {
 } from './magicGraphPresetTypes';
 import {
     findNonContiguousMagicGraphSequenceCircleIds,
+    hasValidMagicGraphConnectionJoinSlots,
     hasValidMagicGraphControlPairs,
     hasValidMagicGraphSystemNodeSlots,
     isMagicGraphExternalCircleEdge,
@@ -125,6 +126,9 @@ function hasValidStoredMagicGraphPreset(
 
     return preset.edges.every(edge =>
         isMagicGraphExternalCircleEdge(edge, circleIds)
+    ) && hasValidMagicGraphConnectionJoinSlots(
+        preset.edges,
+        preset.nodes
     );
 }
 
@@ -195,7 +199,14 @@ function isStoredEdge(
         isNonEmptyString(value.source) &&
         isNonEmptyString(value.target) &&
         isNonEmptyString(value.sourceHandle) &&
-        isNonEmptyString(value.targetHandle);
+        isNonEmptyString(value.targetHandle) &&
+        (
+            value.joinSlotIndex === undefined ||
+            (
+                Number.isInteger(value.joinSlotIndex) &&
+                Number(value.joinSlotIndex) >= 0
+            )
+        );
 }
 
 function isOptionalStringRecord(value: unknown): boolean {

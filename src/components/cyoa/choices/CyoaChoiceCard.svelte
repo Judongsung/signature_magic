@@ -13,7 +13,7 @@
         locked = false,
         subChoice = false,
         ariaLabel,
-        statEffectLabels = [],
+        effectLabels = [],
         onSelect,
     }: {
         choice: CyoaChoice;
@@ -22,7 +22,7 @@
         locked?: boolean;
         subChoice?: boolean;
         ariaLabel?: string;
-        statEffectLabels?: readonly string[];
+        effectLabels?: readonly string[];
         onSelect?: (choiceId: string) => void;
     } = $props();
 
@@ -62,9 +62,9 @@
         {#if choice.description}
             <span class="choice-description">{choice.description}</span>
         {/if}
-        {#if statEffectLabels.length > 0}
+        {#if effectLabels.length > 0}
             <span class="choice-stat-effects" aria-label={CYOA_STAT_EFFECT_TEXT.ARIA_LABEL}>
-                {#each statEffectLabels as label}
+                {#each effectLabels as label}
                     <span class="choice-stat-effect">{label}</span>
                 {/each}
             </span>

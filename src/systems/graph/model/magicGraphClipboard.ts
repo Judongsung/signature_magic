@@ -27,7 +27,8 @@ import {
 import {
     resolveUppermostSelectedCircle,
 } from '../editor/magicGraphSelection';
-import { createNode, createUniqueId } from './graphActions';
+import { createNode } from './graphActions';
+import { createMagicGraphIdSegment } from './magicGraphIds';
 import { isCircleSystemMagicNode } from './circleSystemMagicNodes';
 import {
     getCircleEditableSequenceNodes,
@@ -57,6 +58,7 @@ import {
 } from './magicTypeLookup';
 import {
     findNonContiguousMagicGraphSequenceCircleIds,
+    hasValidMagicGraphConnectionJoinSlots,
     hasValidMagicGraphControlPairs,
     hasValidMagicGraphSystemNodeSlots,
     isMagicGraphExternalCircleEdge,
@@ -140,7 +142,10 @@ function createCircleClipboardPayload(
                 selectedCircleIds.has(edge.source) &&
                 selectedCircleIds.has(edge.target)
             )
-            .map(createMagicGraphPresetEdgeSnapshot),
+            .map(edge => createMagicGraphPresetEdgeSnapshot(
+                edge,
+                snapshot.nodes
+            )),
     };
 }
 
@@ -210,7 +215,7 @@ export function pasteMagicGraphClipboardPayload(
     payload: MagicGraphClipboardPayload,
     magicTypes: MagicTypeLookup,
     pasteCount: number,
-    createId: MagicGraphClipboardIdFactory = createUniqueId
+    createId: MagicGraphClipboardIdFactory = createMagicGraphIdSegment
 ): MagicGraphClipboardPasteResult | false {
     if (!isSupportedClipboardPayload(payload, magicTypes)) return false;
 
@@ -507,6 +512,10 @@ function isMagicGraphClipboardPayload(
         ) &&
         payload.edges.every(edge =>
             isMagicGraphExternalCircleEdge(edge, circleIds)
+        ) &&
+        hasValidMagicGraphConnectionJoinSlots(
+            payload.edges,
+            payload.nodes
         );
 }
 
@@ -567,7 +576,14 @@ function isClipboardEdge(
         typeof value.source === 'string' &&
         typeof value.target === 'string' &&
         typeof value.sourceHandle === 'string' &&
-        typeof value.targetHandle === 'string';
+        typeof value.targetHandle === 'string' &&
+        (
+            value.joinSlotIndex === undefined ||
+            (
+                Number.isInteger(value.joinSlotIndex) &&
+                Number(value.joinSlotIndex) >= 0
+            )
+        );
 }
 
 function isOptionalStringRecord(value: unknown): boolean {

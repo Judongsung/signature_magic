@@ -10,6 +10,9 @@ import {
     isCircleSystemMagicNode,
 } from './circleSystemMagicNodes';
 import {
+    isMagicCircleConnectionJoinNode,
+} from './magicCircleConnectionNodes';
+import {
     CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS,
 } from '../../../constants/circleSystemMagicNodeConfigs';
 import {
@@ -160,10 +163,16 @@ describe('magicGraphClipboard', () => {
         expect(getMagicUnitNodes(result.nodes).filter(node =>
             node.parentId &&
             pastedCircleIds.has(node.parentId) &&
-            isCircleSystemMagicNode(node)
+            isCircleSystemMagicNode(node) &&
+            !isMagicCircleConnectionJoinNode(node)
         ).every(node =>
             node.id.startsWith(node.parentId!)
         )).toBe(true);
+        expect(getMagicUnitNodes(result.nodes).filter(node =>
+            node.parentId &&
+            pastedCircleIds.has(node.parentId) &&
+            isMagicCircleConnectionJoinNode(node)
+        )).toHaveLength(1);
 
         const pastedEdge = result.edges.at(-1)!;
         expect(pastedEdge.id).not.toBe(edges[0].id);
@@ -248,6 +257,87 @@ describe('magicGraphClipboard', () => {
         });
         expect(payload && payload.nodes.map(node => node.id))
             .toEqual([start.id, end.id]);
+    });
+
+    it('rejects a clipboard payload with a reverse branch pair', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'reverse-branch'
+        );
+        const nodes = addMagicNodeToCircle(
+            [circle],
+            'branch',
+            circle.id
+        ).nodes;
+        const [start] = getCircleEditableSequenceNodes(nodes, circle.id);
+        const payload = requirePayload(createMagicGraphClipboardPayload(
+            clipboardSnapshot(nodes, [], [start.id])
+        ));
+        const reversedPayload = {
+            ...payload,
+            nodes: payload.nodes.map(node => ({
+                ...node,
+                sequenceIndex:
+                    node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.START
+                        ? 1
+                        : 0,
+            })),
+        };
+
+        expect(parseMagicGraphClipboardPayload(
+            serializeMagicGraphClipboardPayload(reversedPayload)
+        )).toBe(false);
+    });
+
+    it('normalizes a legacy zero repeat count to the default on paste', () => {
+        const source = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'legacy-repeat'
+        );
+        const sourceNodes = addMagicNodeToCircle(
+            [source],
+            'repeat',
+            source.id
+        ).nodes;
+        const [sourceStart] = getCircleEditableSequenceNodes(
+            sourceNodes,
+            source.id
+        );
+        const payload = requirePayload(createMagicGraphClipboardPayload(
+            clipboardSnapshot(sourceNodes, [], [sourceStart.id])
+        ));
+        const legacyPayload = {
+            ...payload,
+            nodes: payload.nodes.map(node =>
+                node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.START
+                    ? {
+                        ...node,
+                        settings: { repeatCount: '0' },
+                    }
+                    : node
+            ),
+        };
+        const target = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'legacy-target'
+        );
+        const result = requirePasteResult(pasteMagicGraphClipboardPayload(
+            clipboardSnapshot(
+                normalizeMagicCircleSequences([target]),
+                [],
+                [target.id]
+            ),
+            legacyPayload,
+            magicTypeMap,
+            1,
+            sequentialIdFactory()
+        ));
+        const [pastedStart] = getCircleEditableSequenceNodes(
+            result.nodes,
+            target.id
+        );
+
+        expect(pastedStart.data.settings).toBeUndefined();
     });
 
     it('pastes unit pairs into the selected circle with new ids', () => {

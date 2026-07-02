@@ -17,6 +17,7 @@
     import RegistrationSummaryDialog from '../registration/RegistrationSummaryDialog.svelte';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
+    import { formatMagicMana } from '../../systems/magic/magicMana';
 
     const nextDisabledTooltipId = 'app-phase-next-disabled-tooltip';
     const nextPhaseLabels: Partial<Record<AppPhase, string>> = APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS;
@@ -30,10 +31,18 @@
     let {
         canSubmitRegistration = false,
         canCompleteNodeComposition = false,
+        showMaximumMana = false,
+        maximumMana = 0,
+        manaCost = 0,
+        isWithinMaximumMana = true,
         onDirectNextPhaseRequest,
     }: {
         canSubmitRegistration?: boolean;
         canCompleteNodeComposition?: boolean;
+        showMaximumMana?: boolean;
+        maximumMana?: number;
+        manaCost?: number;
+        isWithinMaximumMana?: boolean;
         onDirectNextPhaseRequest?: (request: DirectAppPhaseTransitionRequest) => boolean;
     } = $props();
 
@@ -43,6 +52,7 @@
         phase: appStore.phase,
         canSubmitRegistration,
         canCompleteNodeComposition,
+        isWithinMaximumMana,
     }));
     const nextLabel = $derived(
         navigationPolicy.nextPhase ? nextPhaseLabels[appStore.phase] : undefined
@@ -96,6 +106,7 @@
 {#if navigationPolicy.shouldRenderNavigation}
     <nav
         class="app-phase-navigation-bar"
+        class:shows-mana={showMaximumMana}
         aria-label={APP_PHASE_NAVIGATION_TEXT.ARIA_LABEL}
     >
         {#if navigationPolicy.previousPhase}
@@ -107,6 +118,20 @@
             >
                 {APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL}
             </button>
+        {/if}
+
+        {#if showMaximumMana}
+            <div
+                class="mana-status"
+                class:exceeded={!isWithinMaximumMana}
+                role="status"
+                aria-live="polite"
+                aria-label={APP_PHASE_NAVIGATION_TEXT.MANA_STATUS_ARIA_LABEL}
+            >
+                <span>{APP_PHASE_NAVIGATION_TEXT.MANA_COST_LABEL} {formatMagicMana(manaCost)}</span>
+                <span aria-hidden="true">/</span>
+                <span>{APP_PHASE_NAVIGATION_TEXT.MAXIMUM_MANA_LABEL} {formatMagicMana(maximumMana)}</span>
+            </div>
         {/if}
 
         {#if navigationPolicy.canReviewRegistration || (navigationPolicy.nextPhase && nextLabel)}
@@ -182,8 +207,8 @@
         bottom: 0;
         left: 0;
         z-index: 90;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
         align-items: center;
         gap: 12px;
         padding: 12px 24px calc(12px + env(safe-area-inset-bottom));
@@ -198,12 +223,44 @@
     }
 
     .phase-actions {
+        grid-column: 3;
+        justify-self: end;
         margin-left: auto;
         display: flex;
         align-items: center;
         justify-content: flex-end;
         gap: 12px;
         pointer-events: auto;
+    }
+
+    .previous-tab {
+        grid-column: 1;
+        justify-self: start;
+    }
+
+    .mana-status {
+        grid-column: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 34px;
+        padding: 0 13px;
+        border: 1px solid rgba(207, 174, 105, 0.42);
+        border-radius: 999px;
+        background: rgba(24, 18, 12, 0.72);
+        color: #f5ddb0;
+        font-size: 12px;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        box-sizing: border-box;
+    }
+
+    .mana-status.exceeded {
+        border-color: rgba(226, 91, 91, 0.72);
+        background: rgba(87, 24, 24, 0.76);
+        color: #ffd6d6;
+        box-shadow: 0 0 14px rgba(215, 69, 69, 0.22);
     }
 
     .next-tab-host {
@@ -288,11 +345,13 @@
 
     @media (max-width: 720px) {
         .app-phase-navigation-bar {
+            grid-template-columns: auto minmax(0, 1fr);
             gap: 8px;
             padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
         }
 
         .phase-actions {
+            grid-column: 2;
             flex: 1;
             gap: 8px;
         }
@@ -309,7 +368,19 @@
         }
 
         .previous-tab {
+            grid-column: 1;
             flex: 0 0 72px;
+        }
+
+        .mana-status {
+            grid-column: 1 / -1;
+            grid-row: 1;
+            justify-self: center;
+        }
+
+        .shows-mana .previous-tab,
+        .shows-mana .phase-actions {
+            grid-row: 2;
         }
 
         .phase-actions .phase-tab {

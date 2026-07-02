@@ -13,6 +13,10 @@ import {
     calculateCyoaStatEffects,
     mapCyoaStatEffectsByChoiceId,
 } from '../systems/cyoa/cyoaStatEffects';
+import {
+    calculateCyoaMaximumMana,
+    mapCyoaMaximumManaModifiersByChoiceId,
+} from '../systems/cyoa/cyoaMaximumMana';
 import type {
     CyoaChoiceRowConfig,
     CyoaChoiceRowData,
@@ -37,12 +41,20 @@ class ChoiceStore {
         resolveCyoaRowVisibility(this.rows, this.selectedChoiceIds)
     );
     readonly statEffectsByChoiceId = mapCyoaStatEffectsByChoiceId(this.rows);
+    readonly maximumManaModifiersByChoiceId =
+        mapCyoaMaximumManaModifiersByChoiceId(this.rows);
 
     readonly canSubmitRegistration = $derived(
         canSubmitCyoaRegistration(this.rows, this.selectedChoiceIds, this.inputValues)
     );
     readonly statEffects: MagicStatEffectBundle = $derived(
         calculateCyoaStatEffects(this.selectedChoiceIds, this.statEffectsByChoiceId)
+    );
+    readonly maximumMana: number = $derived(
+        calculateCyoaMaximumMana(
+            this.selectedChoiceIds,
+            this.maximumManaModifiersByChoiceId
+        )
     );
 
     selectChoice(row: CyoaChoiceRowData | CyoaSubChoiceGroupData, choiceId: string): void {

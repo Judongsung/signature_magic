@@ -13,6 +13,7 @@ import {
     resolveMagicGraphCircleClickTargetId,
     resolveMagicGraphSelectionScope,
     resolveMagicGraphSelectionTargetCircleId,
+    resolveSelectedUnitInsertionIndex,
     resolveUppermostSelectedCircle,
 } from './magicGraphSelection';
 
@@ -95,6 +96,31 @@ describe('magicGraphSelection', () => {
 
         expect(selected.filter(node => node.selected).map(node => node.id))
             .toEqual([circle.id]);
+    });
+
+    it('inserts toolbar nodes after the lowest selected unit', () => {
+        const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'circle');
+        const first = attachNodeToCircle(
+            createTestMagicNode('first'),
+            circle,
+            0
+        );
+        const second = attachNodeToCircle(
+            createTestMagicNode('second'),
+            circle,
+            1
+        );
+
+        expect(resolveSelectedUnitInsertionIndex(
+            [circle, first, second],
+            circle.id,
+            new Set([first.id, second.id])
+        )).toBe(2);
+        expect(resolveSelectedUnitInsertionIndex(
+            [circle, first, second],
+            circle.id,
+            new Set()
+        )).toBeUndefined();
     });
 
     it('targets the uppermost selected circle and breaks ties by front order', () => {

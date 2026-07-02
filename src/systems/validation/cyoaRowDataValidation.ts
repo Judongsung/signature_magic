@@ -309,6 +309,17 @@ function validateCyoaChoice(
     if (choice.width && !isValidCyoaChoiceWidth(choice.width)) {
         errors.push(formatValidationError('Invalid', 'CYOA choice width', choice.id, choice.width));
     }
+    if (
+        choice.maximumManaModifier !== undefined &&
+        !isFiniteNumber(choice.maximumManaModifier)
+    ) {
+        errors.push(formatValidationError(
+            'Invalid',
+            'CYOA maximum mana modifier',
+            choice.id,
+            choice.maximumManaModifier
+        ));
+    }
     errors.push(...validateCyoaStatEffects(
         choice.id,
         choice.statEffects,

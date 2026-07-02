@@ -10,7 +10,7 @@
         "nodeAggregation": "sum",
         "serialAggregation": "sum",
         "branchAggregation": "sum",
-        "scaling": { "operation": "exponentialByNodeCount", "factor": 1.15 },
+        "scaling": { "operation": "exponentialByNodeCount", "factor": 1.1 },
         "bounds": { "minimum": 0 }
     },
     "power": {

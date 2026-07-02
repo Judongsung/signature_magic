@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from 'svelte';
     import luarnChibiImageSrc from '../../../assets/images/luarn_chibi.png';
     import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../../constants/uiText';
     import {
@@ -15,16 +16,37 @@
     const signatureDescriptionInputId = `${dialogId}-signature-description`;
 
     let {
+        initialMetadata,
+        onDraftChange,
         onSubmit,
         onClose,
     }: {
+        initialMetadata: MagicSignatureMetadata;
+        onDraftChange: (metadata: MagicSignatureMetadata) => void;
         onSubmit: (metadata: MagicSignatureMetadata) => void;
         onClose: () => void;
     } = $props();
 
-    let signatureName = $state('');
-    let signatureDescription = $state('');
+    let signatureName = $state(untrack(() => initialMetadata.name));
+    let signatureDescription = $state(untrack(() =>
+        initialMetadata.description
+    ));
     const canSubmit = $derived(signatureName.trim().length > 0);
+
+    function updateDraft(
+        field: 'name' | 'description',
+        value: string
+    ): void {
+        if (field === 'name') {
+            signatureName = value;
+        } else {
+            signatureDescription = value;
+        }
+        onDraftChange({
+            name: signatureName,
+            description: signatureDescription,
+        });
+    }
 
     function submitSignature(event: SubmitEvent) {
         event.preventDefault();
@@ -79,7 +101,11 @@
                             id={signatureNameInputId}
                             type="text"
                             required
-                            bind:value={signatureName}
+                            value={signatureName}
+                            oninput={(event) => updateDraft(
+                                'name',
+                                event.currentTarget.value
+                            )}
                             placeholder={NODE_COMPOSITION_SIGNATURE_TEXT.NAME_PLACEHOLDER}
                         />
                     </label>
@@ -89,7 +115,11 @@
                         <textarea
                             id={signatureDescriptionInputId}
                             rows="5"
-                            bind:value={signatureDescription}
+                            value={signatureDescription}
+                            oninput={(event) => updateDraft(
+                                'description',
+                                event.currentTarget.value
+                            )}
                             placeholder={NODE_COMPOSITION_SIGNATURE_TEXT.DESCRIPTION_PLACEHOLDER}
                         ></textarea>
                     </label>

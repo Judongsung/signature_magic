@@ -64,6 +64,7 @@ function mapCyoaChoiceBaseConfig(
         layoutSpan: Math.max(1, (layoutColumns / width.denominator) * width.numerator),
         disabled: choice.disabled,
         statEffects: choice.statEffects,
+        maximumManaModifier: choice.maximumManaModifier,
     };
 }
 

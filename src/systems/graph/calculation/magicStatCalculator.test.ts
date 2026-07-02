@@ -71,7 +71,7 @@ describe('calculateMagicStats', () => {
 
         expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
             castingTime: 3,
-            instability: 5.75,
+            instability: 5.5,
             power: 5,
             range: 3,
             manaCost: 5,
@@ -89,7 +89,7 @@ describe('calculateMagicStats', () => {
 
         expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'circle'), {
             castingTime: 5,
-            instability: 5.75,
+            instability: 5.5,
             power: 5,
             range: 6,
             manaCost: 5,
@@ -107,7 +107,7 @@ describe('calculateMagicStats', () => {
 
         expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
             castingTime: 6,
-            instability: 6.9,
+            instability: 6.6,
             power: 6,
             range: 8,
             manaCost: 6,
@@ -143,7 +143,7 @@ describe('calculateMagicStats', () => {
 
         expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
             castingTime: 18,
-            instability: 42.24,
+            instability: 21 * (1.1 ** 3),
             power: 21,
             range: 240,
             manaCost: 21,
@@ -172,7 +172,7 @@ describe('calculateMagicStats', () => {
 
         expectStatsClose(calculateMagicStats(nodes, edges, magicTypes, 'total'), {
             castingTime: 14,
-            instability: 22.81,
+            instability: 15 * (1.1 ** 2),
             power: 15,
             range: 90,
             manaCost: 15,
@@ -204,7 +204,7 @@ describe('calculateMagicStats', () => {
             new Map([['a', 2]])
         ), {
             castingTime: 12,
-            instability: 6,
+            instability: 6.6,
             power: 30,
             range: 36,
             manaCost: 12,

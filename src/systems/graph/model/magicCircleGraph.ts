@@ -9,7 +9,6 @@ import {
     MAGIC_CONTROL_PAIR_CONFIG,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
-import { CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS } from '../../../constants/circleSystemMagicNodeConfigs';
 import {
     MAGIC_CIRCLE_METADATA_CONFIG,
     MAGIC_SEQUENCE_DISABLED_NODE_TYPES,
@@ -27,12 +26,15 @@ import {
     type MagicType,
 } from '../../../types/magicTypeConfig';
 import type { MagicGraphEdge } from '../magicGraphTypes';
+import {
+    createMagicGraphIdSegment,
+    type MagicGraphIdFactory,
+} from './magicGraphIds';
+import {
+    isRegisteredCircleSystemMagicType,
+} from './circleSystemMagicTypePolicy';
 
-type CircleIdFactory = () => string;
-
-function createCircleId(): string {
-    return crypto.randomUUID();
-}
+type CircleIdFactory = MagicGraphIdFactory;
 
 export function isMagicCircleNode(node: MagicEditorNode): node is MagicCircleNode {
     return node.type === GRAPH_NODE_TYPES.MAGIC_CIRCLE ||
@@ -47,7 +49,7 @@ export function createMagicCircleNode(
     position: { x: number; y: number } = {
         ...MAGIC_CIRCLE_NODE_CONFIG.DEFAULT_POSITION,
     },
-    createId: CircleIdFactory = createCircleId
+    createId: CircleIdFactory = createMagicGraphIdSegment
 ): MagicCircleNode {
     return createMagicCircleNodeFromGeometry({
         id: `${MAGIC_CIRCLE_ID_PREFIX}-${createId()}`,
@@ -152,9 +154,7 @@ export function compareMagicCircleSequenceNodes(
 export function isMagicTypeAllowedInCircleSequence(
     magicType: MagicType
 ): boolean {
-    if (CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS.some(config =>
-        config.magicType === magicType
-    )) {
+    if (isRegisteredCircleSystemMagicType(magicType)) {
         return false;
     }
 

@@ -157,9 +157,7 @@ describe('cyoaStatEffects', () => {
                     nodeTarget: { statValueSign: 'positive' },
                 },
             ],
-            'catalyst-gem': [
-                { phase: 'final', operation: 'multiply', stat: 'power', value: 1.5 },
-            ],
+            'catalyst-gem': undefined,
             'catalyst-tattoo': [
                 { phase: 'final', operation: 'multiply', stat: 'duration', value: 4 },
             ],

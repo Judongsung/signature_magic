@@ -185,6 +185,7 @@ describe('magicCircleGraph sequence model', () => {
         expect(isMagicTypeAllowedInCircleSequence('repeat')).toBe(true);
         expect(isMagicTypeAllowedInCircleSequence('branch')).toBe(true);
         expect(isMagicTypeAllowedInCircleSequence('manifestation')).toBe(false);
+        expect(isMagicTypeAllowedInCircleSequence('circleJoin')).toBe(false);
     });
 
     it('resolves an active circle only for one selected parent group', () => {

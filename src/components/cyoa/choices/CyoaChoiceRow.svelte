@@ -7,6 +7,8 @@
     } from '../../../types/cyoa';
     import { formatCyoaStatEffect } from '../../../systems/cyoa/cyoaStatEffectFormatting';
     import { getUserMagicTypeLabel } from '../../../systems/magic/magicTypeCatalog';
+    import { formatMagicMana } from '../../../systems/magic/magicMana';
+    import { CYOA_STAT_EFFECT_TEXT } from '../../../constants/uiText';
 
     let {
         choices,
@@ -28,10 +30,20 @@
         onSubChoiceSelect?: (group: CyoaSubChoiceGroupData, choiceId: string) => void;
     } = $props();
 
-    function formatStatEffectLabels(choice: CyoaChoice): string[] {
-        return choice.statEffects?.map(effect =>
+    function formatChoiceEffectLabels(choice: CyoaChoice): string[] {
+        const statEffectLabels = choice.statEffects?.map(effect =>
             formatCyoaStatEffect(effect, getUserMagicTypeLabel)
         ) ?? [];
+        const maximumManaModifier = choice.maximumManaModifier;
+        if (maximumManaModifier === undefined) return statEffectLabels;
+
+        const modifierLabel = maximumManaModifier < 0
+            ? `−${formatMagicMana(Math.abs(maximumManaModifier))}`
+            : `+${formatMagicMana(maximumManaModifier)}`;
+        return [
+            ...statEffectLabels,
+            `${CYOA_STAT_EFFECT_TEXT.MAXIMUM_MANA_LABEL} ${modifierLabel}`,
+        ];
     }
 </script>
 
@@ -47,7 +59,7 @@
                 selected={selectedChoiceIds.includes(choice.id)}
                 disabled={disabled || choice.disabled}
                 locked={lockedChoiceIds.includes(choice.id)}
-                statEffectLabels={formatStatEffectLabels(choice)}
+                effectLabels={formatChoiceEffectLabels(choice)}
                 {onSelect}
             />
         </div>
@@ -65,7 +77,7 @@
                         disabled={disabled || subChoice.disabled}
                         subChoice
                         ariaLabel={`${subChoiceGroup.title}: ${subChoice.title}`}
-                        statEffectLabels={formatStatEffectLabels(subChoice)}
+                        effectLabels={formatChoiceEffectLabels(subChoice)}
                         onSelect={(choiceId) => onSubChoiceSelect?.(subChoiceGroup, choiceId)}
                     />
                 </div>

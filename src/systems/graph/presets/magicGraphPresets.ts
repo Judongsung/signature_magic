@@ -19,7 +19,7 @@ import {
     type MagicEditorNode,
     type MagicNode,
 } from '../magicGraphTypes';
-import { createUniqueId } from '../model/graphActions';
+import { createMagicGraphIdSegment } from '../model/magicGraphIds';
 import type { GraphSnapshot } from '../model/graphEventHandlers';
 import { createUserMagicNodeData, normalizeMagicNodeSettings } from '../model/magicNodeData';
 import { readMagicTypeConfigByType, type MagicTypeLookup } from '../model/magicTypeLookup';
@@ -40,6 +40,11 @@ import {
     resolveRuntimeSequenceIndex,
     resolveSystemNodeRuntimeSequenceIndex,
 } from '../model/circleSystemMagicNodes';
+import {
+    applyMagicCircleConnectionJoinSlots,
+    resolveMagicCircleConnectionJoinSlotIndex,
+    syncMagicCircleConnectionNodes,
+} from '../model/magicCircleConnectionNodes';
 
 export const MAGIC_GRAPH_PRESET_SOURCES = {
     BUILT_IN: 'builtIn',
@@ -97,7 +102,8 @@ export function createMagicGraphFromPreset(
         preset.circles.map(circle => [circle.id, circle])
     );
 
-    const nodes = normalizeMagicCircleSequences([
+    const edges = preset.edges.map(createEdgeFromPreset);
+    const baseNodes = normalizeMagicCircleSequences([
             ...circles,
             ...createCircleSequenceNodesFromPreset(
                 preset.nodes,
@@ -106,17 +112,30 @@ export function createMagicGraphFromPreset(
                 magicTypes
             ),
         ]);
+    const connectionNodeSync = syncMagicCircleConnectionNodes(
+        baseNodes,
+        edges
+    );
+    const nodes = normalizeMagicCircleSequences(
+        applyMagicCircleConnectionJoinSlots(
+            connectionNodeSync.nodes,
+            new Map(preset.edges.map(edge => [
+                edge.id,
+                edge.joinSlotIndex ?? 0,
+            ]))
+        )
+    );
 
     return {
         nodes,
-        edges: preset.edges.map(createEdgeFromPreset),
+        edges,
     };
 }
 
 export function createMagicGraphPresetSnapshot(
     label: string,
     snapshot: GraphSnapshot,
-    createId: MagicGraphPresetIdFactory = createUniqueId
+    createId: MagicGraphPresetIdFactory = createMagicGraphIdSegment
 ): MagicGraphPresetConfig | false {
     const trimmedLabel = label.trim();
     const index = createMagicCircleGraphIndex(snapshot.nodes);
@@ -142,7 +161,10 @@ export function createMagicGraphPresetSnapshot(
             )
         ),
         edges: snapshot.edges
-            .map(createMagicGraphPresetEdgeSnapshot)
+            .map(edge => createMagicGraphPresetEdgeSnapshot(
+                edge,
+                snapshot.nodes
+            ))
             .filter(edge =>
                 isMagicGraphExternalCircleEdge(edge, circleIds)
             ),
@@ -333,13 +355,20 @@ export function createMagicGraphPresetNodeSnapshot(
 }
 
 export function createMagicGraphPresetEdgeSnapshot(
-    edge: MagicGraphEdge
+    edge: MagicGraphEdge,
+    nodes: readonly MagicEditorNode[] = []
 ): MagicGraphPresetEdgeConfig {
+    const joinSlotIndex =
+        resolveMagicCircleConnectionJoinSlotIndex(nodes, edge.id);
+
     return {
-        id: edge.id || `${MAGIC_EDGE_ID_PREFIX}-${createUniqueId()}`,
+        id: edge.id || `${MAGIC_EDGE_ID_PREFIX}-${createMagicGraphIdSegment()}`,
         source: edge.source,
         target: edge.target,
         sourceHandle: edge.sourceHandle!,
         targetHandle: edge.targetHandle!,
+        ...(joinSlotIndex === undefined
+            ? {}
+            : { joinSlotIndex }),
     };
 }

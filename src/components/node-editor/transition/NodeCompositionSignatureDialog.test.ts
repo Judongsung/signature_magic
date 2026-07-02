@@ -7,19 +7,33 @@ import {
     getDialogElement,
 } from '../../../test-utils/componentQueries';
 import NodeCompositionSignatureDialog from './NodeCompositionSignatureDialog.svelte';
+import type { MagicSignatureMetadata } from '../../../types/magicSignature';
 
 let mountedDialog: Record<string, unknown> | undefined;
 
-function mountDialog(onSubmit = vi.fn(), onClose = vi.fn()) {
+function mountDialog(
+    onSubmit: (metadata: MagicSignatureMetadata) => void = vi.fn(),
+    onClose: () => void = vi.fn(),
+    initialMetadata: MagicSignatureMetadata = {
+        name: '',
+        description: '',
+    },
+    onDraftChange: (metadata: MagicSignatureMetadata) => void = vi.fn()
+) {
     const target = document.createElement('div');
     document.body.append(target);
 
     mountedDialog = mount(NodeCompositionSignatureDialog, {
         target,
-        props: { onSubmit, onClose },
+        props: {
+            initialMetadata,
+            onDraftChange,
+            onSubmit,
+            onClose,
+        },
     });
 
-    return { target, onSubmit, onClose };
+    return { target, onSubmit, onClose, onDraftChange };
 }
 
 async function unmountDialog(): Promise<void> {
@@ -94,6 +108,78 @@ describe('NodeCompositionSignatureDialog', () => {
             description: 'Focused fire.',
         });
         expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('restores and reports a draft without trimming it', async () => {
+        const onDraftChange = vi.fn();
+        const { target } = mountDialog(
+            vi.fn(),
+            vi.fn(),
+            {
+                name: '기존 이름',
+                description: '기존 설명',
+            },
+            onDraftChange
+        );
+        const nameInput = target.querySelector<HTMLInputElement>('input')!;
+        const descriptionInput =
+            target.querySelector<HTMLTextAreaElement>('textarea')!;
+
+        expect(nameInput.value).toBe('기존 이름');
+        expect(descriptionInput.value).toBe('기존 설명');
+
+        setInputValue(nameInput, '  취소해도 남을 이름  ');
+        setInputValue(descriptionInput, '  작성 중인 설명  ');
+        await tick();
+
+        expect(onDraftChange).toHaveBeenLastCalledWith({
+            name: '  취소해도 남을 이름  ',
+            description: '  작성 중인 설명  ',
+        });
+    });
+
+    it('restores an unsubmitted draft after cancel and remount', async () => {
+        let draft: MagicSignatureMetadata = {
+            name: '',
+            description: '',
+        };
+        const onClose = vi.fn();
+        const first = mountDialog(
+            vi.fn(),
+            onClose,
+            draft,
+            metadata => {
+                draft = metadata;
+            }
+        );
+
+        setInputValue(
+            first.target.querySelector<HTMLInputElement>('input')!,
+            '취소한 이름'
+        );
+        setInputValue(
+            first.target.querySelector<HTMLTextAreaElement>('textarea')!,
+            '취소한 설명'
+        );
+        getButtonByText(
+            first.target,
+            NODE_COMPOSITION_SIGNATURE_TEXT.CANCEL
+        ).click();
+        await tick();
+        await unmountDialog();
+        first.target.remove();
+
+        const reopened = mountDialog(
+            vi.fn(),
+            vi.fn(),
+            draft
+        );
+
+        expect(reopened.target.querySelector<HTMLInputElement>('input')
+            ?.value).toBe('취소한 이름');
+        expect(reopened.target.querySelector<HTMLTextAreaElement>('textarea')
+            ?.value).toBe('취소한 설명');
+        expect(onClose).toHaveBeenCalledOnce();
     });
 
     it('closes without submitting from cancel and Escape', async () => {

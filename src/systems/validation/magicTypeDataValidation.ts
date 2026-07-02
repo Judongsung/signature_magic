@@ -1,4 +1,7 @@
 import {
+    MAGIC_CONTROL_PAIR_NODE_TYPES,
+} from '../../constants/graphConfigs';
+import {
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
@@ -35,9 +38,16 @@ const MAGIC_NODE_EDITOR_PRESENTATION_SET: ReadonlySet<string> =
 const MAGIC_NODE_EDITOR_BEHAVIOR_SET: ReadonlySet<string> =
     new Set(Object.values(MAGIC_NODE_EDITOR_BEHAVIORS));
 const MAGIC_STAT_BOUND_OVERRIDE_KEYS = new Set(['minimum', 'maximum']);
+const STATELESS_MAGIC_TYPE_IDS = new Set<string>(
+    Object.values(MAGIC_CONTROL_PAIR_NODE_TYPES)
+);
 
 function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): string[] {
-    if (!stats) return [`Missing magic type stats: ${type}`];
+    if (!stats) {
+        return STATELESS_MAGIC_TYPE_IDS.has(type)
+            ? []
+            : [`Missing magic type stats: ${type}`];
+    }
 
     return MAGIC_STAT_KEYS.flatMap(key => {
         const value = stats[key];
