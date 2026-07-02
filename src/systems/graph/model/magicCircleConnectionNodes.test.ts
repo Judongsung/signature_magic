@@ -168,7 +168,46 @@ describe('magicCircleConnectionNodes', () => {
         ).moved).toBe(true);
     });
 
-    it('does not change the existing external-circle stat result', () => {
+    it('rejects moving a join after the first branch start', () => {
+        const source = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'branch-source'
+        );
+        const target = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'branch-target'
+        );
+        const branched = addMagicNodeToCircle(
+            [source, target],
+            'branch',
+            target.id
+        );
+        const edge = externalEdge(
+            'edge-branch',
+            source.id,
+            target.id
+        );
+        const connected = syncGraphTopology({
+            nodes: branched.nodes,
+            edges: [edge],
+        });
+        const join = connected.nodes.find(
+            isMagicCircleConnectionJoinNode
+        )!;
+
+        expect(moveMagicNodeGroup(
+            connected,
+            [{
+                nodeId: join.id,
+                circleId: target.id,
+                sequenceIndex: join.data.sequenceIndex!,
+            }],
+            target.id,
+            2
+        ).moved).toBe(false);
+    });
+
+    it('merges the source result at the generated join node', () => {
         const source = createMagicCircleNode(
             { x: 0, y: 0 },
             () => 'source'
@@ -211,8 +250,19 @@ describe('magicCircleConnectionNodes', () => {
             magicTypes
         );
 
-        expect(after.totalStats).toEqual(before.totalStats);
-        expect(after.circles.map(circle => circle.stats))
-            .toEqual(before.circles.map(circle => circle.stats));
+        expect(before.totalStats).not.toEqual(after.totalStats);
+        expect(after.completionIssue).toBeUndefined();
+        expect(after.totalStats).toEqual(
+            after.circles.find(circle =>
+                circle.id === target.id
+            )?.stats
+        );
+        expect(after.circles.find(circle =>
+            circle.id === target.id
+        )?.stats.power).toBeGreaterThan(
+            after.circles.find(circle =>
+                circle.id === source.id
+            )?.stats.power ?? 0
+        );
     });
 });

@@ -27,6 +27,16 @@ export interface MagicCircleState {
     displayOrder: number;
 }
 
+export const MAGIC_GRAPH_COMPLETION_ISSUES = {
+    NO_CALCULABLE_CIRCLE: 'noCalculableCircle',
+    INVALID_CIRCLE: 'invalidCircle',
+    INVALID_TOPOLOGY: 'invalidTopology',
+    INCOMPLETE_FLOW: 'incompleteFlow',
+} as const;
+
+export type MagicGraphCompletionIssue =
+    (typeof MAGIC_GRAPH_COMPLETION_ISSUES)[keyof typeof MAGIC_GRAPH_COMPLETION_ISSUES];
+
 export interface CirclePath {
     id: string;
     nodes: MagicNode[];
@@ -39,4 +49,5 @@ export interface MagicCalculationResult {
     circleStates: MagicCircleState[];
     totalStats: MagicStats;
     totalStatAdjustments: MagicStats;
+    completionIssue?: MagicGraphCompletionIssue;
 }

@@ -9,6 +9,7 @@ import { createTestMagicNode } from '../../../test-utils/graphFixtures';
 import {
     type MagicTypeConfig,
 } from '../../../types/magicTypeConfig';
+import { EMPTY_MAGIC_STATS } from '../../../types/magicStats';
 import {
     attachNodeToCircle,
     createMagicCircleNode,
@@ -16,6 +17,10 @@ import {
 import { createCircleSystemMagicNode } from '../model/circleSystemMagicNodes';
 import { analyzeExplicitMagicCircleGraph } from './explicitMagicCircleGraph';
 import { calculateMagic } from './magicCalculator';
+import { syncGraphTopology } from '../model/graphEventHandlers';
+import {
+    MAGIC_GRAPH_COMPLETION_ISSUES,
+} from './magicCalculationTypes';
 
 function connectCircles(source: string, target: string): Edge {
     return {
@@ -51,8 +56,8 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             isInternallyValid: false,
         });
         expect(analysis.orderedCalculatedCircleIds).toEqual([]);
-        expect(analysis.projectedNodes).toEqual([]);
-        expect(analysis.projectedEdges).toEqual([]);
+        expect(analysis.completionIssue)
+            .toBe(MAGIC_GRAPH_COMPLETION_ISSUES.NO_CALCULABLE_CIRCLE);
     });
 
     it('calculates an isolated non-empty circle as an independent root', () => {
@@ -78,15 +83,8 @@ describe('explicitMagicCircleGraph sequence projection', () => {
 
         expect(internal.sequenceNodes.map(node => node.id))
             .toEqual(['first', 'second']);
-        expect(internal.projectedEdges.map(edge => [
-            edge.source,
-            edge.target,
-        ])).toEqual([
-            [`${circle.id}:start`, 'first'],
-            ['first', 'second'],
-            ['second', `${circle.id}:end`],
-        ]);
         expect(analysis.orderedCalculatedCircleIds).toEqual([circle.id]);
+        expect(analysis.completionIssue).toBeUndefined();
         expect(analysis.states[0]).toMatchObject({
             isInternallyValid: true,
             displayOrder: 1,
@@ -94,44 +92,51 @@ describe('explicitMagicCircleGraph sequence projection', () => {
     });
 
     it('orders every valid circle topologically and then by x position', () => {
-        const root = createMagicCircleNode(
-            { x: 0, y: 0 },
-            () => 'root'
-        );
         const left = createMagicCircleNode(
-            { x: -520, y: 700 },
+            { x: -520, y: 0 },
             () => 'left'
         );
         const right = createMagicCircleNode(
-            { x: 520, y: 700 },
+            { x: 520, y: 0 },
             () => 'right'
         );
-        const nodes = [
-            root,
+        const target = createMagicCircleNode(
+            { x: 0, y: 700 },
+            () => 'target'
+        );
+        const baseNodes = [
             left,
             right,
-            attachNodeToCircle(createTestMagicNode('root-node'), root, 0),
+            target,
             attachNodeToCircle(createTestMagicNode('left-node'), left, 0),
             attachNodeToCircle(createTestMagicNode('right-node'), right, 0),
+            attachNodeToCircle(createTestMagicNode('target-node'), target, 0),
         ];
         const edges = [
-            connectCircles(root.id, left.id),
+            connectCircles(left.id, target.id),
             {
-                ...connectCircles(root.id, right.id),
-                sourceHandle: 'circle-output-1',
+                ...connectCircles(right.id, target.id),
+                targetHandle: 'circle-input-1',
             },
         ];
+        const graph = syncGraphTopology({
+            nodes: baseNodes,
+            edges,
+        });
 
-        const analysis = analyzeExplicitMagicCircleGraph(nodes, edges);
+        const analysis = analyzeExplicitMagicCircleGraph(
+            graph.nodes,
+            graph.edges
+        );
         expect(analysis.orderedCalculatedCircleIds)
-            .toEqual([root.id, left.id, right.id]);
+            .toEqual([left.id, right.id, target.id]);
         expect(analysis.states.map(state => [
             state.circleId,
             state.displayOrder,
         ])).toEqual([
-            [root.id, 1],
-            [left.id, 2],
-            [right.id, 3],
+            [left.id, 1],
+            [right.id, 2],
+            [target.id, 3],
         ]);
     });
 
@@ -165,6 +170,9 @@ describe('explicitMagicCircleGraph sequence projection', () => {
 
         expect(result.circles.map(circle => circle.id))
             .toEqual([first.id, second.id]);
+        expect(result.totalStats).toEqual(EMPTY_MAGIC_STATS);
+        expect(result.completionIssue)
+            .toBe(MAGIC_GRAPH_COMPLETION_ISSUES.INCOMPLETE_FLOW);
     });
 
     it('projects pair end markers as zero-stat virtual anchors', () => {
@@ -207,20 +215,8 @@ describe('explicitMagicCircleGraph sequence projection', () => {
 
         expect(internal.calculationNodes.map(node => node.id))
             .toEqual([start.id, middle.id]);
-        const projectedStart = internal.projectedNodes.find(node =>
-            node.id === start.id
-        );
-        const projectedEnd = internal.projectedNodes.find(node =>
-            node.id === end.id
-        );
-
-        expect(projectedStart?.data.nodeKind).toBe('user');
-        expect(projectedEnd?.data).toMatchObject({
-                magicType: '__circle-anchor__',
-                excludeFromStatScaling: true,
-            });
-        expect(projectedEnd?.data).not.toHaveProperty('nodeKind');
-        expect(projectedEnd?.data).not.toHaveProperty('settings');
+        expect(internal.sequenceNodes.map(node => node.id))
+            .toEqual([start.id, middle.id, end.id]);
     });
 
     it('repeats only nodes enclosed by a repeat pair', () => {

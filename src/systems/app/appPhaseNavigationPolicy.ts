@@ -9,6 +9,10 @@ import {
 } from '../../constants/appModeConfigs';
 import { UI_BUTTON_TEXT } from '../../constants/uiText';
 import { getNextAppPhase, getPreviousAppPhase } from './appPhaseNavigation';
+import {
+    MAGIC_GRAPH_COMPLETION_ISSUES,
+    type MagicGraphCompletionIssue,
+} from '../graph/calculation/magicCalculationTypes';
 
 export const APP_PHASE_NAVIGATION_NEXT_ACTIONS = {
     MOVE_TO_NEXT_PHASE: 'moveToNextPhase',
@@ -36,6 +40,7 @@ export interface AppPhaseNavigationPolicyInput {
     phase: AppPhase;
     canSubmitRegistration: boolean;
     canCompleteNodeComposition: boolean;
+    nodeCompositionCompletionIssue?: MagicGraphCompletionIssue;
     isWithinMaximumMana: boolean;
 }
 
@@ -64,11 +69,14 @@ const NEXT_DISABLED_FEEDBACK_RESOLVERS: Partial<Record<AppPhase, NextDisabledFee
             },
     [APP_PHASES.NODE_COMPOSITION]: ({
         canCompleteNodeComposition,
+        nodeCompositionCompletionIssue,
         isWithinMaximumMana,
     }) => {
         if (!canCompleteNodeComposition) {
             return {
-                message: UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP,
+                message: resolveMagicGraphCompletionMessage(
+                    nodeCompositionCompletionIssue
+                ),
                 presentation: APP_PHASE_NAVIGATION_DISABLED_PRESENTATIONS.TOOLTIP,
             };
         }
@@ -81,11 +89,31 @@ const NEXT_DISABLED_FEEDBACK_RESOLVERS: Partial<Record<AppPhase, NextDisabledFee
     },
 };
 
+const MAGIC_GRAPH_COMPLETION_MESSAGES = {
+    [MAGIC_GRAPH_COMPLETION_ISSUES.NO_CALCULABLE_CIRCLE]:
+        UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP,
+    [MAGIC_GRAPH_COMPLETION_ISSUES.INVALID_CIRCLE]:
+        UI_BUTTON_TEXT.INVALID_MAGIC_CIRCLE_TOOLTIP,
+    [MAGIC_GRAPH_COMPLETION_ISSUES.INVALID_TOPOLOGY]:
+        UI_BUTTON_TEXT.INVALID_MAGIC_FLOW_TOOLTIP,
+    [MAGIC_GRAPH_COMPLETION_ISSUES.INCOMPLETE_FLOW]:
+        UI_BUTTON_TEXT.INCOMPLETE_MAGIC_FLOW_TOOLTIP,
+} as const satisfies Record<MagicGraphCompletionIssue, string>;
+
+function resolveMagicGraphCompletionMessage(
+    issue: MagicGraphCompletionIssue | undefined
+): string {
+    return MAGIC_GRAPH_COMPLETION_MESSAGES[
+        issue ?? MAGIC_GRAPH_COMPLETION_ISSUES.NO_CALCULABLE_CIRCLE
+    ];
+}
+
 export function resolveAppPhaseNavigationPolicy({
     mode,
     phase,
     canSubmitRegistration,
     canCompleteNodeComposition,
+    nodeCompositionCompletionIssue,
     isWithinMaximumMana,
 }: AppPhaseNavigationPolicyInput): AppPhaseNavigationPolicy {
     const modeConfig = getAppModeConfig(mode);
@@ -98,6 +126,7 @@ export function resolveAppPhaseNavigationPolicy({
         phase,
         canSubmitRegistration,
         canCompleteNodeComposition,
+        nodeCompositionCompletionIssue,
         isWithinMaximumMana: !modeConfig.enforcesMaximumMana
             || isWithinMaximumMana,
     };

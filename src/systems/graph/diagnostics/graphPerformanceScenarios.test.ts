@@ -117,7 +117,7 @@ function createLinearCircleGraph(
     return { nodes: [circle, ...children], edges: [] };
 }
 
-function createBranchedCircleGraph(
+function createConvergingCircleGraph(
     nodeCount: number
 ): PerformanceScenarioGraph {
     const circles = Array.from({ length: nodeCount }, (_, index) =>
@@ -126,33 +126,32 @@ function createBranchedCircleGraph(
                 x: (index % 4) * 520,
                 y: Math.floor(index / 4) * 720,
             },
-            () => `branch-${index}`
+            () => `converge-${index}`
         )
     );
     const children = circles.map((circle, index) =>
         attachNodeToCircle(
             node(
-                `branch-node-${index}`,
+                `converge-node-${index}`,
                 MAGIC_TYPE_SEQUENCE[index % MAGIC_TYPE_SEQUENCE.length]
             ),
             circle,
             0
         )
     );
-    const edges: Edge[] = [];
+    const terminal = circles.at(-1)!;
+    const edges = circles.slice(0, -1).map((circle, index) =>
+        connectCircles(circle.id, terminal.id, 0, index)
+    );
+    const synced = syncGraphTopology({
+        nodes: [...circles, ...children],
+        edges,
+    });
 
-    for (let index = 0; index + 3 < circles.length; index += 4) {
-        const [root, left, right, merge] =
-            circles.slice(index, index + 4);
-        edges.push(
-            connectCircles(root.id, left.id),
-            connectCircles(root.id, right.id, 1),
-            connectCircles(left.id, merge.id),
-            connectCircles(right.id, merge.id, 0, 1)
-        );
-    }
-
-    return { nodes: [...circles, ...children], edges };
+    return {
+        nodes: synced.nodes,
+        edges: synced.edges,
+    };
 }
 
 function measureDuration(operation: () => void): number {
@@ -213,10 +212,10 @@ describe('graph performance scenarios', () => {
     );
 
     it.each(PERFORMANCE_SCENARIO_NODE_COUNTS)(
-        'handles a %i node branched circle graph',
+        'handles a %i node converging circle graph',
         nodeCount => {
             runGraphPerformanceScenario(
-                createBranchedCircleGraph(nodeCount)
+                createConvergingCircleGraph(nodeCount)
             );
         }
     );

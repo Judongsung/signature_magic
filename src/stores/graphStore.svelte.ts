@@ -69,6 +69,7 @@ import {
     type CirclePath,
     type MagicCircleState,
     type MagicCalculationResult,
+    type MagicGraphCompletionIssue,
 } from '../systems/graph/calculation/magicCalculationTypes';
 import {
     type MagicCircleMetadata,
@@ -159,6 +160,10 @@ class GraphStore {
     readonly circleStates: MagicCircleState[] = $derived(this.calculationResult.circleStates);
     readonly totalStats: MagicStats = $derived(this.calculationResult.totalStats);
     readonly totalStatAdjustments: MagicStats = $derived(this.calculationResult.totalStatAdjustments);
+    readonly completionIssue: MagicGraphCompletionIssue | undefined =
+        $derived(this.calculationResult.completionIssue);
+    readonly canCompleteNodeComposition: boolean =
+        $derived(this.completionIssue === undefined);
     readonly hasUserContent: boolean = $derived(
         hasUserMagicGraphContent(this.graphDocument.nodes)
     );

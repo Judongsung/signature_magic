@@ -60,6 +60,7 @@ import {
     findNonContiguousMagicGraphSequenceCircleIds,
     hasValidMagicGraphConnectionJoinSlots,
     hasValidMagicGraphControlPairs,
+    hasValidMagicGraphExternalFlow,
     hasValidMagicGraphSystemNodeSlots,
     isMagicGraphExternalCircleEdge,
 } from './magicGraphSnapshotRules';
@@ -512,6 +513,10 @@ function isMagicGraphClipboardPayload(
         ) &&
         payload.edges.every(edge =>
             isMagicGraphExternalCircleEdge(edge, circleIds)
+        ) &&
+        hasValidMagicGraphExternalFlow(
+            [...circleIds],
+            payload.edges
         ) &&
         hasValidMagicGraphConnectionJoinSlots(
             payload.edges,

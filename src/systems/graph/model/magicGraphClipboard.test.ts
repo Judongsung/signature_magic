@@ -500,4 +500,47 @@ describe('magicGraphClipboard', () => {
         }))).toBe(false);
         expect(parseMagicGraphClipboardPayload('not-json')).toBe(false);
     });
+
+    it('rejects a circle clipboard payload with multiple outputs', () => {
+        const source = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'fan-out-source'
+        );
+        const left = createMagicCircleNode(
+            { x: 520, y: 0 },
+            () => 'fan-out-left'
+        );
+        const right = createMagicCircleNode(
+            { x: 520, y: 520 },
+            () => 'fan-out-right'
+        );
+        const payload = requirePayload(
+            createMagicGraphClipboardPayload(
+                clipboardSnapshot(
+                    [source, left, right],
+                    [
+                        {
+                            id: 'source-left',
+                            source: source.id,
+                            target: left.id,
+                            sourceHandle: 'circle-output',
+                            targetHandle: 'circle-input',
+                        },
+                        {
+                            id: 'source-right',
+                            source: source.id,
+                            target: right.id,
+                            sourceHandle: 'circle-output-1',
+                            targetHandle: 'circle-input',
+                        },
+                    ],
+                    [source.id, left.id, right.id]
+                )
+            )
+        );
+
+        expect(parseMagicGraphClipboardPayload(
+            serializeMagicGraphClipboardPayload(payload)
+        )).toBe(false);
+    });
 });

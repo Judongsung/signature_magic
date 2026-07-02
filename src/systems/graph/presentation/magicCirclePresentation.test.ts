@@ -41,7 +41,7 @@ describe('magicCirclePresentation', () => {
         expect(viewModel.minimumHeight).toBe(MAGIC_CIRCLE_NODE_CONFIG.MIN_SIZE.height);
     });
 
-    it('keeps one empty external port after every connected port', () => {
+    it('keeps dynamic inputs and a single output', () => {
         const circle = createMagicCircleNode({ x: 0, y: 0 }, () => 'view');
         const child = attachNodeToCircle(createTestMagicNode('child'), circle, 0);
         const circleWithPorts = {
@@ -63,10 +63,7 @@ describe('magicCirclePresentation', () => {
             'circle-input-1',
             'circle-input-2',
         ]);
-        expect(viewModel.outputHandleIds).toEqual([
-            'circle-output',
-            'circle-output-1',
-        ]);
+        expect(viewModel.outputHandleIds).toEqual(['circle-output']);
     });
 
     it('resolves a non-empty circle as valid', () => {
@@ -77,6 +74,19 @@ describe('magicCirclePresentation', () => {
             circle,
             [child],
             state()
+        ).status).toBe(MAGIC_CIRCLE_STATUSES.VALID);
+    });
+
+    it('resolves an input-only join circle as valid from calculation state', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'join-view'
+        );
+
+        expect(resolveMagicCircleViewModel(
+            circle,
+            [],
+            state({ nodeIds: [] })
         ).status).toBe(MAGIC_CIRCLE_STATUSES.VALID);
     });
 

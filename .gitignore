@@ -15,6 +15,7 @@ dist-ssr
 # Local agent reference
 AGENTS.md
 src/SOURCE_MAP.md
+REFACTORING_REPORT.md
 
 # Editor directories and files
 .vscode/*

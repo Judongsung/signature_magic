@@ -5,6 +5,7 @@ import {
 } from '../../../types/magicStats';
 import {
     type MagicCalculationResult,
+    MAGIC_GRAPH_COMPLETION_ISSUES,
 } from './magicCalculationTypes';
 import {
     type MagicNode,
@@ -20,6 +21,13 @@ import {
     attachNodeToCircle,
     createMagicCircleNode,
 } from '../model/magicCircleGraph';
+import {
+    applyMagicCircleConnectionJoinSlots,
+} from '../model/magicCircleConnectionNodes';
+import {
+    normalizeMagicCircleSequences,
+} from '../model/magicCircleGraphActions';
+import { syncGraphTopology } from '../model/graphEventHandlers';
 import { calculateMagic } from './magicCalculator';
 
 const EMPTY_EFFECTS: MagicStatEffectBundle = {
@@ -84,6 +92,8 @@ describe('calculateMagic explicit circle integration', () => {
             circleStates: [],
             totalStats: EMPTY_MAGIC_STATS,
             totalStatAdjustments: EMPTY_MAGIC_STATS,
+            completionIssue:
+                MAGIC_GRAPH_COMPLETION_ISSUES.NO_CALCULABLE_CIRCLE,
         });
     });
 
@@ -350,5 +360,175 @@ describe('calculateMagic explicit circle integration', () => {
         expect(result.totalStatAdjustments.duration).toBe(0);
         expect(result.circles[0].stats.power).toBe(4);
         expect(result.circles[0].stats.duration).toBe(5);
+    });
+
+    it('merges at the join slot and continues serial calculation afterward', () => {
+        const source = createMagicCircleNode(
+            { x: -520, y: 0 },
+            () => 'flow-source'
+        );
+        const target = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'flow-target'
+        );
+        const types: MagicTypeConfig[] = [
+            {
+                type: 'source',
+                label: 'Source',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: '',
+                stats: {
+                    castingTime: 14,
+                    instability: 1,
+                    power: 14,
+                    range: 14,
+                    manaCost: 14,
+                    duration: 14,
+                },
+            },
+            {
+                type: 'prefix',
+                label: 'Prefix',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: '',
+                stats: {
+                    castingTime: 10,
+                    instability: 1,
+                    power: 10,
+                    range: 10,
+                    manaCost: 10,
+                    duration: 10,
+                },
+            },
+            {
+                type: 'suffix',
+                label: 'Suffix',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: '',
+                stats: {
+                    castingTime: 2,
+                    instability: 1,
+                    power: 3,
+                    range: 2,
+                    manaCost: 4,
+                    duration: 5,
+                },
+            },
+        ];
+        const edge = {
+            id: 'edge-flow',
+            source: source.id,
+            target: target.id,
+            sourceHandle: 'circle-output',
+            targetHandle: 'circle-input',
+        };
+        const connected = syncGraphTopology({
+            nodes: [
+                source,
+                target,
+                attachNodeToCircle(
+                    node('source-node', 'source'),
+                    source,
+                    0
+                ),
+                attachNodeToCircle(
+                    node('prefix-node', 'prefix'),
+                    target,
+                    0
+                ),
+                attachNodeToCircle(
+                    node('suffix-node', 'suffix'),
+                    target,
+                    1
+                ),
+            ],
+            edges: [edge],
+        });
+        const graphNodes = normalizeMagicCircleSequences(
+            applyMagicCircleConnectionJoinSlots(
+                connected.nodes,
+                new Map([[edge.id, 1]])
+            )
+        );
+        const result = calculateMagic(
+            graphNodes,
+            connected.edges,
+            types
+        );
+        const targetStats = result.circles.find(circle =>
+            circle.id === target.id
+        )!.stats;
+
+        expect(targetStats).toMatchObject({
+            castingTime: 16,
+            power: 27,
+            range: 28,
+            manaCost: 28,
+            duration: 19,
+        });
+        expect(result.totalStats).toEqual(targetStats);
+        expect(result.completionIssue).toBeUndefined();
+    });
+
+    it('treats an input-only join circle as a calculable terminal', () => {
+        const source = createMagicCircleNode(
+            { x: -520, y: 0 },
+            () => 'join-only-source'
+        );
+        const target = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'join-only-target'
+        );
+        const types: MagicTypeConfig[] = [{
+            type: 'source',
+            label: 'Source',
+            icon: '',
+            color: '',
+            category: 'basic',
+            description: '',
+            stats: {
+                castingTime: 2,
+                instability: 3,
+                power: 4,
+                range: 5,
+                manaCost: 6,
+                duration: 7,
+            },
+        }];
+        const edge = {
+            id: 'edge-join-only',
+            source: source.id,
+            target: target.id,
+            sourceHandle: 'circle-output',
+            targetHandle: 'circle-input',
+        };
+        const connected = syncGraphTopology({
+            nodes: [
+                source,
+                target,
+                attachNodeToCircle(
+                    node('source-node', 'source'),
+                    source,
+                    0
+                ),
+            ],
+            edges: [edge],
+        });
+        const result = calculateMagic(
+            connected.nodes,
+            connected.edges,
+            types
+        );
+
+        expect(result.completionIssue).toBeUndefined();
+        expect(result.circles.find(circle =>
+            circle.id === target.id
+        )?.stats).toEqual(result.totalStats);
     });
 });

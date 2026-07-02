@@ -7,6 +7,7 @@
 | Graph snapshot, document/view, renderer, and hot-path boundaries | Complete | Existing refactoring baseline remains in use. |
 | App mode and phase ownership | Complete | `appModeConfigs` owns CYOA and meta phase order plus graph-effect and maximum-mana policies. |
 | Result UI boundary | Complete | CYOA registration output and meta magic-only output reuse `RegistrationResultDetails` without mixing their surrounding workflows. |
+| Converging circle calculation | Complete | Circle flow now uses single-output topology and join-slot accumulation instead of the legacy recursive total-graph path. |
 
 ## 2026-07-02 — Title and mode boundary
 
@@ -32,3 +33,19 @@
 - Kept the CYOA evaluation transition unchanged while meta completion opens its result immediately.
 - Replaced the meta full-screen result with a focused `DialogShell` modal over the preserved editor.
 - Verification completed: `validate:data` 34 tests, `check` with no diagnostics, full suite 571 tests, and the production build all passed.
+
+## 2026-07-02 — Converging circle flow calculation
+
+- Limited each circle to one outgoing connection while preserving dynamic inputs and legacy single-output handle normalization.
+- Replaced the active recursive total-graph traversal with a circle-topological fold that evaluates staged joins and intervening unit nodes once.
+- Made circle stats cumulative through their final sequence position and required every circle to reach one terminal before completion.
+- Shared fan-out, cycle, join-slot, preset, storage, and clipboard validation without changing their wire versions.
+- Preserved the existing maximum-per-circle instability policy until a separate merge formula is chosen.
+- Verification completed: `validate:data` 34 tests, `check` with no diagnostics, full suite 584 tests, and the production build all passed.
+
+## 2026-07-02 — Navigation and circle-flow policy review
+
+- Replaced the graph-completion feedback `switch` and fallback with an exhaustive issue-to-message map, so a new completion issue cannot silently inherit unrelated feedback.
+- Kept the provisional maximum-per-circle instability behavior, but moved that exception out of the flow traversal into a focused stat policy.
+- Left ordinary serial and parallel stat aggregation delegated to the existing data-backed stat rules.
+- Verification completed: `validate:data` 34 tests, `check` with no diagnostics, full suite 591 tests, and the production build all passed.

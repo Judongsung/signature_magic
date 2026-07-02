@@ -1,10 +1,12 @@
-﻿import type { MagicGraphEdge } from '../magicGraphTypes';
 import {
+    EMPTY_MAGIC_STATS,
     MAGIC_STAT_KEYS,
     type MagicStats,
 } from '../../../types/magicStats';
 import {
     type MagicEditorNode,
+    type MagicGraphEdge,
+    type MagicNode,
 } from '../magicGraphTypes';
 import {
     createEmptyMagicStatEffectBundle,
@@ -16,16 +18,15 @@ import {
 } from '../../../types/magicTypeConfig';
 import {
     type CirclePath,
-    type MagicCalculationNode,
     type MagicCalculationResult,
 } from './magicCalculationTypes';
 import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
 import { clampMagicStats } from './magicStatRules';
 import {
-    buildMagicGraphAnalysis,
-    type MagicGraphAnalysis,
-} from './magicGraphAnalysis';
+    combineMagicCircleFlowStats,
+    finalizeMagicCircleFlowStats,
+} from './magicCircleFlowStatPolicy';
 import {
     GRAPH_PERFORMANCE_OPERATION_IDS,
     measureGraphOperation,
@@ -36,8 +37,12 @@ import {
 } from './magicRepeatCalculation';
 import {
     analyzeExplicitMagicCircleGraph,
+    type CircleInternalAnalysis,
     type ExplicitMagicCircleGraphAnalysis,
 } from './explicitMagicCircleGraph';
+import {
+    isMagicCircleConnectionJoinNode,
+} from '../model/magicCircleConnectionNodes';
 
 type CalculatedCirclePath = Omit<CirclePath, 'statAdjustments'>;
 
@@ -71,17 +76,13 @@ function calculateExplicitMagicNow(
     statEffects: MagicStatEffectBundle
 ): MagicCalculationResult {
     const magicTypeMap = buildMagicTypeMap(magicTypes);
-    const explicitAnalysis = analyzeExplicitMagicCircleGraph(nodes, edges);
-    const projectedAnalysis = buildMagicGraphAnalysis(
-        explicitAnalysis.projectedNodes,
-        explicitAnalysis.projectedEdges
-    );
+    const analysis = analyzeExplicitMagicCircleGraph(nodes, edges);
     const nodeExecutionCounts = buildMagicControlPairExecutionCounts(
         nodes,
         magicTypeMap
     );
     const calculatedCircles = calculateExplicitCircles(
-        explicitAnalysis,
+        analysis,
         magicTypeMap,
         statEffects.nodeEffects,
         nodeExecutionCounts
@@ -89,47 +90,46 @@ function calculateExplicitMagicNow(
     const hasNodeEffects = statEffects.nodeEffects.length > 0;
     const baselineCircles = hasNodeEffects
         ? calculateExplicitCircles(
-            explicitAnalysis,
+            analysis,
             magicTypeMap,
             [],
             nodeExecutionCounts
         )
         : calculatedCircles;
-    const circles = attachCircleStatAdjustments(calculatedCircles, baselineCircles);
-    const totalStats = calculateMagicStats(
-        explicitAnalysis.projectedNodes,
-        explicitAnalysis.projectedEdges,
-        magicTypeMap,
-        'total',
-        statEffects.nodeEffects,
-        projectedAnalysis,
-        nodeExecutionCounts
+    const circles = attachCircleStatAdjustments(
+        calculatedCircles,
+        baselineCircles
     );
-    const adjustedTotalStats = clampMagicStats(
-        applyMagicStatEffectsToStats(
-            applyCircleInstabilityToTotalStats(totalStats, circles),
+    const terminalStats = analysis.terminalCircleId
+        ? calculatedCircles.find(circle =>
+            circle.id === analysis.terminalCircleId
+        )?.stats
+        : undefined;
+    const baselineTerminalStats = analysis.terminalCircleId
+        ? baselineCircles.find(circle =>
+            circle.id === analysis.terminalCircleId
+        )?.stats
+        : undefined;
+    const adjustedTotalStats = terminalStats
+        ? clampMagicStats(applyMagicStatEffectsToStats(
+            terminalStats,
             statEffects.finalEffects
-        )
-    );
-    const baselineTotalStats = calculateBaselineTotalStats(
-        explicitAnalysis.projectedNodes,
-        explicitAnalysis.projectedEdges,
-        projectedAnalysis,
-        magicTypeMap,
-        nodeExecutionCounts,
-        baselineCircles,
-        totalStats,
-        hasNodeEffects
-    );
+        ))
+        : { ...EMPTY_MAGIC_STATS };
+    const baselineTotalStats =
+        baselineTerminalStats ?? EMPTY_MAGIC_STATS;
 
     return {
         circles,
-        circleStates: explicitAnalysis.states,
+        circleStates: analysis.states,
         totalStats: adjustedTotalStats,
         totalStatAdjustments: subtractMagicStats(
             adjustedTotalStats,
             baselineTotalStats
         ),
+        ...(analysis.completionIssue
+            ? { completionIssue: analysis.completionIssue }
+            : {}),
     };
 }
 
@@ -139,66 +139,132 @@ function calculateExplicitCircles(
     nodeStatEffects: readonly MagicStatEffectConfig[],
     nodeExecutionCounts: MagicNodeExecutionCounts
 ): CalculatedCirclePath[] {
-    return analysis.orderedCalculatedCircleIds.map(circleId => {
-        const internal = analysis.internalByCircleId.get(circleId)!;
-        const calculationNodeIds = new Set(
-            internal.calculationNodes.map(node => node.id)
-        );
-        const statEdges = internal.projectedEdges.filter(edge =>
-            calculationNodeIds.has(edge.source) &&
-            calculationNodeIds.has(edge.target)
-        );
+    const calculatedByCircleId = new Map<
+        string,
+        CalculatedCirclePath
+    >();
 
-        return {
-            id: circleId,
-            nodes: internal.calculationNodes,
-            stats: calculateMagicStats(
-                internal.calculationNodes,
-                statEdges,
-                magicTypeMap,
-                'circle',
-                nodeStatEffects,
-                undefined,
-                nodeExecutionCounts
-            ),
-        };
+    analysis.orderedCalculatedCircleIds.forEach(circleId => {
+        const internal = analysis.internalByCircleId.get(circleId);
+        if (!internal) return;
+
+        const circle = calculateCircleFlow(
+            internal,
+            calculatedByCircleId,
+            magicTypeMap,
+            nodeStatEffects,
+            nodeExecutionCounts,
+            analysis.externalEdges
+        );
+        if (circle) calculatedByCircleId.set(circleId, circle);
+    });
+
+    return analysis.orderedCalculatedCircleIds.flatMap(circleId => {
+        const circle = calculatedByCircleId.get(circleId);
+        return circle ? [circle] : [];
     });
 }
 
-function calculateBaselineTotalStats(
-    nodes: readonly MagicCalculationNode[],
-    edges: readonly MagicGraphEdge[],
-    analysis: MagicGraphAnalysis,
+function calculateCircleFlow(
+    internal: CircleInternalAnalysis,
+    calculatedByCircleId: ReadonlyMap<string, CalculatedCirclePath>,
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
+    nodeStatEffects: readonly MagicStatEffectConfig[],
     nodeExecutionCounts: MagicNodeExecutionCounts,
-    baselineCircles: readonly CalculatedCirclePath[],
-    adjustedStatsBeforeFinalEffects: MagicStats,
-    hasNodeEffects: boolean
-): MagicStats {
-    if (!hasNodeEffects) {
-        return applyCircleInstabilityToTotalStats(
-            adjustedStatsBeforeFinalEffects,
-            baselineCircles
-        );
-    }
-    const baselineStats = calculateMagicStats(
-        nodes,
-        edges,
-        magicTypeMap,
-        'total',
+    externalEdges: readonly MagicGraphEdge[]
+): CalculatedCirclePath | undefined {
+    const calculationNodeIds = new Set(
+        internal.calculationNodes.map(node => node.id)
+    );
+    const localStats = calculateMagicStats(
+        internal.calculationNodes,
         [],
-        analysis,
+        magicTypeMap,
+        'circle',
+        nodeStatEffects,
+        undefined,
         nodeExecutionCounts
     );
+    const operationContext = {
+        statKey: MAGIC_STAT_KEYS[0],
+        scope: 'total' as const,
+        nodes: internal.calculationNodes,
+        edges: externalEdges,
+        magicTypes: magicTypeMap,
+        nodeExecutionCounts,
+    };
+    let currentStats: MagicStats | undefined;
+    const inheritedCircleStats: MagicStats[] = [];
+    let segmentNodes: MagicNode[] = [];
 
-    return applyCircleInstabilityToTotalStats(baselineStats, baselineCircles);
+    const flushSegment = (): void => {
+        if (segmentNodes.length === 0) return;
+
+        const segmentStats = calculateMagicStats(
+            segmentNodes,
+            [],
+            magicTypeMap,
+            'circle',
+            nodeStatEffects,
+            undefined,
+            nodeExecutionCounts
+        );
+        currentStats = currentStats
+            ? combineMagicCircleFlowStats(
+                currentStats,
+                segmentStats,
+                'serial',
+                operationContext
+            )
+            : segmentStats;
+        segmentNodes = [];
+    };
+
+    for (const node of internal.sequenceNodes) {
+        if (isMagicCircleConnectionJoinNode(node)) {
+            flushSegment();
+            const source = calculatedByCircleId.get(
+                node.data.connectionJoin.sourceCircleId
+            );
+            if (!source) return undefined;
+
+            inheritedCircleStats.push(source.stats);
+            currentStats = currentStats
+                ? combineMagicCircleFlowStats(
+                    currentStats,
+                    source.stats,
+                    'parallel',
+                    operationContext
+                )
+                : { ...source.stats };
+            continue;
+        }
+        if (calculationNodeIds.has(node.id)) {
+            segmentNodes.push(node);
+        }
+    }
+    flushSegment();
+
+    if (!currentStats) return undefined;
+
+    return {
+        id: internal.circle.id,
+        nodes: internal.calculationNodes,
+        stats: finalizeMagicCircleFlowStats(
+            currentStats,
+            localStats,
+            inheritedCircleStats
+        ),
+    };
 }
 
 function attachCircleStatAdjustments(
     adjustedCircles: readonly CalculatedCirclePath[],
     baselineCircles: readonly CalculatedCirclePath[]
 ): CirclePath[] {
-    const baselineById = new Map(baselineCircles.map(circle => [circle.id, circle]));
+    const baselineById = new Map(
+        baselineCircles.map(circle => [circle.id, circle])
+    );
 
     return adjustedCircles.map(circle => ({
         ...circle,
@@ -209,23 +275,14 @@ function attachCircleStatAdjustments(
     }));
 }
 
-function subtractMagicStats(adjusted: MagicStats, baseline: MagicStats): MagicStats {
+function subtractMagicStats(
+    adjusted: MagicStats,
+    baseline: MagicStats
+): MagicStats {
     return Object.fromEntries(
         MAGIC_STAT_KEYS.map(statKey => [
             statKey,
             adjusted[statKey] - baseline[statKey],
         ])
     ) as MagicStats;
-}
-
-function applyCircleInstabilityToTotalStats(
-    totalStats: MagicStats,
-    circles: readonly { stats: MagicStats }[]
-): MagicStats {
-    return {
-        ...totalStats,
-        instability: circles.length === 0
-            ? 0
-            : Math.max(...circles.map(circle => circle.stats.instability)),
-    };
 }

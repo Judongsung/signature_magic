@@ -173,6 +173,42 @@ describe('magicGraphPresets', () => {
         )).toBe(true);
     });
 
+    it('loads the converging signature preset with staged joins', () => {
+        expect(magicGraphPresetsData.some(item =>
+            item.label === '루아른 시그니처'
+        )).toBe(false);
+        const signaturePreset = magicGraphPresetsData.find(item =>
+            item.label === 'new 루아른 시그니처'
+        ) as unknown as MagicGraphPresetConfig;
+        const graph = createMagicGraphFromPreset(
+            signaturePreset,
+            magicTypes
+        );
+        const result = calculateMagic(
+            graph.nodes,
+            graph.edges,
+            magicTypes
+        );
+
+        expect(result.completionIssue).toBeUndefined();
+        expect(result.circles).toHaveLength(4);
+        expect(signaturePreset.edges.map(edge =>
+            edge.joinSlotIndex
+        )).toEqual([0, 1, 2]);
+        expect(result.totalStats).toEqual(
+            result.circles.find(circle =>
+                circle.id === 'circle-d1d059582f'
+            )?.stats
+        );
+        expect(result.totalStats).toMatchObject({
+            castingTime: 71.5,
+            power: 120,
+            range: 1,
+            manaCost: 252,
+            duration: 85,
+        });
+    });
+
     it('calculates an isolated serial circle without stored edges', () => {
         const graph = createMagicGraphFromPreset(preset, magicTypes);
         const result = calculateMagic(graph.nodes, graph.edges, magicTypes);

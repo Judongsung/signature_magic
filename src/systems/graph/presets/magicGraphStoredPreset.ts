@@ -18,6 +18,7 @@ import {
     findNonContiguousMagicGraphSequenceCircleIds,
     hasValidMagicGraphConnectionJoinSlots,
     hasValidMagicGraphControlPairs,
+    hasValidMagicGraphExternalFlow,
     hasValidMagicGraphSystemNodeSlots,
     isMagicGraphExternalCircleEdge,
     normalizeMagicGraphPresetSettings,
@@ -126,10 +127,15 @@ function hasValidStoredMagicGraphPreset(
 
     return preset.edges.every(edge =>
         isMagicGraphExternalCircleEdge(edge, circleIds)
-    ) && hasValidMagicGraphConnectionJoinSlots(
-        preset.edges,
-        preset.nodes
-    );
+    ) &&
+        hasValidMagicGraphExternalFlow(
+            [...circleIds],
+            preset.edges
+        ) &&
+        hasValidMagicGraphConnectionJoinSlots(
+            preset.edges,
+            preset.nodes
+        );
 }
 
 function isStoredCircle(

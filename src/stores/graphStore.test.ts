@@ -408,6 +408,7 @@ describe('graphStore sequence circles', () => {
             targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
         };
         const beforeConnect = graphStore.calculation;
+        expect(graphStore.canCompleteNodeComposition).toBe(false);
 
         const preparedEdge = graphStore.prepareEdge(connection);
         expect(preparedEdge).not.toBe(false);
@@ -418,6 +419,7 @@ describe('graphStore sequence circles', () => {
 
         graphStore.onEdgeConnected(connection);
         expect(graphStore.calculation).not.toBe(beforeConnect);
+        expect(graphStore.canCompleteNodeComposition).toBe(true);
         const join = graphStore.nodes.find(
             isMagicCircleConnectionJoinNode
         );
@@ -436,6 +438,7 @@ describe('graphStore sequence circles', () => {
         expect(graphStore.nodes.some(
             isMagicCircleConnectionJoinNode
         )).toBe(false);
+        expect(graphStore.canCompleteNodeComposition).toBe(false);
     });
 
     it('moves a selected sequence block to another circle at an insertion index', () => {

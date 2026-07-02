@@ -509,7 +509,7 @@ describe('dataValidation', () => {
         )).toEqual({ valid: true, errors: [] });
     });
 
-    it('accepts indexed dynamic circle input and output handles', () => {
+    it('accepts dynamic inputs and a legacy indexed single output', () => {
         expect(validateMagicGraphPresets(
             [{
                 id: 'dynamic-circle-ports',

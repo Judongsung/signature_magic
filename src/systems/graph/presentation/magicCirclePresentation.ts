@@ -1,5 +1,6 @@
 import {
     MAGIC_CIRCLE_NODE_CONFIG,
+    MAGIC_CIRCLE_PORT_CONFIG,
     MAGIC_CIRCLE_PORT_DIRECTIONS,
     MAGIC_CIRCLE_STATUSES,
 } from '../../../constants/graphConfigs';
@@ -27,9 +28,15 @@ export interface MagicCircleViewModel {
 }
 
 function resolveStatus(
-    childCount: number
+    childCount: number,
+    circleState: MagicCircleState | undefined
 ): MagicCircleStatus {
-    if (childCount === 0) return MAGIC_CIRCLE_STATUSES.EMPTY;
+    if (
+        childCount === 0 &&
+        circleState?.isInternallyValid !== true
+    ) {
+        return MAGIC_CIRCLE_STATUSES.EMPTY;
+    }
     return MAGIC_CIRCLE_STATUSES.VALID;
 }
 
@@ -43,7 +50,7 @@ export function resolveMagicCircleViewModel(
     ).length;
 
     return {
-        status: resolveStatus(editableChildCount),
+        status: resolveStatus(editableChildCount, circleState),
         displayOrder: circleState?.displayOrder,
         minimumWidth: MAGIC_CIRCLE_NODE_CONFIG.MIN_SIZE.width,
         minimumHeight: resolveMagicCircleRequiredHeight(childNodes.length),
@@ -53,7 +60,7 @@ export function resolveMagicCircleViewModel(
         ),
         outputHandleIds: createMagicCirclePortHandleIds(
             MAGIC_CIRCLE_PORT_DIRECTIONS.OUTPUT,
-            circle.data.outputHandleCount
+            MAGIC_CIRCLE_PORT_CONFIG.DEFAULT_VISIBLE_COUNT
         ),
     };
 }

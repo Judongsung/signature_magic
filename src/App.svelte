@@ -199,7 +199,8 @@
 {#if appStore.mode && activePhaseConfig}
     <AppPhaseNavigationBar
         canSubmitRegistration={choiceStore.canSubmitRegistration}
-        canCompleteNodeComposition={graphStore.circles.length > 0}
+        canCompleteNodeComposition={graphStore.canCompleteNodeComposition}
+        nodeCompositionCompletionIssue={graphStore.completionIssue}
         showMaximumMana={activeModeConfig?.enforcesMaximumMana
             && activePhaseConfig.showsMaximumMana}
         maximumMana={choiceStore.maximumMana}

@@ -16,11 +16,11 @@ export const APP_TITLE_TEXT = {
     MODES: {
         [APP_MODES.CYOA]: {
             TITLE: 'CYOA 모드',
-            DESCRIPTION: '마법사 등록부터 시그니처 마법 평가까지 전체 이야기를 진행합니다.',
+            DESCRIPTION: '주어진 세계관 속 마법사를 조형합니다. 마법 조합에 제약이 있습니다.',
         },
         [APP_MODES.META]: {
             TITLE: '메타 모드',
-            DESCRIPTION: '등록 절차와 제한 없이 마법 조합과 결과 요약만 이용합니다.',
+            DESCRIPTION: '제약 없이 마법을 조합합니다.',
         },
     } satisfies Record<AppMode, {
         TITLE: string;
@@ -45,7 +45,10 @@ export const UI_BUTTON_TEXT = {
     REVIEW_REGISTRATION: '등록 결과',
     SUBMIT_REGISTRATION: '서류 제출',
     COMPLETE_REQUIRED_FIELDS_TOOLTIP: '빠진 부분을 채워 주세요.',
-    CREATE_MAGIC_CIRCLE_TOOLTIP: '서클을 하나 이상 만들어 주세요.',
+    CREATE_MAGIC_CIRCLE_TOOLTIP: '서클에 단위 마법을 추가해 주세요.',
+    INVALID_MAGIC_CIRCLE_TOOLTIP: '모든 서클에 계산 가능한 흐름을 만들어 주세요.',
+    INVALID_MAGIC_FLOW_TOOLTIP: '서클마다 하나의 출력만 사용하고 순환 연결을 제거해 주세요.',
+    INCOMPLETE_MAGIC_FLOW_TOOLTIP: '모든 서클을 하나의 최종 서클로 연결해 주세요.',
     MAXIMUM_MANA_EXCEEDED_TOOLTIP: '마나 소모를 최대 마나 이하로 조정해 주세요.',
 } as const;
 
@@ -291,20 +294,20 @@ export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
 
 export const MAGIC_STAT_CALCULATION_DESCRIPTIONS = {
     circle: {
-        castingTime: '서클 안의 시전 시간을 모두 더합니다. 반복 구간은 설정한 횟수만큼 반영됩니다.',
-        instability: '서클 안의 일반 단위 마법이 많을수록 불안정성이 더 크게 증가하며, 반복 구간에서는 반복 횟수만큼 계산됩니다. 감지·반복·분기와 발현은 노드 수에서 제외되며, 10을 넘으면 마법의 위험도가 커집니다.',
-        power: '서클 안의 출력을 모두 더합니다. 반복 구간은 설정한 횟수만큼 반영됩니다.',
-        range: '서클 안의 범위 값을 차례로 곱합니다. 반복 구간은 설정한 횟수만큼 반영됩니다.',
-        manaCost: '서클 안의 마나 소모를 모두 더합니다. 반복 구간은 설정한 횟수만큼 반영됩니다.',
-        duration: '서클 안의 지속 시간을 모두 더합니다. 반복 구간은 설정한 횟수만큼 반영됩니다.',
+        castingTime: '합류로 이어받은 흐름과 이 서클의 마지막 단계까지 걸리는 시간을 표시합니다.',
+        instability: '이 서클과 앞서 이어진 서클 중 가장 높은 불안정성을 표시합니다. 10을 넘으면 마법의 위험도가 커집니다.',
+        power: '합류로 이어받은 출력과 이 서클에서 더한 출력을 함께 표시합니다.',
+        range: '합류 시 더 넓은 범위를 이어받고, 이후 단위 마법의 범위 변화를 반영합니다.',
+        manaCost: '합류한 모든 흐름과 이 서클에서 사용한 마나를 더합니다.',
+        duration: '합류 시 더 오래 유지되는 흐름을 이어받고, 이후 지속 시간을 반영합니다.',
     },
     total: {
-        castingTime: '서클이 차례로 이어지면 시전 시간을 더하고, 여러 흐름이 동시에 진행되면 가장 오래 걸리는 흐름을 기준으로 합니다.',
+        castingTime: '합류 전 흐름은 동시에 진행되며, 가장 오래 걸린 흐름부터 이후 시전 시간을 이어서 계산합니다.',
         instability: '완성된 서클 중 가장 높은 불안정성을 사용합니다. 10을 넘으면 수치가 높을수록 마법의 위험도 커집니다.',
-        power: '마법이 거치는 모든 흐름의 출력을 더합니다. 반복 구간은 설정한 횟수만큼 반영됩니다.',
-        range: '이어진 서클의 범위를 차례로 곱하고, 여러 흐름이 동시에 진행되면 가장 넓은 흐름을 사용합니다.',
-        manaCost: '마법이 거치는 모든 흐름의 마나 소모를 더합니다. 반복 구간은 설정한 횟수만큼 반영됩니다.',
-        duration: '서클이 차례로 이어지면 지속 시간을 더하고, 여러 흐름이 동시에 진행되면 가장 오래 유지되는 흐름을 사용합니다.',
+        power: '합류하는 흐름의 출력을 더하고 이후 단위 마법의 출력을 이어서 반영합니다.',
+        range: '합류하는 흐름 중 가장 넓은 범위를 이어받아 이후 범위 변화를 반영합니다.',
+        manaCost: '합류하는 모든 흐름과 이후 단위 마법의 마나 소모를 더합니다.',
+        duration: '합류하는 흐름 중 가장 오래 유지되는 값을 이어받아 이후 지속 시간을 반영합니다.',
     },
 } as const satisfies Record<'circle' | 'total', Record<MagicStatKey, string>>;
 

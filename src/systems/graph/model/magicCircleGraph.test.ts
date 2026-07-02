@@ -77,7 +77,7 @@ describe('magicCircleGraph sequence model', () => {
         expect(firstSync.changed).toBe(true);
         expect(syncedCircle.data).toMatchObject({
             inputHandleCount: 3,
-            outputHandleCount: 2,
+            outputHandleCount: 1,
         });
 
         const secondSync = syncMagicCirclePortCounts(firstSync.nodes, edges);

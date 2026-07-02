@@ -18,6 +18,38 @@ const PRESET = {
     edges: [],
 } satisfies MagicGraphPresetConfig;
 
+const FAN_OUT_PRESET = {
+    id: 'fan-out-preset',
+    label: 'Fan out',
+    circles: ['source', 'left', 'right'].map((id, index) => ({
+        id,
+        position: { x: index * 520, y: 0 },
+        width: 480,
+        height: 400,
+        systemNodeSlots: [{
+            magicType: 'manifestation' as const,
+            slotIndex: 0,
+        }],
+    })),
+    nodes: [],
+    edges: [
+        {
+            id: 'source-left',
+            source: 'source',
+            target: 'left',
+            sourceHandle: 'circle-output',
+            targetHandle: 'circle-input',
+        },
+        {
+            id: 'source-right',
+            source: 'source',
+            target: 'right',
+            sourceHandle: 'circle-output-1',
+            targetHandle: 'circle-input',
+        },
+    ],
+} satisfies MagicGraphPresetConfig;
+
 class MemoryStorage implements Storage {
     private readonly values = new Map<string, string>();
     throwOnGet = false;
@@ -123,6 +155,20 @@ describe('magicGraphPresetStorage', () => {
     it('keeps valid entries and reports partial corruption', () => {
         const storage = new MemoryStorage();
         setCurrentEnvelope(storage, [PRESET, { id: 'invalid' }]);
+
+        expect(loadStoredMagicGraphPresets(storage)).toEqual({
+            status: 'warning',
+            presets: [PRESET],
+            issues: [{
+                code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_PRESETS,
+                invalidPresetCount: 1,
+            }],
+        });
+    });
+
+    it('keeps valid entries and rejects stored circle fan-out', () => {
+        const storage = new MemoryStorage();
+        setCurrentEnvelope(storage, [PRESET, FAN_OUT_PRESET]);
 
         expect(loadStoredMagicGraphPresets(storage)).toEqual({
             status: 'warning',

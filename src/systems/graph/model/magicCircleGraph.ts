@@ -336,7 +336,10 @@ function buildNormalizedCirclePortHandleIds(
         circleEdges.forEach(({ edge }, index) => {
             normalizedHandleByEdgeId.set(
                 edge.id,
-                createMagicCirclePortHandleId(portDirection, index)
+                createMagicCirclePortHandleId(
+                    portDirection,
+                    direction === 'source' ? 0 : index
+                )
             );
         });
     });
@@ -379,7 +382,6 @@ export function normalizeMagicCirclePortHandles(
 
 interface MagicCircleConnectedPortIndexes {
     inputByCircleId: ReadonlyMap<string, number>;
-    outputByCircleId: ReadonlyMap<string, number>;
 }
 
 function resolveMagicCirclePortCount(
@@ -396,7 +398,6 @@ function collectMagicCircleConnectedPortIndexes(
     edges: readonly MagicGraphEdge[]
 ): MagicCircleConnectedPortIndexes {
     const inputByCircleId = new Map<string, number>();
-    const outputByCircleId = new Map<string, number>();
 
     edges.forEach(edge => {
         const inputIndex = readMagicCirclePortHandleIndex(
@@ -412,23 +413,9 @@ function collectMagicCircleConnectedPortIndexes(
                 )
             );
         }
-
-        const outputIndex = readMagicCirclePortHandleIndex(
-            edge.sourceHandle,
-            MAGIC_CIRCLE_PORT_DIRECTIONS.OUTPUT
-        );
-        if (outputIndex !== undefined) {
-            outputByCircleId.set(
-                edge.source,
-                Math.max(
-                    outputByCircleId.get(edge.source) ?? -1,
-                    outputIndex
-                )
-            );
-        }
     });
 
-    return { inputByCircleId, outputByCircleId };
+    return { inputByCircleId };
 }
 
 export interface MagicCirclePortCountSync {
@@ -449,9 +436,8 @@ export function syncMagicCirclePortCounts(
         const inputHandleCount = resolveMagicCirclePortCount(
             connectedPortIndexes.inputByCircleId.get(node.id) ?? -1
         );
-        const outputHandleCount = resolveMagicCirclePortCount(
-            connectedPortIndexes.outputByCircleId.get(node.id) ?? -1
-        );
+        const outputHandleCount =
+            MAGIC_CIRCLE_PORT_CONFIG.DEFAULT_VISIBLE_COUNT;
         if (
             node.data.inputHandleCount === inputHandleCount &&
             node.data.outputHandleCount === outputHandleCount

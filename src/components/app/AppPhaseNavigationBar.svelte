@@ -18,6 +18,9 @@
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
     import { formatMagicMana } from '../../systems/magic/magicMana';
+    import type {
+        MagicGraphCompletionIssue,
+    } from '../../systems/graph/calculation/magicCalculationTypes';
 
     const nextDisabledTooltipId = 'app-phase-next-disabled-tooltip';
     const REGISTRATION_DIALOG_MODES = {
@@ -30,6 +33,7 @@
     let {
         canSubmitRegistration = false,
         canCompleteNodeComposition = false,
+        nodeCompositionCompletionIssue,
         showMaximumMana = false,
         maximumMana = 0,
         manaCost = 0,
@@ -38,6 +42,7 @@
     }: {
         canSubmitRegistration?: boolean;
         canCompleteNodeComposition?: boolean;
+        nodeCompositionCompletionIssue?: MagicGraphCompletionIssue;
         showMaximumMana?: boolean;
         maximumMana?: number;
         manaCost?: number;
@@ -54,6 +59,7 @@
                 phase: appStore.phase,
                 canSubmitRegistration,
                 canCompleteNodeComposition,
+                nodeCompositionCompletionIssue,
                 isWithinMaximumMana,
             })
             : undefined

@@ -18,6 +18,9 @@ import {
     readMagicTypeConfigByType,
     type MagicTypeLookup,
 } from './magicTypeLookup';
+import {
+    analyzeMagicCircleFlowTopology,
+} from './magicCircleFlowTopology';
 
 export interface MagicGraphControlPairAnalysis {
     invalidNodeIds: readonly string[];
@@ -156,51 +159,96 @@ export function isMagicGraphExternalCircleEdge(
         isMagicCirclePortHandleId(edge.targetHandle, 'input');
 }
 
+export function hasValidMagicGraphExternalFlow(
+    circleIds: readonly string[],
+    edges: readonly MagicGraphPresetEdgeConfig[]
+): boolean {
+    const topology = analyzeMagicCircleFlowTopology(
+        circleIds,
+        edges
+    );
+
+    return !topology.hasUnknownEndpoint &&
+        !topology.hasMultipleOutputs &&
+        !topology.hasCycle;
+}
+
+interface MagicGraphSequenceNodeForJoinPlacement {
+    magicType: string;
+    sequenceIndex: number;
+    controlPair?: {
+        id?: string;
+        role: string;
+    };
+}
+
+export function isMagicGraphConnectionJoinSlotAllowed(
+    targetNodes: readonly MagicGraphSequenceNodeForJoinPlacement[],
+    slotIndex: number
+): boolean {
+    if (
+        !Number.isInteger(slotIndex) ||
+        slotIndex < 0 ||
+        slotIndex > targetNodes.length
+    ) {
+        return false;
+    }
+
+    const firstBranchStartIndex = targetNodes
+        .filter(node =>
+            node.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.BRANCH &&
+            node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.START
+        )
+        .reduce(
+            (firstIndex, node) => Math.min(
+                firstIndex,
+                node.sequenceIndex
+            ),
+            Number.POSITIVE_INFINITY
+        );
+    if (slotIndex > firstBranchStartIndex) return false;
+
+    const repeatPairIds = new Set(
+        targetNodes
+            .filter(node =>
+                node.magicType ===
+                    MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
+            )
+            .flatMap(node => {
+                const pairId = node.controlPair?.id;
+                return pairId ? [pairId] : [];
+            })
+    );
+
+    return [...repeatPairIds].every(pairId => {
+        const start = targetNodes.find(node =>
+            node.controlPair?.id === pairId &&
+            node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.START
+        );
+        const end = targetNodes.find(node =>
+            node.controlPair?.id === pairId &&
+            node.controlPair?.role === MAGIC_CONTROL_PAIR_ROLES.END
+        );
+        if (!start || !end) return false;
+
+        // 합류는 사용자 노드 slot 앞에 놓이므로 end와 같은 slot도 반복 내부다.
+        return slotIndex <= start.sequenceIndex ||
+            slotIndex > end.sequenceIndex;
+    });
+}
+
 export function hasValidMagicGraphConnectionJoinSlots(
     edges: readonly MagicGraphPresetEdgeConfig[],
     nodes: readonly MagicGraphPresetNodeConfig[]
 ): boolean {
     return edges.every(edge => {
-        const slotIndex = edge.joinSlotIndex ?? 0;
-        if (!Number.isInteger(slotIndex) || slotIndex < 0) {
-            return false;
-        }
-
         const targetNodes = nodes.filter(node =>
             node.circleId === edge.target
         );
-        if (slotIndex > targetNodes.length) return false;
-
-        const repeatPairIds = new Set(
-            targetNodes
-                .filter(node =>
-                    node.magicType ===
-                        MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
-                )
-                .flatMap(node =>
-                    node.controlPair?.id
-                        ? [node.controlPair.id]
-                        : []
-                )
+        return isMagicGraphConnectionJoinSlotAllowed(
+            targetNodes,
+            edge.joinSlotIndex ?? 0
         );
-
-        return [...repeatPairIds].every(pairId => {
-            const start = targetNodes.find(node =>
-                node.controlPair?.id === pairId &&
-                node.controlPair.role ===
-                    MAGIC_CONTROL_PAIR_ROLES.START
-            );
-            const end = targetNodes.find(node =>
-                node.controlPair?.id === pairId &&
-                node.controlPair.role ===
-                    MAGIC_CONTROL_PAIR_ROLES.END
-            );
-            if (!start || !end) return false;
-
-            // 합류는 사용자 노드 slot 앞에 놓이므로 end와 같은 slot도 반복 내부다.
-            return slotIndex <= start.sequenceIndex ||
-                slotIndex > end.sequenceIndex;
-        });
     });
 }
 

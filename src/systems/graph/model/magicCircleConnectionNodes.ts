@@ -4,7 +4,6 @@ import {
 import {
     GRAPH_NODE_TYPES,
     MAGIC_CIRCLE_PORT_DIRECTIONS,
-    MAGIC_CONTROL_PAIR_NODE_TYPES,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
 import {
@@ -23,8 +22,8 @@ import {
     isMagicCirclePortHandleId,
 } from './magicCircleGraph';
 import {
-    resolveMagicControlPairs,
-} from './magicControlPairs';
+    isMagicGraphConnectionJoinSlotAllowed,
+} from './magicGraphSnapshotRules';
 
 const CONNECTION_JOIN_NODE_ID_PREFIX = 'join';
 const EDGE_ID_PREFIX = 'edge-';
@@ -250,21 +249,32 @@ function reindexAffectedCircleChildren(
 export function hasValidMagicCircleConnectionNodePlacement(
     nodes: readonly MagicEditorNode[]
 ): boolean {
-    const repeatPairs = resolveMagicControlPairs(nodes)
-        .filter(pair =>
-            pair.magicType === MAGIC_CONTROL_PAIR_NODE_TYPES.REPEAT
-        );
-
     return nodes
         .filter(isMagicCircleConnectionJoinNode)
         .every(node => {
-            const sequenceIndex = node.data.sequenceIndex;
-            if (!Number.isInteger(sequenceIndex)) return false;
+            const slotIndex =
+                resolveMagicCircleConnectionJoinSlotIndex(
+                    nodes,
+                    node.data.connectionJoin.edgeId
+                );
+            if (slotIndex === undefined || !node.parentId) return false;
 
-            return repeatPairs.every(pair =>
-                pair.circleId !== node.parentId ||
-                sequenceIndex! <= pair.startIndex ||
-                sequenceIndex! >= pair.endIndex
+            const targetNodes = nodes
+                .filter((candidate): candidate is MagicNode =>
+                    !isMagicCircleNode(candidate) &&
+                    candidate.parentId === node.parentId &&
+                    candidate.data.nodeKind === MAGIC_NODE_KINDS.USER
+                )
+                .sort(compareMagicCircleSequenceNodes)
+                .map((candidate, sequenceIndex) => ({
+                    magicType: candidate.data.magicType,
+                    sequenceIndex,
+                    controlPair: candidate.data.controlPair,
+                }));
+
+            return isMagicGraphConnectionJoinSlotAllowed(
+                targetNodes,
+                slotIndex
             );
         });
 }

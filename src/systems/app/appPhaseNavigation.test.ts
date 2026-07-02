@@ -11,6 +11,9 @@ import {
     APP_PHASE_NAVIGATION_NEXT_ACTIONS,
     resolveAppPhaseNavigationPolicy,
 } from './appPhaseNavigationPolicy';
+import {
+    MAGIC_GRAPH_COMPLETION_ISSUES,
+} from '../graph/calculation/magicCalculationTypes';
 
 describe('appPhaseNavigation', () => {
     it('resolves previous phases from the configured phase order', () => {
@@ -142,6 +145,54 @@ describe('appPhaseNavigationPolicy', () => {
         expect(policy.isNextDisabled).toBe(false);
         expect(policy.nextDisabledFeedback).toBeUndefined();
         expect(policy.nextAction).toBe(APP_PHASE_NAVIGATION_NEXT_ACTIONS.MOVE_TO_NEXT_PHASE);
+    });
+
+    it('explains an incomplete converging circle flow', () => {
+        const policy = resolveAppPhaseNavigationPolicy({
+            mode: APP_MODES.CYOA,
+            phase: APP_PHASES.NODE_COMPOSITION,
+            canSubmitRegistration: false,
+            canCompleteNodeComposition: false,
+            nodeCompositionCompletionIssue:
+                MAGIC_GRAPH_COMPLETION_ISSUES.INCOMPLETE_FLOW,
+            isWithinMaximumMana: true,
+        });
+
+        expect(policy.nextDisabledFeedback?.message)
+            .toBe(UI_BUTTON_TEXT.INCOMPLETE_MAGIC_FLOW_TOOLTIP);
+    });
+
+    it.each([
+        [
+            MAGIC_GRAPH_COMPLETION_ISSUES.NO_CALCULABLE_CIRCLE,
+            UI_BUTTON_TEXT.CREATE_MAGIC_CIRCLE_TOOLTIP,
+        ],
+        [
+            MAGIC_GRAPH_COMPLETION_ISSUES.INVALID_CIRCLE,
+            UI_BUTTON_TEXT.INVALID_MAGIC_CIRCLE_TOOLTIP,
+        ],
+        [
+            MAGIC_GRAPH_COMPLETION_ISSUES.INVALID_TOPOLOGY,
+            UI_BUTTON_TEXT.INVALID_MAGIC_FLOW_TOOLTIP,
+        ],
+        [
+            MAGIC_GRAPH_COMPLETION_ISSUES.INCOMPLETE_FLOW,
+            UI_BUTTON_TEXT.INCOMPLETE_MAGIC_FLOW_TOOLTIP,
+        ],
+    ])('maps graph completion issue %s to exhaustive feedback', (
+        nodeCompositionCompletionIssue,
+        expectedMessage
+    ) => {
+        const policy = resolveAppPhaseNavigationPolicy({
+            mode: APP_MODES.CYOA,
+            phase: APP_PHASES.NODE_COMPOSITION,
+            canSubmitRegistration: false,
+            canCompleteNodeComposition: false,
+            nodeCompositionCompletionIssue,
+            isWithinMaximumMana: true,
+        });
+
+        expect(policy.nextDisabledFeedback?.message).toBe(expectedMessage);
     });
 
     it('blocks node composition completion when mana exceeds the maximum', () => {

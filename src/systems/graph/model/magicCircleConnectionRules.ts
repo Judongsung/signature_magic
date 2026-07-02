@@ -103,8 +103,7 @@ export function filterExplicitEdgesReplacedByConnection(
         const replacesSourceHandle =
             sourceNode &&
             isMagicCircleNode(sourceNode) &&
-            edge.source === connection.source &&
-            edge.sourceHandle === sourceHandle;
+            edge.source === connection.source;
         const replacesTargetHandle =
             targetNode &&
             isMagicCircleNode(targetNode) &&

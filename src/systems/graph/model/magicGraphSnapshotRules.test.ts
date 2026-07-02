@@ -15,6 +15,7 @@ import {
     analyzeMagicGraphControlPairs,
     findNonContiguousMagicGraphSequenceCircleIds,
     hasValidMagicGraphConnectionJoinSlots,
+    hasValidMagicGraphExternalFlow,
     hasValidMagicGraphSystemNodeSlots,
     isMagicGraphExternalCircleEdge,
     normalizeMagicGraphPresetSettings,
@@ -163,6 +164,94 @@ describe('magicGraphSnapshotRules', () => {
             [{ ...edge, joinSlotIndex: 3 }],
             nodes
         )).toBe(true);
+    });
+
+    it('allows joins only before the first branch start', () => {
+        const nodes: MagicGraphPresetNodeConfig[] = [
+            {
+                id: 'prefix',
+                magicType: 'ignition',
+                circleId: 'circle-a',
+                sequenceIndex: 0,
+            },
+            {
+                id: 'branch-start',
+                magicType: 'branch',
+                circleId: 'circle-a',
+                sequenceIndex: 1,
+                controlPair: {
+                    id: 'branch-pair',
+                    role: MAGIC_CONTROL_PAIR_ROLES.START,
+                },
+            },
+            {
+                id: 'branch-end',
+                magicType: 'branch',
+                circleId: 'circle-a',
+                sequenceIndex: 2,
+                controlPair: {
+                    id: 'branch-pair',
+                    role: MAGIC_CONTROL_PAIR_ROLES.END,
+                },
+            },
+        ];
+        const edge = {
+            id: 'edge',
+            source: 'circle-b',
+            target: 'circle-a',
+            sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
+            targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
+        };
+
+        expect(hasValidMagicGraphConnectionJoinSlots(
+            [{ ...edge, joinSlotIndex: 1 }],
+            nodes
+        )).toBe(true);
+        expect(hasValidMagicGraphConnectionJoinSlots(
+            [{ ...edge, joinSlotIndex: 2 }],
+            nodes
+        )).toBe(false);
+    });
+
+    it('rejects circle fan-out while allowing multiple inputs', () => {
+        expect(hasValidMagicGraphExternalFlow(
+            ['a', 'b', 'target'],
+            [
+                {
+                    id: 'a-target',
+                    source: 'a',
+                    target: 'target',
+                    sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
+                    targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
+                },
+                {
+                    id: 'b-target',
+                    source: 'b',
+                    target: 'target',
+                    sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
+                    targetHandle: 'circle-input-1',
+                },
+            ]
+        )).toBe(true);
+        expect(hasValidMagicGraphExternalFlow(
+            ['source', 'a', 'b'],
+            [
+                {
+                    id: 'source-a',
+                    source: 'source',
+                    target: 'a',
+                    sourceHandle: MAGIC_CIRCLE_HANDLE_IDS.OUTPUT,
+                    targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
+                },
+                {
+                    id: 'source-b',
+                    source: 'source',
+                    target: 'b',
+                    sourceHandle: 'circle-output-1',
+                    targetHandle: MAGIC_CIRCLE_HANDLE_IDS.INPUT,
+                },
+            ]
+        )).toBe(false);
     });
 
     it('normalizes stored user and system settings', () => {

@@ -31,7 +31,10 @@ import {
 } from '../model/magicCircleGraph';
 import { createMagicCircleGraphIndex } from '../model/magicCircleGraphIndex';
 import { normalizeMagicCircleSequences } from '../model/magicCircleGraphActions';
-import { isMagicGraphExternalCircleEdge } from '../model/magicGraphSnapshotRules';
+import {
+    hasValidMagicGraphExternalFlow,
+    isMagicGraphExternalCircleEdge,
+} from '../model/magicGraphSnapshotRules';
 import {
     createCircleSystemMagicNode,
     isCircleSystemMagicNode,
@@ -145,6 +148,22 @@ export function createMagicGraphPresetSnapshot(
     if (!trimmedLabel || userNodes.length === 0) return false;
 
     const circleIds = new Set(index.circles.map(circle => circle.id));
+    const edges = snapshot.edges
+        .map(edge => createMagicGraphPresetEdgeSnapshot(
+            edge,
+            snapshot.nodes
+        ))
+        .filter(edge =>
+            isMagicGraphExternalCircleEdge(edge, circleIds)
+        );
+    if (
+        !hasValidMagicGraphExternalFlow(
+            [...circleIds],
+            edges
+        )
+    ) {
+        return false;
+    }
 
     return {
         id: `${USER_PRESET_ID_PREFIX}-${createId() || USER_PRESET_DEFAULT_ID_SEGMENT}`,
@@ -160,14 +179,7 @@ export function createMagicGraphPresetSnapshot(
                 index.childrenByCircleId.get(circle.id) ?? []
             )
         ),
-        edges: snapshot.edges
-            .map(edge => createMagicGraphPresetEdgeSnapshot(
-                edge,
-                snapshot.nodes
-            ))
-            .filter(edge =>
-                isMagicGraphExternalCircleEdge(edge, circleIds)
-            ),
+        edges,
     };
 }
 

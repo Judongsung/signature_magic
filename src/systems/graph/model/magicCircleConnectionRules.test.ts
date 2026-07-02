@@ -167,4 +167,36 @@ describe('magicCircleConnectionRules', () => {
             targetHandle: 'circle-input-1',
         });
     });
+
+    it('replaces the previous destination of the single output', () => {
+        const source = circle('circle-source');
+        const firstTarget = circle('circle-first-target');
+        const nextTarget = circle('circle-next-target');
+        const edges: Edge[] = [{
+            id: 'existing-output',
+            source: source.id,
+            target: firstTarget.id,
+            sourceHandle: 'circle-output-3',
+            targetHandle: 'circle-input',
+        }];
+
+        const update = createExplicitMagicCircleEdgeUpdate(
+            connection(
+                source.id,
+                nextTarget.id,
+                'circle-output',
+                'circle-input'
+            ),
+            edges,
+            [source, firstTarget, nextTarget],
+            () => 'rewired'
+        );
+
+        expect(update && update.edges).toEqual([]);
+        expect(update && update.edge).toMatchObject({
+            source: source.id,
+            target: nextTarget.id,
+            sourceHandle: 'circle-output',
+        });
+    });
 });

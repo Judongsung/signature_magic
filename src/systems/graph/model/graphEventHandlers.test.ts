@@ -203,9 +203,9 @@ describe('graphEventHandlers', () => {
         expect(firstSync.nodes.find(node => node.id === target.id)
             ?.data.inputHandleCount).toBe(3);
         expect(firstSync.nodes.find(node => node.id === sourceA.id)
-            ?.data.outputHandleCount).toBe(2);
+            ?.data.outputHandleCount).toBe(1);
         expect(firstSync.nodes.find(node => node.id === sourceB.id)
-            ?.data.outputHandleCount).toBe(2);
+            ?.data.outputHandleCount).toBe(1);
         expect(firstSync.nodes
             .filter(isMagicCircleConnectionJoinNode)
             .map(join => join.data.connectionJoin.sourceCircleId)
@@ -226,7 +226,7 @@ describe('graphEventHandlers', () => {
         expect(secondSync.nodes.find(node => node.id === sourceA.id)
             ?.data.outputHandleCount).toBe(1);
         expect(secondSync.nodes.find(node => node.id === sourceB.id)
-            ?.data.outputHandleCount).toBe(2);
+            ?.data.outputHandleCount).toBe(1);
         expect(secondSync.nodes
             .filter(isMagicCircleConnectionJoinNode)
             .map(join => join.data.connectionJoin.edgeId))
