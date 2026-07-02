@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
     collectDuplicateErrors,
-    formatLabeledValidationError,
     formatValidationError,
     formatValidationPath,
     isFiniteNumber,
@@ -15,8 +14,6 @@ describe('commonValidation', () => {
         expect(formatValidationPath('script', 'row', 1)).toBe('script -> row -> 1');
         expect(formatValidationError('Invalid', 'CYOA choice width', 'choice-id', '3/2'))
             .toBe('Invalid CYOA choice width: choice-id -> 3/2');
-        expect(formatLabeledValidationError('Release test id', 'CYOA choice', 'choice-test'))
-            .toBe('Release test id: CYOA choice -> choice-test');
         expect(formatValidationError('Missing', 'magic glyph shapes')).toBe('Missing magic glyph shapes');
     });
 

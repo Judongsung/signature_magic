@@ -195,11 +195,16 @@ describe('magicGraphPresets', () => {
         expect(signaturePreset.edges.map(edge =>
             edge.joinSlotIndex
         )).toEqual([0, 1, 2]);
-        expect(result.totalStats).toEqual(
-            result.circles.find(circle =>
-                circle.id === 'circle-d1d059582f'
-            )?.stats
-        );
+        const terminalStats = result.circles.find(circle =>
+            circle.id === 'circle-d1d059582f'
+        )!.stats;
+        expect(result.totalStats).toEqual({
+            ...terminalStats,
+            instability:
+                Math.max(...result.circles.map(circle =>
+                    circle.stats.instability
+                )) + graph.edges.length,
+        });
         expect(result.totalStats).toMatchObject({
             castingTime: 71.5,
             power: 120,

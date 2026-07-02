@@ -10,7 +10,6 @@ import {
 import { MAGIC_NODE_KINDS } from '../../../constants/graphConfigs';
 import {
     type MagicEditorNode,
-    type MagicNode,
     type MagicNodeData,
     type MagicUserNodeData,
 } from '../magicGraphTypes';

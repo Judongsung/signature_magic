@@ -74,7 +74,6 @@
         data.showTooltip !== false &&
         controlPairPresentation.showTooltip
     );
-    const isSystemNode = $derived(data.nodeKind === MAGIC_NODE_KINDS.SYSTEM);
     const isCircleSystemNode = $derived(
         isCircleSystemMagicNodeData(data)
     );

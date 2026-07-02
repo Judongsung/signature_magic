@@ -134,10 +134,7 @@ describe('magicStatRules', () => {
             }),
         ];
         const scaled = MAGIC_STAT_RULES.instability.scaleFinalValue(2, {
-            statKey: 'instability',
-            scope: 'circle',
             nodes,
-            edges: [],
             magicTypes,
             nodeExecutionCounts: new Map(nodes.map(node => [node.id, 9])),
         });
@@ -158,10 +155,7 @@ describe('magicStatRules', () => {
             }),
         ];
         const scaled = MAGIC_STAT_RULES.instability.scaleFinalValue(2, {
-            statKey: 'instability',
-            scope: 'circle',
             nodes,
-            edges: [],
             magicTypes,
             nodeExecutionCounts: new Map([
                 ['nested-repeat-start', 3],

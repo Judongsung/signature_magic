@@ -9,14 +9,12 @@ import {
 } from '../../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_KEYS,
-    type MagicNodeStatRulesConfig,
     type MagicStatsConfig,
 } from '../../types/magicStats';
 import {
     type MagicNodeInstanceEditorConfig,
     type MagicTypeConfig,
 } from '../../types/magicTypeConfig';
-import { isMagicStatBranchAggregation } from '../graph/calculation/magicStatRules';
 import {
     collectDuplicateErrors,
     isFiniteNumber,
@@ -222,25 +220,6 @@ function validateMagicNodeInstanceEditor(
     return errors;
 }
 
-function validateMagicNodeStatRules(type: string, statRules: MagicNodeStatRulesConfig | undefined): string[] {
-    if (!statRules) return [];
-
-    const errors: string[] = [];
-
-    Object.entries(statRules).forEach(([statKey, rule]) => {
-        if (!MAGIC_STAT_KEY_SET.has(statKey)) {
-            errors.push(`Unknown magic stat rule key: ${type} -> ${statKey}`);
-            return;
-        }
-        if (!rule) return;
-        if (rule.branchAggregation !== undefined && !isMagicStatBranchAggregation(rule.branchAggregation)) {
-            errors.push(`Invalid magic stat branch aggregation: ${type} -> ${statKey} -> ${rule.branchAggregation}`);
-        }
-    });
-
-    return errors;
-}
-
 function validateMagicTypeConfigs(
     magicTypesInput: unknown,
     categoriesInput: unknown
@@ -272,7 +251,6 @@ function validateMagicTypeConfigs(
         errors.push(...validateMagicNodeInstanceEditor(magicType.type, magicType.instanceEditor));
         errors.push(...validateMagicStats(magicType.type, magicType.stats));
         errors.push(...validateMagicNodeStatBounds(magicType.type, magicType.statBounds));
-        errors.push(...validateMagicNodeStatRules(magicType.type, magicType.statRules));
     });
 
     return result(errors);

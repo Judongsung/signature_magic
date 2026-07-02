@@ -1,10 +1,3 @@
-export const MAGIC_STAT_BRANCH_AGGREGATIONS = {
-    SUM: 'sum',
-    MAX: 'max',
-} as const;
-
-export const MAGIC_STAT_BRANCH_AGGREGATION_VALUES = Object.values(MAGIC_STAT_BRANCH_AGGREGATIONS);
-
 export const MAGIC_STAT_AGGREGATION_OPERATIONS = {
     SUM: 'sum',
     MULTIPLY: 'multiply',
@@ -19,3 +12,5 @@ export const MAGIC_STAT_SCALING_OPERATIONS = {
 } as const;
 
 export const MAGIC_STAT_SCALING_OPERATION_VALUES = Object.values(MAGIC_STAT_SCALING_OPERATIONS);
+
+export const MAGIC_CIRCLE_CONNECTION_INSTABILITY_COST = 1;

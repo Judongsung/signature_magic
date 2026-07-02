@@ -252,11 +252,16 @@ describe('magicCircleConnectionNodes', () => {
 
         expect(before.totalStats).not.toEqual(after.totalStats);
         expect(after.completionIssue).toBeUndefined();
-        expect(after.totalStats).toEqual(
-            after.circles.find(circle =>
-                circle.id === target.id
-            )?.stats
-        );
+        const targetStats = after.circles.find(circle =>
+            circle.id === target.id
+        )!.stats;
+        expect(after.totalStats).toEqual({
+            ...targetStats,
+            instability:
+                Math.max(...after.circles.map(circle =>
+                    circle.stats.instability
+                )) + 1,
+        });
         expect(after.circles.find(circle =>
             circle.id === target.id
         )?.stats.power).toBeGreaterThan(

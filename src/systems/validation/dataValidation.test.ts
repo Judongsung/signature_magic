@@ -36,14 +36,22 @@ import type { MagicGlyphConfig } from '../graph/presentation/magicGlyphRegistry'
 import { isKnownCyoaImagePath } from '../cyoa/cyoaImageRegistry';
 import {
     validateCyoaDialogueScripts,
-    validateCyoaRows,
+} from './cyoaDialogueDataValidation';
+import { validateCyoaRows } from './cyoaRowDataValidation';
+import {
     validateMagicGlyphShapes,
     validateMagicGlyphs,
+} from './magicGlyphDataValidation';
+import {
     validateMagicGraphPresets,
+} from './magicGraphPresetDataValidation';
+import {
     validateMagicStatRuleConfigs,
+} from './magicStatRuleDataValidation';
+import {
     validateSystemMagicTypes,
     validateMagicTypes,
-} from './dataValidation';
+} from './magicTypeDataValidation';
 
 const stats = { castingTime: 1, instability: 1, power: 1, range: 1, manaCost: 1, duration: 1 };
 const magicTypeIds = new Set(magicTypesData.map(magicType => magicType.type));
@@ -210,7 +218,6 @@ describe('dataValidation', () => {
                     category: 'unknown',
                     description: '',
                     stats: { ...stats, power: Number.NaN },
-                    statRules: { castingTime: { branchAggregation: 'fastest' } },
                     instanceEditor: {
                         fields: [
                             {
@@ -274,7 +281,6 @@ describe('dataValidation', () => {
                 'Invalid magic node editor helpText: ignition -> 3',
                 'Unknown magic node editor behavior: ignition -> 3 -> unknown',
                 'Invalid magic type stat: ignition -> power',
-                'Invalid magic stat branch aggregation: ignition -> castingTime -> fastest',
             ],
         });
     });

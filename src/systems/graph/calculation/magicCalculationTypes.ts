@@ -1,24 +1,5 @@
 import type { MagicStats } from '../../../types/magicStats';
-import type {
-    MagicGraphNode,
-    MagicNode,
-} from '../magicGraphTypes';
-import type { MagicType } from '../../../types/magicTypeConfig';
-
-export interface MagicCalculationAnchorData
-    extends Record<string, unknown> {
-    magicType: MagicType;
-    nodeKind?: never;
-    settings?: never;
-    excludeFromStatScaling: true;
-}
-
-export type MagicCalculationAnchorNode =
-    MagicGraphNode<MagicCalculationAnchorData>;
-
-export type MagicCalculationNode =
-    | MagicNode
-    | MagicCalculationAnchorNode;
+import type { MagicNode } from '../magicGraphTypes';
 
 export interface MagicCircleState {
     circleId: string;

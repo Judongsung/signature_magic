@@ -11,7 +11,6 @@ import {
 } from '../../../constants/graphConfigs';
 import {
     MAGIC_CIRCLE_METADATA_CONFIG,
-    MAGIC_SEQUENCE_DISABLED_NODE_TYPES,
 } from '../../../constants/nodeEditorConfigs';
 import {
     type MagicCircleMetadata,
@@ -154,13 +153,7 @@ export function compareMagicCircleSequenceNodes(
 export function isMagicTypeAllowedInCircleSequence(
     magicType: MagicType
 ): boolean {
-    if (isRegisteredCircleSystemMagicType(magicType)) {
-        return false;
-    }
-
-    return !MAGIC_SEQUENCE_DISABLED_NODE_TYPES.includes(
-        magicType as (typeof MAGIC_SEQUENCE_DISABLED_NODE_TYPES)[number]
-    );
+    return !isRegisteredCircleSystemMagicType(magicType);
 }
 
 export function resolveMagicCircleSequenceNodeWidth(
@@ -206,31 +199,12 @@ export function resolveMagicCircleRequiredHeight(nodeCount: number): number {
 
 function createMagicCircleSequenceNodeStyle(
     circle: MagicCircleNode,
-    rightRailWidth = 0,
-    indentDepth = 0
+    rightRailWidth = 0
 ): string {
     return [
         `--node-editor-node-width: ${resolveMagicCircleSequenceNodeWidth(circle, rightRailWidth)}px`,
         `--node-editor-node-height: ${MAGIC_CIRCLE_SEQUENCE_CONFIG.NODE_HEIGHT}px`,
     ].join('; ');
-}
-
-export function findParentCircle(
-    node: Pick<MagicNode, 'parentId'>,
-    nodes: readonly MagicEditorNode[]
-): MagicCircleNode | undefined {
-    if (!node.parentId) return undefined;
-    return getMagicCircleNodes(nodes).find(circle => circle.id === node.parentId);
-}
-
-export function isCircleHandleId(handleId: string | null | undefined): boolean {
-    return isMagicCirclePortHandleId(
-        handleId,
-        MAGIC_CIRCLE_PORT_DIRECTIONS.INPUT
-    ) || isMagicCirclePortHandleId(
-        handleId,
-        MAGIC_CIRCLE_PORT_DIRECTIONS.OUTPUT
-    );
 }
 
 function circlePortBaseId(direction: MagicCirclePortDirection): string {
@@ -506,8 +480,7 @@ export function attachNodeToCircle(
         ),
         style: createMagicCircleSequenceNodeStyle(
             circle,
-            rightRailWidth,
-            indentDepth
+            rightRailWidth
         ),
     };
 

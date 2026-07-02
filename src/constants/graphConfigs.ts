@@ -54,9 +54,6 @@ export const MAGIC_CONTROL_PAIR_NODE_TYPES = {
     BRANCH: 'branch',
 } as const;
 
-export type MagicControlPairNodeType =
-    (typeof MAGIC_CONTROL_PAIR_NODE_TYPES)[keyof typeof MAGIC_CONTROL_PAIR_NODE_TYPES];
-
 export const MAGIC_CONTROL_PAIR_ROLES = {
     START: 'start',
     END: 'end',

@@ -9,12 +9,13 @@ import type {
     MagicGraphConnection,
     MagicGraphEdge,
 } from '../magicGraphTypes';
-import { buildOutEdgeMap } from '../topology/graphTopology';
-import { canReach } from '../topology/graphTraversal';
 import {
     type IdFactory,
 } from './graphActions';
 import { createMagicGraphIdSegment } from './magicGraphIds';
+import {
+    analyzeMagicCircleFlowTopology,
+} from './magicCircleFlowTopology';
 import {
     getMagicCircleNodes,
     isMagicCirclePortHandleId,
@@ -65,23 +66,34 @@ function wouldCreateExternalCircleCycle(
         return false;
     }
 
-    const circleIds = new Set(getMagicCircleNodes(nodes).map(circle => circle.id));
-    if (!circleIds.has(connection.source) || !circleIds.has(connection.target)) {
+    const circleIds = getMagicCircleNodes(nodes).map(circle =>
+        circle.id
+    );
+    const circleIdSet = new Set(circleIds);
+    if (
+        !circleIdSet.has(connection.source) ||
+        !circleIdSet.has(connection.target)
+    ) {
         return false;
     }
 
     const externalEdges = edges.filter(edge =>
-        circleIds.has(edge.source) &&
-        circleIds.has(edge.target) &&
+        circleIdSet.has(edge.source) &&
+        circleIdSet.has(edge.target) &&
         isMagicCirclePortHandleId(edge.sourceHandle, 'output') &&
         isMagicCirclePortHandleId(edge.targetHandle, 'input')
     );
 
-    return canReach(
-        { outEdges: buildOutEdgeMap(externalEdges) },
-        connection.target,
-        connection.source
-    );
+    return analyzeMagicCircleFlowTopology(
+        circleIds,
+        [
+            ...externalEdges,
+            {
+                source: connection.source,
+                target: connection.target,
+            },
+        ]
+    ).hasCycle;
 }
 
 export function filterExplicitEdgesReplacedByConnection(
@@ -96,7 +108,6 @@ export function filterExplicitEdgesReplacedByConnection(
     const targetNode = connection.target
         ? nodeById.get(connection.target)
         : undefined;
-    const sourceHandle = connection.sourceHandle;
     const targetHandle = connection.targetHandle;
 
     return edges.filter(edge => {
@@ -127,8 +138,6 @@ export function isExplicitMagicCircleConnectionValid(
     const targetNode = nodeById.get(target);
     if (!sourceNode || !targetNode) return false;
 
-    const sourceHandle = connection.sourceHandle;
-    const targetHandle = connection.targetHandle;
     const validationEdges = filterExplicitEdgesReplacedByConnection(
         connection,
         edges,

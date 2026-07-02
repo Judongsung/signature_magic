@@ -467,12 +467,134 @@ describe('calculateMagic explicit circle integration', () => {
 
         expect(targetStats).toMatchObject({
             castingTime: 16,
+            instability: 2.2,
             power: 27,
             range: 28,
             manaCost: 28,
             duration: 19,
         });
-        expect(result.totalStats).toEqual(targetStats);
+        expect(result.totalStats).toMatchObject({
+            castingTime: 16,
+            power: 27,
+            range: 28,
+            manaCost: 28,
+            duration: 19,
+        });
+        expect(result.totalStats.instability).toBeCloseTo(3.2);
+        expect(result.completionIssue).toBeUndefined();
+    });
+
+    it('adds connection risk after local effects and applies final effects to the total', () => {
+        const sourceA = createMagicCircleNode(
+            { x: -520, y: -240 },
+            () => 'risk-source-a'
+        );
+        const sourceB = createMagicCircleNode(
+            { x: -520, y: 240 },
+            () => 'risk-source-b'
+        );
+        const target = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'risk-target'
+        );
+        const types: MagicTypeConfig[] = [
+            {
+                type: 'risk-a',
+                label: 'Risk A',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: '',
+                stats: { instability: 6 },
+            },
+            {
+                type: 'risk-b',
+                label: 'Risk B',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: '',
+                stats: { instability: 8 },
+            },
+            {
+                type: 'risk-target',
+                label: 'Risk Target',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: '',
+                stats: { instability: 2 },
+            },
+        ];
+        const connected = syncGraphTopology({
+            nodes: [
+                sourceA,
+                sourceB,
+                target,
+                attachNodeToCircle(
+                    node('risk-node-a', 'risk-a'),
+                    sourceA,
+                    0
+                ),
+                attachNodeToCircle(
+                    node('risk-node-b', 'risk-b'),
+                    sourceB,
+                    0
+                ),
+                attachNodeToCircle(
+                    node('risk-node-target', 'risk-target'),
+                    target,
+                    0
+                ),
+            ],
+            edges: [
+                {
+                    id: 'edge-risk-a',
+                    source: sourceA.id,
+                    target: target.id,
+                    sourceHandle: 'circle-output',
+                    targetHandle: 'circle-input',
+                },
+                {
+                    id: 'edge-risk-b',
+                    source: sourceB.id,
+                    target: target.id,
+                    sourceHandle: 'circle-output',
+                    targetHandle: 'circle-input-1',
+                },
+            ],
+        });
+        const result = calculateMagic(
+            connected.nodes,
+            connected.edges,
+            types,
+            {
+                nodeEffects: [{
+                    phase: 'node',
+                    operation: 'multiply',
+                    stat: 'instability',
+                    value: 0.5,
+                }],
+                finalEffects: [{
+                    phase: 'final',
+                    operation: 'multiply',
+                    stat: 'instability',
+                    value: 0.5,
+                }],
+            }
+        );
+        const instabilityByCircleId = new Map(
+            result.circles.map(circle => [
+                circle.id,
+                circle.stats.instability,
+            ])
+        );
+
+        expect(instabilityByCircleId.get(sourceA.id)).toBe(3);
+        expect(instabilityByCircleId.get(sourceB.id)).toBe(4);
+        expect(instabilityByCircleId.get(target.id)).toBe(1);
+        expect(result.totalStats.instability).toBe(3);
+        expect(result.totalStatAdjustments.instability).toBe(-7);
         expect(result.completionIssue).toBeUndefined();
     });
 
@@ -527,8 +649,13 @@ describe('calculateMagic explicit circle integration', () => {
         );
 
         expect(result.completionIssue).toBeUndefined();
-        expect(result.circles.find(circle =>
+        const targetStats = result.circles.find(circle =>
             circle.id === target.id
-        )?.stats).toEqual(result.totalStats);
+        )?.stats;
+        expect(targetStats?.instability).toBe(0);
+        expect(result.totalStats).toEqual({
+            ...targetStats,
+            instability: 4,
+        });
     });
 });

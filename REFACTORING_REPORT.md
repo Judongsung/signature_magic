@@ -49,3 +49,19 @@
 - Kept the provisional maximum-per-circle instability behavior, but moved that exception out of the flow traversal into a focused stat policy.
 - Left ordinary serial and parallel stat aggregation delegated to the existing data-backed stat rules.
 - Verification completed: `validate:data` 34 tests, `check` with no diagnostics, full suite 591 tests, and the production build all passed.
+
+## 2026-07-03 — Circle-local instability and connection cost
+
+- Finalized instability as the highest circle-local risk plus one point per external circle connection.
+- Kept each circle detail focused on its own instability while all other stats remain cumulative through joins.
+- Applied node effects before local risk selection and final effects after connection cost, preserving the existing effect-stage contract.
+- Verification completed: `validate:data` 34 tests, `check` with no diagnostics, full suite 593 tests, and the production build all passed.
+
+## 2026-07-03 — Inactive legacy path removal
+
+- Removed the initial direct-node graph evaluator, its projected analysis, and generic merge/reachability utilities after confirming the active calculator only consumes ordered circle sequences.
+- Reused the circle-flow topology analyzer for connection cycle validation instead of retaining a second graph traversal stack.
+- Removed unused validation facades, test-only wrappers, stale exported identifiers, and unreferenced helpers.
+- Enabled TypeScript unused-local and unused-parameter checks for the application source to prevent the same class of residue from accumulating.
+- Verification completed: `validate:data` 34 tests, `check` with no diagnostics, full suite 580 tests, and the production build all passed.
+- The production build now transforms 633 modules and emits a 495.78 kB main bundle, down from 636 modules and 499.96 kB before cleanup.

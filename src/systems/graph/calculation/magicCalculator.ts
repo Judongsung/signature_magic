@@ -26,6 +26,7 @@ import { clampMagicStats } from './magicStatRules';
 import {
     combineMagicCircleFlowStats,
     finalizeMagicCircleFlowStats,
+    resolveMagicFlowTotalStats,
 } from './magicCircleFlowStatPolicy';
 import {
     GRAPH_PERFORMANCE_OPERATION_IDS,
@@ -110,14 +111,28 @@ function calculateExplicitMagicNow(
             circle.id === analysis.terminalCircleId
         )?.stats
         : undefined;
-    const adjustedTotalStats = terminalStats
-        ? clampMagicStats(applyMagicStatEffectsToStats(
+    const flowTotalStats = terminalStats
+        ? resolveMagicFlowTotalStats(
             terminalStats,
+            calculatedCircles.map(circle => circle.stats),
+            analysis.externalEdges.length
+        )
+        : undefined;
+    const baselineFlowTotalStats = baselineTerminalStats
+        ? resolveMagicFlowTotalStats(
+            baselineTerminalStats,
+            baselineCircles.map(circle => circle.stats),
+            analysis.externalEdges.length
+        )
+        : undefined;
+    const adjustedTotalStats = flowTotalStats
+        ? clampMagicStats(applyMagicStatEffectsToStats(
+            flowTotalStats,
             statEffects.finalEffects
         ))
         : { ...EMPTY_MAGIC_STATS };
     const baselineTotalStats =
-        baselineTerminalStats ?? EMPTY_MAGIC_STATS;
+        baselineFlowTotalStats ?? EMPTY_MAGIC_STATS;
 
     return {
         circles,
@@ -153,8 +168,7 @@ function calculateExplicitCircles(
             calculatedByCircleId,
             magicTypeMap,
             nodeStatEffects,
-            nodeExecutionCounts,
-            analysis.externalEdges
+            nodeExecutionCounts
         );
         if (circle) calculatedByCircleId.set(circleId, circle);
     });
@@ -170,31 +184,18 @@ function calculateCircleFlow(
     calculatedByCircleId: ReadonlyMap<string, CalculatedCirclePath>,
     magicTypeMap: ReadonlyMap<string, MagicTypeConfig>,
     nodeStatEffects: readonly MagicStatEffectConfig[],
-    nodeExecutionCounts: MagicNodeExecutionCounts,
-    externalEdges: readonly MagicGraphEdge[]
+    nodeExecutionCounts: MagicNodeExecutionCounts
 ): CalculatedCirclePath | undefined {
     const calculationNodeIds = new Set(
         internal.calculationNodes.map(node => node.id)
     );
     const localStats = calculateMagicStats(
         internal.calculationNodes,
-        [],
         magicTypeMap,
-        'circle',
         nodeStatEffects,
-        undefined,
         nodeExecutionCounts
     );
-    const operationContext = {
-        statKey: MAGIC_STAT_KEYS[0],
-        scope: 'total' as const,
-        nodes: internal.calculationNodes,
-        edges: externalEdges,
-        magicTypes: magicTypeMap,
-        nodeExecutionCounts,
-    };
     let currentStats: MagicStats | undefined;
-    const inheritedCircleStats: MagicStats[] = [];
     let segmentNodes: MagicNode[] = [];
 
     const flushSegment = (): void => {
@@ -202,19 +203,15 @@ function calculateCircleFlow(
 
         const segmentStats = calculateMagicStats(
             segmentNodes,
-            [],
             magicTypeMap,
-            'circle',
             nodeStatEffects,
-            undefined,
             nodeExecutionCounts
         );
         currentStats = currentStats
             ? combineMagicCircleFlowStats(
                 currentStats,
                 segmentStats,
-                'serial',
-                operationContext
+                'serial'
             )
             : segmentStats;
         segmentNodes = [];
@@ -228,13 +225,11 @@ function calculateCircleFlow(
             );
             if (!source) return undefined;
 
-            inheritedCircleStats.push(source.stats);
             currentStats = currentStats
                 ? combineMagicCircleFlowStats(
                     currentStats,
                     source.stats,
-                    'parallel',
-                    operationContext
+                    'parallel'
                 )
                 : { ...source.stats };
             continue;
@@ -252,8 +247,7 @@ function calculateCircleFlow(
         nodes: internal.calculationNodes,
         stats: finalizeMagicCircleFlowStats(
             currentStats,
-            localStats,
-            inheritedCircleStats
+            localStats
         ),
     };
 }

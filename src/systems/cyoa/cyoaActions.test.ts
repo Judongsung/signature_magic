@@ -5,7 +5,6 @@ import {
     clearInactiveCyoaSubChoiceSelections,
     createInitialCyoaSelections,
     createInitialInputValues,
-    createInitialRowVisibility,
     mapCyoaChoiceConfig,
     mapCyoaRows,
     resolveCyoaRowVisibility,
@@ -187,14 +186,6 @@ describe('cyoaActions', () => {
             maxSelectedCount: 2,
             lockedChoiceIds: ['region-empire-center'],
             selectionMode: 'multi',
-        });
-    });
-
-    it('creates initial row visibility from row config data and visibility conditions', () => {
-        expect(createInitialRowVisibility(rows)).toEqual({
-            focus: true,
-            region: false,
-            catalyst: false,
         });
     });
 

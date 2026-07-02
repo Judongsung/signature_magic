@@ -74,18 +74,6 @@ export function getCircleEditableSequenceNodes(
         .filter(node => !isCircleSystemMagicNode(node));
 }
 
-export function resolveCircleSystemNodeSlots(
-    nodes: readonly MagicEditorNode[],
-    circleId: string,
-    configs: readonly CircleSystemMagicNodeConfig[] =
-        DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
-): MagicGraphPresetCircleSystemNodeSlotConfig[] {
-    return resolveCircleSystemNodeSlotsFromChildren(
-        getCircleChildNodes(nodes, circleId),
-        configs
-    );
-}
-
 export function resolveCircleSystemNodeSlotsFromChildren(
     children: readonly MagicNode[],
     configs: readonly CircleSystemMagicNodeConfig[] =

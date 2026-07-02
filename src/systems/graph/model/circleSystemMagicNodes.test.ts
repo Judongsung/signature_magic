@@ -10,7 +10,7 @@ import {
     createCircleSystemMagicNode,
     isCircleSystemMagicNode,
     normalizeCircleSystemNodeChildren,
-    resolveCircleSystemNodeSlots,
+    resolveCircleSystemNodeSlotsFromChildren,
 } from './circleSystemMagicNodes';
 
 const testCircleSystemNodeConfigs = [
@@ -78,9 +78,8 @@ describe('circleSystemMagicNodes', () => {
         expect(manifestation.data.settings).toEqual({
             caption: '최종 발현',
         });
-        expect(resolveCircleSystemNodeSlots(
-            [circle, manifestation],
-            circle.id,
+        expect(resolveCircleSystemNodeSlotsFromChildren(
+            [manifestation],
             [testCircleSystemNodeConfigs[0]]
         )).toEqual([{
             magicType: 'manifestation',
@@ -110,9 +109,8 @@ describe('circleSystemMagicNodes', () => {
         );
         const nodes = [circle, ...laidOutNodes];
 
-        expect(resolveCircleSystemNodeSlots(
-            nodes,
-            circle.id,
+        expect(resolveCircleSystemNodeSlotsFromChildren(
+            getCircleChildNodes(nodes, circle.id),
             testCircleSystemNodeConfigs
         )).toEqual([
             { magicType: 'manifestation', slotIndex: 2 },

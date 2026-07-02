@@ -6,7 +6,6 @@ import type {
 } from '../constants/nodeEditorConfigs';
 import type {
     MagicNodeStatBoundsConfig,
-    MagicNodeStatRulesConfig,
     MagicStatsConfig,
 } from './magicStats';
 
@@ -56,5 +55,4 @@ export interface MagicTypeConfig {
     instanceEditor?: MagicNodeInstanceEditorConfig;
     stats?: MagicStatsConfig;
     statBounds?: MagicNodeStatBoundsConfig;
-    statRules?: MagicNodeStatRulesConfig;
 }

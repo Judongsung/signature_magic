@@ -295,7 +295,7 @@ export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
 export const MAGIC_STAT_CALCULATION_DESCRIPTIONS = {
     circle: {
         castingTime: '합류로 이어받은 흐름과 이 서클의 마지막 단계까지 걸리는 시간을 표시합니다.',
-        instability: '이 서클과 앞서 이어진 서클 중 가장 높은 불안정성을 표시합니다. 10을 넘으면 마법의 위험도가 커집니다.',
+        instability: '이 서클 내부에서 발생한 불안정성만 표시합니다. 서클을 나누면 복리 증가를 줄일 수 있습니다.',
         power: '합류로 이어받은 출력과 이 서클에서 더한 출력을 함께 표시합니다.',
         range: '합류 시 더 넓은 범위를 이어받고, 이후 단위 마법의 범위 변화를 반영합니다.',
         manaCost: '합류한 모든 흐름과 이 서클에서 사용한 마나를 더합니다.',
@@ -303,7 +303,7 @@ export const MAGIC_STAT_CALCULATION_DESCRIPTIONS = {
     },
     total: {
         castingTime: '합류 전 흐름은 동시에 진행되며, 가장 오래 걸린 흐름부터 이후 시전 시간을 이어서 계산합니다.',
-        instability: '완성된 서클 중 가장 높은 불안정성을 사용합니다. 10을 넘으면 수치가 높을수록 마법의 위험도 커집니다.',
+        instability: '가장 불안정한 서클의 수치에 서클 연결마다 1을 더합니다. 10을 넘으면 마법의 위험도가 커집니다.',
         power: '합류하는 흐름의 출력을 더하고 이후 단위 마법의 출력을 이어서 반영합니다.',
         range: '합류하는 흐름 중 가장 넓은 범위를 이어받아 이후 범위 변화를 반영합니다.',
         manaCost: '합류하는 모든 흐름과 이후 단위 마법의 마나 소모를 더합니다.',

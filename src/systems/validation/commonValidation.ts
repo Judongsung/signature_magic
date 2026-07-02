@@ -27,15 +27,6 @@ export function formatValidationError(
     return path ? `${kind} ${subject}: ${path}` : `${kind} ${subject}`;
 }
 
-export function formatLabeledValidationError(
-    label: string,
-    subject: string,
-    ...pathSegments: ValidationPathSegment[]
-): string {
-    const path = formatValidationPath(...pathSegments);
-    return path ? `${label}: ${subject} -> ${path}` : `${label}: ${subject}`;
-}
-
 export function isPlainObject(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }

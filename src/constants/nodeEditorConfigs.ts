@@ -27,7 +27,6 @@ export const MAGIC_NODE_CATEGORIES = [
     'control',
     MAGIC_CONTROL_NODE_CATEGORY,
 ] as const;
-export const MAGIC_SEQUENCE_DISABLED_NODE_TYPES = [] as const;
 
 export type MagicNodeCategory = (typeof MAGIC_NODE_CATEGORIES)[number];
 
@@ -51,9 +50,6 @@ export const MAGIC_NODE_EDITOR_CONTROLS = {
     TEXT: 'text',
     STEPPER: 'stepper',
 } as const;
-
-export type MagicNodeEditorControl =
-    (typeof MAGIC_NODE_EDITOR_CONTROLS)[keyof typeof MAGIC_NODE_EDITOR_CONTROLS];
 
 export const MAGIC_NODE_EDITOR_PRESENTATIONS = {
     NODE_LABEL: 'nodeLabel',

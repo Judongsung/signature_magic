@@ -204,23 +204,6 @@ export function canMoveMagicControlPairsAcrossCircles(
     );
 }
 
-export function getMagicControlPairOwnerId(
-    nodes: readonly MagicEditorNode[],
-    nodeId: string
-): string {
-    const node = nodes.find(candidate => candidate.id === nodeId);
-    if (!node || !isMagicControlPairNode(node)) return nodeId;
-    if (node.data.controlPair.role === MAGIC_CONTROL_PAIR_ROLES.START) {
-        return node.id;
-    }
-
-    return nodes.find(candidate =>
-        isMagicControlPairNode(candidate) &&
-        candidate.data.controlPair.id === node.data.controlPair.id &&
-        candidate.data.controlPair.role === MAGIC_CONTROL_PAIR_ROLES.START
-    )?.id ?? nodeId;
-}
-
 export function resolveMagicControlPairLayout(
     orderedChildren: readonly MagicNode[]
 ): MagicControlPairLayout {

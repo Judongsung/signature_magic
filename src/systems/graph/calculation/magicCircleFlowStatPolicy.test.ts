@@ -3,8 +3,8 @@ import type { MagicStats } from '../../../types/magicStats';
 import {
     combineMagicCircleFlowStats,
     finalizeMagicCircleFlowStats,
+    resolveMagicFlowTotalStats,
 } from './magicCircleFlowStatPolicy';
-import type { MagicStatRuleContext } from './magicStatRules';
 
 const LEFT_STATS: MagicStats = {
     castingTime: 10,
@@ -24,24 +24,15 @@ const RIGHT_STATS: MagicStats = {
     duration: 4,
 };
 
-const EMPTY_CONTEXT: MagicStatRuleContext = {
-    statKey: 'castingTime',
-    scope: 'total',
-    nodes: [],
-    edges: [],
-    magicTypes: new Map(),
-};
-
 describe('magicCircleFlowStatPolicy', () => {
     it('applies each stat rule when two circle flows join', () => {
         expect(combineMagicCircleFlowStats(
             LEFT_STATS,
             RIGHT_STATS,
-            'parallel',
-            EMPTY_CONTEXT
+            'parallel'
         )).toEqual({
             castingTime: 14,
-            instability: 14,
+            instability: 22,
             power: 24,
             range: 5,
             manaCost: 12,
@@ -49,15 +40,14 @@ describe('magicCircleFlowStatPolicy', () => {
         });
     });
 
-    it('uses serial rules while preserving whole-circle instability', () => {
+    it('uses configured serial rules before circle finalization', () => {
         expect(combineMagicCircleFlowStats(
             LEFT_STATS,
             RIGHT_STATS,
-            'serial',
-            EMPTY_CONTEXT
+            'serial'
         )).toEqual({
             castingTime: 24,
-            instability: 14,
+            instability: 22,
             power: 24,
             range: 15,
             manaCost: 12,
@@ -65,7 +55,7 @@ describe('magicCircleFlowStatPolicy', () => {
         });
     });
 
-    it('replaces segment instability with the maximum whole-circle value', () => {
+    it('keeps only the current circle instability in circle details', () => {
         const accumulatedStats = {
             ...LEFT_STATS,
             instability: 99,
@@ -73,14 +63,25 @@ describe('magicCircleFlowStatPolicy', () => {
 
         expect(finalizeMagicCircleFlowStats(
             accumulatedStats,
-            { ...LEFT_STATS, instability: 6 },
-            [
-                { ...RIGHT_STATS, instability: 14 },
-                { ...RIGHT_STATS, instability: 8 },
-            ]
+            { ...LEFT_STATS, instability: 6 }
         )).toEqual({
             ...accumulatedStats,
-            instability: 14,
+            instability: 6,
+        });
+    });
+
+    it('adds one instability for every external circle connection', () => {
+        expect(resolveMagicFlowTotalStats(
+            LEFT_STATS,
+            [
+                { ...LEFT_STATS, instability: 6 },
+                { ...RIGHT_STATS, instability: 14 },
+                { ...RIGHT_STATS, instability: 8 },
+            ],
+            2
+        )).toEqual({
+            ...LEFT_STATS,
+            instability: 16,
         });
     });
 });

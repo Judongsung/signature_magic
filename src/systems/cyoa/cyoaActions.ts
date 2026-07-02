@@ -136,10 +136,6 @@ export function mapCyoaRows(
     return rows.map(row => mapCyoaRowConfig(row, resolveImagePath));
 }
 
-export function createInitialRowVisibility(rows: CyoaChoiceRowData[]): CyoaRowVisibility {
-    return resolveCyoaRowVisibility(rows, {});
-}
-
 export function createInitialInputValues(rows: CyoaChoiceRowData[]): CyoaInputValues {
     return Object.fromEntries(
         rows

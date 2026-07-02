@@ -18,7 +18,6 @@ import {
     type MagicType,
 } from '../types/magicTypeConfig';
 import {
-    getMagicCircleNodes,
     getMagicUnitNodes,
 } from '../systems/graph/model/magicCircleGraph';
 import type { MagicGraphEdge } from '../systems/graph/magicGraphTypes';
