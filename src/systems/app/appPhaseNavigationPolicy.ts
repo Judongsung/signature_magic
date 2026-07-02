@@ -2,6 +2,11 @@ import {
     APP_PHASES,
     type AppPhase,
 } from '../../constants/appPhaseConfigs';
+import {
+    APP_MODES,
+    getAppModeConfig,
+    type AppMode,
+} from '../../constants/appModeConfigs';
 import { UI_BUTTON_TEXT } from '../../constants/uiText';
 import { getNextAppPhase, getPreviousAppPhase } from './appPhaseNavigation';
 
@@ -27,6 +32,7 @@ export interface AppPhaseNavigationDisabledFeedback {
 }
 
 export interface AppPhaseNavigationPolicyInput {
+    mode: AppMode;
     phase: AppPhase;
     canSubmitRegistration: boolean;
     canCompleteNodeComposition: boolean;
@@ -36,6 +42,7 @@ export interface AppPhaseNavigationPolicyInput {
 export interface AppPhaseNavigationPolicy {
     previousPhase: AppPhase | undefined;
     nextPhase: AppPhase | undefined;
+    returnsToTitle: boolean;
     canReviewRegistration: boolean;
     isNextDisabled: boolean;
     nextDisabledFeedback: AppPhaseNavigationDisabledFeedback | undefined;
@@ -75,34 +82,41 @@ const NEXT_DISABLED_FEEDBACK_RESOLVERS: Partial<Record<AppPhase, NextDisabledFee
 };
 
 export function resolveAppPhaseNavigationPolicy({
+    mode,
     phase,
     canSubmitRegistration,
     canCompleteNodeComposition,
     isWithinMaximumMana,
 }: AppPhaseNavigationPolicyInput): AppPhaseNavigationPolicy {
-    const previousPhase = getPreviousAppPhase(phase);
-    const nextPhase = getNextAppPhase(phase);
-    const isRegistrationSubmitPhase = phase === APP_PHASES.CYOA;
+    const modeConfig = getAppModeConfig(mode);
+    const previousPhase = getPreviousAppPhase(mode, phase);
+    const nextPhase = getNextAppPhase(mode, phase);
+    const isRegistrationSubmitPhase = mode === APP_MODES.CYOA
+        && phase === APP_PHASES.CYOA;
     const input = {
+        mode,
         phase,
         canSubmitRegistration,
         canCompleteNodeComposition,
-        isWithinMaximumMana,
+        isWithinMaximumMana: !modeConfig.enforcesMaximumMana
+            || isWithinMaximumMana,
     };
     const nextDisabledFeedback = NEXT_DISABLED_FEEDBACK_RESOLVERS[phase]?.(input);
     const isNextDisabled = nextDisabledFeedback !== undefined;
-    const canReviewRegistration = phase === APP_PHASES.NODE_RESULT_DIALOGUE;
+    const canReviewRegistration = mode === APP_MODES.CYOA
+        && phase === APP_PHASES.NODE_RESULT_DIALOGUE;
 
     const nextAction = resolveNextAction(isRegistrationSubmitPhase, isNextDisabled, nextPhase);
 
     return {
         previousPhase,
         nextPhase,
+        returnsToTitle: previousPhase === undefined,
         canReviewRegistration,
         isNextDisabled,
         nextDisabledFeedback,
         nextAction,
-        shouldRenderNavigation: Boolean(previousPhase || nextPhase),
+        shouldRenderNavigation: true,
     };
 }
 

@@ -1,7 +1,14 @@
 <script lang="ts">
     import { untrack } from 'svelte';
     import luarnChibiImageSrc from '../../../assets/images/luarn_chibi.png';
-    import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../../constants/uiText';
+    import {
+        NODE_COMPOSITION_NEUTRAL_SIGNATURE_TEXT,
+        NODE_COMPOSITION_SIGNATURE_TEXT,
+    } from '../../../constants/uiText';
+    import {
+        NODE_COMPOSITION_SIGNATURE_PRESENTATIONS,
+        type NodeCompositionSignaturePresentation,
+    } from '../../../constants/nodeEditorConfigs';
     import {
         type MagicSignatureMetadata,
     } from '../../../types/magicSignature';
@@ -17,16 +24,26 @@
 
     let {
         initialMetadata,
+        presentation = NODE_COMPOSITION_SIGNATURE_PRESENTATIONS.GUIDED,
         onDraftChange,
         onSubmit,
         onClose,
     }: {
         initialMetadata: MagicSignatureMetadata;
+        presentation?: NodeCompositionSignaturePresentation;
         onDraftChange: (metadata: MagicSignatureMetadata) => void;
         onSubmit: (metadata: MagicSignatureMetadata) => void;
         onClose: () => void;
     } = $props();
 
+    const isGuided = $derived(
+        presentation === NODE_COMPOSITION_SIGNATURE_PRESENTATIONS.GUIDED
+    );
+    const presentationText = $derived(
+        isGuided
+            ? NODE_COMPOSITION_SIGNATURE_TEXT
+            : NODE_COMPOSITION_NEUTRAL_SIGNATURE_TEXT
+    );
     let signatureName = $state(untrack(() => initialMetadata.name));
     let signatureDescription = $state(untrack(() =>
         initialMetadata.description
@@ -62,21 +79,23 @@
 <DialogShell
     titleId={dialogTitleId}
     descriptionId={dialogDescriptionId}
-    closeLabel={NODE_COMPOSITION_SIGNATURE_TEXT.CLOSE_ARIA_LABEL}
+    closeLabel={presentationText.CLOSE_ARIA_LABEL}
     {onClose}
     overlayClass="signature-dialog-overlay"
     backdropClass="signature-dialog-backdrop"
     surfaceClass="signature-dialog-shell"
 >
-        <div class="signature-dialog-speech signature-dialog-speech-top">
-            <CharacterSpeechBubble
-                imageSrc={luarnChibiImageSrc}
-                imageAlt={NODE_COMPOSITION_SIGNATURE_TEXT.LUARN_IMAGE_ALT}
-                message={NODE_COMPOSITION_SIGNATURE_TEXT.TOP_MESSAGE}
-                speakerName={NODE_COMPOSITION_SIGNATURE_TEXT.SPEAKER_NAME}
-                speakerTitle={NODE_COMPOSITION_SIGNATURE_TEXT.SPEAKER_TITLE}
-            />
-        </div>
+        {#if isGuided}
+            <div class="signature-dialog-speech signature-dialog-speech-top">
+                <CharacterSpeechBubble
+                    imageSrc={luarnChibiImageSrc}
+                    imageAlt={NODE_COMPOSITION_SIGNATURE_TEXT.LUARN_IMAGE_ALT}
+                    message={NODE_COMPOSITION_SIGNATURE_TEXT.TOP_MESSAGE}
+                    speakerName={NODE_COMPOSITION_SIGNATURE_TEXT.SPEAKER_NAME}
+                    speakerTitle={NODE_COMPOSITION_SIGNATURE_TEXT.SPEAKER_TITLE}
+                />
+            </div>
+        {/if}
 
         <div class="signature-dialog">
             <form
@@ -86,10 +105,10 @@
             >
                 <header class="signature-dialog-header">
                     <div>
-                        <p class="signature-dialog-eyebrow">{NODE_COMPOSITION_SIGNATURE_TEXT.EYEBROW}</p>
-                        <h2 id={dialogTitleId}>{NODE_COMPOSITION_SIGNATURE_TEXT.TITLE}</h2>
+                        <p class="signature-dialog-eyebrow">{presentationText.EYEBROW}</p>
+                        <h2 id={dialogTitleId}>{presentationText.TITLE}</h2>
                         <p id={dialogDescriptionId} class="signature-dialog-description">
-                            {NODE_COMPOSITION_SIGNATURE_TEXT.DESCRIPTION}
+                            {presentationText.DESCRIPTION}
                         </p>
                     </div>
                 </header>
@@ -127,15 +146,17 @@
             </form>
         </div>
 
-        <div class="signature-dialog-speech signature-dialog-speech-bottom">
-            <CharacterSpeechBubble
-                imageSrc={luarnChibiImageSrc}
-                imageAlt={NODE_COMPOSITION_SIGNATURE_TEXT.LUARN_IMAGE_ALT}
-                message={NODE_COMPOSITION_SIGNATURE_TEXT.BOTTOM_MESSAGE}
-                speakerName={NODE_COMPOSITION_SIGNATURE_TEXT.SPEAKER_NAME}
-                speakerTitle={NODE_COMPOSITION_SIGNATURE_TEXT.SPEAKER_TITLE}
-            />
-        </div>
+        {#if isGuided}
+            <div class="signature-dialog-speech signature-dialog-speech-bottom">
+                <CharacterSpeechBubble
+                    imageSrc={luarnChibiImageSrc}
+                    imageAlt={NODE_COMPOSITION_SIGNATURE_TEXT.LUARN_IMAGE_ALT}
+                    message={NODE_COMPOSITION_SIGNATURE_TEXT.BOTTOM_MESSAGE}
+                    speakerName={NODE_COMPOSITION_SIGNATURE_TEXT.SPEAKER_NAME}
+                    speakerTitle={NODE_COMPOSITION_SIGNATURE_TEXT.SPEAKER_TITLE}
+                />
+            </div>
+        {/if}
 
         <div class="signature-dialog-actions">
             <button
@@ -143,7 +164,7 @@
                 type="button"
                 onclick={onClose}
             >
-                {NODE_COMPOSITION_SIGNATURE_TEXT.CANCEL}
+                {presentationText.CANCEL}
             </button>
             <button
                 class="signature-action signature-action--primary"
@@ -151,7 +172,7 @@
                 form={signatureFormId}
                 disabled={!canSubmit}
             >
-                {NODE_COMPOSITION_SIGNATURE_TEXT.SUBMIT}
+                {presentationText.SUBMIT}
             </button>
         </div>
 </DialogShell>

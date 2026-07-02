@@ -1,7 +1,14 @@
 // @vitest-environment happy-dom
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { NODE_COMPOSITION_SIGNATURE_TEXT } from '../../../constants/uiText';
+import {
+    NODE_COMPOSITION_NEUTRAL_SIGNATURE_TEXT,
+    NODE_COMPOSITION_SIGNATURE_TEXT,
+} from '../../../constants/uiText';
+import {
+    NODE_COMPOSITION_SIGNATURE_PRESENTATIONS,
+    type NodeCompositionSignaturePresentation,
+} from '../../../constants/nodeEditorConfigs';
 import {
     getButtonByText,
     getDialogElement,
@@ -18,7 +25,8 @@ function mountDialog(
         name: '',
         description: '',
     },
-    onDraftChange: (metadata: MagicSignatureMetadata) => void = vi.fn()
+    onDraftChange: (metadata: MagicSignatureMetadata) => void = vi.fn(),
+    presentation?: NodeCompositionSignaturePresentation
 ) {
     const target = document.createElement('div');
     document.body.append(target);
@@ -27,6 +35,7 @@ function mountDialog(
         target,
         props: {
             initialMetadata,
+            presentation,
             onDraftChange,
             onSubmit,
             onClose,
@@ -70,6 +79,24 @@ describe('NodeCompositionSignatureDialog', () => {
                 ?.classList
                 .contains('signature-dialog-speech-bottom')
         ).toBe(true);
+    });
+
+    it('renders neutral copy without Luarn guidance', () => {
+        const { target } = mountDialog(
+            vi.fn(),
+            vi.fn(),
+            { name: '', description: '' },
+            vi.fn(),
+            NODE_COMPOSITION_SIGNATURE_PRESENTATIONS.NEUTRAL
+        );
+
+        expect(getDialogElement(target).textContent)
+            .toContain(NODE_COMPOSITION_NEUTRAL_SIGNATURE_TEXT.TITLE);
+        expect(target.textContent)
+            .toContain(NODE_COMPOSITION_NEUTRAL_SIGNATURE_TEXT.SUBMIT);
+        expect(target.textContent)
+            .not.toContain(NODE_COMPOSITION_SIGNATURE_TEXT.TOP_MESSAGE);
+        expect(target.querySelectorAll('.character-speech-bubble')).toHaveLength(0);
     });
 
     it('requires a non-empty spell name before submit is enabled', async () => {

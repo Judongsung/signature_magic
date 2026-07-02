@@ -1,9 +1,9 @@
 <script lang="ts">
     import veraChibiImageSrc from '../../assets/images/vera_chibi.png';
-    import type { AppPhase } from '../../constants/appPhaseConfigs';
     import {
         APP_PHASE_NAVIGATION_TEXT,
         CYOA_GUIDE_SPEECH_TEXT,
+        getAppPhaseNextLabel,
         UI_BUTTON_TEXT,
     } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
@@ -20,7 +20,6 @@
     import { formatMagicMana } from '../../systems/magic/magicMana';
 
     const nextDisabledTooltipId = 'app-phase-next-disabled-tooltip';
-    const nextPhaseLabels: Partial<Record<AppPhase, string>> = APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS;
     const REGISTRATION_DIALOG_MODES = {
         REVIEW: 'review',
         SUBMIT: 'submit',
@@ -48,14 +47,21 @@
 
     let registrationDialogMode = $state<RegistrationDialogMode | undefined>();
 
-    const navigationPolicy = $derived(resolveAppPhaseNavigationPolicy({
-        phase: appStore.phase,
-        canSubmitRegistration,
-        canCompleteNodeComposition,
-        isWithinMaximumMana,
-    }));
+    const navigationPolicy = $derived(
+        appStore.mode && appStore.phase
+            ? resolveAppPhaseNavigationPolicy({
+                mode: appStore.mode,
+                phase: appStore.phase,
+                canSubmitRegistration,
+                canCompleteNodeComposition,
+                isWithinMaximumMana,
+            })
+            : undefined
+    );
     const nextLabel = $derived(
-        navigationPolicy.nextPhase ? nextPhaseLabels[appStore.phase] : undefined
+        navigationPolicy?.nextPhase && appStore.mode && appStore.phase
+            ? getAppPhaseNextLabel(appStore.mode, appStore.phase)
+            : undefined
     );
 
     function moveToPreviousPhase() {
@@ -71,6 +77,8 @@
     }
 
     function moveToNextPhase() {
+        if (!navigationPolicy || !appStore.phase) return;
+
         if (navigationPolicy.nextAction === APP_PHASE_NAVIGATION_NEXT_ACTIONS.OPEN_REGISTRATION_SUBMIT_DIALOG) {
             openRegistrationSubmitDialog();
             return;
@@ -103,22 +111,24 @@
     <RegistrationResultDetails />
 {/snippet}
 
-{#if navigationPolicy.shouldRenderNavigation}
+{#if navigationPolicy?.shouldRenderNavigation}
     <nav
         class="app-phase-navigation-bar"
         class:shows-mana={showMaximumMana}
         aria-label={APP_PHASE_NAVIGATION_TEXT.ARIA_LABEL}
     >
-        {#if navigationPolicy.previousPhase}
-            <button
-                type="button"
-                class="phase-tab previous-tab"
-                aria-label={APP_PHASE_NAVIGATION_TEXT.PREVIOUS_ARIA_LABEL}
-                onclick={moveToPreviousPhase}
-            >
-                {APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL}
-            </button>
-        {/if}
+        <button
+            type="button"
+            class="phase-tab previous-tab"
+            aria-label={navigationPolicy.returnsToTitle
+                ? APP_PHASE_NAVIGATION_TEXT.TITLE_ARIA_LABEL
+                : APP_PHASE_NAVIGATION_TEXT.PREVIOUS_ARIA_LABEL}
+            onclick={moveToPreviousPhase}
+        >
+            {navigationPolicy.returnsToTitle
+                ? APP_PHASE_NAVIGATION_TEXT.TITLE_LABEL
+                : APP_PHASE_NAVIGATION_TEXT.PREVIOUS_LABEL}
+        </button>
 
         {#if showMaximumMana}
             <div

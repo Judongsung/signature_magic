@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { APP_PHASE_ORDER } from '../../constants/appPhaseConfigs';
+    import { getAppModeConfig } from '../../constants/appModeConfigs';
     import { DEV_PHASE_NAVIGATION_TEXT } from '../../constants/uiText';
     import { appStore } from '../../stores/appStore.svelte';
     import type { AppPhase } from '../../constants/appPhaseConfigs';
@@ -7,14 +7,20 @@
     function moveToPhase(phase: AppPhase) {
         appStore.setPhase(phase);
     }
+
+    const phaseOrder = $derived(
+        appStore.mode
+            ? getAppModeConfig(appStore.mode).phaseOrder
+            : []
+    );
 </script>
 
-{#if import.meta.env.DEV}
+{#if import.meta.env.DEV && appStore.mode}
     <nav
         class="dev-phase-navigation"
         aria-label={DEV_PHASE_NAVIGATION_TEXT.ARIA_LABEL}
     >
-        {#each APP_PHASE_ORDER as phase}
+        {#each phaseOrder as phase}
             <button
                 type="button"
                 class:active={appStore.phase === phase}

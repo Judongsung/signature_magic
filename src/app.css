@@ -6,12 +6,21 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'Marcellus';
+    src: url('./fonts/Marcellus-Regular.ttf') format('truetype');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
 :root {
     /* ── 마법 길드 테마 팔레트 ───────────────────────────────────────────── */
     --font-primary: 'Source Han Serif K', Georgia, 'Times New Roman', serif;
     --font-title: var(--font-primary);
     --font-body: var(--font-primary);
     --font-accent: var(--font-primary);
+    --font-game-title: 'Marcellus', Georgia, 'Times New Roman', serif;
 
     /* 문서 색상 */
     --guild-desk-bg: #090807; /* 짙은 오크 책상 */
@@ -23,6 +32,10 @@
     --guild-leather: #3c2a1c; /* 오래된 가죽 제본 */
     --guild-brass: #8d734a; /* 오래된 황동 금속 */
     --guild-brass-light: #bca075;
+    --guild-page-bg:
+        linear-gradient(180deg, rgba(255, 248, 232, 0.82), rgba(232, 218, 190, 0.88)),
+        repeating-linear-gradient(90deg, rgba(116, 83, 48, 0.06) 0 1px, transparent 1px 140px),
+        linear-gradient(90deg, #efe2c7, #f8efd9 42%, #dfcda8);
 
     /* CYOA 문서/선택지 표면 토큰 */
     --guild-body-text: #e0e0ff;

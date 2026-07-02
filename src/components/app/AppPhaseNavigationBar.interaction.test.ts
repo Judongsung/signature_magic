@@ -3,10 +3,12 @@ import type { AppPhase } from '../../constants/appPhaseConfigs';
 import { mount, tick, unmount } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { APP_PHASES } from '../../constants/appPhaseConfigs';
+import { APP_MODES } from '../../constants/appModeConfigs';
 import {
     APP_PHASE_NAVIGATION_TEXT,
     CYOA_REGISTRATION_RESULT_TEXT,
     CYOA_REGISTRATION_SUMMARY_TEXT,
+    getAppPhaseNextLabel,
     UI_BUTTON_TEXT,
 } from '../../constants/uiText';
 import { appStore } from '../../stores/appStore.svelte';
@@ -65,7 +67,7 @@ async function unmountTabs(): Promise<void> {
 afterEach(async () => {
     await unmountTabs();
     document.body.replaceChildren();
-    appStore.setPhase(APP_PHASES.INTRO_DIALOGUE);
+    appStore.returnToTitle();
     choiceStore.reset();
     resetGraphStoreFixture();
 });
@@ -74,6 +76,7 @@ describe('AppPhaseNavigationBar interaction', () => {
     beforeEach(() => {
         installResizeObserverStub();
         resetGraphStoreFixture();
+        appStore.startMode(APP_MODES.CYOA);
     });
 
     it('keeps incomplete CYOA submit navigation disabled and closed', async () => {
@@ -83,7 +86,7 @@ describe('AppPhaseNavigationBar interaction', () => {
 
         const nextButton = getButtonByText(
             target,
-            APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.CYOA]
+            getAppPhaseNextLabel(APP_MODES.CYOA, APP_PHASES.CYOA)!
         );
 
         expect(nextButton.disabled).toBe(true);
@@ -163,7 +166,7 @@ describe('AppPhaseNavigationBar interaction', () => {
 
         getButtonByText(
             target,
-            APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]
+            getAppPhaseNextLabel(APP_MODES.CYOA, APP_PHASES.NODE_COMPOSITION)!
         ).click();
         await tick();
 
@@ -185,7 +188,7 @@ describe('AppPhaseNavigationBar interaction', () => {
 
         getButtonByText(
             target,
-            APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]
+            getAppPhaseNextLabel(APP_MODES.CYOA, APP_PHASES.NODE_COMPOSITION)!
         ).click();
         await tick();
 
@@ -204,7 +207,7 @@ describe('AppPhaseNavigationBar interaction', () => {
 
         const nextButton = getButtonByText(
             target,
-            APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[APP_PHASES.NODE_COMPOSITION]
+            getAppPhaseNextLabel(APP_MODES.CYOA, APP_PHASES.NODE_COMPOSITION)!
         );
 
         expect(nextButton.disabled).toBe(true);

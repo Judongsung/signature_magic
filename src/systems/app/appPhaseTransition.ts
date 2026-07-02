@@ -5,30 +5,58 @@ import {
 } from '../graph/calculation/magicCalculationTypes';
 import type { MagicNode } from '../graph/magicGraphTypes';
 
+export const NODE_COMPOSITION_COMPLETION_PRESENTATIONS = {
+    TRANSITION: 'transition',
+    IMMEDIATE: 'immediate',
+} as const;
+
 export interface DirectAppPhaseTransitionRequest {
     currentPhase: AppPhase;
     nextPhase: AppPhase;
 }
 
-export interface NodeCompositionTransitionPlan {
+interface NodeCompositionCompletionPlanBase {
     targetPhase: AppPhase;
+}
+
+export interface NodeCompositionTransitionPlan
+    extends NodeCompositionCompletionPlanBase {
+    presentation: typeof NODE_COMPOSITION_COMPLETION_PRESENTATIONS.TRANSITION;
     circles: CirclePath[];
 }
 
-export function createNodeCompositionTransitionPlan(
+export interface ImmediateNodeCompositionCompletionPlan
+    extends NodeCompositionCompletionPlanBase {
+    presentation: typeof NODE_COMPOSITION_COMPLETION_PRESENTATIONS.IMMEDIATE;
+}
+
+export type NodeCompositionCompletionPlan =
+    | NodeCompositionTransitionPlan
+    | ImmediateNodeCompositionCompletionPlan;
+
+export function createNodeCompositionCompletionPlan(
     request: DirectAppPhaseTransitionRequest,
     circles: readonly CirclePath[]
-): NodeCompositionTransitionPlan | undefined {
-    const shouldPlayNodeTransition = request.currentPhase === APP_PHASES.NODE_COMPOSITION
-        && request.nextPhase === APP_PHASES.NODE_RESULT_DIALOGUE;
-
-    if (!shouldPlayNodeTransition) return undefined;
+): NodeCompositionCompletionPlan | undefined {
+    if (request.currentPhase !== APP_PHASES.NODE_COMPOSITION) return undefined;
     if (circles.length === 0) return undefined;
 
-    return {
-        targetPhase: request.nextPhase,
-        circles: snapshotCirclePaths(circles),
-    };
+    if (request.nextPhase === APP_PHASES.MAGIC_RESULT) {
+        return {
+            targetPhase: request.nextPhase,
+            presentation: NODE_COMPOSITION_COMPLETION_PRESENTATIONS.IMMEDIATE,
+        };
+    }
+
+    if (request.nextPhase === APP_PHASES.NODE_RESULT_DIALOGUE) {
+        return {
+            targetPhase: request.nextPhase,
+            presentation: NODE_COMPOSITION_COMPLETION_PRESENTATIONS.TRANSITION,
+            circles: snapshotCirclePaths(circles),
+        };
+    }
+
+    return undefined;
 }
 
 function snapshotCirclePaths(circles: readonly CirclePath[]): CirclePath[] {

@@ -1,4 +1,5 @@
 import { APP_PHASES, type AppPhase } from './appPhaseConfigs';
+import { APP_MODES, type AppMode } from './appModeConfigs';
 import type { MagicNodeCategory } from './nodeEditorConfigs';
 import {
     type MagicStatEffectOperation,
@@ -9,6 +10,24 @@ import {
 } from '../types/magicStats';
 
 // 앱 단계와 전역 내비게이션 문구
+export const APP_TITLE_TEXT = {
+    TITLE: 'Signature\nMagic',
+    MENU_ARIA_LABEL: '게임 모드 선택',
+    MODES: {
+        [APP_MODES.CYOA]: {
+            TITLE: 'CYOA 모드',
+            DESCRIPTION: '마법사 등록부터 시그니처 마법 평가까지 전체 이야기를 진행합니다.',
+        },
+        [APP_MODES.META]: {
+            TITLE: '메타 모드',
+            DESCRIPTION: '등록 절차와 제한 없이 마법 조합과 결과 요약만 이용합니다.',
+        },
+    } satisfies Record<AppMode, {
+        TITLE: string;
+        DESCRIPTION: string;
+    }>,
+} as const;
+
 export const DIALOGUE_SCREEN_TEXT = {
     CONTINUE_TO_CYOA: '서류 작성',
 } as const;
@@ -36,15 +55,31 @@ export const APP_PHASE_NAVIGATION_TEXT = {
     MANA_COST_LABEL: '마나 소모',
     MAXIMUM_MANA_LABEL: '최대',
     PREVIOUS_LABEL: '이전',
+    TITLE_LABEL: '타이틀',
     PREVIOUS_ARIA_LABEL: '이전 화면으로 이동',
+    TITLE_ARIA_LABEL: '타이틀 화면으로 이동',
     NEXT_ARIA_LABEL: '다음 화면으로 이동',
     NEXT_LABELS: {
-        [APP_PHASES.INTRO_DIALOGUE]: DIALOGUE_SCREEN_TEXT.CONTINUE_TO_CYOA,
-        [APP_PHASES.CYOA]: UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
-        [APP_PHASES.NODE_INTRO_DIALOGUE]: NODE_INTRO_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_COMPOSITION,
-        [APP_PHASES.NODE_COMPOSITION]: NODE_RESULT_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_RESULT,
-    } satisfies Partial<Record<AppPhase, string>>,
+        [APP_MODES.CYOA]: {
+            [APP_PHASES.INTRO_DIALOGUE]: DIALOGUE_SCREEN_TEXT.CONTINUE_TO_CYOA,
+            [APP_PHASES.CYOA]: UI_BUTTON_TEXT.SUBMIT_REGISTRATION,
+            [APP_PHASES.NODE_INTRO_DIALOGUE]: NODE_INTRO_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_COMPOSITION,
+            [APP_PHASES.NODE_COMPOSITION]: NODE_RESULT_DIALOGUE_SCREEN_TEXT.CONTINUE_TO_NODE_RESULT,
+        },
+        [APP_MODES.META]: {
+            [APP_PHASES.NODE_COMPOSITION]: '요약 보기',
+        },
+    } satisfies Record<AppMode, Partial<Record<AppPhase, string>>>,
 } as const;
+
+export function getAppPhaseNextLabel(
+    mode: AppMode,
+    phase: AppPhase
+): string | undefined {
+    const labels: Partial<Record<AppPhase, string>> =
+        APP_PHASE_NAVIGATION_TEXT.NEXT_LABELS[mode];
+    return labels[phase];
+}
 
 export const DEV_PHASE_NAVIGATION_TEXT = {
     ARIA_LABEL: 'Development phase navigation',
@@ -54,6 +89,7 @@ export const DEV_PHASE_NAVIGATION_TEXT = {
         [APP_PHASES.NODE_INTRO_DIALOGUE]: '조합 안내',
         [APP_PHASES.NODE_COMPOSITION]: '노드 조합',
         [APP_PHASES.NODE_RESULT_DIALOGUE]: '평가 결과',
+        [APP_PHASES.MAGIC_RESULT]: '마법 요약',
     } satisfies Record<AppPhase, string>,
 } as const;
 
@@ -214,6 +250,24 @@ export const NODE_COMPOSITION_SIGNATURE_TEXT = {
     LUARN_IMAGE_ALT: '루아른 오라이어 chibi',
     SPEAKER_NAME: '루아른 오라이어',
     SPEAKER_TITLE: '시그니처 마법 기록원',
+} as const;
+
+export const NODE_COMPOSITION_NEUTRAL_SIGNATURE_TEXT = {
+    EYEBROW: 'MAGIC RECORD',
+    TITLE: '마법 기록',
+    DESCRIPTION: '완성한 마법의 이름과 설명을 기록합니다.',
+    SUBMIT: '요약 보기',
+    CANCEL: '조합으로 돌아가기',
+    CLOSE_ARIA_LABEL: '마법 기록 닫기',
+} as const;
+
+export const MAGIC_RESULT_TEXT = {
+    TITLE: '마법 요약',
+    CLOSE_LABEL: '조합으로 돌아가기',
+    CLOSE_ARIA_LABEL: '마법 요약 닫기',
+    EXPORT_PNG_LABEL: 'PNG 내보내기',
+    EXPORT_PNG_PENDING_LABEL: 'PNG 생성 중…',
+    EXPORT_PNG_ERROR: '이미지를 만들지 못했습니다. 다시 시도해 주세요.',
 } as const;
 
 export const MAGIC_CIRCLE_TEXT = {

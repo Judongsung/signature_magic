@@ -72,6 +72,14 @@ export const MAGIC_NODE_EDITOR_BEHAVIORS = {
 export type MagicNodeEditorBehavior =
     (typeof MAGIC_NODE_EDITOR_BEHAVIORS)[keyof typeof MAGIC_NODE_EDITOR_BEHAVIORS];
 
+export const NODE_COMPOSITION_SIGNATURE_PRESENTATIONS = {
+    GUIDED: 'guided',
+    NEUTRAL: 'neutral',
+} as const;
+
+export type NodeCompositionSignaturePresentation =
+    (typeof NODE_COMPOSITION_SIGNATURE_PRESENTATIONS)[keyof typeof NODE_COMPOSITION_SIGNATURE_PRESENTATIONS];
+
 export const MAGIC_REPEAT_CONFIG = {
     DEFAULT_COUNT: 1,
     COUNT_LABEL_PREFIX: '×',

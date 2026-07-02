@@ -6,6 +6,7 @@ export const APP_PHASES = {
     NODE_INTRO_DIALOGUE: 3,
     NODE_COMPOSITION: 4,
     NODE_RESULT_DIALOGUE: 5,
+    MAGIC_RESULT: 6,
 } as const;
 
 export type AppPhase = (typeof APP_PHASES)[keyof typeof APP_PHASES];
@@ -14,6 +15,7 @@ export const APP_PHASE_SCREEN_KINDS = {
     DIALOGUE: 'dialogue',
     CYOA: 'cyoa',
     NODE_COMPOSITION: 'nodeComposition',
+    MAGIC_RESULT: 'magicResult',
 } as const;
 
 type AppPhaseScreenKind =
@@ -58,9 +60,11 @@ export const APP_PHASE_CONFIGS = {
         usesGraphResultContext: true,
         showsMaximumMana: true,
     },
+    [APP_PHASES.MAGIC_RESULT]: {
+        screen: APP_PHASE_SCREEN_KINDS.MAGIC_RESULT,
+        showsMaximumMana: false,
+    },
 } satisfies Record<AppPhase, AppPhaseConfig>;
-
-export const APP_PHASE_ORDER: AppPhase[] = Object.values(APP_PHASES);
 
 export function getAppPhaseConfig(phase: AppPhase): AppPhaseConfig {
     return APP_PHASE_CONFIGS[phase];

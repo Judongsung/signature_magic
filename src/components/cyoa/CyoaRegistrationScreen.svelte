@@ -71,10 +71,7 @@
         gap: 32px;
         padding: 48px 24px 112px;
         box-sizing: border-box;
-        background:
-            linear-gradient(180deg, rgba(255, 248, 232, 0.82), rgba(232, 218, 190, 0.88)),
-            repeating-linear-gradient(90deg, rgba(116, 83, 48, 0.06) 0 1px, transparent 1px 140px),
-            linear-gradient(90deg, #efe2c7, #f8efd9 42%, #dfcda8);
+        background: var(--guild-page-bg);
     }
 
     .registration-panel {
