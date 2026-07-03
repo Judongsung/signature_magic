@@ -24,7 +24,6 @@
     { "magicType": "amplify", "runeKinds": ["rune-force", "rune-rise", "rune-star", "rune-ember", "rune-crown", "rune-pulse", "rune-spark", "rune-orbit", "rune-needle", "rune-fang", "rune-force", "rune-crown"], "baseCount": 12 },
     { "magicType": "stabilize", "runeKinds": ["rune-anchor", "rune-hold", "rune-bind", "rune-root", "rune-shield", "rune-tower", "rune-knot", "rune-bridge", "rune-mirror", "rune-lens", "rune-anchor", "rune-shield"], "baseCount": 12 },
     { "magicType": "compress", "runeKinds": ["rune-bind", "rune-root", "rune-force", "rune-anchor", "rune-knot", "rune-needle", "rune-tower", "rune-shield", "rune-crown", "rune-pulse", "rune-bind", "rune-needle"], "baseCount": 12 },
-    { "magicType": "invert", "runeKinds": ["rune-mirror", "rune-cycle", "rune-split", "rune-orbit", "rune-flow", "rune-door", "rune-thread", "rune-veil", "rune-lens", "rune-knot", "rune-moon", "rune-anchor"], "baseCount": 12 },
     { "magicType": "repel", "runeKinds": ["rune-cut", "rune-split", "rune-mirror", "rune-force", "rune-fang", "rune-veil", "rune-pulse", "rune-gale", "rune-arrow", "rune-knot", "rune-cut", "rune-split"], "baseCount": 12 },
     { "magicType": "branch", "runeKinds": ["rune-split", "rune-bridge", "rune-thread", "rune-arrow", "rune-flow", "rune-cycle", "rune-door", "rune-seek", "rune-split", "rune-bridge", "rune-thread", "rune-flow"], "baseCount": 12 }
 ]

@@ -20,7 +20,9 @@ export type MagicGraphCompletionIssue =
 
 export interface CirclePath {
     id: string;
+    name?: string;
     nodes: MagicNode[];
+    starPointCount?: number;
     stats: MagicStats;
     statAdjustments: MagicStats;
 }
@@ -28,6 +30,7 @@ export interface CirclePath {
 export interface MagicCalculationResult {
     circles: CirclePath[];
     circleStates: MagicCircleState[];
+    terminalCircleId?: string;
     totalStats: MagicStats;
     totalStatAdjustments: MagicStats;
     completionIssue?: MagicGraphCompletionIssue;

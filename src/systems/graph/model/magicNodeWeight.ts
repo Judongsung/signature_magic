@@ -24,6 +24,8 @@ export type MagicNodeWeightTypeContext = Pick<
 >;
 
 const DURATION_STAT_KEY: MagicStatKey = 'duration';
+const CASTING_TIME_STAT_KEY: MagicStatKey = 'castingTime';
+const RANGE_STAT_KEY: MagicStatKey = 'range';
 
 interface MagicNodeWeightData {
     settings?: Readonly<MagicNodeSettings>;
@@ -70,13 +72,15 @@ export function applyMagicNodeWeightToStat(
     config: MagicNodeWeightTypeContext | undefined
 ): number {
     const weight = resolveMagicNodeWeight(data, config);
+    if (weight === MAGIC_NODE_WEIGHT_CONFIG.DEFAULT) {
+        return value;
+    }
+    if (statKey === CASTING_TIME_STAT_KEY) return value;
+    if (statKey === RANGE_STAT_KEY) return value ** weight;
     if (
-        weight === MAGIC_NODE_WEIGHT_CONFIG.DEFAULT ||
-        (
-            statKey === DURATION_STAT_KEY &&
-            config?.type !==
-                MAGIC_NODE_WEIGHT_CONFIG.DURATION_WEIGHTED_MAGIC_TYPE
-        )
+        statKey === DURATION_STAT_KEY &&
+        config?.type !==
+            MAGIC_NODE_WEIGHT_CONFIG.DURATION_WEIGHTED_MAGIC_TYPE
     ) {
         return value;
     }

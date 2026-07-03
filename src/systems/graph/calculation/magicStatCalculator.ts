@@ -1,5 +1,4 @@
 import {
-    EMPTY_MAGIC_STATS,
     MAGIC_STAT_KEYS,
     type MagicStatKey,
     type MagicStats,
@@ -19,7 +18,10 @@ import {
     type MagicStatEffectSummary,
 } from './magicStatEffects';
 import type { MagicNodeExecutionCounts } from './magicRepeatCalculation';
-import { applyMagicNodeWeightToStat } from '../model/magicNodeWeight';
+import {
+    applyMagicNodeWeightToStat,
+    resolveMagicNodeWeight,
+} from '../model/magicNodeWeight';
 import { isMagicControlPairType } from '../model/magicControlPairs';
 
 const EMPTY_NODE_EXECUTION_COUNTS: MagicNodeExecutionCounts = new Map();
@@ -52,37 +54,113 @@ export function calculateMagicStats(
     nodeExecutionCounts: MagicNodeExecutionCounts =
         EMPTY_NODE_EXECUTION_COUNTS
 ): MagicStats {
-    const result = { ...EMPTY_MAGIC_STATS };
-    const context: MagicStatCalculationContext = {
+    const context = createMagicStatCalculationContext(
+        nodeStatEffects,
+        nodeExecutionCounts
+    );
+    const accumulated = applyMagicNodeSequenceWithContext(
+        createSerialIdentityStats(),
+        nodes,
+        magicTypes,
+        context
+    );
+
+    return Object.fromEntries(MAGIC_STAT_KEYS.map(statKey => {
+        const rule = MAGIC_STAT_RULES[statKey];
+        const scaledValue = rule.scaleFinalValue(
+            accumulated[statKey],
+            {
+                nodes,
+                magicTypes,
+                nodeExecutionCounts,
+            }
+        );
+
+        return [statKey, rule.clampValue(scaledValue)];
+    })) as MagicStats;
+}
+
+export function applyMagicNodeSequenceStats(
+    initialStats: MagicStats | undefined,
+    nodes: readonly MagicNode[],
+    magicTypes: ReadonlyMap<string, MagicTypeConfig>,
+    nodeStatEffects: readonly MagicStatEffectConfig[] = [],
+    nodeExecutionCounts: MagicNodeExecutionCounts =
+        EMPTY_NODE_EXECUTION_COUNTS
+): MagicStats {
+    return applyMagicNodeSequenceWithContext(
+        initialStats ?? createSerialIdentityStats(),
+        nodes,
+        magicTypes,
+        createMagicStatCalculationContext(
+            nodeStatEffects,
+            nodeExecutionCounts
+        )
+    );
+}
+
+function createMagicStatCalculationContext(
+    nodeStatEffects: readonly MagicStatEffectConfig[],
+    nodeExecutionCounts: MagicNodeExecutionCounts
+): MagicStatCalculationContext {
+    return {
         nodeStatEffects,
         nodeStatEffectSummariesByMagicType: new Map(),
         nodeStatsById: new Map(),
         nodeExecutionCounts,
     };
-
-    MAGIC_STAT_KEYS.forEach(statKey => {
-        const rule = MAGIC_STAT_RULES[statKey];
-        const value = rule.combineNodeValues(nodes.map(node =>
-            readNodeStat(node, statKey, magicTypes, context)
-        ));
-        const scaledValue = rule.scaleFinalValue(value, {
-            nodes,
-            magicTypes,
-            nodeExecutionCounts,
-        });
-        result[statKey] = rule.clampValue(scaledValue);
-    });
-
-    return result;
 }
 
-function readNodeStat(
-    node: MagicNode,
-    statKey: MagicStatKey,
+function applyMagicNodeSequenceWithContext(
+    initialStats: MagicStats,
+    nodes: readonly MagicNode[],
     magicTypes: ReadonlyMap<string, MagicTypeConfig>,
     context: MagicStatCalculationContext
-): number {
-    return readNodeStats(node, magicTypes, context)[statKey];
+): MagicStats {
+    // 입력 객체는 보존하고, 계산 중에는 이 지역 복사본만 갱신해 노드별 임시 객체 생성을 피한다.
+    const accumulated = { ...initialStats };
+
+    nodes.forEach(node => {
+        const nodeStats = readNodeStats(node, magicTypes, context);
+        MAGIC_STAT_KEYS.forEach(statKey => {
+            accumulated[statKey] =
+                MAGIC_STAT_RULES[statKey].combineSerialValues(
+                    accumulated[statKey],
+                    nodeStats[statKey]
+                );
+        });
+        applyPowerAmplification(
+            accumulated,
+            node,
+            magicTypes.get(node.data.magicType),
+            context.nodeExecutionCounts
+        );
+    });
+
+    return accumulated;
+}
+
+function applyPowerAmplification(
+    accumulated: MagicStats,
+    node: MagicNode,
+    magicType: MagicTypeConfig | undefined,
+    nodeExecutionCounts: MagicNodeExecutionCounts
+): void {
+    const amplification = magicType?.powerAmplification;
+    if (!amplification) return;
+
+    const executionCount = nodeExecutionCounts.get(node.id) ??
+        DEFAULT_NODE_EXECUTION_COUNT;
+    const applicationCount =
+        executionCount * resolveMagicNodeWeight(node.data, magicType);
+    const amplifiablePower = Math.max(0, accumulated.power);
+    const amplifiedPower =
+        amplifiablePower * amplification.factor ** applicationCount;
+    const addedPower = amplifiedPower - amplifiablePower;
+
+    accumulated.power += addedPower;
+    accumulated.manaCost +=
+        addedPower * amplification.manaCostPerAddedPower;
 }
 
 function readNodeStats(
@@ -103,45 +181,46 @@ function readNodeStats(
 
     const magicType = magicTypes.get(node.data.magicType);
     const rawStats = magicType?.stats;
+    if (magicType && !rawStats) {
+        const identityStats = createSerialIdentityStats();
+        context.nodeStatsById.set(node.id, identityStats);
+        return identityStats;
+    }
     const nodeStatEffectSummary = getNodeStatEffectSummary(
         magicType,
         context
     );
     const executionCount = context.nodeExecutionCounts.get(node.id) ??
         DEFAULT_NODE_EXECUTION_COUNT;
-    const stats = Object.fromEntries(
-        MAGIC_STAT_KEYS.map(statKey => {
-            const adjustedValue = applyMagicStatEffectSummary(
-                rawStats?.[statKey] ?? 0,
-                statKey,
-                nodeStatEffectSummary
-            );
-            const boundedValue = MAGIC_STAT_RULES[
-                statKey
-            ].clampNodeValue(
-                adjustedValue,
-                magicType?.statBounds
-            );
-            const weightedValue = applyMagicNodeWeightToStat(
-                boundedValue,
-                statKey,
-                node.data,
-                magicType
-            );
+    const stats = {} as MagicStats;
+    MAGIC_STAT_KEYS.forEach(statKey => {
+        const adjustedValue = applyMagicStatEffectSummary(
+            rawStats?.[statKey] ?? 0,
+            statKey,
+            nodeStatEffectSummary
+        );
+        const boundedValue = MAGIC_STAT_RULES[
+            statKey
+        ].clampNodeValue(
+            adjustedValue,
+            magicType?.statBounds
+        );
+        const weightedValue = applyMagicNodeWeightToStat(
+            boundedValue,
+            statKey,
+            node.data,
+            magicType
+        );
 
-            return [
-                statKey,
-                statKey === NON_REPEATABLE_STAT_KEY
-                    ? weightedValue
-                    : MAGIC_STAT_RULES[
-                        statKey
-                    ].repeatSerialValue(
-                        weightedValue,
-                        executionCount
-                    ),
-            ];
-        })
-    ) as MagicStats;
+        stats[statKey] = statKey === NON_REPEATABLE_STAT_KEY
+            ? weightedValue
+            : MAGIC_STAT_RULES[
+                statKey
+            ].repeatSerialValue(
+                weightedValue,
+                executionCount
+            );
+    });
 
     context.nodeStatsById.set(node.id, stats);
     return stats;

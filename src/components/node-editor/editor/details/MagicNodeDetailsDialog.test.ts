@@ -29,7 +29,11 @@ function node(magicType: string, settings?: Record<string, string>): MagicNode {
 function mountDialog(
     magicType: string,
     settings?: Record<string, string>,
-    nodeStatEffects: readonly MagicStatEffectConfig[] = []
+    nodeStatEffects: readonly MagicStatEffectConfig[] = [],
+    presentation?: {
+        label: string;
+        description: string;
+    }
 ) {
     const target = document.createElement('div');
     document.body.append(target);
@@ -44,6 +48,7 @@ function mountDialog(
             node: node(magicType, settings),
             config,
             nodeStatEffects,
+            presentation,
             onSave,
             onDelete,
             onClose,
@@ -84,8 +89,8 @@ describe('MagicNodeDetailsDialog', () => {
             { phase: 'node', operation: 'multiply', stat: 'castingTime', value: 0.9 },
         ]);
 
-        expect(target.querySelector('.stat-adjustment')?.textContent).toBe('(-0.1)');
-        expect(target.textContent).toContain('0.9');
+        expect(target.querySelector('.stat-adjustment')?.textContent).toBe('(-0.1초)');
+        expect(target.textContent).toContain('0.9초');
     });
 
     it('shows only stat effects targeting the current node type and category', () => {
@@ -110,7 +115,7 @@ describe('MagicNodeDetailsDialog', () => {
         expect(target.textContent).toContain('6');
     });
 
-    it('shows negative contributions without applying positive-only node effects', () => {
+    it('shows stabilization without applying positive-only node effects', () => {
         const { target } = mountDialog('stabilize', undefined, [{
             phase: 'node',
             operation: 'multiply',
@@ -119,7 +124,13 @@ describe('MagicNodeDetailsDialog', () => {
             nodeTarget: { statValueSign: 'positive' },
         }]);
 
-        expect(target.textContent).toContain('-4');
+        expect(target.textContent).toContain(
+            '한 번 사용할 때마다 단위 마법 두 개분의 복잡도를 덜어낸다.'
+        );
+        expect(target.textContent).toContain('카테고리 제어');
+        expect(target.textContent).toContain('불안정성 0');
+        expect(target.textContent).toContain('마나 소모 4 마나');
+        expect(target.querySelector('input[type="number"]')).toBeNull();
         expect(target.querySelector('.stat-adjustment')).toBeNull();
     });
 
@@ -130,7 +141,7 @@ describe('MagicNodeDetailsDialog', () => {
         expect(target.textContent).toContain('메모');
         expect(input.value).toBe('기존 메모');
         expect(input.maxLength).toBe(80);
-        expect(input.placeholder).toBe('노드 메모를 입력하세요.');
+        expect(input.placeholder).toBe('단위 마법에 남길 메모를 입력하세요.');
 
         setInputValue(input, '  불꽃을 일으킨다  ');
         target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
@@ -196,12 +207,15 @@ describe('MagicNodeDetailsDialog', () => {
         expect(onSave).toHaveBeenCalledWith({ repeatCount: '7' });
     });
 
-    it('hides the stat grid for statless control nodes', () => {
-        const { target } = mountDialog('branch');
+    it.each(['branch', 'detect', 'manifestation'])(
+        'hides the stat grid for statless %s nodes',
+        (magicType) => {
+            const { target } = mountDialog(magicType);
 
-        expect(target.querySelector('.node-details-stats')).toBeNull();
-        expect(target.querySelector('.node-tooltip-stats')).toBeNull();
-    });
+            expect(target.querySelector('.node-details-stats')).toBeNull();
+            expect(target.querySelector('.node-tooltip-stats')).toBeNull();
+        }
+    );
 
     it('edits an eligible node weight and previews weighted stats', async () => {
         const { target, onSave } = mountDialog('ignition');
@@ -214,6 +228,9 @@ describe('MagicNodeDetailsDialog', () => {
 
         expect(stepper.querySelector<HTMLInputElement>('input')?.value).toBe('1');
         expect(target.querySelector('.stat-adjustment')).toBeNull();
+        expect(target.textContent).toContain(
+            '시전 시간은 늘지 않고, 범위는 같은 배율을 거듭 적용'
+        );
 
         increase.click();
         await tick();
@@ -257,6 +274,28 @@ describe('MagicNodeDetailsDialog', () => {
         expect(onSave).toHaveBeenCalledWith({ caption: '최종 발현' });
     });
 
+    it('shows transfer presentation without changing manifestation editing', () => {
+        const { target } = mountDialog(
+            'manifestation',
+            { caption: '다음 서클로' },
+            [],
+            {
+                label: '전달',
+                description:
+                    '이 서클에서 완성된 마법을 다음 서클로 전달한다.',
+            }
+        );
+
+        expect(target.querySelector('h2')?.textContent).toBe('전달');
+        expect(target.textContent).toContain(
+            '이 서클에서 완성된 마법을 다음 서클로 전달한다.'
+        );
+        expect(
+            target.querySelector<HTMLInputElement>('input[type="text"]')
+                ?.value
+        ).toBe('다음 서클로');
+    });
+
     it('renders JSON-configured fields and saves normalized custom settings', () => {
         const { target, onSave } = mountDialog('custom', { displayName: '기존 이름' });
         const input = target.querySelector<HTMLInputElement>('input[type="text"]')!;
@@ -282,7 +321,7 @@ describe('MagicNodeDetailsDialog', () => {
         expect(target.textContent).toContain('메모');
         expect(input.value).toBe('기존 메모');
         expect(input.maxLength).toBe(80);
-        expect(input.placeholder).toBe('노드 메모를 입력하세요.');
+        expect(input.placeholder).toBe('단위 마법에 남길 메모를 입력하세요.');
 
         setInputValue(input, '  대상이 움직일 때  ');
         target.querySelector('form')?.dispatchEvent(new SubmitEvent('submit', {
@@ -293,7 +332,7 @@ describe('MagicNodeDetailsDialog', () => {
         expect(onSave).toHaveBeenCalledWith({ caption: '대상이 움직일 때' });
     });
 
-    it('uses the caption as the branch condition', () => {
+    it('uses the common memo field for branch notes', () => {
         const { target } = mountDialog('branch', {
             caption: '대상이 움직일 때',
         });
@@ -301,9 +340,10 @@ describe('MagicNodeDetailsDialog', () => {
             'input[type="text"]'
         )!;
 
-        expect(target.textContent).toContain('분기 조건');
+        expect(target.textContent).toContain('메모');
         expect(input.value).toBe('대상이 움직일 때');
-        expect(input.placeholder).toBe('분기 조건을 입력하세요.');
+        expect(input.placeholder)
+            .toBe('단위 마법에 남길 메모를 입력하세요.');
     });
 
     it('removes an empty caption setting', () => {

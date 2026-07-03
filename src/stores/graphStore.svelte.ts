@@ -156,8 +156,22 @@ class GraphStore {
         return this.calculationResult;
     }
 
-    readonly circles: CirclePath[] = $derived(this.calculationResult.circles);
+    readonly circles: CirclePath[] = $derived.by(() => {
+        const circleNames = new Map(
+            getMagicCircleNodes(this.graphDocument.nodes).map(circle => [
+                circle.id,
+                circle.data.name,
+            ])
+        );
+
+        return this.calculationResult.circles.map(circle => ({
+            ...circle,
+            name: circleNames.get(circle.id),
+        }));
+    });
     readonly circleStates: MagicCircleState[] = $derived(this.calculationResult.circleStates);
+    readonly terminalCircleId: string | undefined =
+        $derived(this.calculationResult.terminalCircleId);
     readonly totalStats: MagicStats = $derived(this.calculationResult.totalStats);
     readonly totalStatAdjustments: MagicStats = $derived(this.calculationResult.totalStatAdjustments);
     readonly completionIssue: MagicGraphCompletionIssue | undefined =

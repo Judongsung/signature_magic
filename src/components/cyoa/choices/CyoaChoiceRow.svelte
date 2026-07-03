@@ -7,7 +7,10 @@
     } from '../../../types/cyoa';
     import { formatCyoaStatEffect } from '../../../systems/cyoa/cyoaStatEffectFormatting';
     import { getUserMagicTypeLabel } from '../../../systems/magic/magicTypeCatalog';
-    import { formatMagicMana } from '../../../systems/magic/magicMana';
+    import { formatMagicStat } from '../../../systems/magic/magicStatFormatting';
+    import {
+        MAGIC_STAT_DISPLAY_CONTEXTS,
+    } from '../../../constants/magicStatPresentationConfigs';
     import { CYOA_STAT_EFFECT_TEXT } from '../../../constants/uiText';
 
     let {
@@ -37,9 +40,14 @@
         const maximumManaModifier = choice.maximumManaModifier;
         if (maximumManaModifier === undefined) return statEffectLabels;
 
+        const formattedModifier = formatMagicStat(
+            'manaCost',
+            Math.abs(maximumManaModifier),
+            MAGIC_STAT_DISPLAY_CONTEXTS.TOTAL
+        );
         const modifierLabel = maximumManaModifier < 0
-            ? `−${formatMagicMana(Math.abs(maximumManaModifier))}`
-            : `+${formatMagicMana(maximumManaModifier)}`;
+            ? `−${formattedModifier}`
+            : `+${formattedModifier}`;
         return [
             ...statEffectLabels,
             `${CYOA_STAT_EFFECT_TEXT.MAXIMUM_MANA_LABEL} ${modifierLabel}`,

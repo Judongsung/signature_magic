@@ -17,7 +17,10 @@
     import RegistrationSummaryDialog from '../registration/RegistrationSummaryDialog.svelte';
     import CharacterSpeechBubble from '../shared/CharacterSpeechBubble.svelte';
     import DescriptionTooltip from '../shared/DescriptionTooltip.svelte';
-    import { formatMagicMana } from '../../systems/magic/magicMana';
+    import { formatMagicStat } from '../../systems/magic/magicStatFormatting';
+    import {
+        MAGIC_STAT_DISPLAY_CONTEXTS,
+    } from '../../constants/magicStatPresentationConfigs';
     import type {
         MagicGraphCompletionIssue,
     } from '../../systems/graph/calculation/magicCalculationTypes';
@@ -144,9 +147,9 @@
                 aria-live="polite"
                 aria-label={APP_PHASE_NAVIGATION_TEXT.MANA_STATUS_ARIA_LABEL}
             >
-                <span>{APP_PHASE_NAVIGATION_TEXT.MANA_COST_LABEL} {formatMagicMana(manaCost)}</span>
+                <span>{APP_PHASE_NAVIGATION_TEXT.MANA_COST_LABEL} {formatMagicStat('manaCost', manaCost, MAGIC_STAT_DISPLAY_CONTEXTS.TOTAL)}</span>
                 <span aria-hidden="true">/</span>
-                <span>{APP_PHASE_NAVIGATION_TEXT.MAXIMUM_MANA_LABEL} {formatMagicMana(maximumMana)}</span>
+                <span>{APP_PHASE_NAVIGATION_TEXT.MAXIMUM_MANA_LABEL} {formatMagicStat('manaCost', maximumMana, MAGIC_STAT_DISPLAY_CONTEXTS.TOTAL)}</span>
             </div>
         {/if}
 

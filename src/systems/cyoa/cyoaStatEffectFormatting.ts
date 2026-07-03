@@ -11,6 +11,13 @@ import {
 import {
     type MagicType,
 } from '../../types/magicTypeConfig';
+import {
+    MAGIC_STAT_DISPLAY_CONTEXTS,
+} from '../../constants/magicStatPresentationConfigs';
+import {
+    formatMagicStat,
+    formatMagicStatAdjustment,
+} from '../magic/magicStatFormatting';
 export type MagicTypeLabelResolver = (magicType: MagicType) => string | undefined;
 
 export function formatCyoaStatEffect(
@@ -22,7 +29,7 @@ export function formatCyoaStatEffect(
         : formatNodeTarget(effect, resolveMagicTypeLabel);
     const operationLabel = effect.operation === MAGIC_STAT_EFFECT_OPERATION_IDS.MULTIPLY
         ? `${CYOA_STAT_EFFECT_TEXT.OPERATION_SYMBOLS.multiply}${effect.value}`
-        : formatAddition(effect.value);
+        : formatAddition(effect);
 
     return `${scopeLabel} ${MAGIC_STAT_LABELS[effect.stat]} ${operationLabel}`;
 }
@@ -47,8 +54,24 @@ function formatNodeTarget(
         : `${targetLabels.join(CYOA_STAT_EFFECT_TEXT.TARGET_GROUP_SEPARATOR)} ${CYOA_STAT_EFFECT_TEXT.PHASE_LABELS.node}`;
 }
 
-function formatAddition(value: number): string {
-    return value < 0
-        ? `${CYOA_STAT_EFFECT_TEXT.NEGATIVE_SIGN}${Math.abs(value)}`
-        : `${CYOA_STAT_EFFECT_TEXT.OPERATION_SYMBOLS.add}${value}`;
+function formatAddition(effect: MagicStatEffectConfig): string {
+    const context = effect.phase === MAGIC_STAT_EFFECT_PHASE.FINAL
+        ? MAGIC_STAT_DISPLAY_CONTEXTS.TOTAL
+        : MAGIC_STAT_DISPLAY_CONTEXTS.NODE;
+    const positiveAdjustment = formatMagicStatAdjustment(
+        effect.stat,
+        Math.abs(effect.value),
+        context
+    ) ?? `${CYOA_STAT_EFFECT_TEXT.OPERATION_SYMBOLS.add}${formatMagicStat(
+        effect.stat,
+        0,
+        context
+    )}`;
+
+    return effect.value < 0
+        ? positiveAdjustment.replace(
+            CYOA_STAT_EFFECT_TEXT.OPERATION_SYMBOLS.add,
+            CYOA_STAT_EFFECT_TEXT.NEGATIVE_SIGN
+        )
+        : positiveAdjustment;
 }

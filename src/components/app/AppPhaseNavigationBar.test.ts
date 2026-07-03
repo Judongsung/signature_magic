@@ -108,8 +108,8 @@ describe('AppPhaseNavigationBar', () => {
             },
         });
 
-        expect(html).toContain('마나 소모 105.5');
-        expect(html).toContain('최대 100');
+        expect(html).toContain('마나 소모 105.5 마나');
+        expect(html).toContain('최대 100 마나');
         expect(html).toContain('mana-status');
         expect(html).toContain('exceeded');
         expect(html).toContain('disabled');

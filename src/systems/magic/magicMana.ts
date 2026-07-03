@@ -1,8 +1,12 @@
 import { MAXIMUM_MANA_CONFIG } from '../../constants/maximumManaConfigs';
+import {
+    MAGIC_STAT_PRESENTATION_CONFIG,
+} from '../../constants/magicStatPresentationConfigs';
 
 function roundMagicMana(value: number): number {
-    return Math.round(value * MAXIMUM_MANA_CONFIG.DISPLAY_PRECISION) /
-        MAXIMUM_MANA_CONFIG.DISPLAY_PRECISION;
+    return Math.round(
+        value * MAGIC_STAT_PRESENTATION_CONFIG.PRECISION
+    ) / MAGIC_STAT_PRESENTATION_CONFIG.PRECISION;
 }
 
 export function resolveMaximumMana(
@@ -23,11 +27,4 @@ export function isManaCostWithinMaximum(
     maximumMana: number
 ): boolean {
     return roundMagicMana(manaCost) <= roundMagicMana(maximumMana);
-}
-
-export function formatMagicMana(value: number): string {
-    const rounded = roundMagicMana(value);
-    return Number.isInteger(rounded)
-        ? String(rounded)
-        : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 }

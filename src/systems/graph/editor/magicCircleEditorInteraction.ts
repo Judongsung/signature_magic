@@ -37,7 +37,11 @@ export function createMagicNodeDragOrigins(
     nodes: readonly MagicEditorNode[]
 ): MagicNodeSequenceOrigin[] {
     return getMagicUnitNodes(nodes)
-        .filter(node => node.selected && node.parentId)
+        .filter(node =>
+            node.selected &&
+            node.parentId &&
+            node.draggable !== false
+        )
         .map(node => ({
             nodeId: node.id,
             circleId: node.parentId!,

@@ -1,8 +1,11 @@
 ﻿<script lang="ts">
     import {
         MAGIC_STAT_CALCULATION_DESCRIPTIONS,
-        MAGIC_STAT_LABELS,
+        MAGIC_STAT_DISPLAY_LABELS,
     } from '../../../constants/uiText';
+    import {
+        MAGIC_STAT_DISPLAY_CONTEXTS,
+    } from '../../../constants/magicStatPresentationConfigs';
     import {
         MAGIC_STAT_KEYS,
         type MagicStats,
@@ -10,7 +13,8 @@
     import {
         formatMagicStat,
         formatMagicStatAdjustment,
-    } from '../../../systems/graph/presentation/magicStatFormatting';
+        resolveMagicStatGrade,
+    } from '../../../systems/magic/magicStatFormatting';
     import DescriptionTooltip from '../../shared/DescriptionTooltip.svelte';
 
     let {
@@ -26,14 +30,27 @@
     } = $props();
 
     const statsGridId = $props.id();
+    const displayContext = $derived(total
+        ? MAGIC_STAT_DISPLAY_CONTEXTS.TOTAL
+        : MAGIC_STAT_DISPLAY_CONTEXTS.CIRCLE
+    );
 </script>
 
 <dl class="stats-grid" class:total-stats-grid={total} aria-label={ariaLabel}>
     {#each MAGIC_STAT_KEYS as statKey}
         {@const tooltipId = `${statsGridId}-${statKey}-calculation-tooltip`}
         {@const adjustment = adjustments
-            ? formatMagicStatAdjustment(adjustments[statKey])
+            ? formatMagicStatAdjustment(
+                statKey,
+                adjustments[statKey],
+                displayContext
+            )
             : undefined}
+        {@const grade = resolveMagicStatGrade(
+            statKey,
+            stats[statKey],
+            displayContext
+        )}
         <!-- svelte-ignore a11y_no_noninteractive_tabindex (계산식 툴팁에 키보드로 접근할 수 있게 한다.) -->
         <div
             class="stat-item tooltip-host"
@@ -42,7 +59,7 @@
             aria-describedby={tooltipId}
         >
             <dt>
-                {MAGIC_STAT_LABELS[statKey]}
+                {MAGIC_STAT_DISPLAY_LABELS[displayContext][statKey]}
                 <DescriptionTooltip
                     id={tooltipId}
                     description={MAGIC_STAT_CALCULATION_DESCRIPTIONS[total ? 'total' : 'circle'][statKey]}
@@ -50,7 +67,7 @@
                 />
             </dt>
             <dd>
-                {formatMagicStat(stats[statKey])}{#if adjustment}<span class="stat-adjustment">({adjustment})</span>{/if}
+                {formatMagicStat(statKey, stats[statKey], displayContext)}{#if adjustment}<span class="stat-adjustment">({adjustment})</span>{/if}{#if grade}<span class="stat-grade">· {grade}</span>{/if}
             </dd>
         </div>
     {/each}
@@ -111,6 +128,14 @@
     .stat-adjustment {
         color: var(--node-editor-accent);
         font-size: 0.82em;
+    }
+
+    .stat-grade {
+        margin-left: 0.35em;
+        color: var(--node-editor-stats-label);
+        font-size: 0.72em;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     @media (max-width: 520px) {

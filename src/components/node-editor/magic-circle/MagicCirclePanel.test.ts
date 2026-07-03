@@ -58,6 +58,19 @@ describe('MagicCirclePanel', () => {
         expect(html).toContain('mode-loop');
     });
 
+    it('shows the configured circle name on its rendered card', () => {
+        createSingleNodeCircleFixture();
+        const circle = graphStore.circles[0];
+        graphStore.updateCircleMetadata(circle.id, {
+            name: '빙결 구속',
+            caption: '',
+        });
+
+        const { html } = render(MagicCirclePanel);
+
+        expect(html).toContain('빙결 구속');
+    });
+
     it('shows node-effect adjustments in both circle and total stats', () => {
         createSingleNodeCircleFixture();
         graphStore.setExternalStatEffects({

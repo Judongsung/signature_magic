@@ -16,25 +16,42 @@ describe('MagicNodeTooltipStats', () => {
             },
         });
 
-        expect(html).toContain('9');
-        expect(html).toContain('(-1)');
+        expect(html).toContain('9초');
+        expect(html).toContain('(-1초)');
         expect(html).toContain('4');
         expect(html).toContain('(+1)');
+        expect(html).toContain('범위 배율');
         expect((html.match(/stat-adjustment/g) ?? [])).toHaveLength(2);
     });
 
-    it('shows weighted values while leaving regular duration unchanged', () => {
+    it('keeps casting time and compounds range in weighted previews', () => {
         const { html } = render(MagicNodeTooltipStats, {
             props: {
-                stats: { castingTime: 2, duration: 3 },
+                stats: { castingTime: 2, range: 2, duration: 3 },
                 magicType: 'ignition',
                 nodeCategory: 'action',
                 nodeData: { settings: { weight: '2' } },
             },
         });
 
-        expect(html).toContain('4');
-        expect(html).toContain('(+2)');
+        expect(html).toContain('2초');
+        expect(html).toContain('×4');
+        expect(html).toContain('(+2배)');
         expect((html.match(/stat-adjustment/g) ?? [])).toHaveLength(1);
+    });
+
+    it('explains amplification output and variable mana cost', () => {
+        const { html } = render(MagicNodeTooltipStats, {
+            props: {
+                stats: { power: 0, manaCost: 5 },
+                powerAmplification: {
+                    factor: 1.5,
+                    manaCostPerAddedPower: 1,
+                },
+            },
+        });
+
+        expect(html).toContain('×1.5');
+        expect(html).toContain('기본 5 마나 + 늘어난 출력');
     });
 });

@@ -67,6 +67,9 @@
             ),
         ])
     ));
+    const outgoingCircleIds = $derived(new Set(
+        preview.edges.map(edge => edge.source)
+    ));
     provideMagicGraphRenderContext({
         getCircleChildren: circleId =>
             previewGraphIndex.childrenByCircleId.get(circleId) ?? [],
@@ -74,6 +77,8 @@
             previewCircleStateById.get(circleId),
         getCircleTitle: circleId =>
             previewCircleTitleById.get(circleId),
+        hasOutgoingCircleConnection: circleId =>
+            outgoingCircleIds.has(circleId),
         activeCircleId: undefined,
         sequenceDropPreview: undefined,
         nodeStatEffects: EMPTY_NODE_STAT_EFFECTS,

@@ -54,18 +54,53 @@ describe('magicCircleCompositionScene', () => {
         expect(scene.polygonCircles[0].vertexIndex).toBe(0);
     });
 
+    it('keeps the requested terminal circle in the center before capping', () => {
+        const sourceCircles = Array.from(
+            {
+                length:
+                    NODE_COMPOSITION_TRANSITION_CONFIG.MAX_CIRCLE_INSTANCES +
+                    2,
+            },
+            (_, index) => circle(`circle-${index}`)
+        );
+        const terminalCircle = sourceCircles.at(-1)!;
+        const scene = buildMagicCircleCompositionScene(
+            sourceCircles,
+            { centralCircleId: terminalCircle.id }
+        );
+
+        expect(scene.centralCircle?.circle.id).toBe(terminalCircle.id);
+        expect(scene.circles).toHaveLength(
+            NODE_COMPOSITION_TRANSITION_CONFIG.MAX_CIRCLE_INSTANCES
+        );
+        expect(scene.polygonCircles.map(item => item.circle.id))
+            .not.toContain(terminalCircle.id);
+    });
+
     it('uses custom layout config for preview scenes', () => {
         const scene = buildMagicCircleCompositionScene([
             circle('circle-1'),
             circle('circle-2', 'stream'),
         ], {
-            CENTRAL_CIRCLE_SIZE: { minPx: 100, preferredVmin: 20, maxPx: 200 },
-            VERTEX_CIRCLE_SIZE: { minPx: 50, preferredVmin: 10, maxPx: 100 },
-            VERTEX_CIRCLE_OPACITY: 0.7,
-            CENTER_VERTEX_GAP_RATIO: 0.55,
-            POLYGON_START_ANGLE_DEGREES: -90,
+            centralCircleId: 'circle-2',
+            layoutConfig: {
+                CENTRAL_CIRCLE_SIZE: {
+                    minPx: 100,
+                    preferredVmin: 20,
+                    maxPx: 200,
+                },
+                VERTEX_CIRCLE_SIZE: {
+                    minPx: 50,
+                    preferredVmin: 10,
+                    maxPx: 100,
+                },
+                VERTEX_CIRCLE_OPACITY: 0.7,
+                CENTER_VERTEX_GAP_RATIO: 0.55,
+                POLYGON_START_ANGLE_DEGREES: -90,
+            },
         });
 
+        expect(scene.centralCircle?.circle.id).toBe('circle-2');
         expect(scene.layout.centralCircleSize).toBe('clamp(100px, 20vmin, 200px)');
         expect(scene.layout.vertexCircleSize).toBe('clamp(50px, 10vmin, 100px)');
         expect(scene.polygonCircles[0].opacity).toBe(0.7);

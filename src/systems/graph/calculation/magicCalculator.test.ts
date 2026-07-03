@@ -262,7 +262,7 @@ describe('calculateMagic explicit circle integration', () => {
         expect(result.totalStatAdjustments.power).toBe(-1);
     });
 
-    it('applies node weight without scaling non-sustain duration', () => {
+    it('keeps weighted casting time and compounds weighted range', () => {
         const magicTypes: MagicTypeConfig[] = [{
             type: 'weighted',
             label: 'Weighted',
@@ -274,7 +274,7 @@ describe('calculateMagic explicit circle integration', () => {
                 castingTime: 1,
                 instability: 1,
                 power: 1,
-                range: 1,
+                range: 2,
                 manaCost: 1,
                 duration: 1,
             },
@@ -285,10 +285,10 @@ describe('calculateMagic explicit circle integration', () => {
         );
 
         expect(result.totalStats).toEqual({
-            castingTime: 3,
+            castingTime: 1,
             instability: 3,
             power: 3,
-            range: 3,
+            range: 8,
             manaCost: 3,
             duration: 1,
         });
@@ -411,10 +411,14 @@ describe('calculateMagic explicit circle integration', () => {
                 color: '',
                 category: 'basic',
                 description: '',
+                powerAmplification: {
+                    factor: 1.5,
+                    manaCostPerAddedPower: 1,
+                },
                 stats: {
                     castingTime: 2,
                     instability: 1,
-                    power: 3,
+                    power: 0,
                     range: 2,
                     manaCost: 4,
                     duration: 5,
@@ -461,26 +465,30 @@ describe('calculateMagic explicit circle integration', () => {
             connected.edges,
             types
         );
-        const targetStats = result.circles.find(circle =>
+        const targetCircle = result.circles.find(circle =>
             circle.id === target.id
-        )!.stats;
+        )!;
+        const targetStats = targetCircle.stats;
 
         expect(targetStats).toMatchObject({
             castingTime: 16,
             instability: 2.2,
-            power: 27,
+            power: 21,
             range: 28,
-            manaCost: 28,
+            manaCost: 35,
             duration: 19,
         });
         expect(result.totalStats).toMatchObject({
             castingTime: 16,
-            power: 27,
+            power: 21,
             range: 28,
-            manaCost: 28,
+            manaCost: 35,
             duration: 19,
         });
         expect(result.totalStats.instability).toBeCloseTo(3.2);
+        expect(targetCircle.starPointCount)
+            .toBe(targetCircle.nodes.length + 1);
+        expect(result.terminalCircleId).toBe(target.id);
         expect(result.completionIssue).toBeUndefined();
     });
 
@@ -596,6 +604,90 @@ describe('calculateMagic explicit circle integration', () => {
         expect(result.totalStats.instability).toBe(3);
         expect(result.totalStatAdjustments.instability).toBe(-7);
         expect(result.completionIssue).toBeUndefined();
+    });
+
+    it('keeps stabilization local and preserves external connection risk', () => {
+        const source = createMagicCircleNode(
+            { x: -520, y: 0 },
+            () => 'stabilization-source'
+        );
+        const target = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'stabilization-target'
+        );
+        const types: MagicTypeConfig[] = [
+            {
+                type: 'risk',
+                label: 'Risk',
+                icon: '',
+                color: '',
+                category: 'basic',
+                description: '',
+                stats: { instability: 2 },
+            },
+            {
+                type: 'stabilize',
+                label: 'Stabilize',
+                icon: '',
+                color: '',
+                category: 'control',
+                description: '',
+                instabilityNodeCountReduction: 2,
+                stats: {
+                    castingTime: 3.5,
+                    instability: 0,
+                    manaCost: 4,
+                },
+            },
+        ];
+        const connected = syncGraphTopology({
+            nodes: [
+                source,
+                target,
+                attachNodeToCircle(
+                    node('source-risk-a', 'risk'),
+                    source,
+                    0
+                ),
+                attachNodeToCircle(
+                    node('source-risk-b', 'risk'),
+                    source,
+                    1
+                ),
+                attachNodeToCircle(
+                    node('target-stabilize', 'stabilize'),
+                    target,
+                    0
+                ),
+                attachNodeToCircle(
+                    node('target-risk', 'risk'),
+                    target,
+                    1
+                ),
+            ],
+            edges: [{
+                id: 'edge-stabilization',
+                source: source.id,
+                target: target.id,
+                sourceHandle: 'circle-output',
+                targetHandle: 'circle-input',
+            }],
+        });
+        const result = calculateMagic(
+            connected.nodes,
+            connected.edges,
+            types
+        );
+        const instabilityByCircleId = new Map(
+            result.circles.map(circle => [
+                circle.id,
+                circle.stats.instability,
+            ])
+        );
+
+        expect(instabilityByCircleId.get(source.id)).toBeCloseTo(4.4);
+        expect(instabilityByCircleId.get(target.id)).toBe(2);
+        expect(result.totalStats.instability).toBeCloseTo(5.4);
     });
 
     it('treats an input-only join circle as a calculable terminal', () => {

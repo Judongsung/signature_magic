@@ -7,11 +7,12 @@ import {
     MAGIC_STAT_SCALING_OPERATION_VALUES,
 } from '../../../constants/magicStatConfigs';
 import {
-    MAGIC_CONTROL_NODE_CATEGORY,
-} from '../../../constants/nodeEditorConfigs';
-import {
+    MAGIC_CONTROL_PAIR_ROLES,
     MAGIC_NODE_KINDS,
 } from '../../../constants/graphConfigs';
+import {
+    MAGIC_CONTROL_NODE_CATEGORY,
+} from '../../../constants/nodeEditorConfigs';
 import {
     MAGIC_STAT_KEYS,
     type MagicStatAggregationOperation,
@@ -27,6 +28,12 @@ import {
 import type {
     MagicTypeConfig,
 } from '../../../types/magicTypeConfig';
+import {
+    resolveMagicNodeWeight,
+} from '../model/magicNodeWeight';
+import {
+    isMagicControlPairNode,
+} from '../model/magicControlPairs';
 
 interface MagicStatScalingContext {
     nodes: readonly MagicNode[];
@@ -36,7 +43,6 @@ interface MagicStatScalingContext {
 
 export interface MagicStatRule {
     serialIdentity: number;
-    combineNodeValues(values: number[]): number;
     combineSerialValues(left: number, right: number): number;
     repeatSerialValue(value: number, count: number): number;
     combineBranchValues(values: number[]): number;
@@ -81,7 +87,7 @@ function maxSerialValues(left: number, right: number): number {
     return Math.max(left, right);
 }
 
-const nodeAggregationOperations: Record<
+const aggregationOperations: Record<
     MagicStatAggregationOperation,
     (values: number[]) => number
 > = {
@@ -127,24 +133,57 @@ function scaleByNodeCount(
     config: MagicStatScalingConfig
 ): number {
     const factor = config.factor ?? DEFAULT_EXPONENTIAL_FACTOR;
-    const countedNodeTotal = context.nodes.reduce((total, node) => {
+    const nodeCountSummary = context.nodes.reduce((summary, node) => {
         if (
             node.data.excludeFromStatScaling === true ||
-            node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM ||
-            context.magicTypes.get(node.data.magicType)?.category ===
-                MAGIC_CONTROL_NODE_CATEGORY
+            node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM
         ) {
-            return total;
+            return summary;
         }
 
-        return total + (
+        const magicType = context.magicTypes.get(node.data.magicType);
+        const executionCount =
             context.nodeExecutionCounts?.get(node.id) ??
-            DEFAULT_NODE_EXECUTION_COUNT
-        );
-    }, 0);
+            DEFAULT_NODE_EXECUTION_COUNT;
+        if (
+            isMagicControlPairNode(node) &&
+            node.data.controlPair.role === MAGIC_CONTROL_PAIR_ROLES.END
+        ) {
+            return summary;
+        }
+
+        // 안정화는 제어 단위 마법이라 개수에는 넣지 않고 복리 복잡도만 상쇄한다.
+        const configuredReduction =
+            magicType?.instabilityNodeCountReduction;
+        if (
+            typeof configuredReduction === 'number' &&
+            Number.isFinite(configuredReduction) &&
+            configuredReduction > 0
+        ) {
+            return {
+                ...summary,
+                reduction: summary.reduction +
+                    configuredReduction *
+                    executionCount *
+                    resolveMagicNodeWeight(node.data, magicType),
+            };
+        }
+        if (magicType?.category === MAGIC_CONTROL_NODE_CATEGORY) {
+            return summary;
+        }
+
+        return {
+            ...summary,
+            counted: summary.counted + executionCount,
+        };
+    }, { counted: 0, reduction: 0 });
+    const effectiveNodeCount = Math.max(
+        0,
+        nodeCountSummary.counted - nodeCountSummary.reduction
+    );
     const exponent = Math.max(
         0,
-        countedNodeTotal - FIRST_NODE_SCALING_EXPONENT_OFFSET
+        effectiveNodeCount - FIRST_NODE_SCALING_EXPONENT_OFFSET
     );
 
     return value * (factor ** exponent);
@@ -201,14 +240,12 @@ function buildMagicStatRule(
     return {
         serialIdentity:
             serialIdentityValues[config.serialAggregation],
-        combineNodeValues:
-            nodeAggregationOperations[config.nodeAggregation],
         combineSerialValues:
             serialAggregationOperations[config.serialAggregation],
         repeatSerialValue:
             repeatSerialOperations[config.serialAggregation],
         combineBranchValues: values =>
-            nodeAggregationOperations[
+            aggregationOperations[
                 config.branchAggregation
             ](values),
         scaleFinalValue: buildScaleFinalValue(config.scaling),

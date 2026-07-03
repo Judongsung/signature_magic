@@ -63,6 +63,9 @@ describe('MagicStatsGrid', () => {
         const target = renderGrid();
 
         expectAccessibleTooltips(target);
+        expect(target.textContent).toContain('최종 범위');
+        expect(target.textContent).toContain('4m');
+        expect(target.querySelector('.stat-grade')).toBeNull();
         MAGIC_STAT_KEYS.forEach(statKey => {
             expect(target.textContent).toContain(
                 MAGIC_STAT_CALCULATION_DESCRIPTIONS.circle[statKey]
@@ -80,6 +83,9 @@ describe('MagicStatsGrid', () => {
             );
         });
         expect(target.querySelector('.total-stats-grid')).not.toBeNull();
+        expect([...target.querySelectorAll('.stat-grade')]
+            .map(element => element.textContent)
+        ).toEqual(['· 안정', '· 미약']);
     });
 
     it('renders signed non-zero adjustments next to final values', () => {
@@ -95,6 +101,6 @@ describe('MagicStatsGrid', () => {
         const adjustments = [...target.querySelectorAll('.stat-adjustment')]
             .map(element => element.textContent);
 
-        expect(adjustments).toEqual(['(-0.25)', '(+1)']);
+        expect(adjustments).toEqual(['(-0.25초)', '(+1)']);
     });
 });

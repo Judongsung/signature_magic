@@ -25,6 +25,12 @@
         createNodeCompositionPresetController,
     } from './presets/nodeCompositionPresetController.svelte';
     import { isMagicCircleNode } from '../../systems/graph/model/magicCircleGraph';
+    import {
+        resolveCircleSystemMagicNodePresentation,
+    } from '../../systems/graph/presentation/circleSystemMagicNodePresentation';
+    import {
+        isCircleSystemMagicNodeData,
+    } from '../../systems/graph/model/circleSystemMagicNodes';
 
     const builtInPresets = magicGraphPresetsData as MagicGraphPresetConfig[];
     const presetController = createNodeCompositionPresetController({
@@ -52,6 +58,21 @@
             : undefined
     );
     const activeNodeConfig = $derived(activeNode ? getMagicTypeConfig(activeNode.data.magicType) : undefined);
+    const activeNodePresentation = $derived(
+        activeNode &&
+        activeNodeConfig &&
+        isCircleSystemMagicNodeData(activeNode.data)
+            ? resolveCircleSystemMagicNodePresentation(
+                activeNodeConfig,
+                Boolean(
+                    activeNode.parentId &&
+                    graphStore.edges.some(edge =>
+                        edge.source === activeNode.parentId
+                    )
+                )
+            )
+            : undefined
+    );
     const activeCirclePath = $derived(
         activeCircle
             ? graphStore.circles.find(circle => circle.id === activeCircle.id)
@@ -183,6 +204,7 @@
         <MagicNodeDetailsDialog
             node={activeNode}
             config={activeNodeConfig}
+            presentation={activeNodePresentation}
             nodeStatEffects={graphStore.externalStatEffects.nodeEffects}
             onSave={saveNodeSettings}
             onDelete={activeNode.deletable === false

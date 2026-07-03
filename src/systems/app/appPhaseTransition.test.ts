@@ -45,7 +45,8 @@ describe('appPhaseTransition', () => {
                 currentPhase: APP_PHASES.NODE_COMPOSITION,
                 nextPhase: APP_PHASES.NODE_RESULT_DIALOGUE,
             },
-            [BASE_CIRCLE]
+            [BASE_CIRCLE],
+            BASE_CIRCLE.id
         );
 
         expect(plan?.targetPhase).toBe(APP_PHASES.NODE_RESULT_DIALOGUE);
@@ -56,6 +57,7 @@ describe('appPhaseTransition', () => {
             throw new Error('Expected transition completion plan');
         }
         expect(plan.circles).toEqual([BASE_CIRCLE]);
+        expect(plan.terminalCircleId).toBe(BASE_CIRCLE.id);
         expect(plan.circles[0]).not.toBe(BASE_CIRCLE);
         expect(plan.circles[0].nodes[0]).not.toBe(BASE_CIRCLE.nodes[0]);
         expect(plan.circles[0].statAdjustments).not.toBe(BASE_CIRCLE.statAdjustments);
@@ -75,6 +77,32 @@ describe('appPhaseTransition', () => {
             NODE_COMPOSITION_COMPLETION_PRESENTATIONS.IMMEDIATE
         );
         expect(plan).not.toHaveProperty('circles');
+    });
+
+    it('snapshots the requested terminal circle for transition rendering', () => {
+        const terminal = {
+            ...BASE_CIRCLE,
+            id: 'circle-terminal',
+        };
+        const plan = createNodeCompositionCompletionPlan(
+            {
+                currentPhase: APP_PHASES.NODE_COMPOSITION,
+                nextPhase: APP_PHASES.NODE_RESULT_DIALOGUE,
+            },
+            [BASE_CIRCLE, terminal],
+            terminal.id
+        );
+
+        expect(plan?.presentation).toBe(
+            NODE_COMPOSITION_COMPLETION_PRESENTATIONS.TRANSITION
+        );
+        if (
+            plan?.presentation !==
+            NODE_COMPOSITION_COMPLETION_PRESENTATIONS.TRANSITION
+        ) {
+            throw new Error('Expected transition completion plan');
+        }
+        expect(plan.terminalCircleId).toBe(terminal.id);
     });
 
     it('does not create a plan for empty or unrelated phase transitions', () => {

@@ -14,7 +14,11 @@ import {
 } from './circleSystemMagicNodes';
 
 const testCircleSystemNodeConfigs = [
-    { magicType: 'manifestation', idSuffix: 'manifestation' },
+    {
+        magicType: 'manifestation',
+        idSuffix: 'manifestation',
+        fixedAtSequenceEnd: true,
+    },
     { magicType: 'test-system', idSuffix: 'test-system' },
 ] as const;
 
@@ -44,15 +48,16 @@ describe('circleSystemMagicNodes', () => {
         );
 
         expect(normalized.map(node => node.id)).toEqual([
-            `${circle.id}-manifestation`,
             'editable',
+            `${circle.id}-manifestation`,
             `${circle.id}-test-system`,
         ]);
         expect(normalized.filter(node =>
             isCircleSystemMagicNode(node, testCircleSystemNodeConfigs)
         )).toHaveLength(2);
-        expect(normalized[0].selectable).toBe(true);
-        expect(normalized[0].data.showTooltip).toBe(true);
+        expect(normalized[1].selectable).toBe(true);
+        expect(normalized[1].draggable).toBe(false);
+        expect(normalized[1].data.showTooltip).toBe(true);
         expect(normalized[2].data).toMatchObject({
             magicType: 'test-system',
             nodeKind: MAGIC_NODE_KINDS.SYSTEM,
@@ -85,6 +90,58 @@ describe('circleSystemMagicNodes', () => {
             magicType: 'manifestation',
             slotIndex: 0,
             settings: { caption: '최종 발현' },
+        }]);
+    });
+
+    it('moves a fixed system node behind editable and connection nodes', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'fixed-end'
+        );
+        const manifestation = createCircleSystemMagicNode(
+            circle,
+            testCircleSystemNodeConfigs[0],
+            0
+        );
+        const editable = attachNodeToCircle(
+            createTestMagicNode('editable'),
+            circle,
+            1
+        );
+        const connectionJoin = {
+            ...attachNodeToCircle(
+                createTestMagicNode('join', 'circleJoin'),
+                circle,
+                2
+            ),
+            data: {
+                magicType: 'circleJoin',
+                nodeKind: MAGIC_NODE_KINDS.SYSTEM,
+                sequenceIndex: 2,
+                connectionJoin: {
+                    edgeId: 'edge-a',
+                    sourceCircleId: 'source',
+                },
+            },
+        } as const;
+
+        const normalized = normalizeCircleSystemNodeChildren(
+            circle,
+            [manifestation, editable, connectionJoin],
+            [testCircleSystemNodeConfigs[0]]
+        );
+
+        expect(normalized.map(node => node.id)).toEqual([
+            'editable',
+            'join',
+            `${circle.id}-manifestation`,
+        ]);
+        expect(resolveCircleSystemNodeSlotsFromChildren(
+            normalized,
+            [testCircleSystemNodeConfigs[0]]
+        )).toEqual([{
+            magicType: 'manifestation',
+            slotIndex: 1,
         }]);
     });
 

@@ -70,7 +70,7 @@
 
     <div class="toolbar-divider"></div>
 
-    {#each visibleMagicTypes as { type, label, icon, description, category, stats, statBounds }}
+    {#each visibleMagicTypes as { type, label, icon, description, category, stats, statBounds, powerAmplification }}
         <button
             class="drag-btn tooltip-host"
             type="button"
@@ -95,6 +95,7 @@
                         magicType={type}
                         nodeCategory={category}
                         nodeStatBounds={statBounds}
+                        {powerAmplification}
                     />
                 {/if}
             </DescriptionTooltip>

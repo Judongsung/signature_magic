@@ -69,7 +69,7 @@ describe('magicNodeData', () => {
             label: '메모',
             control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
             maxLength: 80,
-            placeholder: '노드 메모를 입력하세요.',
+            placeholder: '단위 마법에 남길 메모를 입력하세요.',
             presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_CAPTION,
         });
         expect(normalizeMagicNodeSettings(plainType, {

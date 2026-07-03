@@ -2,6 +2,9 @@ import {
     MAGIC_CONTROL_PAIR_NODE_TYPES,
 } from '../../constants/graphConfigs';
 import {
+    CIRCLE_SYSTEM_MAGIC_NODE_TYPES,
+} from '../../constants/circleSystemMagicNodeConfigs';
+import {
     MAGIC_NODE_EDITOR_BEHAVIORS,
     MAGIC_NODE_EDITOR_CONTROLS,
     MAGIC_NODE_EDITOR_PRESENTATIONS,
@@ -36,8 +39,17 @@ const MAGIC_NODE_EDITOR_PRESENTATION_SET: ReadonlySet<string> =
 const MAGIC_NODE_EDITOR_BEHAVIOR_SET: ReadonlySet<string> =
     new Set(Object.values(MAGIC_NODE_EDITOR_BEHAVIORS));
 const MAGIC_STAT_BOUND_OVERRIDE_KEYS = new Set(['minimum', 'maximum']);
+const MAGIC_POWER_AMPLIFICATION_KEYS = new Set([
+    'factor',
+    'manaCostPerAddedPower',
+]);
+const STATELESS_USER_MAGIC_TYPE_IDS = ['detect'] as const;
 const STATELESS_MAGIC_TYPE_IDS = new Set<string>(
-    Object.values(MAGIC_CONTROL_PAIR_NODE_TYPES)
+    [
+        ...Object.values(MAGIC_CONTROL_PAIR_NODE_TYPES),
+        ...STATELESS_USER_MAGIC_TYPE_IDS,
+        CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
+    ]
 );
 
 function validateMagicStats(type: string, stats: MagicStatsConfig | undefined): string[] {
@@ -94,6 +106,51 @@ function validateMagicNodeStatBounds(type: string, statBounds: unknown): string[
             errors.push(`Invalid magic node stat bounds order: ${type} -> ${statKey} -> ${minimum} -> ${maximum}`);
         }
     });
+
+    return errors;
+}
+
+function validateInstabilityNodeCountReduction(
+    type: string,
+    reduction: unknown
+): string[] {
+    if (reduction === undefined) return [];
+
+    return Number.isInteger(reduction) && Number(reduction) > 0
+        ? []
+        : [
+            `Invalid instability node count reduction: ${type} -> ${reduction}`,
+        ];
+}
+
+function validatePowerAmplification(
+    type: string,
+    amplification: unknown
+): string[] {
+    if (amplification === undefined) return [];
+    if (!isPlainObject(amplification)) {
+        return [`Invalid power amplification: ${type}`];
+    }
+
+    const errors = Object.keys(amplification)
+        .filter(key => !MAGIC_POWER_AMPLIFICATION_KEYS.has(key))
+        .map(key => `Unknown power amplification key: ${type} -> ${key}`);
+    if (
+        !isFiniteNumber(amplification.factor) ||
+        Number(amplification.factor) <= 1
+    ) {
+        errors.push(
+            `Invalid power amplification factor: ${type} -> ${amplification.factor}`
+        );
+    }
+    if (
+        !isFiniteNumber(amplification.manaCostPerAddedPower) ||
+        Number(amplification.manaCostPerAddedPower) < 0
+    ) {
+        errors.push(
+            `Invalid power amplification mana cost: ${type} -> ${amplification.manaCostPerAddedPower}`
+        );
+    }
 
     return errors;
 }
@@ -248,6 +305,14 @@ function validateMagicTypeConfigs(
         if (!isNonEmptyString(magicType.description)) {
             errors.push(`Missing magic type description: ${magicType.type}`);
         }
+        errors.push(...validateInstabilityNodeCountReduction(
+            magicType.type,
+            magicType.instabilityNodeCountReduction
+        ));
+        errors.push(...validatePowerAmplification(
+            magicType.type,
+            magicType.powerAmplification
+        ));
         errors.push(...validateMagicNodeInstanceEditor(magicType.type, magicType.instanceEditor));
         errors.push(...validateMagicStats(magicType.type, magicType.stats));
         errors.push(...validateMagicNodeStatBounds(magicType.type, magicType.statBounds));

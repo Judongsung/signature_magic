@@ -27,6 +27,7 @@ import {
 } from '../../../constants/circleSystemMagicNodeConfigs';
 import {
     isCircleSystemMagicNode,
+    isFixedCircleSystemMagicNode,
     normalizeCircleSystemNodeChildren,
 } from './circleSystemMagicNodes';
 import {
@@ -402,13 +403,13 @@ export function moveMagicNodeGroup(
         return restoreSequencePositions(snapshot);
     }
     if (
-        sourceCircleId !== targetCircleId &&
+        snapshot.nodes.some(node =>
+            originIds.has(node.id) &&
+            isFixedCircleSystemMagicNode(node)
+        ) ||
         (
-            !canMoveMagicControlPairsAcrossCircles(snapshot.nodes, originIds) ||
-            snapshot.nodes.some(node =>
-                originIds.has(node.id) &&
-                isCircleSystemMagicNode(node)
-            )
+            sourceCircleId !== targetCircleId &&
+            !canMoveMagicControlPairsAcrossCircles(snapshot.nodes, originIds)
         )
     ) {
         return restoreSequencePositions(snapshot);

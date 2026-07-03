@@ -25,6 +25,40 @@ describe('magicCircleEditorInteraction', () => {
         ]);
     });
 
+    it('excludes selected fixed system nodes from drag origins', () => {
+        const circle = createMagicCircleNode(
+            { x: 0, y: 0 },
+            () => 'fixed'
+        );
+        const movable = {
+            ...attachNodeToCircle(
+                createTestMagicNode('movable'),
+                circle,
+                0
+            ),
+            selected: true,
+        };
+        const fixed = {
+            ...attachNodeToCircle(
+                createTestMagicNode('fixed', 'manifestation'),
+                circle,
+                1
+            ),
+            selected: true,
+            draggable: false,
+        };
+
+        expect(createMagicNodeDragOrigins([
+            circle,
+            movable,
+            fixed,
+        ])).toEqual([{
+            nodeId: movable.id,
+            circleId: circle.id,
+            sequenceIndex: 0,
+        }]);
+    });
+
     it('resolves the insertion index from the pointer position', () => {
         const source = createMagicCircleNode({ x: 0, y: 0 }, () => 'source');
         const target = createMagicCircleNode({ x: 520, y: 0 }, () => 'target');

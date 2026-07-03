@@ -28,6 +28,7 @@ import { buildMagicCircleRenderModels } from '../presentation/magicCircleRendere
 
 const PERFORMANCE_SCENARIO_NODE_COUNTS = [25, 50, 100] as const;
 const PERFORMANCE_SCENARIO_MAX_DURATION_MS = 1500;
+const AMPLIFY_MAGIC_TYPE = 'amplify';
 const MAGIC_TYPE_SEQUENCE: readonly MagicType[] = [
     'ignition',
     'stream',
@@ -44,9 +45,23 @@ const BASE_STATS: MagicStats = {
     duration: 1,
 };
 
-const scenarioMagicTypes = MAGIC_TYPE_SEQUENCE.map(type =>
-    magicType(type, 'basic')
-);
+const scenarioMagicTypes = [
+    ...MAGIC_TYPE_SEQUENCE.map(type =>
+        magicType(type, 'basic')
+    ),
+    {
+        ...magicType(AMPLIFY_MAGIC_TYPE, 'control'),
+        powerAmplification: {
+            factor: 1.5,
+            manaCostPerAddedPower: 1,
+        },
+        stats: {
+            ...BASE_STATS,
+            power: 0,
+            manaCost: 5,
+        },
+    },
+];
 
 interface PerformanceScenarioGraph {
     nodes: MagicEditorNode[];
@@ -68,12 +83,16 @@ function magicType(
     };
 }
 
-function node(id: string, magicType: MagicType): MagicNode {
+function node(
+    id: string,
+    magicType: MagicType,
+    settings?: Record<string, string>
+): MagicNode {
     return {
         id,
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
         position: { x: 0, y: 0 },
-        data: { magicType, nodeKind: 'user' },
+        data: { magicType, nodeKind: 'user', settings },
     };
 }
 
@@ -154,6 +173,34 @@ function createConvergingCircleGraph(
     };
 }
 
+function createAmplifiedCircleGraph(
+    nodeCount: number
+): PerformanceScenarioGraph {
+    const circle = createMagicCircleNode(
+        { x: 0, y: 0 },
+        () => 'amplified'
+    );
+    const children = Array.from({ length: nodeCount }, (_, index) => {
+        const isAmplification = index % 2 === 1;
+
+        return attachNodeToCircle(
+            node(
+                `amplified-${index}`,
+                isAmplification
+                    ? AMPLIFY_MAGIC_TYPE
+                    : MAGIC_TYPE_SEQUENCE[
+                        index % MAGIC_TYPE_SEQUENCE.length
+                    ],
+                isAmplification ? { weight: '3' } : undefined
+            ),
+            circle,
+            index
+        );
+    });
+
+    return { nodes: [circle, ...children], edges: [] };
+}
+
 function measureDuration(operation: () => void): number {
     const startedAt = performance.now();
     operation();
@@ -216,6 +263,15 @@ describe('graph performance scenarios', () => {
         nodeCount => {
             runGraphPerformanceScenario(
                 createConvergingCircleGraph(nodeCount)
+            );
+        }
+    );
+
+    it.each(PERFORMANCE_SCENARIO_NODE_COUNTS)(
+        'handles a %i node weighted amplification sequence',
+        nodeCount => {
+            runGraphPerformanceScenario(
+                createAmplifiedCircleGraph(nodeCount)
             );
         }
     );

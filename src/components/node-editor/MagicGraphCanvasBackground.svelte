@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { NODE_EDITOR_CANVAS_BACKGROUND } from '../../constants/nodeEditorAssets';
+    import { MAGIC_CANVAS_BACKGROUND } from '../../constants/magicCanvasAssets';
     import { EDITOR_CANVAS } from '../../constants/nodeEditorConfigs';
 
     const canvasLeft = `${EDITOR_CANVAS.EXTENT[0][0]}px`;
@@ -15,7 +15,7 @@
     style:top={canvasTop}
     style:width={`${canvasWidth}px`}
     style:height={`${canvasHeight}px`}
-    style:--canvas-background-image-layer={NODE_EDITOR_CANVAS_BACKGROUND.IMAGE_LAYER}
+    style:--canvas-background-image-layer={MAGIC_CANVAS_BACKGROUND.IMAGE_LAYER}
 ></div>
 
 <style>

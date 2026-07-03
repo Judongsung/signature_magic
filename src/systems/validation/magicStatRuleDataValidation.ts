@@ -21,9 +21,6 @@ function validateMagicStatRuleConfig(statKey: string, rule: MagicStatRuleConfig 
 
     const errors: string[] = [];
 
-    if (!isMagicStatAggregationOperation(rule.nodeAggregation)) {
-        errors.push(`Invalid magic stat node aggregation: ${statKey} -> ${rule.nodeAggregation}`);
-    }
     if (!isMagicStatAggregationOperation(rule.serialAggregation)) {
         errors.push(`Invalid magic stat serial aggregation: ${statKey} -> ${rule.serialAggregation}`);
     }

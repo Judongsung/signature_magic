@@ -62,13 +62,25 @@ describe('magicNodeWeight', () => {
         )).toBe(1);
     });
 
-    it('weights every stat except duration for regular nodes', () => {
+    it('leaves casting time unchanged and compounds range', () => {
+        expect(applyMagicNodeWeightToStat(
+            4,
+            'castingTime',
+            data('3'),
+            ACTION_TYPE
+        )).toBe(4);
         expect(applyMagicNodeWeightToStat(
             4,
             'power',
             data('3'),
             ACTION_TYPE
         )).toBe(12);
+        expect(applyMagicNodeWeightToStat(
+            2,
+            'range',
+            data('3'),
+            ACTION_TYPE
+        )).toBe(8);
         expect(applyMagicNodeWeightToStat(
             4,
             'duration',

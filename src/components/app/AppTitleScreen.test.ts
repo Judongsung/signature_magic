@@ -2,6 +2,7 @@ import { render } from 'svelte/server';
 import { describe, expect, it, vi } from 'vitest';
 import { APP_MODES } from '../../constants/appModeConfigs';
 import { APP_TITLE_TEXT } from '../../constants/uiText';
+import { MAGIC_CANVAS_BACKGROUND } from '../../constants/magicCanvasAssets';
 import AppTitleScreen from './AppTitleScreen.svelte';
 
 describe('AppTitleScreen', () => {
@@ -20,6 +21,7 @@ describe('AppTitleScreen', () => {
         expect(html).toContain('class="title-circle ');
         expect(html).toContain('aria-hidden="true"');
         expect(html).toContain('data-animation-mode="loop"');
+        expect(html).toContain(MAGIC_CANVAS_BACKGROUND.IMAGE_URL);
         expect(html).not.toContain('tabindex="-1"');
     });
 

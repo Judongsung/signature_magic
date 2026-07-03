@@ -258,13 +258,12 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             [],
             magicTypesData as MagicTypeConfig[]
         );
-
         expect(result.circles[0].nodes.map(node => node.id))
             .toEqual([start.id, content.id]);
         expect(result.circles[0].stats).toMatchObject({
             castingTime: 3,
             power: 12,
-            manaCost: 6,
+            manaCost: 9,
         });
         expect(result.circles[0].stats.instability)
             .toBeCloseTo(2 * (1.1 ** 2));
@@ -308,13 +307,31 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             [],
             magicTypesData as MagicTypeConfig[]
         );
+        const changedMemoResult = calculateMagic(
+            [
+                circle,
+                {
+                    ...start,
+                    data: {
+                        ...start.data,
+                        settings: { caption: '전혀 다른 메모' },
+                    },
+                },
+                content,
+                end,
+            ],
+            [],
+            magicTypesData as MagicTypeConfig[]
+        );
 
         expect(result.circles[0].nodes.map(node => node.id))
             .toEqual([start.id, content.id]);
         expect(result.circles[0].stats).toMatchObject({
             instability: 2,
-            manaCost: 2,
+            manaCost: 3,
         });
+        expect(changedMemoResult.circles[0].stats)
+            .toEqual(result.circles[0].stats);
     });
 
     it('rejects an upward branch target from static calculation', () => {
@@ -343,7 +360,7 @@ describe('explicitMagicCircleGraph sequence projection', () => {
             ...createTestMagicNode('upward-branch-start', 'branch'),
             data: {
                 ...createTestMagicNode('upward-branch-start', 'branch').data,
-                settings: { caption: '조건이 충족되면 위로 이동' },
+                settings: { caption: '앞쪽 목적지는 허용하지 않음' },
                 controlPair: {
                     id: pairId,
                     role: MAGIC_CONTROL_PAIR_ROLES.START,

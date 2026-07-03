@@ -38,6 +38,6 @@ describe('MagicCircleSvg', () => {
         expect(html).toContain('<svg');
         expect(html).toContain('data-animation-mode="burst"');
         expect(html).toContain('mode-burst');
-        expect(html).toContain('aria-label="Magic circle 1"');
+        expect(html).toContain('aria-label="마법 서클 1"');
     });
 });

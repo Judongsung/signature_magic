@@ -65,3 +65,42 @@
 - Enabled TypeScript unused-local and unused-parameter checks for the application source to prevent the same class of residue from accumulating.
 - Verification completed: `validate:data` 34 tests, `check` with no diagnostics, full suite 580 tests, and the production build all passed.
 - The production build now transforms 633 modules and emits a 495.78 kB main bundle, down from 636 modules and 499.96 kB before cleanup.
+
+## 2026-07-03 — Stat units and final grades
+
+- Moved stat formatting from graph presentation to the magic domain so node, circle, result, CYOA, and navigation UI share one unit policy.
+- Defined casting and duration as seconds, node range as a multiplier over a 1 m base, effective range as metres, and mana cost as mana units without changing stored values.
+- Added power and instability grades only to total stat views while keeping node and circle values numeric for editing.
+- Verification completed: `validate:data` 34 tests, `check` with no diagnostics, full suite 594 tests, and the production build all passed.
+
+## 2026-07-03 — Stabilization as complexity control
+
+- Replaced the stabilize node's negative base-instability contribution with a data-backed effective-node reduction used only by local exponential instability scaling.
+- Reused repeat execution counts so stabilization strength, casting time, and mana cost grow together; moving stabilize into the control category deliberately excludes node weight.
+- Kept intrinsic instability and external circle-connection risk outside stabilization, avoiding both zero-risk builds and type-ID checks in the calculator.
+- Verification completed: `validate:data` 35 tests, `check` with no diagnostics, full suite 600 tests, and the production build all passed.
+
+## 2026-07-03 — Magic type baseline balance
+
+- Rebalanced all stat-bearing magic types around practical 3–5 node spells, with mana and instability paying for stronger output, duration, or range.
+- Reduced extreme multiplicative range values and removed incidental output or duration from modifier nodes whose role is structural rather than additive.
+- Moved stabilize from adjustment to control so it follows the same no-weight rule as detect, repeat, and branch while retaining repeat-scaled stabilization and resource cost.
+- Verification completed: `validate:data` 35 tests, `check` with no diagnostics, full suite 601 tests, and the production build all passed.
+
+## 2026-07-03 — Player-facing magic terminology
+
+- Replaced development-facing “node” wording in UI, CYOA effects, README, and the public guide with “unit magic”.
+- Named automatic graph elements by their in-world roles—manifestation point and join point—and localized circle input/output labels.
+- Rewrote instability and editing guidance in player language while retaining technical identifiers and graph terminology inside the source model.
+- Verification completed: `validate:data` 35 tests, `check` with no diagnostics, full suite 601 tests, and the production build all passed.
+
+## 2026-07-03 — Ordered amplification and join balance
+
+- Changed amplification from a flat output contribution to an ordered, data-backed 1.5× transform whose added output also increases mana cost.
+- Made joined output select the strongest incoming flow while preserving the existing max/sum policies for the other stats.
+- Excluded detect, stabilize, repeat, and branch unit magic from local instability complexity while retaining stabilize's repeat-scaled reduction, and documented the exact formula in the public guide.
+- Removed the obsolete invert type and glyph without adding a low-value stored-preset migration.
+- Included join points only in the background star geometry, propagated current circle names to preview cards without invalidating calculation snapshots, and shared the canvas background asset with the title screen.
+- Removed the unused `nodeAggregation` rule after ordered sequence evaluation made `serialAggregation` the single owner of within-flow stat composition.
+- Kept ordered amplification pure at its boundary while reusing one function-local accumulator, removing per-node stat arrays and result-object copies; added weighted amplification performance scenarios up to 100 nodes.
+- Verification completed: `validate:data` 36 tests, `check` with no diagnostics, full suite 611 tests, and the production build all passed.

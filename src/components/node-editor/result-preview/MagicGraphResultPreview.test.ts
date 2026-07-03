@@ -132,8 +132,8 @@ describe('MagicGraphResultPreview', () => {
         await vi.waitFor(() => {
             expect(target.querySelector('.magic-circle-node')).not.toBeNull();
         });
-        expect(target.textContent).toContain('INPUT');
-        expect(target.textContent).toContain('OUTPUT');
+        expect(target.textContent).toContain('입력');
+        expect(target.textContent).toContain('출력');
         expect(target.textContent).not.toContain('START');
         expect(target.textContent).not.toContain('END');
     });

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { NODE_EDITOR_CANVAS_BACKGROUND } from '../../../constants/nodeEditorAssets';
+    import { MAGIC_CANVAS_BACKGROUND } from '../../../constants/magicCanvasAssets';
     import {
         MAGIC_CIRCLE_ANIMATION_MODES,
         NODE_COMPOSITION_TRANSITION_CONFIG,
@@ -23,9 +23,11 @@
 
     let {
         circles,
+        terminalCircleId,
         onComplete,
     }: {
         circles: CirclePath[];
+        terminalCircleId?: string;
         onComplete: () => void;
     } = $props();
 
@@ -33,7 +35,10 @@
     let completionTimer: ReturnType<typeof setTimeout> | undefined;
     let didComplete = false;
 
-    const transitionScene = $derived(buildMagicCircleCompositionScene(circles));
+    const transitionScene = $derived(buildMagicCircleCompositionScene(
+        circles,
+        { centralCircleId: terminalCircleId }
+    ));
     const transitionLayout = $derived(transitionScene.layout);
     const centralCircle = $derived(transitionScene.centralCircle);
     const polygonCircles = $derived(transitionScene.polygonCircles);
@@ -94,7 +99,7 @@
     style:--orbit-easing={NODE_COMPOSITION_TRANSITION_CONFIG.ORBIT_ACCELERATION_EASING}
     style:--central-circle-size={transitionLayout.centralCircleSize}
     style:--vertex-circle-size={transitionLayout.vertexCircleSize}
-    style:--canvas-background-image-layer={NODE_EDITOR_CANVAS_BACKGROUND.IMAGE_LAYER}
+    style:--canvas-background-image-layer={MAGIC_CANVAS_BACKGROUND.IMAGE_LAYER}
 >
     <div class="circle-system">
         {#if centralCircle}

@@ -12,6 +12,7 @@ import {
 export interface CircleSystemMagicNodeConfig {
     magicType: MagicType;
     idSuffix: string;
+    fixedAtSequenceEnd?: boolean;
 }
 
 export const CIRCLE_SYSTEM_MAGIC_NODE_TYPES = {
@@ -19,25 +20,37 @@ export const CIRCLE_SYSTEM_MAGIC_NODE_TYPES = {
     CONNECTION_JOIN: 'circleJoin',
 } as const;
 
+export const CIRCLE_SYSTEM_MAGIC_NODE_PRESENTATIONS = {
+    MANIFESTATION: {
+        label: '발현',
+        description: '서클에서 완성된 마법을 외부에 발현한다.',
+    },
+    TRANSFER: {
+        label: '전달',
+        description: '이 서클에서 완성된 마법을 다음 서클로 전달한다.',
+    },
+} as const;
+
 export const CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS: CircleSystemMagicNodeConfig[] = [
     {
         magicType: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
         idSuffix: 'manifestation',
+        fixedAtSequenceEnd: true,
     },
 ];
 
 export const CIRCLE_SYSTEM_MAGIC_TYPE_CONFIGS: MagicTypeConfig[] = [
     {
         type: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.MANIFESTATION,
-        label: '발현',
+        label: CIRCLE_SYSTEM_MAGIC_NODE_PRESENTATIONS.MANIFESTATION.label,
         icon: '✧',
         color: '#f7d774',
         category: 'control',
-        description: '배치된 위치까지 형성된 마법을 외부에 발현한다.',
+        description:
+            CIRCLE_SYSTEM_MAGIC_NODE_PRESENTATIONS.MANIFESTATION.description,
         instanceEditor: {
             fields: [MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD],
         },
-        stats: EMPTY_MAGIC_STATS,
     },
     {
         type: CIRCLE_SYSTEM_MAGIC_NODE_TYPES.CONNECTION_JOIN,

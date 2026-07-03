@@ -14,7 +14,7 @@ describe('cyoaStatEffectFormatting', () => {
             stat: 'instability',
             value: 0.9,
             nodeTarget: { statValueSign: 'positive' },
-        }, resolveMagicTypeLabel)).toBe('노드 불안정성 ×0.9');
+        }, resolveMagicTypeLabel)).toBe('단위 마법 불안정성 ×0.9');
         expect(formatCyoaStatEffect({
             phase: 'final',
             operation: 'multiply',
@@ -27,7 +27,7 @@ describe('cyoaStatEffectFormatting', () => {
             stat: 'manaCost',
             value: -1,
             nodeTarget: { categories: ['action'] },
-        }, resolveMagicTypeLabel)).toBe('행동 노드 마나 소모 −1');
+        }, resolveMagicTypeLabel)).toBe('행동 단위 마법 마나 소모 −1 마나');
         expect(formatCyoaStatEffect({
             phase: 'node',
             operation: 'add',
@@ -37,6 +37,6 @@ describe('cyoaStatEffectFormatting', () => {
                 categories: ['action'],
                 magicTypes: ['emit', 'move'],
             },
-        }, resolveMagicTypeLabel)).toBe('행동 / 방출 · 이동 노드 출력 +2');
+        }, resolveMagicTypeLabel)).toBe('행동 / 방출 · 이동 단위 마법 출력 +2');
     });
 });

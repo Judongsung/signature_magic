@@ -111,6 +111,9 @@
             ),
         ])
     ));
+    const outgoingCircleIds = $derived(new Set(
+        graphStore.edges.map(edge => edge.source)
+    ));
     provideMagicGraphRenderContext({
         getCircleChildren: circleId =>
             renderGraphIndex.childrenByCircleId.get(circleId) ?? [],
@@ -118,6 +121,8 @@
             renderCircleStateById.get(circleId),
         getCircleTitle: circleId =>
             renderCircleTitleById.get(circleId),
+        hasOutgoingCircleConnection: circleId =>
+            outgoingCircleIds.has(circleId),
         get activeCircleId() {
             return graphStore.activeCircleId;
         },

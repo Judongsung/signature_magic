@@ -40,7 +40,10 @@
 
     <article class="result-section">
         <h3>{CYOA_REGISTRATION_RESULT_TEXT.CIRCLES_TITLE}</h3>
-        <MagicCircleCompositionPreview circles={graphStore.circles} />
+        <MagicCircleCompositionPreview
+            circles={graphStore.circles}
+            terminalCircleId={graphStore.terminalCircleId}
+        />
     </article>
 
     <article class="result-section">

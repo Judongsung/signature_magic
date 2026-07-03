@@ -20,7 +20,11 @@ import {
     type CirclePath,
     type MagicCalculationResult,
 } from './magicCalculationTypes';
-import { buildMagicTypeMap, calculateMagicStats } from './magicStatCalculator';
+import {
+    applyMagicNodeSequenceStats,
+    buildMagicTypeMap,
+    calculateMagicStats,
+} from './magicStatCalculator';
 import { applyMagicStatEffectsToStats } from './magicStatEffects';
 import { clampMagicStats } from './magicStatRules';
 import {
@@ -137,6 +141,9 @@ function calculateExplicitMagicNow(
     return {
         circles,
         circleStates: analysis.states,
+        ...(analysis.terminalCircleId
+            ? { terminalCircleId: analysis.terminalCircleId }
+            : {}),
         totalStats: adjustedTotalStats,
         totalStatAdjustments: subtractMagicStats(
             adjustedTotalStats,
@@ -201,19 +208,13 @@ function calculateCircleFlow(
     const flushSegment = (): void => {
         if (segmentNodes.length === 0) return;
 
-        const segmentStats = calculateMagicStats(
+        currentStats = clampMagicStats(applyMagicNodeSequenceStats(
+            currentStats,
             segmentNodes,
             magicTypeMap,
             nodeStatEffects,
             nodeExecutionCounts
-        );
-        currentStats = currentStats
-            ? combineMagicCircleFlowStats(
-                currentStats,
-                segmentStats,
-                'serial'
-            )
-            : segmentStats;
+        ));
         segmentNodes = [];
     };
 
@@ -244,7 +245,12 @@ function calculateCircleFlow(
 
     return {
         id: internal.circle.id,
+        name: internal.circle.data.name,
         nodes: internal.calculationNodes,
+        starPointCount:
+            internal.calculationNodes.length +
+            internal.sequenceNodes.filter(isMagicCircleConnectionJoinNode)
+                .length,
         stats: finalizeMagicCircleFlowStats(
             currentStats,
             localStats

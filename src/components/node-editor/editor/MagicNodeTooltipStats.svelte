@@ -1,5 +1,12 @@
 <script lang="ts">
-    import { MAGIC_STAT_LABELS, NODE_EDITOR_TEXT } from '../../../constants/uiText';
+    import {
+        MAGIC_STAT_DISPLAY_LABELS,
+        MAGIC_NODE_TOOLTIP_TEXT,
+        NODE_EDITOR_TEXT,
+    } from '../../../constants/uiText';
+    import {
+        MAGIC_STAT_DISPLAY_CONTEXTS,
+    } from '../../../constants/magicStatPresentationConfigs';
     import {
         EMPTY_MAGIC_STATS,
         MAGIC_STAT_KEYS,
@@ -13,6 +20,7 @@
         type MagicStatEffectConfig,
     } from '../../../types/magicStatEffects';
     import {
+        type MagicPowerAmplificationConfig,
         type MagicNodeSettings,
         type MagicType,
     } from '../../../types/magicTypeConfig';
@@ -25,7 +33,7 @@
     import {
         formatMagicStat,
         formatMagicStatAdjustment,
-    } from '../../../systems/graph/presentation/magicStatFormatting';
+    } from '../../../systems/magic/magicStatFormatting';
     import { applyMagicNodeWeightToStat } from '../../../systems/graph/model/magicNodeWeight';
 
     let {
@@ -35,12 +43,14 @@
         nodeCategory,
         nodeStatBounds,
         nodeData,
+        powerAmplification,
     }: {
         stats?: MagicStatsConfig;
         nodeStatEffects?: readonly MagicStatEffectConfig[];
         magicType?: MagicType;
         nodeCategory?: MagicNodeCategory;
         nodeStatBounds?: MagicNodeStatBoundsConfig;
+        powerAmplification?: MagicPowerAmplificationConfig;
         nodeData?: {
             settings?: Readonly<MagicNodeSettings>;
             nodeKind?: MagicNodeKind;
@@ -76,9 +86,27 @@
 
         return {
             key: statKey,
-            label: MAGIC_STAT_LABELS[statKey],
-            value: formatMagicStat(adjustedValue),
-            adjustment: formatMagicStatAdjustment(adjustedValue - baseValue),
+            label: MAGIC_STAT_DISPLAY_LABELS[
+                MAGIC_STAT_DISPLAY_CONTEXTS.NODE
+            ][statKey],
+            value: powerAmplification && statKey === 'power'
+                ? `${MAGIC_NODE_TOOLTIP_TEXT.AMPLIFICATION_MULTIPLIER_PREFIX}${powerAmplification.factor}`
+                : powerAmplification && statKey === 'manaCost'
+                    ? `${MAGIC_NODE_TOOLTIP_TEXT.AMPLIFICATION_MANA_PREFIX}${formatMagicStat(
+                        statKey,
+                        adjustedValue,
+                        MAGIC_STAT_DISPLAY_CONTEXTS.NODE
+                    )}${MAGIC_NODE_TOOLTIP_TEXT.AMPLIFICATION_MANA_SUFFIX}`
+                    : formatMagicStat(
+                        statKey,
+                        adjustedValue,
+                        MAGIC_STAT_DISPLAY_CONTEXTS.NODE
+                    ),
+            adjustment: formatMagicStatAdjustment(
+                statKey,
+                adjustedValue - baseValue,
+                MAGIC_STAT_DISPLAY_CONTEXTS.NODE
+            ),
         };
     }));
 </script>

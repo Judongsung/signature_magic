@@ -181,6 +181,9 @@ function validatePresetCircleSystemNodeSlots(
     const actualMagicTypes = new Set<string>();
 
     slots.forEach(slot => {
+        const systemNodeConfig = CIRCLE_SYSTEM_MAGIC_NODE_CONFIGS.find(
+            config => config.magicType === slot?.magicType
+        );
         if (
             !slot ||
             typeof slot !== 'object' ||
@@ -189,7 +192,11 @@ function validatePresetCircleSystemNodeSlots(
             actualMagicTypes.has(slot.magicType) ||
             !Number.isInteger(slot.slotIndex) ||
             slot.slotIndex < 0 ||
-            slot.slotIndex > editableNodeCount
+            slot.slotIndex > editableNodeCount ||
+            (
+                systemNodeConfig?.fixedAtSequenceEnd === true &&
+                slot.slotIndex !== editableNodeCount
+            )
         ) {
             errors.push(`Invalid magic graph preset system node slot: ${presetId} -> ${circleId}`);
             return;

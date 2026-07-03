@@ -91,7 +91,7 @@ export const MAGIC_NODE_DEFAULT_CAPTION_EDITOR_FIELD = {
     label: '메모',
     control: MAGIC_NODE_EDITOR_CONTROLS.TEXT,
     maxLength: 80,
-    placeholder: '노드 메모를 입력하세요.',
+    placeholder: '단위 마법에 남길 메모를 입력하세요.',
     presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_CAPTION,
 } as const;
 
@@ -103,7 +103,7 @@ export const MAGIC_NODE_WEIGHT_EDITOR_FIELD = {
     max: MAGIC_NODE_WEIGHT_CONFIG.MAX,
     step: MAGIC_NODE_WEIGHT_CONFIG.STEP,
     defaultValue: MAGIC_NODE_WEIGHT_CONFIG.DEFAULT,
-    helpText: '지속 시간을 제외한 노드 스탯에 적용됩니다. 유지 노드는 지속 시간에도 적용됩니다.',
+    helpText: '효과와 비용을 입력한 수만큼 겹칩니다. 시전 시간은 늘지 않고, 범위는 같은 배율을 거듭 적용하며, 유지는 지속 시간도 늘어납니다.',
     presentation: MAGIC_NODE_EDITOR_PRESENTATIONS.NODE_LABEL_SUFFIX,
     behavior: MAGIC_NODE_EDITOR_BEHAVIORS.NODE_WEIGHT,
 } as const;

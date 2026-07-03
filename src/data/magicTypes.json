@@ -6,7 +6,7 @@
         "color": "#e74c3c",
         "category": "basic",
         "description": "불이 붙고 타오르는 변화를 일으키는 기초 속성이다.",
-        "stats": { "castingTime": 1, "instability": 2, "power": 4, "range": 1, "manaCost": 2, "duration": 3 }
+        "stats": { "castingTime": 1, "instability": 2, "power": 4, "range": 1, "manaCost": 3, "duration": 3 }
     },
     {
         "type": "cooling",
@@ -15,7 +15,7 @@
         "color": "#7fbfff",
         "category": "basic",
         "description": "열을 빼앗고 낮은 온도로 기울게 하는 기초 속성이다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 1, "manaCost": 2, "duration": 3 }
+        "stats": { "castingTime": 0.5, "instability": 1, "power": 2, "range": 1, "manaCost": 2, "duration": 3 }
     },
     {
         "type": "stream",
@@ -24,7 +24,7 @@
         "color": "#3498db",
         "category": "basic",
         "description": "물이 흐르고 번지는 성질을 다루는 기초 속성이다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 2, "range": 2, "manaCost": 2, "duration": 3 }
+        "stats": { "castingTime": 0.5, "instability": 1, "power": 2, "range": 1.5, "manaCost": 2, "duration": 3 }
     },
     {
         "type": "air",
@@ -33,7 +33,7 @@
         "color": "#2ecc71",
         "category": "basic",
         "description": "기체의 흐름과 방향을 다루는 기초 속성이다.",
-        "stats": { "castingTime": 1, "instability": 2, "power": 2, "range": 3, "manaCost": 2, "duration": 1 }
+        "stats": { "castingTime": 0.5, "instability": 1.5, "power": 2, "range": 2, "manaCost": 2, "duration": 1 }
     },
     {
         "type": "soil",
@@ -42,7 +42,7 @@
         "color": "#e67e22",
         "category": "basic",
         "description": "흙과 돌의 형태와 밀도를 다루는 기초 속성이다.",
-        "stats": { "castingTime": 2, "instability": 1, "power": 3, "range": 1, "manaCost": 3, "duration": 4 }
+        "stats": { "castingTime": 1.5, "instability": 1, "power": 3, "range": 1, "manaCost": 3, "duration": 4 }
     },
     {
         "type": "metal",
@@ -51,7 +51,7 @@
         "color": "#95a5a6",
         "category": "basic",
         "description": "금속의 단단함과 전도성을 다루는 기초 속성이다.",
-        "stats": { "castingTime": 2, "instability": 1, "power": 4, "range": 1, "manaCost": 3, "duration": 4 }
+        "stats": { "castingTime": 2, "instability": 1.5, "power": 4, "range": 1, "manaCost": 4, "duration": 4 }
     },
     {
         "type": "force",
@@ -60,7 +60,7 @@
         "color": "#9b59b6",
         "category": "basic",
         "description": "밀고 당기는 작용의 크기를 다루는 기초 속성이다.",
-        "stats": { "castingTime": 2, "instability": 3, "power": 5, "range": 0.8, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 1.5, "instability": 3, "power": 5, "range": 0.75, "manaCost": 4, "duration": 1 }
     },
     {
         "type": "harmony",
@@ -69,7 +69,7 @@
         "color": "#6ab04c",
         "category": "basic",
         "description": "회복과 생장처럼 자연스러운 순환이 이어지도록 돕는 기초 속성이다.",
-        "stats": { "castingTime": 2, "instability": 0, "power": 2, "range": 1, "manaCost": 3, "duration": 5 }
+        "stats": { "castingTime": 1.5, "instability": 0.5, "power": 2, "range": 1, "manaCost": 3, "duration": 5 }
     },
     {
         "type": "light",
@@ -78,7 +78,7 @@
         "color": "#f7dc6f",
         "category": "basic",
         "description": "빛을 만들어 주변을 밝히고 대상을 드러내는 기초 속성이다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 1, "range": 3, "manaCost": 2, "duration": 5 }
+        "stats": { "castingTime": 0.5, "instability": 0.5, "power": 1, "range": 2, "manaCost": 2, "duration": 5 }
     },
     {
         "type": "custom",
@@ -99,7 +99,7 @@
                 }
             ]
         },
-        "stats": { "castingTime": 2, "instability": 2, "power": 2, "range": 1, "manaCost": 2, "duration": 2 }
+        "stats": { "castingTime": 1.5, "instability": 2, "power": 2, "range": 1, "manaCost": 3, "duration": 2 }
     },
     {
         "type": "coordinate",
@@ -108,7 +108,7 @@
         "color": "#f1c40f",
         "category": "action",
         "description": "마법이 발현할 위치 혹은 목표 지점, 대상 등을 지정한다.",
-        "stats": { "castingTime": 1, "instability": 0, "power": 0, "range": 3, "manaCost": 1, "duration": 0 }
+        "stats": { "castingTime": 0.5, "instability": 0, "power": 0, "range": 2, "manaCost": 1, "duration": 0 }
     },
     {
         "type": "move",
@@ -117,7 +117,7 @@
         "color": "#1abc9c",
         "category": "action",
         "description": "지정된 곳으로 이동시킨다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 1, "range": 1, "manaCost": 2, "duration": 1 }
+        "stats": { "castingTime": 0.5, "instability": 1, "power": 1, "range": 1, "manaCost": 2, "duration": 0 }
     },
     {
         "type": "rotate",
@@ -126,7 +126,7 @@
         "color": "#48c9b0",
         "category": "action",
         "description": "한 점을 기준으로 회전한다.",
-        "stats": { "castingTime": 1, "instability": 1, "power": 3, "range": 1, "manaCost": 2, "duration": 2 }
+        "stats": { "castingTime": 1, "instability": 1.5, "power": 2, "range": 1, "manaCost": 2, "duration": 1 }
     },
     {
         "type": "emit",
@@ -135,7 +135,7 @@
         "color": "#ff8f4f",
         "category": "action",
         "description": "한 방향으로 쏘아낸다.",
-        "stats": { "castingTime": 2, "instability": 3, "power": 4, "range": 1, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 1.5, "instability": 2.5, "power": 3, "range": 1, "manaCost": 3, "duration": 0 }
     },
     {
         "type": "attract",
@@ -144,7 +144,7 @@
         "color": "#2471a3",
         "category": "action",
         "description": "대상이나 효과를 지정된 지점으로 끌어당긴다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": 3, "range": 1.5, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 1.5, "instability": 2, "power": 3, "range": 1.25, "manaCost": 3, "duration": 1 }
     },
     {
         "type": "shape",
@@ -153,7 +153,7 @@
         "color": "#c39bd3",
         "category": "action",
         "description": "윤곽과 형태를 원하는 모양으로 빚는다.",
-        "stats": { "castingTime": 2, "instability": 1.5, "power": 1, "range": 1, "manaCost": 4, "duration": 3 }
+        "stats": { "castingTime": 1.5, "instability": 1.5, "power": 1, "range": 1, "manaCost": 3, "duration": 2 }
     },
     {
         "type": "imbue",
@@ -162,7 +162,7 @@
         "color": "#d4ac0d",
         "category": "action",
         "description": "대상이나 술식에 특정 효과를 깃들게 한다.",
-        "stats": { "castingTime": 2, "instability": 1.5, "power": 1, "range": 1, "manaCost": 3, "duration": 4 }
+        "stats": { "castingTime": 1.5, "instability": 1.5, "power": 1, "range": 1, "manaCost": 3, "duration": 3 }
     },
     {
         "type": "diffuse",
@@ -171,7 +171,7 @@
         "color": "#5dade2",
         "category": "control",
         "description": "넓게 퍼트린다.",
-        "stats": { "castingTime": 2, "instability": 4, "power": 1, "range": 6, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 1.5, "instability": 2.5, "power": 0, "range": 3, "manaCost": 4, "duration": 0 }
     },
     {
         "type": "sustain",
@@ -180,7 +180,7 @@
         "color": "#f5b041",
         "category": "control",
         "description": "마법이 흩어지지 않도록 붙잡아 소멸을 늦춘다.",
-        "stats": { "castingTime": 2, "instability": 1, "power": 1, "range": 1, "manaCost": 3, "duration": 6 }
+        "stats": { "castingTime": 1.5, "instability": 0.5, "power": 0, "range": 1, "manaCost": 4, "duration": 5 }
     },
     {
         "type": "disperse",
@@ -189,7 +189,7 @@
         "color": "#85c1e9",
         "category": "control",
         "description": "출력을 낮추고 효과의 범위를 넓게 퍼트린다.",
-        "stats": { "castingTime": 2, "instability": 2, "power": -2, "range": 10, "manaCost": 3, "duration": 1 },
+        "stats": { "castingTime": 1.5, "instability": 2, "power": -2, "range": 4, "manaCost": 4, "duration": 0 },
         "statBounds": {
             "power": { "minimum": null }
         }
@@ -200,20 +200,22 @@
         "icon": "⇧",
         "color": "#ff6b6b",
         "category": "control",
-        "description": "효과의 출력이나 강도를 키운다.",
-        "stats": { "castingTime": 2, "instability": 3, "power": 5, "range": 1, "manaCost": 4, "duration": 1 }
+        "description": "앞서 만들어진 출력을 증폭한다. 커진 출력만큼 마나를 더 소모한다.",
+        "powerAmplification": {
+            "factor": 1.5,
+            "manaCostPerAddedPower": 1
+        },
+        "stats": { "castingTime": 1.5, "instability": 3, "power": 0, "range": 1, "manaCost": 5, "duration": 0 }
     },
     {
         "type": "stabilize",
         "label": "안정",
         "icon": "▣",
         "color": "#58d68d",
-        "category": "control",
-        "description": "불안정성을 제어한다.",
-        "stats": { "castingTime": 3.5, "instability": -4, "power": 0, "range": 1, "manaCost": 2, "duration": 1 },
-        "statBounds": {
-            "instability": { "minimum": null }
-        }
+        "category": "extension",
+        "description": "시간과 마나를 들여 서클을 안정시킨다. 한 번 사용할 때마다 단위 마법 두 개분의 복잡도를 덜어낸다.",
+        "instabilityNodeCountReduction": 2,
+        "stats": { "castingTime": 3, "instability": 0, "power": 0, "range": 1, "manaCost": 4, "duration": 0 }
     },
     {
         "type": "compress",
@@ -222,16 +224,7 @@
         "color": "#d35400",
         "category": "control",
         "description": "마법을 좁은 범위에 응집한다.",
-        "stats": { "castingTime": 2, "instability": 3, "power": 3, "range": 0.5, "manaCost": 3, "duration": 1 }
-    },
-    {
-        "type": "invert",
-        "label": "반전",
-        "icon": "⇄",
-        "color": "#8e44ad",
-        "category": "control",
-        "description": "앞선 효과가 가진 방향이나 작용을 반대로 뒤집는다.",
-        "stats": { "castingTime": 2.5, "instability": 4, "power": 0, "range": 1, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 1.5, "instability": 2.5, "power": 2, "range": 0.5, "manaCost": 4, "duration": 0 }
     },
     {
         "type": "repel",
@@ -240,7 +233,7 @@
         "color": "#c0392b",
         "category": "control",
         "description": "마나의 흐름을 밀어내거나 충돌시켜 순환을 방해한다.",
-        "stats": { "castingTime": 1.5, "instability": 4, "power": 2, "range": 1, "manaCost": 3, "duration": 1 }
+        "stats": { "castingTime": 1, "instability": 3, "power": 2, "range": 1, "manaCost": 3, "duration": 0 }
     },
     {
         "type": "detect",
@@ -248,8 +241,7 @@
         "icon": "◉",
         "color": "#af7ac5",
         "category": "extension",
-        "description": "조건, 대상, 변화를 찾아낸다.",
-        "stats": { "castingTime": 1, "instability": 0, "power": 0, "range": 1, "manaCost": 2, "duration": 2 }
+        "description": "조건, 대상, 변화를 찾아낸다."
     },
     {
         "type": "repeat",
@@ -281,18 +273,6 @@
         "icon": "∨",
         "color": "#f4d03f",
         "category": "extension",
-        "description": "조건이 충족되면 단계를 건너뛴다.",
-        "instanceEditor": {
-            "fields": [
-                {
-                    "key": "caption",
-                    "label": "분기 조건",
-                    "control": "text",
-                    "maxLength": 80,
-                    "placeholder": "분기 조건을 입력하세요.",
-                    "presentation": "nodeCaption"
-                }
-            ]
-        }
+        "description": "흐름을 뒤쪽 목적지로 건너뛰는 지점을 표시한다."
     }
 ]

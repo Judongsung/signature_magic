@@ -67,6 +67,13 @@ const preset: MagicGraphPresetConfig = {
 const pairedPreset: MagicGraphPresetConfig = {
     ...preset,
     id: 'paired-preset',
+    circles: preset.circles.map(circle => ({
+        ...circle,
+        systemNodeSlots: circle.systemNodeSlots.map(slot => ({
+            ...slot,
+            slotIndex: 3,
+        })),
+    })),
     nodes: [
         {
             id: 'repeat-start',
@@ -165,6 +172,35 @@ describe('magicGraphPresets', () => {
         });
     });
 
+    it('normalizes a legacy manifestation slot to the sequence end', () => {
+        const legacyPreset: MagicGraphPresetConfig = {
+            ...preset,
+            circles: preset.circles.map(circle => ({
+                ...circle,
+                systemNodeSlots: circle.systemNodeSlots.map(slot => ({
+                    ...slot,
+                    slotIndex: 0,
+                })),
+            })),
+        };
+        const graph = createMagicGraphFromPreset(
+            legacyPreset,
+            magicTypes
+        );
+        const children = graph.nodes.filter(node =>
+            node.parentId === 'test-circle'
+        );
+        const saved = createMagicGraphPresetSnapshot(
+            'Normalized',
+            graph,
+            () => 'normalized'
+        );
+
+        expect(children.at(-1)?.data.magicType).toBe('manifestation');
+        expect(saved && saved.circles[0].systemNodeSlots[0].slotIndex)
+            .toBe(2);
+    });
+
     it('exposes built-in preset data as a list', () => {
         expect(Array.isArray(magicGraphPresetsData)).toBe(true);
         expect(magicGraphPresetsData.every(item =>
@@ -173,12 +209,48 @@ describe('magicGraphPresets', () => {
         )).toBe(true);
     });
 
-    it('loads the converging signature preset with staged joins', () => {
-        expect(magicGraphPresetsData.some(item =>
-            item.label === '루아른 시그니처'
-        )).toBe(false);
+    it('keeps representative presets within the baseline balance', () => {
+        const calculatePreset = (label: string) => {
+            const config = magicGraphPresetsData.find(item =>
+                item.label === label
+            ) as unknown as MagicGraphPresetConfig;
+            const graph = createMagicGraphFromPreset(
+                config,
+                magicTypes
+            );
+
+            return calculateMagic(
+                graph.nodes,
+                graph.edges,
+                magicTypes
+            );
+        };
+        const fireball = calculatePreset('화염 구체');
+        const haste = calculatePreset('가속 버프');
+
+        expect(fireball.totalStats).toMatchObject({
+            castingTime: 4.5,
+            power: 10,
+            range: 2,
+            manaCost: 10,
+            duration: 7,
+        });
+        expect(fireball.totalStats.instability)
+            .toBeCloseTo(5.5 * (1.1 ** 3));
+        expect(haste.totalStats).toMatchObject({
+            castingTime: 6.5,
+            power: 7,
+            range: 2,
+            manaCost: 55,
+            duration: 59,
+        });
+        expect(haste.totalStats.instability)
+            .toBeCloseTo(6.5 * (1.1 ** 3) + 1);
+    });
+
+    it('loads the converging signature preset', () => {
         const signaturePreset = magicGraphPresetsData.find(item =>
-            item.label === 'new 루아른 시그니처'
+            item.label === '루아른 시그니처'
         ) as unknown as MagicGraphPresetConfig;
         const graph = createMagicGraphFromPreset(
             signaturePreset,
@@ -194,7 +266,7 @@ describe('magicGraphPresets', () => {
         expect(result.circles).toHaveLength(4);
         expect(signaturePreset.edges.map(edge =>
             edge.joinSlotIndex
-        )).toEqual([0, 1, 2]);
+        )).toEqual([0, 0, 0]);
         const terminalStats = result.circles.find(circle =>
             circle.id === 'circle-d1d059582f'
         )!.stats;
@@ -206,11 +278,11 @@ describe('magicGraphPresets', () => {
                 )) + graph.edges.length,
         });
         expect(result.totalStats).toMatchObject({
-            castingTime: 71.5,
-            power: 120,
+            castingTime: 30,
+            power: 40,
             range: 1,
-            manaCost: 252,
-            duration: 85,
+            manaCost: 180,
+            duration: 40,
         });
     });
 

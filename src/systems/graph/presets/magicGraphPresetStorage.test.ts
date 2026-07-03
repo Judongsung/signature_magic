@@ -128,6 +128,40 @@ describe('magicGraphPresetStorage', () => {
         });
     });
 
+    it('rejects presets containing the removed invert unit magic', () => {
+        const storage = new MemoryStorage();
+        setCurrentEnvelope(storage, [{
+            id: 'removed-invert-preset',
+            label: 'Removed invert',
+            circles: [{
+                id: 'circle',
+                position: { x: 0, y: 0 },
+                width: 480,
+                height: 400,
+                systemNodeSlots: [{
+                    magicType: 'manifestation',
+                    slotIndex: 1,
+                }],
+            }],
+            nodes: [{
+                id: 'invert-node',
+                magicType: 'invert',
+                circleId: 'circle',
+                sequenceIndex: 0,
+            }],
+            edges: [],
+        }]);
+
+        expect(loadStoredMagicGraphPresets(storage)).toMatchObject({
+            status: 'failure',
+            presets: [],
+            issues: [{
+                code: MAGIC_GRAPH_PRESET_STORAGE_ISSUE_CODES.INVALID_PRESETS,
+                invalidPresetCount: 1,
+            }],
+        });
+    });
+
     it('migrates legacy v6 arrays into a versioned v7 envelope', () => {
         const storage = new MemoryStorage();
         const legacy = JSON.stringify([PRESET]);

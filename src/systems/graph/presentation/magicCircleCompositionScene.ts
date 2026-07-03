@@ -30,14 +30,35 @@ export interface MagicCircleCompositionScene {
     layout: NodeCompositionTransitionLayout;
 }
 
+export interface MagicCircleCompositionSceneOptions {
+    centralCircleId?: string;
+    layoutConfig?: NodeCompositionTransitionConfig;
+}
+
 export function buildMagicCircleCompositionScene(
     sourceCircles: CirclePath[],
-    layoutConfig?: NodeCompositionTransitionConfig
+    options: MagicCircleCompositionSceneOptions = {}
 ): MagicCircleCompositionScene {
-    const renderModels = buildMagicCircleRenderModels(sourceCircles)
+    const centralCircleIndex = options.centralCircleId
+        ? sourceCircles.findIndex(circle =>
+            circle.id === options.centralCircleId
+        )
+        : -1;
+    const orderedCircles = centralCircleIndex > 0
+        ? [
+            sourceCircles[centralCircleIndex],
+            ...sourceCircles.filter((_, index) =>
+                index !== centralCircleIndex
+            ),
+        ]
+        : sourceCircles;
+    const renderModels = buildMagicCircleRenderModels(orderedCircles)
         .slice(0, NODE_COMPOSITION_TRANSITION_CONFIG.MAX_CIRCLE_INSTANCES);
     const vertexCount = Math.max(renderModels.length - CIRCLE_START_INDEX, 0);
-    const layout = buildNodeCompositionTransitionLayout(vertexCount, layoutConfig);
+    const layout = buildNodeCompositionTransitionLayout(
+        vertexCount,
+        options.layoutConfig
+    );
     const circles = renderModels.map((circle, index) => {
         const vertexIndex = index - CIRCLE_START_INDEX;
         const vertex = vertexIndex >= 0 ? layout.vertices[vertexIndex] : undefined;

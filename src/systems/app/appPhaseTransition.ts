@@ -23,6 +23,7 @@ export interface NodeCompositionTransitionPlan
     extends NodeCompositionCompletionPlanBase {
     presentation: typeof NODE_COMPOSITION_COMPLETION_PRESENTATIONS.TRANSITION;
     circles: CirclePath[];
+    terminalCircleId: string;
 }
 
 export interface ImmediateNodeCompositionCompletionPlan
@@ -36,7 +37,8 @@ export type NodeCompositionCompletionPlan =
 
 export function createNodeCompositionCompletionPlan(
     request: DirectAppPhaseTransitionRequest,
-    circles: readonly CirclePath[]
+    circles: readonly CirclePath[],
+    terminalCircleId?: string
 ): NodeCompositionCompletionPlan | undefined {
     if (request.currentPhase !== APP_PHASES.NODE_COMPOSITION) return undefined;
     if (circles.length === 0) return undefined;
@@ -49,10 +51,17 @@ export function createNodeCompositionCompletionPlan(
     }
 
     if (request.nextPhase === APP_PHASES.NODE_RESULT_DIALOGUE) {
+        const resolvedTerminalCircleId = circles.some(circle =>
+            circle.id === terminalCircleId
+        )
+            ? terminalCircleId!
+            : circles.at(-1)!.id;
+
         return {
             targetPhase: request.nextPhase,
             presentation: NODE_COMPOSITION_COMPLETION_PRESENTATIONS.TRANSITION,
             circles: snapshotCirclePaths(circles),
+            terminalCircleId: resolvedTerminalCircleId,
         };
     }
 

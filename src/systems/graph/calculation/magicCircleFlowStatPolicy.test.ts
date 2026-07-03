@@ -33,7 +33,7 @@ describe('magicCircleFlowStatPolicy', () => {
         )).toEqual({
             castingTime: 14,
             instability: 22,
-            power: 24,
+            power: 14,
             range: 5,
             manaCost: 12,
             duration: 4,

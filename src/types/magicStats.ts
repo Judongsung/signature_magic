@@ -43,7 +43,6 @@ export type MagicNodeStatBoundsConfig =
     Partial<Record<MagicStatKey, MagicStatBoundsOverrideConfig>>;
 
 export interface MagicStatRuleConfig {
-    nodeAggregation: MagicStatAggregationOperation;
     serialAggregation: MagicStatAggregationOperation;
     branchAggregation: MagicStatAggregationOperation;
     scaling: MagicStatScalingConfig;

@@ -91,15 +91,15 @@ describe('CyoaChoiceCard', () => {
             props: {
                 choice,
                 effectLabels: [
-                    '노드 불안정성 ×0.9',
-                    '행동 노드 마나 소모 −1',
+                    '단위 마법 불안정성 ×0.9',
+                    '행동 단위 마법 마나 소모 −1 마나',
                 ],
             },
         });
 
         expect(html).toContain('aria-label="선택 효과"');
-        expect(html).toContain('노드 불안정성 ×0.9');
-        expect(html).toContain('행동 노드 마나 소모 −1');
+        expect(html).toContain('단위 마법 불안정성 ×0.9');
+        expect(html).toContain('행동 단위 마법 마나 소모 −1 마나');
     });
 
     it('marks sub-choice cards with their visual and accessible context', () => {

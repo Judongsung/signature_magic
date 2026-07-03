@@ -77,7 +77,7 @@ describe('MagicNodeToolbar', () => {
         });
 
         expect(html).toContain('2');
-        expect(html).toContain('(+1)');
+        expect(html).toContain('(+1초)');
         expect(html).not.toContain('(+11)');
     });
 

@@ -330,7 +330,7 @@ describe('magicCircleGraphActions', () => {
             .toEqual(['b', 'd', 'a', 'c']);
     });
 
-    it('allows circle system node reordering only inside its own circle', () => {
+    it('keeps fixed circle system nodes at the end of their own circle', () => {
         const source = createMagicCircleNode({ x: 0, y: 0 }, () => 'source');
         const target = createMagicCircleNode({ x: 520, y: 0 }, () => 'target');
         const first = attachNodeToCircle(createTestMagicNode('first'), source, 0);
@@ -352,8 +352,8 @@ describe('magicCircleGraphActions', () => {
             source.id,
             0
         );
-        expect(sameCircleMove.moved).toBe(true);
-        expect(getCircleChildNodes(sameCircleMove.nodes, source.id)[0].id)
+        expect(sameCircleMove.moved).toBe(false);
+        expect(getCircleChildNodes(sameCircleMove.nodes, source.id).at(-1)?.id)
             .toBe(systemNode.id);
 
         expect(moveMagicNodeGroup(

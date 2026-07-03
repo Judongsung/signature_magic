@@ -73,6 +73,30 @@ describe('dataValidation', () => {
         )).toEqual({ valid: true, errors: [] });
     });
 
+    it('allows only declared statless magic types to omit stats', () => {
+        const base = {
+            label: 'Statless',
+            icon: '',
+            color: '#fff',
+            category: 'extension',
+            description: 'Statless magic.',
+        } as const;
+
+        expect(validateMagicTypes([
+            { ...base, type: 'detect' },
+            { ...base, type: 'repeat' },
+            { ...base, type: 'branch' },
+        ], MAGIC_NODE_CATEGORIES)).toEqual({
+            valid: true,
+            errors: [],
+        });
+        expect(validateMagicTypes([
+            { ...base, type: 'ordinary' },
+        ], MAGIC_NODE_CATEGORIES).errors).toContain(
+            'Missing magic type stats: ordinary'
+        );
+    });
+
     it('reports invalid magic node stat bound overrides', () => {
         expect(validateMagicTypes([{
             type: 'bounded',
@@ -105,17 +129,93 @@ describe('dataValidation', () => {
         });
     });
 
-    it('disables default node minimums for negative contribution nodes', () => {
+    it('reports invalid instability node count reductions', () => {
+        expect(validateMagicTypes([
+            {
+                type: 'zero-reduction',
+                label: 'Zero reduction',
+                icon: '',
+                color: '#fff',
+                category: 'control',
+                description: 'Invalid reduction.',
+                stats,
+                instabilityNodeCountReduction: 0,
+            },
+            {
+                type: 'fractional-reduction',
+                label: 'Fractional reduction',
+                icon: '',
+                color: '#fff',
+                category: 'control',
+                description: 'Invalid reduction.',
+                stats,
+                instabilityNodeCountReduction: 1.5,
+            },
+        ], MAGIC_NODE_CATEGORIES)).toEqual({
+            valid: false,
+            errors: [
+                'Invalid instability node count reduction: zero-reduction -> 0',
+                'Invalid instability node count reduction: fractional-reduction -> 1.5',
+            ],
+        });
+    });
+
+    it('reports invalid power amplification settings', () => {
+        expect(validateMagicTypes([
+            {
+                type: 'invalid-amplification',
+                label: 'Invalid amplification',
+                icon: '',
+                color: '#fff',
+                category: 'control',
+                description: 'Invalid amplification.',
+                stats,
+                powerAmplification: {
+                    factor: 1,
+                    manaCostPerAddedPower: -1,
+                    extra: true,
+                },
+            },
+        ] as unknown as MagicTypeConfig[], MAGIC_NODE_CATEGORIES)).toEqual({
+            valid: false,
+            errors: [
+                'Unknown power amplification key: invalid-amplification -> extra',
+                'Invalid power amplification factor: invalid-amplification -> 1',
+                'Invalid power amplification mana cost: invalid-amplification -> -1',
+            ],
+        });
+    });
+
+    it('configures stabilization and negative contribution node bounds', () => {
         const magicTypesById = new Map(
             (magicTypesData as MagicTypeConfig[]).map(magicType => [magicType.type, magicType])
         );
 
-        expect(magicTypesById.get('stabilize')?.statBounds).toEqual({
-            instability: { minimum: null },
+        expect(magicTypesById.get('stabilize')).toMatchObject({
+            category: 'extension',
+            instabilityNodeCountReduction: 2,
+            stats: {
+                castingTime: 3,
+                instability: 0,
+                manaCost: 4,
+                duration: 0,
+            },
         });
+        expect(magicTypesById.get('stabilize')?.statBounds).toBeUndefined();
         expect(magicTypesById.get('disperse')?.statBounds).toEqual({
             power: { minimum: null },
         });
+        expect(magicTypesById.get('amplify')).toMatchObject({
+            powerAmplification: {
+                factor: 1.5,
+                manaCostPerAddedPower: 1,
+            },
+            stats: {
+                power: 0,
+                manaCost: 5,
+            },
+        });
+        expect(magicTypesById.has('invert')).toBe(false);
     });
 
     it('validates circle system magic types', () => {
@@ -141,31 +241,26 @@ describe('dataValidation', () => {
     it('reports invalid magic stat rule operations', () => {
         expect(validateMagicStatRuleConfigs({
             castingTime: {
-                nodeAggregation: 'average',
                 serialAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 branchAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 scaling: { operation: MAGIC_STAT_SCALING_OPERATIONS.NONE },
             },
             instability: {
-                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 serialAggregation: 'fastest',
                 branchAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 scaling: { operation: MAGIC_STAT_SCALING_OPERATIONS.EXPONENTIAL_BY_NODE_COUNT },
             },
             power: {
-                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 serialAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 branchAggregation: 'nearest',
                 scaling: { operation: MAGIC_STAT_SCALING_OPERATIONS.NONE },
             },
             range: {
-                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.MULTIPLY,
                 serialAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.MULTIPLY,
                 branchAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.MAX,
                 scaling: { operation: 'curve' },
             },
             unknown: {
-                nodeAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 serialAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 branchAggregation: MAGIC_STAT_AGGREGATION_OPERATIONS.SUM,
                 scaling: { operation: MAGIC_STAT_SCALING_OPERATIONS.NONE },
@@ -174,7 +269,6 @@ describe('dataValidation', () => {
             valid: false,
             errors: [
                 'Unknown magic stat rule config key: unknown',
-                'Invalid magic stat node aggregation: castingTime -> average',
                 'Invalid magic stat serial aggregation: instability -> fastest',
                 'Invalid magic stat scaling factor: instability -> undefined',
                 'Invalid magic stat branch aggregation config: power -> nearest',
@@ -472,6 +566,36 @@ describe('dataValidation', () => {
             }],
             magicTypesData
         )).toEqual({ valid: true, errors: [] });
+    });
+
+    it('requires built-in manifestation slots to be last', () => {
+        const validation = validateMagicGraphPresets(
+            [{
+                id: 'mid-sequence-manifestation',
+                label: 'Mid-sequence manifestation',
+                circles: [{
+                    id: 'circle-a',
+                    position: { x: 0, y: 0 },
+                    width: 480,
+                    height: 640,
+                    systemNodeSlots: manifestationSlot(0),
+                }],
+                nodes: [{
+                    id: 'ignition-node',
+                    magicType: 'ignition',
+                    circleId: 'circle-a',
+                    sequenceIndex: 0,
+                }],
+                edges: [],
+            }],
+            magicTypesData
+        );
+
+        expect(validation.valid).toBe(false);
+        expect(validation.errors).toContain(
+            'Invalid magic graph preset system node slot: ' +
+            'mid-sequence-manifestation -> circle-a'
+        );
     });
 
     it('accepts a valid v6 repeat pair with start-only settings', () => {

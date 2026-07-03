@@ -96,8 +96,8 @@ describe('MagicCircleNode', () => {
         expect(html).toContain('data-status="empty"');
         expect(html).toContain(MAGIC_CIRCLE_NODE_CONFIG.DRAG_HANDLE_CLASS);
         expect(html).toMatch(/class="magic-circle-node [^"]*selected"/);
-        expect(html).toContain('INPUT');
-        expect(html).toContain('OUTPUT');
+        expect(html).toContain('입력');
+        expect(html).toContain('출력');
         expect(html).not.toContain('START');
         expect(html).not.toContain('END');
         expect(html).not.toContain('circle-status');

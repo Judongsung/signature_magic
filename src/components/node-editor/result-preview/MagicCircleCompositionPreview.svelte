@@ -25,13 +25,18 @@
 
     let {
         circles,
+        terminalCircleId,
     }: {
         circles: CirclePath[];
+        terminalCircleId?: string;
     } = $props();
 
     const compositionScene = $derived(buildMagicCircleCompositionScene(
         circles,
-        COMPOSITION_PREVIEW_LAYOUT_CONFIG
+        {
+            centralCircleId: terminalCircleId,
+            layoutConfig: COMPOSITION_PREVIEW_LAYOUT_CONFIG,
+        }
     ));
     const compositionLayout = $derived(compositionScene.layout);
     const centralCircle = $derived(compositionScene.centralCircle);

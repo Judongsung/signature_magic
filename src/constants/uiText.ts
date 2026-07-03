@@ -2,6 +2,10 @@ import { APP_PHASES, type AppPhase } from './appPhaseConfigs';
 import { APP_MODES, type AppMode } from './appModeConfigs';
 import type { MagicNodeCategory } from './nodeEditorConfigs';
 import {
+    MAGIC_STAT_DISPLAY_CONTEXTS,
+    type MagicStatDisplayContext,
+} from './magicStatPresentationConfigs';
+import {
     type MagicStatEffectOperation,
     type MagicStatEffectPhase,
 } from '../types/magicStatEffects';
@@ -90,7 +94,7 @@ export const DEV_PHASE_NAVIGATION_TEXT = {
         [APP_PHASES.INTRO_DIALOGUE]: 'NPC 대화',
         [APP_PHASES.CYOA]: 'CYOA',
         [APP_PHASES.NODE_INTRO_DIALOGUE]: '조합 안내',
-        [APP_PHASES.NODE_COMPOSITION]: '노드 조합',
+        [APP_PHASES.NODE_COMPOSITION]: '마법 조합',
         [APP_PHASES.NODE_RESULT_DIALOGUE]: '평가 결과',
         [APP_PHASES.MAGIC_RESULT]: '마법 요약',
     } satisfies Record<AppPhase, string>,
@@ -111,7 +115,7 @@ export const CYOA_STAT_EFFECT_TEXT = {
     ARIA_LABEL: '선택 효과',
     MAXIMUM_MANA_LABEL: '최대 마나',
     PHASE_LABELS: {
-        node: '노드',
+        node: '단위 마법',
         final: '최종',
     } satisfies Record<MagicStatEffectPhase, string>,
     OPERATION_SYMBOLS: {
@@ -165,7 +169,7 @@ export const CYOA_REGISTRATION_RESULT_TEXT = {
     EMPTY_STATS: '서클이 생성되면 최종 스탯이 표시됩니다.',
 } as const;
 
-// 노드 조합과 마법진 문구
+// 마법 조합과 마법진 문구
 export const NODE_EDITOR_TEXT = {
     TOOLBAR_LABEL: '단위 마법',
     CATEGORY_ARIA_LABEL: '단위 마법 카테고리',
@@ -176,7 +180,7 @@ export const NODE_EDITOR_TEXT = {
     PRESET_OPEN_TOOLTIP: '기본 조합과 저장한 조합을 관리합니다.',
     GUIDE_OPEN: '가이드',
     GUIDE_OPEN_ARIA_LABEL: '마법 편집 가이드 새 탭에서 열기',
-    GUIDE_OPEN_TOOLTIP: '마법 편집 시스템 상세 가이드를 새 탭에서 엽니다.',
+    GUIDE_OPEN_TOOLTIP: '마법 조합 상세 가이드를 새 탭에서 엽니다.',
     CLEAR_ALL_TOOLTIP: '현재 조합을 모두 지우고 처음 상태로 되돌립니다.',
     PRESET_DIALOG_TITLE: '마법 조합 프리셋',
     PRESET_DIALOG_DESCRIPTION: '기본 조합과 저장한 조합을 관리합니다.',
@@ -200,14 +204,14 @@ export const NODE_EDITOR_TEXT = {
     CIRCLE_ADD: '서클 추가',
     CIRCLE_ADD_TOOLTIP: '현재 화면 중앙의 빈 위치에 새 서클을 추가합니다.',
     DETAILS_DELETE: '삭제',
-    CIRCLE_DELETE_CONFIRM: '서클과 내부 노드 및 연결을 모두 삭제할까요?',
+    CIRCLE_DELETE_CONFIRM: '서클 안의 단위 마법과 연결도 모두 삭제할까요?',
     CIRCLE_DELETE_DIALOG_TITLE: '서클 삭제',
     CIRCLE_DELETE_DIALOG_CANCEL: '취소',
     CIRCLE_DELETE_DIALOG_CONFIRM: '삭제',
     CIRCLE_REQUIRED_TOOLTIP: '단위 마법을 추가하려면 먼저 서클을 선택하세요.',
-    CIRCLE_TITLE: 'Circle',
-    CIRCLE_INPUT: 'INPUT',
-    CIRCLE_OUTPUT: 'OUTPUT',
+    CIRCLE_TITLE: '서클',
+    CIRCLE_INPUT: '입력',
+    CIRCLE_OUTPUT: '출력',
     DETAILS_BUTTON_TEXT: '…',
     DETAILS_OPEN_ARIA_LABEL: '상세정보 열기',
     CIRCLE_DETAILS_DIALOG_TITLE: '서클 정보',
@@ -217,13 +221,13 @@ export const NODE_EDITOR_TEXT = {
     CIRCLE_DETAILS_CAPTION_LABEL: '메모',
     CIRCLE_DETAILS_CAPTION_PLACEHOLDER: '서클의 역할이나 특징을 입력하세요.',
     CIRCLE_DETAILS_STATS_LABEL: '서클 스탯',
-    CIRCLE_DETAILS_STATS_ARIA_LABEL: '서클 계산 스탯',
+    CIRCLE_DETAILS_STATS_ARIA_LABEL: '서클 스탯',
     CONTROL_REPEAT_START: '반복 시작',
     CONTROL_REPEAT_END: '반복 끝',
     CONTROL_BRANCH_TARGET: '분기 목적지',
     TOOLBAR_HINT: '서클을 선택한 뒤 단위 마법을 추가하세요 · 선택 후 Delete 로 제거',
-    CANVAS_ARIA_LABEL: 'magic node canvas',
-    NODE_STATS_ARIA_LABEL: '마법 스탯',
+    CANVAS_ARIA_LABEL: '마법 조합 편집 영역',
+    NODE_STATS_ARIA_LABEL: '단위 마법 스탯',
     NODE_DETAILS_DIALOG_TITLE: '단위 마법 정보',
     NODE_DETAILS_DIALOG_CLOSE_ARIA_LABEL: '단위 마법 정보 닫기',
     NODE_DETAILS_CATEGORY_LABEL: '카테고리',
@@ -274,12 +278,12 @@ export const MAGIC_RESULT_TEXT = {
 } as const;
 
 export const MAGIC_CIRCLE_TEXT = {
-    EMPTY_HINT: '단위 마법을 연결하면 서클이 생성됩니다.',
-    TOTAL_STATS_ARIA_LABEL: 'Total magic stats',
-    TOTAL_STATS_LABEL: 'Total Stats',
-    CIRCLE_COUNT_LABEL: '서클 마법',
-    CIRCLE_LABEL: 'Circle',
-    CIRCLE_ARIA_LABEL: 'Magic circle',
+    EMPTY_HINT: '서클을 추가하고 단위 마법을 배치해 보세요.',
+    TOTAL_STATS_ARIA_LABEL: '전체 마법 스탯',
+    TOTAL_STATS_LABEL: '전체 스탯',
+    CIRCLE_COUNT_LABEL: '서클',
+    CIRCLE_LABEL: '서클',
+    CIRCLE_ARIA_LABEL: '마법 서클',
 } as const;
 
 // 공통 도메인 라벨
@@ -292,24 +296,48 @@ export const MAGIC_STAT_LABELS: Record<MagicStatKey, string> = {
     duration: '지속 시간',
 };
 
+export const MAGIC_STAT_DISPLAY_LABELS = {
+    [MAGIC_STAT_DISPLAY_CONTEXTS.NODE]: {
+        ...MAGIC_STAT_LABELS,
+        range: '범위 배율',
+    },
+    [MAGIC_STAT_DISPLAY_CONTEXTS.CIRCLE]: {
+        ...MAGIC_STAT_LABELS,
+        range: '최종 범위',
+    },
+    [MAGIC_STAT_DISPLAY_CONTEXTS.TOTAL]: {
+        ...MAGIC_STAT_LABELS,
+        range: '최종 범위',
+    },
+} satisfies Record<
+    MagicStatDisplayContext,
+    Record<MagicStatKey, string>
+>;
+
 export const MAGIC_STAT_CALCULATION_DESCRIPTIONS = {
     circle: {
-        castingTime: '합류로 이어받은 흐름과 이 서클의 마지막 단계까지 걸리는 시간을 표시합니다.',
-        instability: '이 서클 내부에서 발생한 불안정성만 표시합니다. 서클을 나누면 복리 증가를 줄일 수 있습니다.',
-        power: '합류로 이어받은 출력과 이 서클에서 더한 출력을 함께 표시합니다.',
-        range: '합류 시 더 넓은 범위를 이어받고, 이후 단위 마법의 범위 변화를 반영합니다.',
-        manaCost: '합류한 모든 흐름과 이 서클에서 사용한 마나를 더합니다.',
-        duration: '합류 시 더 오래 유지되는 흐름을 이어받고, 이후 지속 시간을 반영합니다.',
+        castingTime: '합류로 이어받은 흐름과 이 서클의 마지막 단계까지 걸리는 시간을 초 단위로 표시합니다.',
+        instability: '제어를 제외한 단위 마법이 많을수록 위험이 빠르게 커집니다. 안정 단위 마법을 사용하면 복잡도를 낮출 수 있습니다.',
+        power: '합류에서는 더 높은 출력을 이어받고, 이후 단위 마법으로 바뀐 결과를 표시합니다.',
+        range: '기준거리 1m에 각 단위 마법의 범위 변화를 반영한 거리를 표시합니다.',
+        manaCost: '합류한 모든 흐름과 이 서클에서 사용한 마나를 더합니다. 수치의 단위는 마나입니다.',
+        duration: '합류 시 더 오래 유지되는 흐름을 이어받고, 이후 지속 시간을 초 단위로 반영합니다.',
     },
     total: {
-        castingTime: '합류 전 흐름은 동시에 진행되며, 가장 오래 걸린 흐름부터 이후 시전 시간을 이어서 계산합니다.',
-        instability: '가장 불안정한 서클의 수치에 서클 연결마다 1을 더합니다. 10을 넘으면 마법의 위험도가 커집니다.',
-        power: '합류하는 흐름의 출력을 더하고 이후 단위 마법의 출력을 이어서 반영합니다.',
-        range: '합류하는 흐름 중 가장 넓은 범위를 이어받아 이후 범위 변화를 반영합니다.',
-        manaCost: '합류하는 모든 흐름과 이후 단위 마법의 마나 소모를 더합니다.',
-        duration: '합류하는 흐름 중 가장 오래 유지되는 값을 이어받아 이후 지속 시간을 반영합니다.',
+        castingTime: '합류 전 흐름은 동시에 진행되며, 가장 오래 걸린 흐름부터 이후 시전 시간을 초 단위로 더합니다.',
+        instability: '가장 불안정한 서클의 수치에 연결마다 1을 더합니다. 5 이하는 안정, 10 이하는 주의, 15 이하는 위험, 그보다 높으면 극위험입니다.',
+        power: '합류하는 흐름 중 가장 높은 출력을 이어받아 이후 단위 마법을 반영합니다. 최종 수치는 없음·미약·실용·강력·대규모 등급으로 해석합니다.',
+        range: '기준거리 1m에 전체 범위 배율을 적용한 유효 거리를 표시합니다.',
+        manaCost: '합류하는 모든 흐름과 이후 단위 마법이 사용하는 마나를 더합니다.',
+        duration: '합류하는 흐름 중 가장 오래 유지되는 값을 이어받아 이후 지속 시간을 초 단위로 더합니다.',
     },
 } as const satisfies Record<'circle' | 'total', Record<MagicStatKey, string>>;
+
+export const MAGIC_NODE_TOOLTIP_TEXT = {
+    AMPLIFICATION_MULTIPLIER_PREFIX: '×',
+    AMPLIFICATION_MANA_PREFIX: '기본 ',
+    AMPLIFICATION_MANA_SUFFIX: ' + 늘어난 출력',
+} as const;
 
 export const MAGIC_NODE_CATEGORY_LABELS: Record<MagicNodeCategory, string> = {
     basic: '속성',

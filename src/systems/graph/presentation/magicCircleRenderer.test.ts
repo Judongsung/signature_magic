@@ -26,10 +26,12 @@ function node(id: string, magicType: MagicType): MagicNode {
 
 function circle(
     nodes: MagicNode[],
-    statAdjustments = EMPTY_MAGIC_STATS
+    statAdjustments = EMPTY_MAGIC_STATS,
+    options: Pick<CirclePath, 'name' | 'starPointCount'> = {}
 ): CirclePath {
     return {
         id: 'circle-0',
+        ...options,
         nodes,
         stats: EMPTY_MAGIC_STATS,
         statAdjustments,
@@ -160,6 +162,28 @@ describe('buildMagicCircleRenderModels', () => {
         const [x, y] = sevenPointModel.nodeStar!.polygons[0].split(' ')[0].split(',').map(Number);
         const vertexRadius = Math.hypot(x - MAGIC_CIRCLE_RENDERING_CONFIG.CENTER, y - MAGIC_CIRCLE_RENDERING_CONFIG.CENTER);
         expect(vertexRadius).toBe(MAGIC_CIRCLE_RENDERING_CONFIG.OUTER_GUIDE_RADIUS);
+    });
+
+    it('uses join-inclusive star points without adding glyph rings', () => {
+        const [model] = buildMagicCircleRenderModels([
+            circle(
+                [
+                    node('ignition', 'ignition'),
+                    node('stream', 'stream'),
+                    node('soil', 'soil'),
+                ],
+                EMPTY_MAGIC_STATS,
+                {
+                    name: '합류 서클',
+                    starPointCount: 4,
+                }
+            ),
+        ]);
+
+        expect(model.name).toBe('합류 서클');
+        expect(model.nodeStar?.pointCount).toBe(4);
+        expect(model.rings).toHaveLength(3);
+        expect(model.bands).toHaveLength(3);
     });
 
     it('keeps the outer glyph band inside the visible guide circle', () => {

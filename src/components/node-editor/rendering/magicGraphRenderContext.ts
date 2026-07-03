@@ -23,6 +23,7 @@ export interface MagicGraphRenderContext {
     getCircleChildren(circleId: string): readonly MagicNode[];
     getCircleState(circleId: string): MagicCircleState | undefined;
     getCircleTitle(circleId: string): string | undefined;
+    hasOutgoingCircleConnection(circleId: string): boolean;
     readonly activeCircleId: string | undefined;
     readonly sequenceDropPreview: MagicNodeSequenceDrop | undefined;
     readonly nodeStatEffects: readonly MagicStatEffectConfig[];

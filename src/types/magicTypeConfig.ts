@@ -45,6 +45,11 @@ export interface MagicNodeInstanceEditorConfig {
 
 export type MagicNodeSettings = Record<string, string>;
 
+export interface MagicPowerAmplificationConfig {
+    factor: number;
+    manaCostPerAddedPower: number;
+}
+
 export interface MagicTypeConfig {
     type: MagicType;
     label: string;
@@ -52,6 +57,8 @@ export interface MagicTypeConfig {
     color: string;
     category: MagicNodeCategory;
     description: string;
+    instabilityNodeCountReduction?: number;
+    powerAmplification?: MagicPowerAmplificationConfig;
     instanceEditor?: MagicNodeInstanceEditorConfig;
     stats?: MagicStatsConfig;
     statBounds?: MagicNodeStatBoundsConfig;

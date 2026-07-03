@@ -151,8 +151,8 @@
         ]
     },
     {
-        "id": "user-preset-a44855fa8e",
-        "label": "new 루아른 시그니처",
+        "id": "user-preset-8b8b33156d",
+        "label": "루아른 시그니처",
         "circles": [
             {
                 "id": "circle-initial",
@@ -213,7 +213,7 @@
                 "systemNodeSlots": [
                     {
                         "magicType": "manifestation",
-                        "slotIndex": 3
+                        "slotIndex": 0
                     }
                 ],
                 "name": "최종 발현"
@@ -510,24 +510,6 @@
                     "id": "control-pair-98a1413f7b",
                     "role": "end"
                 }
-            },
-            {
-                "id": "node-48c5716e2d",
-                "magicType": "stabilize",
-                "circleId": "circle-d1d059582f",
-                "sequenceIndex": 0
-            },
-            {
-                "id": "node-d499639bf4",
-                "magicType": "stabilize",
-                "circleId": "circle-d1d059582f",
-                "sequenceIndex": 1
-            },
-            {
-                "id": "node-d109de3a74",
-                "magicType": "stabilize",
-                "circleId": "circle-d1d059582f",
-                "sequenceIndex": 2
             }
         ],
         "edges": [
@@ -545,7 +527,7 @@
                 "target": "circle-d1d059582f",
                 "sourceHandle": "circle-output",
                 "targetHandle": "circle-input-1",
-                "joinSlotIndex": 1
+                "joinSlotIndex": 0
             },
             {
                 "id": "edge-a8771a29d8",
@@ -553,7 +535,7 @@
                 "target": "circle-d1d059582f",
                 "sourceHandle": "circle-output",
                 "targetHandle": "circle-input-2",
-                "joinSlotIndex": 2
+                "joinSlotIndex": 0
             }
         ]
     }

@@ -11,6 +11,9 @@ import {
 import {
     type MagicTypeConfig,
 } from '../../../types/magicTypeConfig';
+import {
+    MAGIC_CONTROL_PAIR_ROLES,
+} from '../../../constants/graphConfigs';
 
 function calculationNode(
     id: string,
@@ -18,6 +21,10 @@ function calculationNode(
     options: {
         excludeFromStatScaling?: boolean;
         nodeKind?: 'user' | 'system';
+        weight?: string;
+        controlPairRole?: typeof MAGIC_CONTROL_PAIR_ROLES[
+            keyof typeof MAGIC_CONTROL_PAIR_ROLES
+        ];
     } = {}
 ): MagicNode {
     const base = {
@@ -43,6 +50,17 @@ function calculationNode(
             data: {
                 magicType,
                 nodeKind: 'user',
+                ...(options.weight
+                    ? { settings: { weight: options.weight } }
+                    : {}),
+                ...(options.controlPairRole
+                    ? {
+                        controlPair: {
+                            id: `${id}-pair`,
+                            role: options.controlPairRole,
+                        },
+                    }
+                    : {}),
                 ...scalingData,
             },
         };
@@ -81,6 +99,15 @@ describe('magicStatRules', () => {
             color: '',
             category: 'control',
             description: '',
+        }],
+        ['stabilize', {
+            type: 'stabilize',
+            label: 'Stabilize',
+            icon: '',
+            color: '',
+            category: 'extension',
+            description: '',
+            instabilityNodeCountReduction: 2,
         }],
     ]);
 
@@ -125,10 +152,12 @@ describe('magicStatRules', () => {
         expect(MAGIC_STAT_RULES.instability.clampValue(-4)).toBe(0);
     });
 
-    it('excludes control and system nodes from the node-count exponent', () => {
+    it('excludes control and system nodes from the exponent', () => {
         const nodes = [
             calculationNode('detect', 'detect'),
-            calculationNode('repeat', 'repeat'),
+            calculationNode('repeat', 'repeat', {
+                controlPairRole: MAGIC_CONTROL_PAIR_ROLES.START,
+            }),
             calculationNode('manifestation', 'manifestation', {
                 nodeKind: 'system',
             }),
@@ -136,13 +165,17 @@ describe('magicStatRules', () => {
         const scaled = MAGIC_STAT_RULES.instability.scaleFinalValue(2, {
             nodes,
             magicTypes,
-            nodeExecutionCounts: new Map(nodes.map(node => [node.id, 9])),
+            nodeExecutionCounts: new Map([
+                ['detect', 3],
+                ['repeat', 1],
+                ['manifestation', 9],
+            ]),
         });
 
         expect(scaled).toBe(2);
     });
 
-    it('uses nested execution counts only for ordinary unit nodes', () => {
+    it('uses nested execution counts only for ordinary unit magic', () => {
         const nodes = [
             calculationNode('outside'),
             calculationNode('nested-repeat-start', 'repeat'),
@@ -165,6 +198,67 @@ describe('magicStatRules', () => {
             ]),
         });
 
+        // 바깥 1회 + 내부 단위 마법 6회, 반복 시작은 제외
         expect(scaled).toBeCloseTo(2 * (1.1 ** 6));
+    });
+
+    it('stacks stabilization executions without applying control-node weights', () => {
+        const nodes = [
+            calculationNode('ordinary-a'),
+            calculationNode('ordinary-b'),
+            calculationNode('ordinary-c'),
+            calculationNode('stabilize', 'stabilize', {
+                weight: '2',
+            }),
+            calculationNode('stabilize-b', 'stabilize'),
+        ];
+        const scaled = MAGIC_STAT_RULES.instability.scaleFinalValue(2, {
+            nodes,
+            magicTypes,
+            nodeExecutionCounts: new Map([
+                ['ordinary-a', 4],
+                ['ordinary-b', 4],
+                ['ordinary-c', 4],
+                ['stabilize', 2],
+            ]),
+        });
+
+        // 일반 12회 - 안정화 6회분 = 유효 단위 마법 6개
+        expect(scaled).toBeCloseTo(2 * (1.1 ** 5));
+    });
+
+    it('uses nested repeat execution counts for stabilization', () => {
+        const nodes = [
+            calculationNode('ordinary-a'),
+            calculationNode('ordinary-b'),
+            calculationNode('ordinary-c'),
+            calculationNode('stabilize', 'stabilize'),
+        ];
+        const scaled = MAGIC_STAT_RULES.instability.scaleFinalValue(2, {
+            nodes,
+            magicTypes,
+            nodeExecutionCounts: new Map(nodes.map(node => [
+                node.id,
+                6,
+            ])),
+        });
+
+        // 일반 18회 - 안정화 12회분 = 유효 단위 마법 6개
+        expect(scaled).toBeCloseTo(2 * (1.1 ** 5));
+    });
+
+    it('does not reduce the instability exponent below zero', () => {
+        const nodes = [
+            calculationNode('ordinary'),
+            calculationNode('stabilize', 'stabilize', {
+                weight: '9',
+            }),
+        ];
+        const scaled = MAGIC_STAT_RULES.instability.scaleFinalValue(2, {
+            nodes,
+            magicTypes,
+        });
+
+        expect(scaled).toBe(2);
     });
 });

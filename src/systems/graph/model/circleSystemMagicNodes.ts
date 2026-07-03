@@ -66,6 +66,17 @@ export function isCircleSystemMagicNodeData(
         isCircleSystemMagicType(data.magicType, configs);
 }
 
+export function isFixedCircleSystemMagicNode(
+    node: MagicEditorNode,
+    configs: readonly CircleSystemMagicNodeConfig[] =
+        DEFAULT_CIRCLE_SYSTEM_NODE_CONFIGS
+): node is MagicCircleSystemNode {
+    return configs.some(config =>
+        config.fixedAtSequenceEnd === true &&
+        isCircleSystemMagicNode(node, [config])
+    );
+}
+
 export function getCircleEditableSequenceNodes(
     nodes: readonly MagicEditorNode[],
     circleId: string
@@ -88,22 +99,27 @@ export function resolveCircleSystemNodeSlotsFromChildren(
         const systemNodeIndex = children.findIndex(node =>
             isCircleSystemMagicNode(node, [config])
         );
+        const slotIndex = config.fixedAtSequenceEnd
+            ? editableChildren.length
+            : systemNodeIndex < 0
+                ? editableChildren.length
+                : children
+                    .slice(0, systemNodeIndex)
+                    .filter(node =>
+                        !isCircleSystemMagicNode(node, configs) &&
+                        !node.data.connectionJoin
+                    )
+                    .length;
         if (systemNodeIndex < 0) {
             return {
                 magicType: config.magicType,
-                slotIndex: editableChildren.length,
+                slotIndex,
             };
         }
 
         return {
             magicType: config.magicType,
-            slotIndex: children
-                .slice(0, systemNodeIndex)
-                .filter(node =>
-                    !isCircleSystemMagicNode(node, configs) &&
-                    !node.data.connectionJoin
-                )
-                .length,
+            slotIndex,
             ...(children[systemNodeIndex].data.settings
                 ? {
                     settings: {
@@ -177,7 +193,9 @@ export function normalizeCircleSystemNodeSlots(
         const slot = slots.find(item => item.magicType === config.magicType);
         return {
             magicType: config.magicType,
-            slotIndex: clampSlotIndex(slot?.slotIndex, editableNodeCount),
+            slotIndex: config.fixedAtSequenceEnd
+                ? editableNodeCount
+                : clampSlotIndex(slot?.slotIndex, editableNodeCount),
             ...(slot?.settings
                 ? { settings: { ...slot.settings } }
                 : {}),
@@ -223,9 +241,11 @@ function resolveSystemNodeSlotsFromChildren(
 
         return {
             magicType: config.magicType,
-            slotIndex: systemNodeIndex < 0
+            slotIndex: config.fixedAtSequenceEnd
                 ? editableNodeCount
-                : editableBefore(systemNodeIndex),
+                : systemNodeIndex < 0
+                    ? editableNodeCount
+                    : editableBefore(systemNodeIndex),
         };
     });
 }
@@ -280,6 +300,9 @@ function normalizeCircleSystemMagicNode(
         }),
         id: createCircleSystemMagicNodeId(circle.id, config),
         type: GRAPH_NODE_TYPES.MAGIC_NODE,
+        ...(config.fixedAtSequenceEnd
+            ? { draggable: false }
+            : {}),
         connectable: false,
         deletable: false,
         selectable: true,

@@ -105,7 +105,8 @@
 
         const completionPlan = createNodeCompositionCompletionPlan(
             request,
-            graphStore.circles
+            graphStore.circles,
+            graphStore.terminalCircleId
         );
         if (!completionPlan) return false;
 
@@ -192,6 +193,7 @@
 {#if nodeCompositionTransition}
     <NodeCompositionTransitionOverlay
         circles={nodeCompositionTransition.circles}
+        terminalCircleId={nodeCompositionTransition.terminalCircleId}
         onComplete={completeNodeCompositionTransition}
     />
 {/if}

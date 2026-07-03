@@ -6,6 +6,9 @@
     import {
         MAGIC_CIRCLE_ANIMATION_MODES,
     } from '../../constants/magicCircleConfigs';
+    import {
+        MAGIC_CANVAS_BACKGROUND,
+    } from '../../constants/magicCanvasAssets';
     import { APP_TITLE_TEXT } from '../../constants/uiText';
     import {
         APP_TITLE_PRESENTATION_CONFIG,
@@ -28,7 +31,11 @@
     } = $props();
 </script>
 
-<main class="title-screen" data-tooltip-boundary>
+<main
+    class="title-screen"
+    data-tooltip-boundary
+    style:--title-background-image={`url("${MAGIC_CANVAS_BACKGROUND.IMAGE_URL}")`}
+>
     <section class="title-stage" aria-labelledby="app-title">
         <div
             class="title-circle"
@@ -74,27 +81,18 @@
         background:
             radial-gradient(circle at 50% 34%, rgba(63, 130, 174, 0.18), transparent 30%),
             radial-gradient(circle at 50% 42%, rgba(117, 91, 168, 0.12), transparent 46%),
-            linear-gradient(180deg, #090d18 0%, #050711 58%, #020307 100%);
+            linear-gradient(180deg, rgba(9, 13, 24, 0.38) 0%, rgba(5, 7, 17, 0.62) 58%, rgba(2, 3, 7, 0.86) 100%),
+            var(--title-background-image) center / cover no-repeat,
+            #020307;
         box-sizing: border-box;
         isolation: isolate;
     }
 
-    .title-screen::before,
     .title-screen::after {
         position: absolute;
         inset: 0;
         content: '';
         pointer-events: none;
-    }
-
-    .title-screen::before {
-        z-index: -2;
-        background-image:
-            radial-gradient(circle, rgba(206, 231, 255, 0.28) 0 1px, transparent 1.25px),
-            radial-gradient(circle, rgba(242, 214, 139, 0.2) 0 1px, transparent 1.2px);
-        background-position: 0 0, 53px 71px;
-        background-size: 113px 113px, 167px 167px;
-        opacity: 0.26;
     }
 
     .title-screen::after {

@@ -17,6 +17,11 @@
         index: number;
         animationMode?: MagicCircleAnimationMode;
     } = $props();
+
+    const displayName = $derived(
+        circle.name?.trim() ||
+        `${MAGIC_CIRCLE_TEXT.CIRCLE_LABEL} ${index + 1}`
+    );
 </script>
 
 <div
@@ -26,12 +31,12 @@
     class:mode-loop={animationMode === MAGIC_CIRCLE_ANIMATION_MODES.LOOP}
     data-animation-mode={animationMode}
 >
-    <div class="circle-label">{MAGIC_CIRCLE_TEXT.CIRCLE_LABEL} {index + 1}</div>
+    <div class="circle-label">{displayName}</div>
     <MagicCircleSvg {circle} {index} {animationMode} />
     <MagicStatsGrid
         stats={circle.stats}
         adjustments={circle.statAdjustments}
-        ariaLabel={`${MAGIC_CIRCLE_TEXT.CIRCLE_ARIA_LABEL} ${index + 1} stats`}
+        ariaLabel={`${displayName} stats`}
     />
 </div>
 

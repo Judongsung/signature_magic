@@ -13,6 +13,9 @@
         resolveMagicNodeLabel,
     } from '../../../../systems/graph/model/magicNodeData';
     import { resolveMagicControlPairNodePresentation } from '../../../../systems/graph/presentation/magicControlPairPresentation';
+    import {
+        resolveCircleSystemMagicNodePresentation,
+    } from '../../../../systems/graph/presentation/circleSystemMagicNodePresentation';
     import { isCircleSystemMagicNodeData } from '../../../../systems/graph/model/circleSystemMagicNodes';
     import {
         isMagicCircleConnectionJoinData,
@@ -28,12 +31,10 @@
         id,
         data,
         parentId,
-        draggable = true,
     }: {
         id: string;
         data: MagicNodeData;
         parentId?: string;
-        draggable?: boolean;
     } = $props();
 
     const nodeConfig = $derived(getMagicTypeConfig(data.magicType));
@@ -48,12 +49,24 @@
         if (!isMagicCircleConnectionJoinData(data)) return undefined;
         return data.connectionJoin.sourceCircleId;
     });
+    const systemNodePresentation = $derived(
+        nodeConfig && isCircleSystemMagicNodeData(data)
+            ? resolveCircleSystemMagicNodePresentation(
+                nodeConfig,
+                Boolean(
+                    parentId &&
+                    renderContext.hasOutgoingCircleConnection(parentId)
+                )
+            )
+            : undefined
+    );
     const defaultLabel = $derived(
         connectionJoinSourceCircleId
             ? renderContext.getCircleTitle(
                 connectionJoinSourceCircleId
             ) ?? resolveMagicNodeLabel(data, nodeConfig)
-            : resolveMagicNodeLabel(data, nodeConfig)
+            : systemNodePresentation?.label ??
+                resolveMagicNodeLabel(data, nodeConfig)
     );
     const controlPairPresentation = $derived(
         resolveMagicControlPairNodePresentation(
@@ -68,7 +81,9 @@
             ? undefined
             : resolveMagicNodeCaption(data, nodeConfig)
     );
-    const description = $derived(nodeConfig?.description || '');
+    const description = $derived(
+        systemNodePresentation?.description ?? nodeConfig?.description ?? ''
+    );
     const tooltipId = $derived(`canvas-node-tooltip-${id}`);
     const shouldShowTooltip = $derived(
         data.showTooltip !== false &&
@@ -115,7 +130,7 @@
         {#if caption}<div class="caption">{caption}</div>{/if}
     </div>
 
-    {#if draggable && openDetails && controlPairPresentation.showDetails && !isConnectionJoin}
+    {#if openDetails && controlPairPresentation.showDetails && !isConnectionJoin}
         <button
             type="button"
             class="node-details-trigger nodrag nopan"
@@ -140,6 +155,7 @@
                     nodeCategory={nodeConfig.category}
                     nodeStatBounds={nodeConfig.statBounds}
                     nodeData={data}
+                    powerAmplification={nodeConfig.powerAmplification}
                 />
             {/if}
         </DescriptionTooltip>

@@ -32,6 +32,7 @@
         node,
         config,
         nodeStatEffects = [],
+        presentation,
         onSave,
         onDelete,
         onClose,
@@ -39,6 +40,10 @@
         node: MagicNode;
         config: MagicTypeConfig;
         nodeStatEffects?: readonly MagicStatEffectConfig[];
+        presentation?: {
+            label: string;
+            description: string;
+        };
         onSave: (settings: MagicNodeSettings | undefined) => void;
         onDelete?: () => void;
         onClose: () => void;
@@ -46,7 +51,12 @@
 
     const fields = $derived(getMagicNodeEditorFields(config));
     const isEditable = $derived(fields.length > 0);
-    const displayLabel = $derived(resolveMagicNodeLabel(node.data, config));
+    const displayLabel = $derived(
+        presentation?.label ?? resolveMagicNodeLabel(node.data, config)
+    );
+    const description = $derived(
+        presentation?.description ?? config.description
+    );
     const applicableNodeStatEffects = $derived(
         node.data.nodeKind === MAGIC_NODE_KINDS.SYSTEM ? [] : nodeStatEffects
     );
@@ -116,7 +126,7 @@
                 </div>
                 <div>
                     <dt>{NODE_EDITOR_TEXT.NODE_DETAILS_DESCRIPTION_LABEL}</dt>
-                    <dd id={dialogDescriptionId}>{config.description}</dd>
+                    <dd id={dialogDescriptionId}>{description}</dd>
                 </div>
             </dl>
 
@@ -130,6 +140,7 @@
                         nodeCategory={config.category}
                         nodeStatBounds={config.statBounds}
                         nodeData={draftNodeData}
+                        powerAmplification={config.powerAmplification}
                     />
                 </section>
             {/if}

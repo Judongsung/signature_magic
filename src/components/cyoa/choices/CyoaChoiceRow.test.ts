@@ -64,7 +64,7 @@ describe('CyoaChoiceRow', () => {
             },
         });
 
-        expect(html).toContain('순리 노드 출력 ×2');
+        expect(html).toContain('순리 단위 마법 출력 ×2');
     });
 
     it('formats maximum mana modifiers with other choice effects', () => {
@@ -77,7 +77,7 @@ describe('CyoaChoiceRow', () => {
             },
         });
 
-        expect(html).toContain('최대 마나 −12.5');
+        expect(html).toContain('최대 마나 −12.5 마나');
         expect(html).toContain('aria-label="선택 효과"');
     });
 

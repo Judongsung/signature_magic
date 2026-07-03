@@ -18,6 +18,7 @@ const renderContextMocks = vi.hoisted(() => ({
     sequenceDropPreview: undefined as MagicNodeSequenceDrop | undefined,
     nodeStatEffects: [] as MagicStatEffectConfig[],
     circleTitles: new Map<string, string>(),
+    outgoingCircleIds: new Set<string>(),
 }));
 
 vi.mock('@xyflow/svelte', () => ({
@@ -37,6 +38,8 @@ vi.mock('../../rendering/magicGraphRenderContext', () => ({
         getCircleState: () => undefined,
         getCircleTitle: (circleId: string) =>
             renderContextMocks.circleTitles.get(circleId),
+        hasOutgoingCircleConnection: (circleId: string) =>
+            renderContextMocks.outgoingCircleIds.has(circleId),
         activeCircleId: undefined,
         get sequenceDropPreview() {
             return renderContextMocks.sequenceDropPreview;
@@ -51,6 +54,7 @@ afterEach(() => {
     renderContextMocks.sequenceDropPreview = undefined;
     renderContextMocks.nodeStatEffects = [];
     renderContextMocks.circleTitles.clear();
+    renderContextMocks.outgoingCircleIds.clear();
 });
 
 function renderNode(
@@ -110,6 +114,24 @@ describe('MagicUnitNode', () => {
         expect(html).toContain('circle-system-node');
         expect(html).toContain('발현');
         expect(html).toContain('description-tooltip');
+        expect(html).not.toContain('node-tooltip-stats');
+    });
+
+    it('presents manifestation as transfer when its circle has an output', () => {
+        renderContextMocks.outgoingCircleIds.add('circle-a');
+
+        const { html } = renderNode({
+            magicType: 'manifestation',
+            nodeKind: 'system',
+            showTooltip: true,
+            sequenceIndex: 0,
+        }, 'circle-a');
+
+        expect(html).toContain('전달');
+        expect(html).toContain(
+            '이 서클에서 완성된 마법을 다음 서클로 전달한다.'
+        );
+        expect(html).not.toContain('node-tooltip-stats');
     });
 
     it('renders a connection join with its source circle title', () => {
@@ -154,6 +176,13 @@ describe('MagicUnitNode', () => {
         expect(html).toContain('tooltip-host');
         expect(html).toContain('aria-describedby="canvas-node-tooltip-node-1"');
         expect(html).toContain('description-tooltip');
+    });
+
+    it('omits stats from the detect tooltip', () => {
+        const { html } = renderNode({ magicType: 'detect' });
+
+        expect(html).toContain('description-tooltip');
+        expect(html).not.toContain('node-tooltip-stats');
     });
 
     it('shows active node stat effects in canvas tooltips', () => {

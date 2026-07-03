@@ -24,6 +24,7 @@ vi.mock('../../rendering/magicGraphRenderContext', () => ({
         getCircleChildren: () => [],
         getCircleState: () => undefined,
         getCircleTitle: () => undefined,
+        hasOutgoingCircleConnection: () => false,
         activeCircleId: undefined,
         sequenceDropPreview: undefined,
         nodeStatEffects: [],
@@ -59,7 +60,6 @@ describe('MagicUnitNode interaction', () => {
                     sequenceIndex: 0,
                 },
                 parentId: 'circle-1',
-                draggable: true,
             },
         });
 
@@ -92,7 +92,6 @@ describe('MagicUnitNode interaction', () => {
                     },
                 },
                 parentId: 'circle-target',
-                draggable: true,
             },
         });
 
@@ -117,7 +116,6 @@ describe('MagicUnitNode interaction', () => {
                     },
                 },
                 parentId: 'circle-1',
-                draggable: true,
             },
         });
 
@@ -139,7 +137,6 @@ describe('MagicUnitNode interaction', () => {
                     sequenceIndex: 0,
                 },
                 parentId: 'circle-1',
-                draggable: true,
             },
         });
 
